@@ -23,6 +23,10 @@ import {
   glassPanel, handCursor, heading, hexA, outlinedText, Particles, progressRing, Shake, vignette,
 } from '../../render/look';
 import { mill, Stream } from './millsfx';
+import {
+  blurbFor, build, buildById, canAffordSomething, fewerRocks, floodLimit, grain, hasBuilt,
+  paintSheaf, paintVillage, payFor, withVillage,
+} from './village';
 import { levelThumb, paintHorizon, ValleyArt, type Grid } from './paint';
 import {
   bankAt, buildValley, digAt, fieldDone, gridForAspect, houseFlooded, LEVELS, starsFor, stepWater,
@@ -30,7 +34,7 @@ import {
 } from './world';
 
 type Ctx = CanvasRenderingContext2D;
-type Phase = 'levels' | 'play' | 'won' | 'failed';
+type Phase = 'levels' | 'play' | 'won' | 'failed' | 'village';
 type Tool = 'dig' | 'bank';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
@@ -71,6 +75,13 @@ export class Millstream {
   private wheelLastCreak: number[] = [];
   private done = { fields: [] as boolean[], wheels: [] as boolean[] };
   private failWhy = '';
+  /** the sheaves this run of the valley just earned, shown on the win card */
+  private earnedGrain = 0;
+  /** the plot the finger last touched in the village, and the one that just went up */
+  private pickedPlot: string | null = null;
+  private justBuilt: { id: string; age: number } | null = null;
+  private villageNote = '';
+  private villageOk = true;
   private earned = 0;
   private digging = false;
   private lastCell = { x: -99, y: -99 };
@@ -170,9 +181,10 @@ export class Millstream {
 
   private start(i: number): void {
     this.levelIndex = clamp(i, 0, LEVELS.length - 1);
-    this.level = LEVELS[this.levelIndex];
+    // the same puzzle, with whatever the village has built into it
+    this.level = withVillage(LEVELS[this.levelIndex]);
     this.size = gridForAspect(this.w / Math.max(80, this.h - this.topInset()));
-    this.valley = buildValley(this.level, this.size);
+    this.valley = buildValley(this.level, this.size, { fewerRocks: fewerRocks() });
     this.art = new ValleyArt(this.valley, this.level.seed);
     this.scratch = new Float32Array(this.valley.water.length);
     this.spade = this.level.spade;
@@ -202,6 +214,10 @@ export class Millstream {
     this.ps.update(dt);
     this.shake.update(dt);
     this.cardPop = Math.min(1, this.cardPop + dt * 2.6);
+    if (this.justBuilt) {
+      this.justBuilt.age += dt;
+      if (this.justBuilt.age > 1.2) this.justBuilt = null;
+    }
     if (this.phase !== 'play') { this.stream.update(0); return; }
     this.idle += dt;
 
@@ -261,7 +277,7 @@ export class Millstream {
       }
     });
     for (let i = 0; i < L.houses.length; i++) {
-      if (houseFlooded(v, i)) { this.fail(T('A house flooded.', 'Een huis is ondergelopen.')); mill.flood(); this.shake.add(0.8); return; }
+      if (houseFlooded(v, i, floodLimit())) { this.fail(T('A house flooded.', 'Een huis is ondergelopen.')); mill.flood(); this.shake.add(0.8); return; }
     }
     const allDone = this.done.fields.every(Boolean) && this.done.wheels.every(Boolean);
     if (allDone) { this.win(); return; }
@@ -289,6 +305,7 @@ export class Millstream {
   private win(): void {
     this.earned = starsFor(this.level, this.spade, this.wasted, true);
     recordLevelResult(saveKey(this.level), 1, this.earned, true);
+    this.earnedGrain = payFor(this.level, this.earned);
     save.coins = Math.max(0, Math.round(save.coins + 25 + this.earned * 15)); persist();
     this.phase = 'won'; this.phaseT = 0; this.cardPop = 0;
     mill.complete();
@@ -335,6 +352,43 @@ export class Millstream {
     if (id === 'retry') { this.start(this.levelIndex); return; }
     if (id === 'next') { this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1)); return; }
     if (id === 'tool:dig' || id === 'tool:bank') { this.tool = id.slice(5) as Tool; mill.tap(); return; }
+    if (id === 'village') { this.phase = 'village'; this.phaseT = 0; this.pickedPlot = null; this.villageNote = ''; mill.tap(); return; }
+    if (id.startsWith('plot:')) { this.tapPlot(id.slice(5)); return; }
+  }
+
+  /**
+   * A plot in the village. The first touch says what would go there, which is how a child finds
+   * out what a building is for; touching the same one again with enough sheaves puts it up.
+   */
+  private tapPlot(id: string): void {
+    const b = buildById(id);
+    const nl = NL();
+    if (hasBuilt(id)) {
+      this.pickedPlot = id;
+      this.villageOk = true;
+      this.villageNote = blurbFor(id, nl);
+      mill.tap();
+      return;
+    }
+    if (this.pickedPlot !== id) {
+      this.pickedPlot = id;
+      this.villageOk = grain() >= b.cost;
+      this.villageNote = blurbFor(id, nl);
+      mill.tap();
+      return;
+    }
+    if (build(id)) {
+      this.justBuilt = { id, age: 0 };
+      this.villageOk = true;
+      this.villageNote = nl ? `${b.nameNl} staat er. ${b.whatNl}` : `${b.name} is up. ${b.what}`;
+      mill.complete();
+      return;
+    }
+    this.villageOk = false;
+    this.villageNote = nl
+      ? `Nog ${b.cost - grain()} schoven nodig. Bevloei een vallei, dan komen ze binnen.`
+      : `${b.cost - grain()} more sheaves needed. Water a valley and they come in.`;
+    mill.blocked();
   }
 
   private stroke(p: Vec): void {
@@ -369,6 +423,7 @@ export class Millstream {
     this.hits = [];
 
     if (this.phase === 'levels') { this.drawLevels(); return; }
+    if (this.phase === 'village') { this.drawVillage(); return; }
 
     ctx.save();
     this.shake.apply(ctx, 10 * this.u());
@@ -707,7 +762,8 @@ export class Millstream {
     ctx.fillStyle = 'rgba(8, 26, 44, 0.5)';
     ctx.fillRect(0, 0, this.w, this.h);
     const pop = easeOutBack(clamp(this.cardPop, 0, 1));
-    const cw = Math.min(360 * u, this.w - 32 * u), ch = 268 * u;
+    const cw = Math.min(360 * u, this.w - 32 * u);
+    const ch = (won && canAffordSomething() ? 328 : 268) * u;
     const x = this.w / 2 - cw / 2, y = this.h / 2 - ch / 2;
     ctx.save();
     ctx.translate(this.w / 2, this.h / 2);
@@ -741,6 +797,21 @@ export class Millstream {
       ctx.fillText(
         `${T('Earth moved', 'Grond verzet')}: ${Math.round((1 - this.spade / this.level.spade) * 100)}%  ·  ${T('lost to the sea', 'naar zee verloren')}: ${Math.round(this.wasted)}`,
         this.w / 2, y + 148 * u, cw - 40 * u);
+      // what the valley paid into the barn
+      if (this.earnedGrain > 0) {
+        paintSheaf(ctx, this.w / 2 - 26 * u, y + 176 * u, 9 * u);
+        ctx.fillStyle = '#4a6a2e';
+        ctx.font = this.font('900', 14);
+        ctx.textAlign = 'left';
+        ctx.fillText(`+${this.earnedGrain} ${T(this.earnedGrain === 1 ? 'sheaf' : 'sheaves', this.earnedGrain === 1 ? 'schoof' : 'schoven')}`,
+          this.w / 2 - 10 * u, y + 181 * u, cw - 60 * u);
+        ctx.textAlign = 'center';
+      } else {
+        ctx.fillStyle = 'rgba(18,48,71,0.5)';
+        ctx.font = this.font('700', 11.5);
+        ctx.fillText(T('This valley has already paid. More stars, more sheaves.',
+          'Deze vallei heeft al betaald. Meer sterren, meer schoven.'), this.w / 2, y + 180 * u, cw - 40 * u);
+      }
     } else {
       ctx.fillStyle = 'rgba(18,48,71,0.78)';
       ctx.font = this.font('800', 13);
@@ -752,6 +823,9 @@ export class Millstream {
     ctx.restore();
 
     const bw = 138 * u, bh = 50 * u, by = y + ch - 78 * u;
+    if (won && canAffordSomething()) {
+      this.bigButton('village', T('To the village', 'Naar het dorp'), this.w / 2 - 88 * u, by - 56 * u, 176 * u, 44 * u, '#f3e6c7', '#4a6a2e');
+    }
     this.bigButton('retry', T('Again', 'Opnieuw'), this.w / 2 - bw - 7 * u, by, bw, bh, '#fdfbf6', '#25506e');
     if (won && this.levelIndex + 1 < LEVELS.length) {
       this.bigButton('next', T('Next valley', 'Volgende vallei'), this.w / 2 + 7 * u, by, bw, bh, '#4fae6e', '#ffffff');
@@ -768,6 +842,31 @@ export class Millstream {
     ctx.textAlign = 'center';
     ctx.fillText(label, x + w / 2, face.y + h * 0.63, w - 20);
     this.hits.push({ id, x, y, w, h });
+  }
+
+  // ---------- the village ----------
+
+  /** The village green, the six plots, and a line saying what the one you touched would do. */
+  private drawVillage(): void {
+    const ctx = this.ctx, u = this.u();
+    this.hits = paintVillage(ctx, this.w, this.h, u, this.t, NL(),
+      (wt, sz) => this.font(wt, sz), this.justBuilt);
+
+    // what the plot you last touched is for, or how to get started
+    const note = this.villageNote || blurbFor(this.pickedPlot, NL());
+    const ny = this.h - 112 * u;
+    ctx.save();
+    ctx.font = this.font('700', 12.5);
+    const lines = wrapLines(ctx, note, this.w - 76 * u);
+    const bh = lines.length * 17 * u + 16 * u;
+    glassPanel(ctx, 24 * u, ny - bh / 2, this.w - 48 * u, bh, 15 * u, 0.95);
+    ctx.fillStyle = this.villageNote && !this.villageOk ? '#8a3a2a' : '#123047';
+    ctx.textAlign = 'center';
+    lines.forEach((ln, i) => ctx.fillText(ln, this.w / 2, ny - bh / 2 + 21 * u + i * 17 * u, this.w - 76 * u));
+    ctx.restore();
+
+    this.bigButton('levels', T('Valleys', 'Valleien'), this.w / 2 - 78 * u, this.h - 74 * u, 156 * u, 50 * u, '#4fae6e', '#ffffff');
+    ctx.textAlign = 'left';
   }
 
   // ---------- the list of valleys ----------
@@ -788,6 +887,17 @@ export class Millstream {
     ctx.fillStyle = 'rgba(18,48,71,0.7)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Dig, and the water finds its way.', 'Graaf, en het water vindt zijn weg.'), this.w / 2, 84 * u);
+
+    // the way into the village, with what is in the barn written on it
+    const vw = 104 * u, vh = 44 * u, vx = 14 * u, vy = 12 * u;
+    const face = chunkyButton(ctx, vx, vy, vw, vh, { tone: '#f3e6c7', pressed: this.held === 'village' });
+    paintSheaf(ctx, vx + 20 * u, face.y + vh * 0.5, 8 * u);
+    ctx.fillStyle = '#4a6a2e';
+    ctx.font = this.font('900', 13);
+    ctx.textAlign = 'left';
+    ctx.fillText(`${T('Village', 'Dorp')} ${grain()}`, vx + 36 * u, face.y + vh * 0.62, vw - 44 * u);
+    ctx.textAlign = 'center';
+    this.hits.push({ id: 'village', x: vx, y: vy, w: vw, h: vh });
 
     const cols = this.w > 640 * u ? 4 : 2;
     const pad = 14 * u;
@@ -889,4 +999,17 @@ export class Millstream {
     ctx.restore();
     ctx.textAlign = 'left';
   }
+}
+
+/** Break a line of text to fit a width, so a building's explanation never runs off the card. */
+function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let line = '';
+  for (const w of words) {
+    const next = line ? `${line} ${w}` : w;
+    if (line && ctx.measureText(next).width > maxW) { lines.push(line); line = w; } else line = next;
+  }
+  if (line) lines.push(line);
+  return lines;
 }

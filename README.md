@@ -55,7 +55,14 @@ Practises counting squares, comparing two numbers and planning a way out. Age 5 
 Dig channels and raise banks so the spring water reaches the fields and turns the mill wheels. Eight
 valleys with rocks, slopes and multiple targets; the water is a real flow simulation, so a channel
 that is too steep floods and one that is too shallow stalls.
-Practises spatial reasoning, planning ahead and cause and effect. Age 5 and up.
+
+Every valley pays in sheaves of grain, and the sheaves build a village of six things that make the
+next valley kinder: a water cellar that keeps the spring running longer, a shed with a bigger
+spade, a bridge that takes a rock out of the way, a sawmill, a dyke and an orchard. A valley pays
+once; come back and do it better and it pays the difference. There is no clock, nothing rots, and
+nothing is for sale - the village is a record of how well it was played, not a reason to keep
+opening the app.
+Practises spatial reasoning, planning ahead, cause and effect and saving up. Age 5 and up.
 
 ### Tidepool (`tidepool.html`)
 Sort what the tide brings into the right pools by colour, kind, size or spots. Then the rule changes

@@ -176,7 +176,11 @@ const kindIndex = (c: Cell): number => KINDS.indexOf(c);
 const idx = (v: { cols: number }, x: number, y: number): number => y * v.cols + x;
 
 /** Lay out a valley: a slope from the springs, ridges across it, and the places that matter. */
-export function buildValley(level: Level, size?: { cols: number; rows: number }): Valley {
+export function buildValley(
+  level: Level,
+  size?: { cols: number; rows: number },
+  opts?: { fewerRocks?: number },
+): Valley {
   const cols = size?.cols ?? COLS, rows = size?.rows ?? ROWS, n = cols * rows;
   const ground = new Float32Array(n);
   const kind = new Uint8Array(n);
@@ -266,10 +270,12 @@ export function buildValley(level: Level, size?: { cols: number; rows: number })
     return Math.hypot(px - (ax + dx * t), py - (ay + dy * t)) < 4.5;
   });
   const rocks = 5 + Math.round(level.rough * 8);
+  const placed: Array<Array<{ i: number }>> = [];
   for (let k = 0; k < rocks; k++) {
     const cx = Math.round(rng() * (cols - 1)), cy = Math.round(4 + rng() * (rows - 12));
     if (nearLine(cx, cy)) continue;
     const r = 1 + Math.round(rng() * 2);
+    const cells: Array<{ i: number }> = [];
     for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++) {
       if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
       if (Math.hypot(x - cx, y - cy) > r) continue;
@@ -277,6 +283,19 @@ export function buildValley(level: Level, size?: { cols: number; rows: number })
       if (kindOf(v, i) !== 'plain') continue;
       kind[i] = kindIndex('rock');
       ground[i] += 0.07;
+      cells.push({ i });
+    }
+    if (cells.length) placed.push(cells);
+  }
+  // The village's stone bridge takes an outcrop out of every valley. It is lifted after the fact
+  // rather than by laying one rock fewer: the rock loop skips any spot that sits on the obvious
+  // route, so asking for one less attempt often removed nothing at all. Undoing a cluster that
+  // actually went down always shows, and leaves the rest of the valley exactly as it was.
+  const lift = Math.min(opts?.fewerRocks ?? 0, Math.max(0, placed.length - 1));
+  for (let k = 0; k < lift; k++) {
+    for (const c of placed[placed.length - 1 - k]) {
+      kind[c.i] = kindIndex('plain');
+      ground[c.i] -= 0.07;
     }
   }
   v.original.set(ground);
@@ -411,7 +430,8 @@ export function totalWater(v: Valley): number {
 
 export const fieldDone = (v: Valley, level: Level, k: number): boolean => v.filled[k] >= level.fields[k].need;
 export const wheelDone = (v: Valley, level: Level, k: number): boolean => v.turned[k] >= level.wheels[k].need;
-export const houseFlooded = (v: Valley, k: number): boolean => v.wet[k] >= 1;
+/** A house is lost when it has taken its fill. The village's dyke lets it take more first. */
+export const houseFlooded = (v: Valley, k: number, limit = 1): boolean => v.wet[k] >= limit;
 
 /** Stars: everything working, then how little earth you moved and how little water you lost. */
 export function starsFor(level: Level, spadeLeft: number, wasted: number, allDone: boolean): number {

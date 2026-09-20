@@ -14,6 +14,8 @@ export interface SaveData {
   totalLanded: number;
   /** weather detail in the aircraft panel is folded out */
   wxOpen: boolean;
+  /** Millstream's village: what you have earned, what you have built, what each valley has paid */
+  mill: { grain: number; built: string[]; paid: Record<string, number> };
 }
 
 const KEY = 'cloudhopper.save.v1';
@@ -22,13 +24,18 @@ const LEGACY_KEY = 'wolkenhaven.save.v2';
 const defaults = (): SaveData => ({
   levels: {}, sound: true, radio: true, music: true, haptics: true, lang: 'auto', tutorialSeen: false,
   coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false,
+  mill: { grain: 0, built: [], paid: {} },
 });
 
 export function loadSave(): SaveData {
   try {
     const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
     if (!raw) return defaults();
-    return { ...defaults(), ...JSON.parse(raw) };
+    const d = defaults();
+    const got = JSON.parse(raw) as Partial<SaveData>;
+    // a save written before the village existed has no mill slice, and a half-written one may be
+    // missing a field inside it, so it is filled in rather than trusted whole
+    return { ...d, ...got, mill: { ...d.mill, ...(got.mill ?? {}) } };
   } catch { return defaults(); }
 }
 
