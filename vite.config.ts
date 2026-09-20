@@ -11,7 +11,8 @@ export default defineConfig({
     rollupOptions: {
       // Bramblewood ships one bundle per game; the shell that ties them together comes later.
       input: {
-        cloudhopper: resolve(__dirname, 'index.html'),
+        hub: resolve(__dirname, 'index.html'),
+        cloudhopper: resolve(__dirname, 'cloudhopper.html'),
         nightwatch: resolve(__dirname, 'nightwatch.html'),
         orbit: resolve(__dirname, 'orbit.html'),
         dig: resolve(__dirname, 'dig.html'),

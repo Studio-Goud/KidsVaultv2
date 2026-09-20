@@ -111,7 +111,7 @@ export class UI {
           <button class="btn" data-a="play">${t('islandsMode')}</button>
           <button class="btn mint" data-a="ports">${t('world')}</button>
           <div class="row" style="margin-top:0"><button class="btn secondary" data-a="shop">${t('airport')}</button><button class="btn secondary" data-a="fleet">${t('fleet')}</button><button class="btn secondary" data-a="settings">${t('settings')}</button></div>
-          <button class="btn quiet" data-a="parents">${t('parents')}</button>
+          <div class="row" style="margin-top:0"><button class="btn quiet" data-a="parents">${t('parents')}</button><a class="btn quiet" href="./">Bramblewood</a></div>
         </div>
       </div>`;
     s.querySelector('[data-a=play]')!.addEventListener('click', () => this.actions.toWorlds());
