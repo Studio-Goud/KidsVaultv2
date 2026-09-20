@@ -183,8 +183,10 @@ export class World {
       if (min > max) { min = 24 - rLo; max = span - 24 - rHi; }
       return min > max ? (min + max) / 2 : clamp(target, min, max);
     };
+    // sideways the runways lead, because that is what your thumb reaches for; vertically the whole
+    // field leads, so the terminal never slides off the bottom of the screen
     const dx = aim(r.x0, r.x1, all.x0, all.x1, SIDE, this.W - SIDE, this.W);
-    const dy = aim(r.y0, r.y1, all.y0, all.y1, HUD_TOP, this.H - PANEL, this.H);
+    const dy = aim(all.y0, all.y1, all.y0, all.y1, HUD_TOP, this.H - PANEL, this.H);
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
     const d = { x: dx, y: dy };
     this.shift = d;

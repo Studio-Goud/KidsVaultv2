@@ -498,7 +498,7 @@ export function realLevel(port: RealPort, step: number, nl: boolean, W = 739, H 
   const decor = port.landmarks.map(l => ({ kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, rot: l.rot }));
   // the whole map is land unless the port lists explicit coastlines
   const shapes: Array<Array<[number, number]>> = port.base === 'land'
-    ? [[[-0.05, -0.03], [1.05, -0.03], [1.05, 1.03], [-0.05, 1.03]]]
+    ? [[[-0.45, -0.25], [1.45, -0.25], [1.45, 1.25], [-0.45, 1.25]]]
     : (port.land ?? []);
   const islands = shapes.map((poly, i) => ({
     cx: 0.5, cy: 0.5, rx: 0.5, ry: 0.5, seed: port.seed + i, style,
