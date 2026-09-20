@@ -336,12 +336,68 @@ export class Orbit {
 
     if (this.phase === 'finished') { this.drawFinish(); this.hits.push(...this.drawTabs()); return; }
 
+    // The orbits themselves, as rings around the sun rather than a bare row of dots. They pass
+    // through the slot each planet belongs in, so the empty middle of the screen says what the
+    // puzzle is about - things going round the sun, the near ones first - instead of nothing.
+    const u = this.u(), sx = this.sunX(), ty = this.trackY();
+    const nSlots = this.want.length;
+    const l0 = 78 * u, r0 = this.w - 22 * u, stp = (r0 - l0) / nSlots;
+    ctx.save();
+    ctx.lineWidth = 1.2;
+    for (let k = 0; k < nSlots; k++) {
+      const rad = l0 + stp * (k + 0.5) - sx;
+      if (rad <= 0) continue;
+      const g = ctx.createLinearGradient(sx, ty - rad, sx, ty);
+      g.addColorStop(0, 'rgba(150, 180, 255, 0.015)');
+      g.addColorStop(0.72, `rgba(170, 196, 255, ${0.05 + (k === this.placedCount ? 0.1 : 0)})`);
+      g.addColorStop(1, `rgba(200, 220, 255, ${0.16 + (k === this.placedCount ? 0.16 : 0)})`);
+      ctx.strokeStyle = g;
+      ctx.beginPath();
+      ctx.arc(sx, ty, rad, -Math.PI * 0.62, 0);
+      ctx.stroke();
+    }
+    ctx.restore();
+
     // the track along the bottom with the sun at its left end
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255,255,255,0.16)'; ctx.lineWidth = 2;
     ctx.setLineDash([3, 9]);
-    ctx.beginPath(); ctx.moveTo(this.sunX() + 30 * this.u(), this.trackY()); ctx.lineTo(this.w - 14, this.trackY()); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 30 * u, ty); ctx.lineTo(this.w - 14, ty); ctx.stroke();
     ctx.setLineDash([]);
-    drawSun(ctx, this.sunX(), this.trackY(), 22 * this.u(), this.t);
+    // an empty slot is a socket, so it is clear there is somewhere to put a planet
+    for (let k = this.placedCount; k < nSlots; k++) {
+      const x = l0 + stp * (k + 0.5);
+      ctx.strokeStyle = k === this.placedCount ? 'rgba(180, 208, 255, 0.5)' : 'rgba(160, 186, 230, 0.2)';
+      ctx.lineWidth = k === this.placedCount ? 2 : 1.4;
+      ctx.setLineDash(k === this.placedCount ? [] : [2, 5]);
+      ctx.beginPath(); ctx.arc(x, ty, 13 * u, 0, TAU); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    drawSun(ctx, sx, ty, 22 * u, this.t);
+
+    // a ledge under the planets still waiting, so they are standing somewhere rather than floating
+    const loose = this.choices.filter(c => !c.placed && !(this.flyer && c.body.id === this.flyer.body.id));
+    if (loose.length) {
+      const by = Math.max(...loose.map(c => c.pos.y + c.r)) + 10 * u;
+      const bx0 = Math.min(...loose.map(c => c.pos.x - c.r)) - 16 * u;
+      const bx1 = Math.max(...loose.map(c => c.pos.x + c.r)) + 16 * u;
+      const lg = ctx.createLinearGradient(bx0, 0, bx1, 0);
+      lg.addColorStop(0, 'rgba(170, 198, 255, 0)');
+      lg.addColorStop(0.5, 'rgba(178, 204, 255, 0.28)');
+      lg.addColorStop(1, 'rgba(170, 198, 255, 0)');
+      ctx.strokeStyle = lg; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(bx0, by); ctx.lineTo(bx1, by); ctx.stroke();
+      // each one casts a little onto it
+      for (const c of loose) {
+        const sg = ctx.createRadialGradient(c.pos.x, by, 0, c.pos.x, by, c.r * 1.2);
+        sg.addColorStop(0, 'rgba(150, 180, 255, 0.22)');
+        sg.addColorStop(1, 'rgba(150, 180, 255, 0)');
+        ctx.fillStyle = sg;
+        ctx.save();
+        ctx.translate(c.pos.x, by); ctx.scale(1, 0.22); ctx.translate(-c.pos.x, -by);
+        ctx.beginPath(); ctx.arc(c.pos.x, by, c.r * 1.2, 0, TAU); ctx.fill();
+        ctx.restore();
+      }
+    }
 
     // planets already on the track, and the tray
     for (const c of this.choices) {

@@ -144,7 +144,10 @@ export class UI {
       this.actions.makePortThumb(p.id, c);
       const meta = document.createElement('div'); meta.className = 'meta';
       meta.innerHTML = `<div class="name">${p.name}</div><div class="info"><span>${p.city} · ${p.country}</span></div>` +
-        `<div class="info"><span>${svgStar(true, 12)} ${stars} / 12</span><span>${p.runways.length} ${lang() === 'nl' ? (p.runways.length === 1 ? 'baan' : 'banen') : (p.runways.length === 1 ? 'runway' : 'runways')}</span></div>`;
+        `<div class="info"><span>${svgStar(true, 12)} ${stars} / 12</span><span>${p.runways.length} ${lang() === 'nl' ? (p.runways.length === 1 ? 'baan' : 'banen') : (p.runways.length === 1 ? 'runway' : 'runways')}</span></div>` +
+        // the "still locked" line belongs with the other facts at the foot of the card; centred
+        // under the padlock it landed straight on top of them
+        (open ? '' : `<div class="lockline">${p.unlockAt - have} ${t('starsToUnlock')}</div>`);
       b.appendChild(meta);
       const code = document.createElement('div'); code.className = 'icao'; code.textContent = p.iata; b.appendChild(code);
       const dots = document.createElement('div'); dots.className = 'steps';
@@ -152,7 +155,7 @@ export class UI {
       b.appendChild(dots);
       if (!open) {
         const lock = document.createElement('div'); lock.className = 'lock';
-        lock.innerHTML = `${svgLock}<div class="lockhint">${p.unlockAt - have} ${t('starsToUnlock')}</div>`;
+        lock.innerHTML = svgLock;
         b.appendChild(lock);
       }
       b.addEventListener('click', () => {
@@ -228,10 +231,11 @@ export class UI {
       b.appendChild(c);
       this.actions.makeThumb(i, c);
       const meta = document.createElement('div'); meta.className = 'meta';
-      meta.innerHTML = `<div class="name">${lv.name}</div><div class="info"><span>${lang() === 'nl' ? lv.subtitle : lv.subtitleEn}</span></div><div class="info"><span>${svgStar(true, 12)} ${stars} / ${LEVELS_PER_WORLD * 3}</span><span>${LEVELS_PER_WORLD} ${t('missions').toLowerCase()}</span></div>`;
+      meta.innerHTML = `<div class="name">${lv.name}</div><div class="info"><span>${lang() === 'nl' ? lv.subtitle : lv.subtitleEn}</span></div><div class="info"><span>${svgStar(true, 12)} ${stars} / ${LEVELS_PER_WORLD * 3}</span><span>${LEVELS_PER_WORLD} ${t('missions').toLowerCase()}</span></div>`
+        + (unlocked ? '' : `<div class="lockline">12 ${t('starsToUnlock')}</div>`);
       b.appendChild(meta);
       const num = document.createElement('div'); num.className = 'num'; num.textContent = String(i + 1); b.appendChild(num);
-      if (!unlocked) { const lock = document.createElement('div'); lock.className = 'lock'; lock.innerHTML = `${svgLock}<div class="lockhint">12 ${t('starsToUnlock')}</div>`; b.appendChild(lock); }
+      if (!unlocked) { const lock = document.createElement('div'); lock.className = 'lock'; lock.innerHTML = svgLock; b.appendChild(lock); }
       b.addEventListener('click', () => { if (unlocked) this.actions.toMissions(i); else this.toast(t('worldLocked')); });
       grid.appendChild(b);
     });

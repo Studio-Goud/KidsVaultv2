@@ -7,6 +7,7 @@ import { drawHeart, drawPlane, drawPlaneGlyph } from './planes';
 import { advise } from '../game/advisory';
 import { kindLabel } from '../game/weather';
 import { drawWeatherIcon } from './weatherfx';
+import { shade } from './palette';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -16,6 +17,43 @@ export interface HudHits { pause: Rect; slowmo?: Rect; commands?: Array<{ id: st
 
 /** Fold the weather detail in or out; the choice is remembered between sessions. */
 export function toggleWeatherDetail(): void { save.wxOpen = !save.wxOpen; persist(); }
+
+/**
+ * A round button with weight to it: a lip underneath, a lit face, and a sliver of light across
+ * the top, the same three things look.ts gives every chunky button in the rest of Bramblewood.
+ * Cloudhopper's two round buttons used to be flat discs with a hairline ring, which is what made
+ * them the only untouchable-looking buttons in the product.
+ */
+/** The HUD colours are half-transparent washes; a lit face needs a solid colour to shade. */
+function solid(css: string): string {
+  const m = /rgba?\(([^)]+)\)/.exec(css);
+  if (!m) return css;
+  const [r, g, b, a = '1'] = m[1].split(',').map(v => parseFloat(v));
+  // over the scene these sit on, so flatten against a mid sky rather than against white
+  const f = (c: number, over: number): number => Math.round(c * Number(a) + over * (1 - Number(a)));
+  return `#${[f(r, 96), f(g, 132), f(b, 168)].map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('')}`;
+}
+
+function chunkyDisc(ctx: Ctx, cx: number, cy: number, r: number, css: string, dim = false): void {
+  const tone = solid(css);
+  const lip = Math.max(2.5, r * 0.16);
+  ctx.save();
+  if (dim) ctx.globalAlpha = 0.6;
+  ctx.fillStyle = shade(tone, -0.34);
+  ctx.beginPath(); ctx.arc(cx, cy + lip * 0.8, r, 0, Math.PI * 2); ctx.fill();
+  const g = ctx.createLinearGradient(0, cy - r, 0, cy + r);
+  g.addColorStop(0, shade(tone, 0.2));
+  g.addColorStop(0.55, tone);
+  g.addColorStop(1, shade(tone, -0.1));
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.beginPath(); ctx.ellipse(cx, cy - r * 0.42, r * 0.7, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
 
 function roundedCard(ctx: Ctx, x: number, y: number, w: number, h: number, r: number, fill: string): void {
   ctx.fillStyle = fill;
@@ -67,8 +105,7 @@ export function drawHud(ctx: Ctx, world: World, L: HudLayout, time: number, pal:
   // --- pause button ---
   const pr = 22 * u;
   const px = right - pr, py = top + pr;
-  ctx.fillStyle = pal.hud; ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.stroke();
+  chunkyDisc(ctx, px, py, pr, pal.hud);
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.roundRect(px - 7 * u, py - 8 * u, 5 * u, 16 * u, 2 * u); ctx.fill();
   ctx.beginPath(); ctx.roundRect(px + 2 * u, py - 8 * u, 5 * u, 16 * u, 2 * u); ctx.fill();
@@ -104,9 +141,7 @@ export function drawHud(ctx: Ctx, world: World, L: HudLayout, time: number, pal:
     const bx = right - r, by = L.sh - L.safeBottom - 16 * u - r;
     const active = world.timeScale < 1;
     const avail = world.slowmoCharges > 0 && !active;
-    ctx.fillStyle = active ? 'rgba(80,140,255,0.9)' : avail ? pal.hud : 'rgba(40,50,70,0.45)';
-    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1.5; ctx.stroke();
+    chunkyDisc(ctx, bx, by, r, active ? '#4f80e8' : pal.hud, !avail && !active);
     // hourglass-like tower icon: a clock with slow hand
     ctx.strokeStyle = avail || active ? '#fff' : 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2.2 * u; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.arc(bx, by - 2 * u, 11 * u, 0, Math.PI * 2); ctx.stroke();
