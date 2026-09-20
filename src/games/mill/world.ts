@@ -134,6 +134,19 @@ export const LEVELS: Level[] = [
 export const COLS = 44;
 export const ROWS = 62;
 
+/**
+ * A valley shaped to the screen it is played on.
+ *
+ * The grid used to be a fixed 44 by 62, which on a tall phone left a band of empty sky above and
+ * below the land. Everything in a level is placed in fractions of the grid, so the grid itself can
+ * take the shape of the window and the valley fills it edge to edge.
+ */
+export function gridForAspect(aspect: number): { cols: number; rows: number } {
+  const rows = ROWS;
+  const cols = Math.max(26, Math.min(120, Math.round(rows * aspect)));
+  return { cols, rows };
+}
+
 export interface Valley {
   cols: number;
   rows: number;
@@ -163,8 +176,8 @@ const kindIndex = (c: Cell): number => KINDS.indexOf(c);
 const idx = (v: { cols: number }, x: number, y: number): number => y * v.cols + x;
 
 /** Lay out a valley: a slope from the springs, ridges across it, and the places that matter. */
-export function buildValley(level: Level): Valley {
-  const cols = COLS, rows = ROWS, n = cols * rows;
+export function buildValley(level: Level, size?: { cols: number; rows: number }): Valley {
+  const cols = size?.cols ?? COLS, rows = size?.rows ?? ROWS, n = cols * rows;
   const ground = new Float32Array(n);
   const kind = new Uint8Array(n);
   const noise = new ValueNoise(level.seed);
