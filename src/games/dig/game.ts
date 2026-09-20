@@ -15,7 +15,7 @@ import { clamp, TAU, type Vec } from '../../util/math';
 import { makeRng, ValueNoise } from '../../util/rng';
 import { bodyPath, bones, drawCrest } from './anatomy';
 import { DINOS, type Dino } from './dinos';
-import { drawFossil, fossilPhoto, loadAllFossils } from './fossilphoto';
+import { drawFossil, fossilPhoto, FOSSILS, loadAllFossils } from './fossilphoto';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'digging' | 'asking' | 'wrong' | 'reveal' | 'finished';
@@ -445,5 +445,11 @@ export class DinoDig {
     ctx.fillStyle = '#4a3823'; ctx.font = this.font('800', 15);
     ctx.fillText(T('Dig again', 'Nog een keer graven'), this.w / 2, y + 30);
     this.hits.push({ id: 'again', x, y, w, h });
+
+    // attribution: one of the fossil photographs is CC BY and the rest are public domain
+    ctx.fillStyle = 'rgba(74,56,35,0.55)'; ctx.font = this.font('700', 9);
+    ctx.fillText(T('Fossil photographs:', 'Fossielfoto’s:'), this.w / 2, y + h + 26);
+    const lines = [...new Set(Object.values(FOSSILS).map(f => f.credit))];
+    lines.forEach((c, i) => ctx.fillText(c, this.w / 2, y + h + 40 + i * 12, this.w - 24));
   }
 }

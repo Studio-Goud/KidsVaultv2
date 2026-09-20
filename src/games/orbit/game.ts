@@ -337,5 +337,11 @@ export class Orbit {
     ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('800', 15);
     ctx.fillText(T('Go round again', 'Nog een rondje'), this.w / 2, by + 30);
     this.hits.push({ id: 'again', x: bx, y: by, w, h });
+
+    // the photographs are somebody's work, even when they are free to use
+    ctx.fillStyle = 'rgba(200,214,240,0.45)'; ctx.font = this.font('700', 9);
+    ctx.fillText(T('Photographs:', 'Foto’s:') + ' NASA, JPL-Caltech, ESA/Hubble, Cassini, Voyager, Apollo', this.w / 2, by + h + 26, this.w - 24);
+    const shown = [...new Set(Object.values(CREDITS))].slice(0, 3).join(' · ');
+    ctx.fillText(shown, this.w / 2, by + h + 40, this.w - 24);
   }
 }
