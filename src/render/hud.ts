@@ -1,7 +1,7 @@
 import { displayKmh, runwayAccepts } from '../game/planes';
 import type { World } from '../game/world';
 import { t } from '../i18n';
-import { levelProgress } from '../util/storage';
+import { levelProgress, persist, save } from '../util/storage';
 import type { Palette } from './palette';
 import { drawHeart, drawPlane, drawPlaneGlyph } from './planes';
 import { advise } from '../game/advisory';
@@ -12,7 +12,10 @@ type Ctx = CanvasRenderingContext2D;
 
 export interface HudLayout { sw: number; sh: number; safeTop: number; safeBottom: number; safeLeft: number; safeRight: number; ui: number }
 export interface Rect { x: number; y: number; w: number; h: number }
-export interface HudHits { pause: Rect; slowmo?: Rect; commands?: Array<{ id: string; rect: Rect }>; panel?: Rect }
+export interface HudHits { pause: Rect; slowmo?: Rect; commands?: Array<{ id: string; rect: Rect }>; panel?: Rect; wxToggle?: Rect }
+
+/** Fold the weather detail in or out; the choice is remembered between sessions. */
+export function toggleWeatherDetail(): void { save.wxOpen = !save.wxOpen; persist(); }
 
 function roundedCard(ctx: Ctx, x: number, y: number, w: number, h: number, r: number, fill: string): void {
   ctx.fillStyle = fill;
@@ -136,22 +139,28 @@ export function drawHud(ctx: Ctx, world: World, L: HudLayout, time: number, pal:
   const sel = world.selected !== null ? world.planeById(world.selected) : undefined;
   if (sel && sel.state === 'flying' && !world.demo) {
     const adv = advise(world, sel);
+    const open = save.wxOpen;
     const rowsN = adv.rows.length;
-    const w = Math.min(L.sw - 24 * u, 360 * u), h = (96 + 54 + rowsN * 17 + 58 + 30) * u;
-    const x = L.safeLeft + 12 * u, y = L.sh - L.safeBottom - h - 16 * u;
+    // compact by default: aircraft, the four commands, the advice and a fold-out handle.
+    // the full weather table only appears when the player asks for it, so the card never
+    // swallows the middle of a phone screen.
+    const detailH = open ? (20 + rowsN * 15 + 32) * u : 0;
+    const w = Math.min(L.sw - 24 * u, 320 * u);
+    const h = 172 * u + detailH;
+    const x = L.safeLeft + 12 * u, y = L.sh - L.safeBottom - h - 14 * u;
     roundedCard(ctx, x, y, w, h, 20 * u, pal.hud);
     ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, 20 * u); ctx.clip();
-    ctx.translate(x + 40 * u, y + 34 * u);
-    const s = (u * 1.05) / Math.max(0.9, sel.type.hull / 22);
+    ctx.translate(x + 32 * u, y + 28 * u);
+    const s = (u * 0.82) / Math.max(0.9, sel.type.hull / 22);
     ctx.scale(s, s);
     drawPlane(ctx, { type: sel.type, pos: { x: 0, y: 0 }, heading: -Math.PI / 2, altitude: 1, bank: 0, livery: sel.livery, state: 'flying', id: sel.id }, time, false);
     ctx.restore();
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = '#fff'; ctx.font = font('900', 15);
-    ctx.fillText(sel.type.name, x + 80 * u, y + 24 * u);
-    ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = font('700', 11.5);
+    ctx.fillStyle = '#fff'; ctx.font = font('900', 13.5);
+    ctx.fillText(sel.type.name, x + 62 * u, y + 24 * u, w - 74 * u);
+    ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = font('700', 10.5);
     const rws = world.runways.filter(r => !r.closed && runwayAccepts(r.kind, sel.type)).map(r => world.runwayName(r));
-    ctx.fillText(`${displayKmh(sel.type.speed)} ${t('kmh')} · ${t('landsOn')}: ${rws.join(' / ') || '-'}`, x + 80 * u, y + 42 * u);
+    ctx.fillText(`${displayKmh(sel.type.speed)} ${t('kmh')} · ${t('landsOn')}: ${rws.join(' / ') || '-'}`, x + 62 * u, y + 40 * u, w - 74 * u);
     hits.panel = { x, y, w, h };
     // ATC command buttons
     const cmds: Array<{ id: string; label: string; active: boolean; enabled: boolean }> = [
@@ -161,49 +170,63 @@ export function drawHud(ctx: Ctx, world: World, L: HudLayout, time: number, pal:
       { id: 'hold', label: t('cmdHold'), active: sel.hold, enabled: true },
     ];
     hits.commands = [];
-    const bw = (w - 16 * u - 6 * u * 3) / 4, bh = 40 * u, by = y + 66 * u;
+    const bw = (w - 16 * u - 5 * u * 3) / 4, bh = 34 * u, by = y + 52 * u;
     cmds.forEach((c, i) => {
-      const bx = x + 8 * u + i * (bw + 6 * u);
+      const bx = x + 8 * u + i * (bw + 5 * u);
       ctx.fillStyle = c.active ? 'rgba(90,209,165,0.95)' : c.enabled ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)';
       ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 12 * u); ctx.fill();
       ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.stroke();
-      drawCmdGlyph(ctx, c.id, bx + bw / 2, by + 14 * u, 9 * u, c.enabled ? '#fff' : 'rgba(255,255,255,0.4)');
-      ctx.fillStyle = c.enabled ? '#fff' : 'rgba(255,255,255,0.4)'; ctx.font = font('800', 9.5); ctx.textAlign = 'center';
-      ctx.fillText(c.label, bx + bw / 2, by + 33 * u);
+      drawCmdGlyph(ctx, c.id, bx + bw / 2, by + 12 * u, 8 * u, c.enabled ? '#fff' : 'rgba(255,255,255,0.4)');
+      ctx.fillStyle = c.enabled ? '#fff' : 'rgba(255,255,255,0.4)'; ctx.font = font('800', 8.5); ctx.textAlign = 'center';
+      ctx.fillText(c.label, bx + bw / 2, by + 28 * u, bw - 4 * u);
       hits.commands!.push({ id: c.id, rect: { x: bx, y: by, w: bw, h: bh } });
     });
     ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = font('800', 9.5);
-    ctx.fillText((t('weatherNav') || 'WEERNAVIGATIE').toUpperCase(), x + 16 * u, y + 122 * u);
-    // rows
-    const colors = ['#7cf7a0', '#ffe27a', '#ffb04d', '#ff6a6a'];
-    let ry = y + 138 * u;
-    for (const r of adv.rows) {
-      ctx.fillStyle = colors[r.level]; ctx.beginPath(); ctx.arc(x + 20 * u, ry - 4 * u, 4 * u, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = font('800', 11);
-      ctx.fillText(r.label, x + 30 * u, ry);
-      ctx.fillStyle = '#fff'; ctx.font = font('700', 11);
-      const lw = ctx.measureText(r.label).width;
-      ctx.fillText(r.value, x + 30 * u + Math.max(lw + 8 * u, 118 * u), ry, w - 30 * u - Math.max(lw + 8 * u, 118 * u) - 10 * u);
-      ry += 17 * u;
+
+    // advice, straight under the commands: this is the line you act on
+    const advColor = adv.adviceLevel >= 3 ? 'rgba(200,30,60,0.92)' : adv.adviceLevel >= 1 ? 'rgba(200,130,20,0.92)' : 'rgba(30,150,100,0.92)';
+    ctx.fillStyle = advColor; ctx.beginPath(); ctx.roundRect(x + 8 * u, y + 92 * u, w - 16 * u, 38 * u, 10 * u); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = font('800', 10);
+    wrapText(ctx, adv.advice, x + 16 * u, y + 108 * u, w - 32 * u, 12 * u, 2);
+
+    // fold-out handle for the weather table
+    const thY = y + 134 * u, thH = 30 * u;
+    hits.wxToggle = { x: x + 8 * u, y: thY, w: w - 16 * u, h: thH };
+    ctx.fillStyle = 'rgba(255,255,255,0.10)';
+    ctx.beginPath(); ctx.roundRect(x + 8 * u, thY, w - 16 * u, thH, 8 * u); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = font('800', 9);
+    ctx.fillText((t('weatherNav') || 'WEERNAVIGATIE').toUpperCase(), x + 16 * u, thY + 18.5 * u);
+    // chevron: up when the table is open, down when it is folded away
+    const chx = x + w - 22 * u, chy = thY + thH / 2, cr = 4.5 * u;
+    ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 1.8 * u; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    if (open) { ctx.moveTo(chx - cr, chy + cr * 0.55); ctx.lineTo(chx, chy - cr * 0.55); ctx.lineTo(chx + cr, chy + cr * 0.55); }
+    else { ctx.moveTo(chx - cr, chy - cr * 0.55); ctx.lineTo(chx, chy + cr * 0.55); ctx.lineTo(chx + cr, chy - cr * 0.55); }
+    ctx.stroke();
+
+    if (open) {
+      const colors = ['#7cf7a0', '#ffe27a', '#ffb04d', '#ff6a6a'];
+      let ry = y + 186 * u;
+      for (const r of adv.rows) {
+        ctx.fillStyle = colors[r.level]; ctx.beginPath(); ctx.arc(x + 18 * u, ry - 3.5 * u, 3.5 * u, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = font('800', 10);
+        ctx.fillText(r.label, x + 27 * u, ry, 100 * u);
+        ctx.fillStyle = '#fff'; ctx.font = font('700', 10);
+        ctx.fillText(r.value, x + 133 * u, ry, w - 143 * u);
+        ry += 15 * u;
+      }
+      // forecast strip
+      ry += 10 * u;
+      ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = font('800', 8.5);
+      ctx.fillText((t('forecast') || 'VERWACHTING').toUpperCase(), x + 16 * u, ry + 2 * u);
+      const fx0 = x + 16 * u + 68 * u, step = (w - 16 * u - 68 * u - 10 * u) / adv.forecast.length;
+      adv.forecast.forEach((f, i) => {
+        const fxp = fx0 + i * step + step / 2;
+        drawWeatherIcon(ctx, f.kind, fxp, ry - 5 * u, 12 * u);
+        ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = font('800', 8); ctx.textAlign = 'center';
+        ctx.fillText(`${f.at === 0 ? (t('now') || 'nu') : '+' + f.at + 's'} ${f.kmh}`, fxp, ry + 11 * u);
+      });
     }
-    // advice
-    ry += 4 * u;
-    const advColor = adv.adviceLevel >= 3 ? 'rgba(200,30,60,0.9)' : adv.adviceLevel >= 1 ? 'rgba(200,130,20,0.9)' : 'rgba(30,150,100,0.9)';
-    ctx.fillStyle = advColor; ctx.beginPath(); ctx.roundRect(x + 12 * u, ry - 6 * u, w - 24 * u, 48 * u, 10 * u); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.font = font('800', 10.5);
-    wrapText(ctx, adv.advice, x + 20 * u, ry + 7 * u, w - 40 * u, 12.5 * u, 3);
-    ry += 54 * u;
-    // forecast strip
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = font('800', 9.5);
-    ctx.fillText((t('forecast') || 'VERWACHTING').toUpperCase(), x + 16 * u, ry + 2 * u);
-    const fx0 = x + 16 * u + 78 * u, step = (w - 16 * u - 78 * u - 10 * u) / adv.forecast.length;
-    adv.forecast.forEach((f, i) => {
-      const fxp = fx0 + i * step + step / 2;
-      drawWeatherIcon(ctx, f.kind, fxp, ry - 6 * u, 14 * u);
-      ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = font('800', 9); ctx.textAlign = 'center';
-      ctx.fillText(`${f.at === 0 ? (t('now') || 'nu') : '+' + f.at + 's'} ${f.kmh}`, fxp, ry + 12 * u);
-    });
     ctx.textAlign = 'left';
   }
   return hits;

@@ -12,13 +12,15 @@ export interface SaveData {
   levelsPlayed: number;
   lastAdAt: number;
   totalLanded: number;
+  /** weather detail in the aircraft panel is folded out */
+  wxOpen: boolean;
 }
 
 const KEY = 'wolkenhaven.save.v2';
 
 const defaults = (): SaveData => ({
   levels: {}, sound: true, radio: true, music: true, haptics: true, lang: 'auto', tutorialSeen: false,
-  coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0,
+  coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false,
 });
 
 export function loadSave(): SaveData {

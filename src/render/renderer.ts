@@ -124,6 +124,7 @@ export class Renderer {
     if (inside(this.hudHits?.pause)) return 'pause';
     if (inside(this.hudHits?.slowmo)) return 'slowmo';
     for (const c of this.hudHits?.commands ?? []) if (inside(c.rect)) return `cmd:${c.id}`;
+    if (inside(this.hudHits?.wxToggle)) return 'wxtoggle';
     if (this.hudHits?.panel && inside(this.hudHits.panel)) return 'panel';
     return null;
   };

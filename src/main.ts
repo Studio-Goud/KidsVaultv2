@@ -1,6 +1,7 @@
 import './style.css';
 
 import { shouldShowInterstitial, showInterstitial, showRewarded } from './game/ads';
+import { toggleWeatherDetail } from './render/hud';
 import { Input } from './game/input';
 import { buildMission, coinsForRun, missionId, nextMission, starsForRun, WORLDS } from './game/progress';
 import { realLevel, realPortById, REAL_PORTS } from './game/realports';
@@ -212,6 +213,7 @@ const input = new Input(canvas, () => (mode === 'playing' ? world : null), rende
     if (p) { if (world.command(p, hit.slice(4) as 'faster' | 'slower' | 'tcas' | 'hold')) sfx.tap(); }
     return true;
   }
+  if (hit === 'wxtoggle') { toggleWeatherDetail(); sfx.tap(); return true; }
   if (hit === 'panel') return true;
   return false;
 });
