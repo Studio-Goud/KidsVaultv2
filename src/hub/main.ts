@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawMarketThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
+import { drawDigThumb, drawMarketThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -95,9 +95,9 @@ const GAMES: Game[] = [
     practises: 'Patience, recognising a whole from its parts',
     practisesNl: 'Geduld, het geheel herkennen aan de delen',
     age: '5+',
-    img: './img/fossils/velo.png',
-    // the photograph has a white ground, so the frame is white too and the skeleton reads whole
-    tint: '#fbfaf6',
+    // the card shows the dig, not the specimen: the photographs are the reward inside the game,
+    // and a white photographic plate among the other cards looked like a stock image
+    paint: drawDigThumb,
   },
 ];
 

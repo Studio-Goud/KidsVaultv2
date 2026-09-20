@@ -90,90 +90,366 @@ export function drawStarsThumb(c: HTMLCanvasElement): void {
 }
 
 /** A green valley with a stream cut through it and a wheel, in Millstream's palette. */
+/**
+ * Millstream: the spring at the top, a channel cut down the slope, a field and the mill.
+ * Drawn in the game's own light - sun from the top left, a shadow under everything.
+ */
 export function drawValleyThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, '#bfe0a0'); g.addColorStop(1, '#6fae5c');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  // the stream
-  ctx.strokeStyle = '#3a8fd6'; ctx.lineWidth = w * 0.07; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+  // the slope, lighter where it is high and dry, darker in the hollow the water runs down
+  const land = ctx.createLinearGradient(0, 0, 0, h);
+  land.addColorStop(0, '#9dbc63');
+  land.addColorStop(0.45, '#6fae4c');
+  land.addColorStop(1, '#4a8c3e');
+  ctx.fillStyle = land;
+  ctx.fillRect(0, 0, w, h);
+  // a few darker patches, the way grass is never one green
+  ctx.fillStyle = 'rgba(46, 96, 44, 0.16)';
+  for (const [px, py, pr] of [[0.18, 0.3, 0.3], [0.78, 0.22, 0.26], [0.62, 0.78, 0.3]] as const) {
+    ctx.beginPath();
+    ctx.ellipse(w * px, h * py, w * pr, h * pr * 0.9, 0, 0, TAU);
+    ctx.fill();
+  }
+
+  // the channel, dug from the spring down towards the field
+  const path = (k: number): { x: number; y: number } => ({
+    x: w * (0.22 + k * 0.22 + Math.sin(k * 3.6) * 0.035),
+    y: h * (0.2 + k * 0.48),
+  });
+  const trace = (): void => {
+    ctx.beginPath();
+    const a = path(0);
+    ctx.moveTo(a.x, a.y);
+    for (let i = 1; i <= 12; i++) { const q = path(i / 12); ctx.lineTo(q.x, q.y); }
+  };
+  ctx.strokeStyle = 'rgba(78, 54, 30, 0.45)';
+  ctx.lineWidth = h * 0.1;
+  ctx.lineCap = 'round';
+  trace(); ctx.stroke();
+  const water = ctx.createLinearGradient(0, h * 0.2, 0, h * 0.7);
+  water.addColorStop(0, '#8fdcf4');
+  water.addColorStop(1, '#2e86c4');
+  ctx.strokeStyle = water;
+  ctx.lineWidth = h * 0.055;
+  trace(); ctx.stroke();
+
+  // the spring, welling up between stones
+  const sx0 = w * 0.22, sy0 = h * 0.2;
+  ctx.fillStyle = 'rgba(24, 38, 30, 0.25)';
+  ctx.beginPath(); ctx.ellipse(sx0, sy0 + h * 0.04, w * 0.09, h * 0.05, 0, 0, TAU); ctx.fill();
+  for (let i = 0; i < 5; i++) {
+    const a = Math.PI + (i / 4) * Math.PI;
+    const sg = ctx.createLinearGradient(0, sy0 - h * 0.06, 0, sy0 + h * 0.06);
+    sg.addColorStop(0, '#cbc4bb');
+    sg.addColorStop(1, '#7d766f');
+    ctx.fillStyle = sg;
+    ctx.beginPath();
+    ctx.ellipse(sx0 + Math.cos(a) * w * 0.07, sy0 + Math.sin(a) * h * 0.05, w * 0.028, h * 0.026, 0, 0, TAU);
+    ctx.fill();
+  }
+  const spring = ctx.createRadialGradient(sx0, sy0 - h * 0.01, 0, sx0, sy0, w * 0.055);
+  spring.addColorStop(0, '#eafaff');
+  spring.addColorStop(1, '#2b8fc9');
+  ctx.fillStyle = spring;
+  ctx.beginPath(); ctx.ellipse(sx0, sy0, w * 0.05, h * 0.04, 0, 0, TAU); ctx.fill();
+
+  // the field the water runs into
+  const fx = w * 0.46, fy = h * 0.74;
+  ctx.fillStyle = 'rgba(24, 38, 30, 0.28)';
+  ctx.beginPath(); ctx.ellipse(fx, fy + h * 0.14, w * 0.2, h * 0.06, 0, 0, TAU); ctx.fill();
+  const soil = ctx.createLinearGradient(0, fy - h * 0.12, 0, fy + h * 0.14);
+  soil.addColorStop(0, '#7a5837');
+  soil.addColorStop(1, '#4a2d16');
+  ctx.fillStyle = soil;
   ctx.beginPath();
-  ctx.moveTo(w * 0.5, 0);
-  ctx.quadraticCurveTo(w * 0.3, h * 0.35, w * 0.45, h * 0.55);
-  ctx.quadraticCurveTo(w * 0.62, h * 0.78, w * 0.4, h);
-  ctx.stroke();
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = w * 0.018;
-  ctx.stroke();
-  // a field
-  ctx.fillStyle = 'rgba(215,180,90,0.85)';
-  ctx.beginPath(); ctx.ellipse(w * 0.78, h * 0.72, w * 0.16, h * 0.14, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = 'rgba(90,110,40,0.5)'; ctx.lineWidth = 1;
-  for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(w * 0.64, h * 0.72 + i * h * 0.05); ctx.lineTo(w * 0.92, h * 0.72 + i * h * 0.05); ctx.stroke(); }
-  // the wheel
-  ctx.save(); ctx.translate(w * 0.24, h * 0.36);
-  ctx.strokeStyle = '#5a3d2a'; ctx.lineWidth = w * 0.02;
-  ctx.beginPath(); ctx.arc(0, 0, w * 0.12, 0, TAU); ctx.stroke();
-  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * w * 0.12, Math.sin(a) * w * 0.12); ctx.stroke(); }
-  ctx.restore();
+  ctx.roundRect(fx - w * 0.18, fy - h * 0.12, w * 0.36, h * 0.26, h * 0.04);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(70, 150, 200, 0.4)';
+  ctx.beginPath();
+  ctx.ellipse(fx - w * 0.04, fy - h * 0.07, w * 0.14, h * 0.035, 0, 0, TAU);
+  ctx.fill();
+  ctx.strokeStyle = '#7fae4a';
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 8; i++) {
+    const px = fx - w * 0.15 + i * w * 0.043;
+    const hh = h * (0.1 + (i % 3) * 0.014);
+    ctx.beginPath();
+    ctx.moveTo(px, fy + h * 0.11);
+    ctx.quadraticCurveTo(px + w * 0.004, fy + h * 0.11 - hh * 0.6, px + w * 0.012, fy + h * 0.11 - hh);
+    ctx.stroke();
+  }
+
+  // the mill: a house with a red roof and a wheel on its flank
+  const mx = w * 0.72, my = h * 0.5;
+  ctx.fillStyle = 'rgba(24, 38, 30, 0.3)';
+  ctx.beginPath(); ctx.ellipse(mx + w * 0.02, my + h * 0.19, w * 0.15, h * 0.06, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#e6d8c0';
+  ctx.fillRect(mx - w * 0.02, my - h * 0.1, w * 0.16, h * 0.28);
+  ctx.fillStyle = '#c0674f';
+  ctx.beginPath();
+  ctx.moveTo(mx - w * 0.05, my - h * 0.09);
+  ctx.lineTo(mx + w * 0.06, my - h * 0.28);
+  ctx.lineTo(mx + w * 0.17, my - h * 0.09);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#ffd88a';
+  ctx.fillRect(mx + w * 0.03, my + h * 0.01, w * 0.05, h * 0.08);
+  ctx.strokeStyle = '#7a5130';
+  ctx.lineWidth = Math.max(2, w * 0.018);
+  const wr = h * 0.17;
+  ctx.beginPath(); ctx.arc(mx - w * 0.05, my + h * 0.04, wr, 0, TAU); ctx.stroke();
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * TAU;
+    ctx.beginPath();
+    ctx.moveTo(mx - w * 0.05, my + h * 0.04);
+    ctx.lineTo(mx - w * 0.05 + Math.cos(a) * wr, my + h * 0.04 + Math.sin(a) * wr);
+    ctx.stroke();
+  }
 }
 
-/** A rock pool with a crab and a starfish and two pools waiting, in Tidepool's palette. */
+/** Tidepool: the tide above, the sand below, and a crab on its way to a pool. */
 export function drawTideThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, '#2f8fd6'); g.addColorStop(0.62, '#6fc9ea'); g.addColorStop(0.63, '#f1dfb4'); g.addColorStop(1, '#dcc490');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.2;
-  for (let k = 0; k < 4; k++) { ctx.beginPath(); for (let x = 0; x <= w; x += 8) ctx.lineTo(x, h * (0.12 + k * 0.13) + Math.sin(x * 0.08 + k) * 1.5); ctx.stroke(); }
-  // two pools
-  for (const [px, col] of [[0.28, '#e0574a'], [0.72, '#3f86d6']] as Array<[number, string]>) {
-    ctx.fillStyle = 'rgba(80,160,200,0.6)';
-    ctx.beginPath(); ctx.roundRect(w * px - w * 0.17, h * 0.7, w * 0.34, h * 0.24, 8); ctx.fill();
-    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(w * px, h * 0.82, h * 0.07, 0, TAU); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2; ctx.stroke();
+  const shore = h * 0.6;
+  const sea = ctx.createLinearGradient(0, 0, 0, shore);
+  sea.addColorStop(0, '#1064a6');
+  sea.addColorStop(0.5, '#2b90cf');
+  sea.addColorStop(1, '#69c9e6');
+  ctx.fillStyle = sea;
+  ctx.fillRect(0, 0, w, shore);
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1.4;
+  for (let k = 1; k <= 3; k++) {
+    ctx.beginPath();
+    for (let x = 0; x <= w; x += 6) ctx.lineTo(x, shore * (k / 4) + Math.sin(x * 0.06 + k) * 2.4);
+    ctx.stroke();
   }
-  // a red crab
-  ctx.save(); ctx.translate(w * 0.36, h * 0.36);
-  ctx.fillStyle = '#e0574a'; ctx.strokeStyle = 'rgba(30,40,60,0.45)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.ellipse(0, 0, w * 0.09, w * 0.065, 0, 0, TAU); ctx.fill(); ctx.stroke();
-  for (const sx of [-1, 1]) { ctx.beginPath(); ctx.arc(sx * w * 0.1, -w * 0.05, w * 0.028, 0, TAU); ctx.fill(); ctx.stroke(); }
-  ctx.fillStyle = '#20304a'; ctx.beginPath(); ctx.arc(-w * 0.027, -w * 0.02, 1.6, 0, TAU); ctx.arc(w * 0.027, -w * 0.02, 1.6, 0, TAU); ctx.fill();
-  ctx.restore();
-  // a blue starfish
-  ctx.save(); ctx.translate(w * 0.68, h * 0.42);
-  ctx.fillStyle = '#3f86d6'; ctx.strokeStyle = 'rgba(30,40,60,0.45)'; ctx.lineWidth = 1.5;
+  const sand = ctx.createLinearGradient(0, shore, 0, h);
+  sand.addColorStop(0, '#dcc18d');
+  sand.addColorStop(1, '#f3e3bd');
+  ctx.fillStyle = sand;
+  ctx.fillRect(0, shore - 1, w, h - shore + 1);
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 2.4;
   ctx.beginPath();
-  for (let i = 0; i < 10; i++) { const a = (i / 10) * TAU - Math.PI / 2; const rr = i % 2 === 0 ? w * 0.1 : w * 0.045; const x = Math.cos(a) * rr, y = Math.sin(a) * rr; if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
-  ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.restore();
+  for (let x = 0; x <= w; x += 5) ctx.lineTo(x, shore + Math.sin(x * 0.07) * 2.6);
+  ctx.stroke();
+
+  // two pools in the rock, one green and one red
+  const pool = (px: number, colour: string): void => {
+    ctx.fillStyle = 'rgba(24, 38, 30, 0.25)';
+    ctx.beginPath(); ctx.ellipse(px, h * 0.87, w * 0.14, h * 0.07, 0, 0, TAU); ctx.fill();
+    const rim = ctx.createLinearGradient(px - w * 0.13, 0, px + w * 0.13, 0);
+    rim.addColorStop(0, '#e2d2b2');
+    rim.addColorStop(1, '#8d7a63');
+    ctx.fillStyle = rim;
+    ctx.beginPath(); ctx.ellipse(px, h * 0.83, w * 0.14, h * 0.1, 0, 0, TAU); ctx.fill();
+    const wg = ctx.createRadialGradient(px - w * 0.03, h * 0.8, 0, px, h * 0.83, w * 0.11);
+    wg.addColorStop(0, '#a8ecfa');
+    wg.addColorStop(1, '#2585bb');
+    ctx.fillStyle = wg;
+    ctx.beginPath(); ctx.ellipse(px, h * 0.83, w * 0.11, h * 0.075, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = colour;
+    ctx.beginPath(); ctx.arc(px, h * 0.82, w * 0.045, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  };
+  pool(w * 0.28, '#5fae6a');
+  pool(w * 0.72, '#e0574a');
+
+  // a crab drifting in on the tide
+  const cx = w * 0.52, cy = h * 0.3, r = h * 0.15;
+  ctx.fillStyle = 'rgba(10, 40, 70, 0.28)';
+  ctx.beginPath(); ctx.ellipse(cx + r * 0.2, cy + r * 0.8, r * 1.1, r * 0.4, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#b8402f';
+  ctx.lineWidth = Math.max(1.4, r * 0.18);
+  ctx.lineCap = 'round';
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < 3; i++) {
+      const a = 0.3 + i * 0.42;
+      ctx.beginPath();
+      ctx.moveTo(cx + side * r * 0.5, cy + r * 0.1);
+      ctx.lineTo(cx + side * Math.cos(a) * r * 1.5, cy + Math.sin(a) * r * 1.1);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#e0574a';
+    ctx.beginPath(); ctx.arc(cx + side * r * 1.1, cy - r * 0.5, r * 0.34, 0, TAU); ctx.fill();
+  }
+  const body = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+  body.addColorStop(0, '#f08a7a');
+  body.addColorStop(1, '#c14634');
+  ctx.fillStyle = body;
+  ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.76, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(cx - r * 0.34, cy - r * 0.78, r * 0.2, 0, TAU); ctx.arc(cx + r * 0.34, cy - r * 0.78, r * 0.2, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#1a2a3d';
+  ctx.beginPath(); ctx.arc(cx - r * 0.3, cy - r * 0.76, r * 0.1, 0, TAU); ctx.arc(cx + r * 0.38, cy - r * 0.76, r * 0.1, 0, TAU); ctx.fill();
 }
 
-/** A striped awning, a basket and three apples, in Market Day's palette. */
+/** Market Day: the awning, the counter, a basket and three apples on an order card. */
 export function drawMarketThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, '#d9efd2'); g.addColorStop(1, '#e9d9b0');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  for (let x = 0; x < w; x += w * 0.1) { ctx.fillStyle = Math.round(x / (w * 0.1)) % 2 ? '#fff7ea' : '#e0574a'; ctx.fillRect(x, 0, w * 0.1, h * 0.16); }
-  ctx.fillStyle = '#b98b5a'; ctx.fillRect(0, h * 0.7, w, h * 0.3);
-  ctx.fillStyle = '#d9a86c'; ctx.fillRect(0, h * 0.68, w, h * 0.05);
-  // basket
-  ctx.fillStyle = '#d3a56a';
-  ctx.beginPath(); ctx.moveTo(w * 0.3, h * 0.42); ctx.lineTo(w * 0.7, h * 0.42); ctx.lineTo(w * 0.64, h * 0.7); ctx.lineTo(w * 0.36, h * 0.7); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = 'rgba(90,60,30,0.35)'; ctx.lineWidth = 1;
-  for (let y = h * 0.5; y < h * 0.68; y += h * 0.06) { ctx.beginPath(); ctx.moveTo(w * 0.33, y); ctx.lineTo(w * 0.67, y); ctx.stroke(); }
-  ctx.fillStyle = '#b98b5a'; ctx.beginPath(); ctx.roundRect(w * 0.28, h * 0.38, w * 0.44, h * 0.08, 4); ctx.fill();
-  // three apples in it
-  for (const ax of [0.4, 0.5, 0.6]) {
-    ctx.fillStyle = '#e0574a'; ctx.beginPath(); ctx.arc(w * ax, h * 0.36, h * 0.07, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#5a3a2a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(w * ax, h * 0.29); ctx.lineTo(w * ax + 2, h * 0.25); ctx.stroke();
-    ctx.fillStyle = '#5fae6a'; ctx.beginPath(); ctx.ellipse(w * ax + 4, h * 0.27, 4, 2, -0.5, 0, TAU); ctx.fill();
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, '#bfe4f6');
+  sky.addColorStop(1, '#f0e3c4');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, h);
+
+  // the awning, with a scalloped edge
+  const ah = h * 0.2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(w, 0); ctx.lineTo(w, ah);
+  for (let i = 8; i > 0; i--) {
+    const x0 = (i / 8) * w, x1 = ((i - 1) / 8) * w;
+    ctx.quadraticCurveTo((x0 + x1) / 2, ah + h * 0.05, x1, ah);
   }
-  // the order: a numeral 3
-  ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.beginPath(); ctx.roundRect(w * 0.74, h * 0.22, w * 0.2, h * 0.24, 6); ctx.fill();
-  ctx.fillStyle = '#14324f'; ctx.font = `900 ${Math.round(h * 0.16)}px Nunito, system-ui, sans-serif`; ctx.textAlign = 'center';
-  ctx.fillText('3', w * 0.84, h * 0.4);
+  ctx.closePath();
+  ctx.clip();
+  for (let i = 0; i * (w / 8) < w; i++) {
+    ctx.fillStyle = i % 2 === 0 ? '#e0574a' : '#fff6ea';
+    ctx.fillRect(i * (w / 8), 0, w / 8, ah + h * 0.06);
+  }
+  ctx.restore();
+
+  // the counter
+  const cy = h * 0.72;
+  const front = ctx.createLinearGradient(0, cy, 0, h);
+  front.addColorStop(0, '#a9783f');
+  front.addColorStop(1, '#8a6033');
+  ctx.fillStyle = front;
+  ctx.fillRect(0, cy, w, h - cy);
+  ctx.fillStyle = '#e7c08a';
+  ctx.fillRect(0, cy - h * 0.03, w, h * 0.05);
+
+  // an apple, drawn the way the game draws it
+  const apple = (ax: number, ay: number, ar: number): void => {
+    ctx.fillStyle = 'rgba(24, 38, 30, 0.22)';
+    ctx.beginPath(); ctx.ellipse(ax, ay + ar, ar * 0.8, ar * 0.28, 0, 0, TAU); ctx.fill();
+    const g = ctx.createRadialGradient(ax - ar * 0.3, ay - ar * 0.35, ar * 0.1, ax, ay, ar * 1.15);
+    g.addColorStop(0, '#f08a7a');
+    g.addColorStop(0.45, '#e0503f');
+    g.addColorStop(1, '#a5301f');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay - ar * 0.7);
+    ctx.bezierCurveTo(ax + ar * 1.15, ay - ar, ax + ar * 1.1, ay + ar * 0.75, ax, ay + ar * 0.95);
+    ctx.bezierCurveTo(ax - ar * 1.1, ay + ar * 0.75, ax - ar * 1.15, ay - ar, ax, ay - ar * 0.7);
+    ctx.fill();
+    ctx.fillStyle = '#5fae5a';
+    ctx.beginPath(); ctx.ellipse(ax + ar * 0.4, ay - ar * 1.05, ar * 0.36, ar * 0.18, -0.5, 0, TAU); ctx.fill();
+  };
+
+  // the basket on the counter
+  const bx = w * 0.32, bw = w * 0.3, bt = h * 0.42;
+  ctx.fillStyle = 'rgba(24, 38, 30, 0.25)';
+  ctx.beginPath(); ctx.ellipse(bx + bw / 2, cy + h * 0.02, bw * 0.5, h * 0.04, 0, 0, TAU); ctx.fill();
+  const body = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+  body.addColorStop(0, '#c79457');
+  body.addColorStop(0.35, '#e3b97c');
+  body.addColorStop(1, '#a9773f');
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.moveTo(bx, bt);
+  ctx.lineTo(bx + bw, bt);
+  ctx.lineTo(bx + bw * 0.86, cy + h * 0.01);
+  ctx.lineTo(bx + bw * 0.14, cy + h * 0.01);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(96,58,24,0.28)';
+  ctx.lineWidth = 1;
+  for (let y = bt + h * 0.05; y < cy; y += h * 0.05) {
+    ctx.beginPath(); ctx.moveTo(bx + bw * 0.06, y); ctx.lineTo(bx + bw * 0.94, y); ctx.stroke();
+  }
+  ctx.fillStyle = '#e8c089';
+  ctx.beginPath(); ctx.roundRect(bx - bw * 0.03, bt - h * 0.05, bw * 1.06, h * 0.07, h * 0.035); ctx.fill();
+  apple(bx + bw * 0.34, cy - h * 0.06, w * 0.05);
+  apple(bx + bw * 0.68, cy - h * 0.06, w * 0.05);
+
+  // the order card: a numeral and that many apples
+  const cardX = w * 0.66, cardY = h * 0.3, cardW = w * 0.3, cardH = h * 0.22;
+  ctx.fillStyle = 'rgba(30, 20, 10, 0.2)';
+  ctx.beginPath(); ctx.roundRect(cardX + 2, cardY + 3, cardW, cardH, h * 0.04); ctx.fill();
+  ctx.fillStyle = '#fffdf4';
+  ctx.beginPath(); ctx.roundRect(cardX, cardY, cardW, cardH, h * 0.04); ctx.fill();
+  ctx.fillStyle = '#2d1f10';
+  ctx.font = `900 ${Math.round(h * 0.16)}px Nunito, system-ui, sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.fillText('2', cardX + cardW * 0.12, cardY + cardH * 0.7);
+  apple(cardX + cardW * 0.52, cardY + cardH * 0.48, w * 0.032);
+  apple(cardX + cardW * 0.78, cardY + cardH * 0.48, w * 0.032);
+}
+
+/** Dino Dig: the trench, half the rock brushed off, and a bone coming clear. */
+export function drawDigThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const sand = ctx.createLinearGradient(0, 0, 0, h);
+  sand.addColorStop(0, '#e7cd9f');
+  sand.addColorStop(1, '#cfae7e');
+  ctx.fillStyle = sand;
+  ctx.fillRect(0, 0, w, h);
+
+  // the trench, cut into the ground
+  const t = { x: w * 0.1, y: h * 0.16, w: w * 0.8, h: h * 0.68 };
+  ctx.fillStyle = '#c3a274';
+  ctx.beginPath(); ctx.roundRect(t.x - w * 0.03, t.y - h * 0.04, t.w + w * 0.06, t.h + h * 0.08, h * 0.08); ctx.fill();
+  const floor = ctx.createLinearGradient(0, t.y, 0, t.y + t.h);
+  floor.addColorStop(0, '#6d5c48');
+  floor.addColorStop(1, '#4f4234');
+  ctx.fillStyle = floor;
+  ctx.beginPath(); ctx.roundRect(t.x, t.y, t.w, t.h, h * 0.06); ctx.fill();
+
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(t.x, t.y, t.w, t.h, h * 0.06); ctx.clip();
+  // a bone, part of it still under the rock
+  ctx.fillStyle = '#e8ddc4';
+  ctx.save();
+  ctx.translate(t.x + t.w * 0.5, t.y + t.h * 0.5);
+  ctx.rotate(-0.35);
+  ctx.beginPath(); ctx.roundRect(-t.w * 0.3, -t.h * 0.07, t.w * 0.6, t.h * 0.14, t.h * 0.07); ctx.fill();
+  for (const sx of [-1, 1]) {
+    ctx.beginPath(); ctx.arc(sx * t.w * 0.32, -t.h * 0.08, t.h * 0.09, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx * t.w * 0.32, t.h * 0.08, t.h * 0.09, 0, TAU); ctx.fill();
+  }
+  ctx.restore();
+  // the rock still covering the right half
+  const rock = ctx.createLinearGradient(t.x + t.w * 0.35, 0, t.x + t.w, 0);
+  rock.addColorStop(0, 'rgba(164, 142, 112, 0)');
+  rock.addColorStop(0.18, 'rgba(164, 142, 112, 0.97)');
+  rock.addColorStop(1, 'rgba(142, 122, 96, 1)');
+  ctx.fillStyle = rock;
+  ctx.fillRect(t.x + t.w * 0.35, t.y, t.w * 0.65, t.h);
+  ctx.fillStyle = 'rgba(74, 58, 40, 0.18)';
+  for (let i = 0; i < 26; i++) {
+    const rx = t.x + t.w * (0.4 + Math.random() * 0.58);
+    const ry = t.y + t.h * (0.06 + Math.random() * 0.88);
+    ctx.beginPath(); ctx.arc(rx, ry, h * 0.012, 0, TAU); ctx.fill();
+  }
+  ctx.restore();
+
+  // the brush that took the rest off
+  ctx.save();
+  ctx.translate(t.x + t.w * 0.3, t.y + t.h * 0.8);
+  ctx.rotate(-0.7);
+  ctx.fillStyle = '#b08a58';
+  ctx.beginPath(); ctx.roundRect(-w * 0.012, 0, w * 0.024, h * 0.26, w * 0.012); ctx.fill();
+  ctx.fillStyle = '#9aa3ad';
+  ctx.beginPath(); ctx.roundRect(-w * 0.016, -h * 0.07, w * 0.032, h * 0.08, w * 0.008); ctx.fill();
+  ctx.strokeStyle = '#f0dcb4';
+  ctx.lineWidth = Math.max(1, w * 0.008);
+  ctx.lineCap = 'round';
+  for (let i = -2; i <= 2; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * w * 0.005, -h * 0.07);
+    ctx.lineTo(i * w * 0.011, -h * 0.17);
+    ctx.stroke();
+  }
+  ctx.restore();
 }

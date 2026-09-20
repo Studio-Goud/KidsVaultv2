@@ -17,6 +17,8 @@ import { MissionScreen } from './missionscreen';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
 import { CREDITS, loadAllMoons, loadAllPlanets } from './photo';
 import { uiScale } from '../../util/ui';
+import { chunkyButton } from '../../render/look';
+import { paintSpace } from './paint';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
@@ -186,22 +188,21 @@ export class Orbit {
       ['explore', T('Explore', 'Verken')],
       ['scale', T('To scale', 'Op schaal')],
     ];
-    const bh = 30 * u, pad = 10 * u;
+    const bh = 38 * u, pad = 9 * u;
     ctx.font = this.font('800', 11.5);
     const widths = labels.map(([, l]) => ctx.measureText(l).width + pad * 2.2);
     const total = widths.reduce((a, b) => a + b, 0) + pad * (labels.length - 1);
     let x = (this.w - total) / 2;
-    const y = this.h - bh - 12 * u;
+    const y = this.h - bh - 14 * u;
     const hits: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
     labels.forEach(([id, label], i) => {
       const bw = widths[i];
       const on = this.mode === id;
-      ctx.fillStyle = on ? 'rgba(157,247,196,0.9)' : 'rgba(255,255,255,0.10)';
-      ctx.beginPath(); ctx.roundRect(x, y, bw, bh, bh / 2); ctx.fill();
-      if (!on) { ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.lineWidth = 1; ctx.stroke(); }
-      ctx.fillStyle = on ? '#0b2a1c' : 'rgba(226,236,255,0.85)';
+      const face = chunkyButton(ctx, x, y, bw, bh, { tone: on ? '#7de3ac' : '#2b3566' });
+      ctx.fillStyle = on ? '#0b2a1c' : 'rgba(226,236,255,0.9)';
+      ctx.font = this.font('900', 11.5);
       ctx.textAlign = 'center';
-      ctx.fillText(label, x + bw / 2, y + bh * 0.64);
+      ctx.fillText(label, x + bw / 2, face.y + bh * 0.62);
       hits.push({ id: `tab:${id}`, x, y, w: bw, h: bh });
       x += bw + pad;
     });
@@ -210,7 +211,7 @@ export class Orbit {
   }
 
   /** How much room the tab bar takes off the bottom of every screen. */
-  private tabRoom(): number { return 54 * this.u(); }
+  private tabRoom(): number { return 62 * this.u(); }
 
   // ---------- rounds ----------
 
@@ -304,9 +305,9 @@ export class Orbit {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    const g = ctx.createLinearGradient(0, 0, 0, this.h);
-    g.addColorStop(0, '#05081c'); g.addColorStop(0.6, '#0b1236'); g.addColorStop(1, '#141c4a');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, this.w, this.h);
+    // deep space, painted once: a graded dark, a band of far stars, nebulae, a few near stars
+    paintSpace(ctx, this.w, this.h);
+    // the twinkling few on top, which do move
     for (const s of this.stars) {
       ctx.globalAlpha = s.a * (0.6 + 0.4 * Math.sin(this.t * 0.8 + s.p));
       ctx.fillStyle = '#dbe6ff';

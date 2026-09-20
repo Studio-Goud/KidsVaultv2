@@ -13,6 +13,8 @@ import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { makeRng } from '../../util/rng';
 import { uiScale } from '../../util/ui';
 import { edgeKey, FIGURES, type Figure } from './figures';
+import { chunkyButton } from '../../render/look';
+import { paintNightSky } from './paint';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'intro' | 'showing' | 'drawing' | 'wrong' | 'solved' | 'finished';
@@ -253,10 +255,8 @@ export class NightWatch {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    // night sky
-    const g = ctx.createLinearGradient(0, 0, 0, this.h);
-    g.addColorStop(0, '#070f2b'); g.addColorStop(0.55, '#0d1b46'); g.addColorStop(1, '#152a5e');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, this.w, this.h);
+    // night sky: graded, with a milky way, far stars and a dark land along the bottom
+    paintNightSky(ctx, this.w, this.h, this.t, this.u());
     for (const s of this.bg) {
       ctx.globalAlpha = s.a * (0.55 + 0.45 * Math.sin(this.t * 0.7 + s.p));
       ctx.fillStyle = '#cfe0ff';
@@ -378,12 +378,11 @@ export class NightWatch {
     }
 
     if (this.phase === 'drawing') {
-      const u = this.u(), w = 190 * u, h = 44 * u, x = this.w / 2 - w / 2, y = this.h - h - 26 * u;
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('800', 14);
-      ctx.fillText(T('Show me again', 'Laat nog eens zien'), this.w / 2, y + h * 0.64);
+      const u = this.u(), w = 196 * u, h = 48 * u, x = this.w / 2 - w / 2, y = this.h - h - 26 * u;
+      const face = chunkyButton(ctx, x, y, w, h, { tone: '#2f4a86' });
+      ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('900', 14);
+      ctx.textAlign = 'center';
+      ctx.fillText(T('Show me again', 'Laat nog eens zien'), this.w / 2, face.y + h * 0.62);
       this.hits.push({ id: 'peek', x, y, w, h });
     }
   }
