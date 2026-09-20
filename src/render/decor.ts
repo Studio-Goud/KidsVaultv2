@@ -1,13 +1,19 @@
 import type { Palette } from './palette';
 import { hexA, shade } from './palette';
+import { blobPath, contactShadow, LIGHT } from './look';
 
 export interface LightSpot { x: number; y: number; r: number; color: string; kind: 'window' | 'runway' | 'buoy' | 'beacon' | 'lamp' }
 
 type Ctx = CanvasRenderingContext2D;
 
+/**
+ * A shadow on the ground. The offset follows the house light in look.ts - a sun almost overhead
+ * and a touch to the left - rather than the forty-five degrees this used to use, which is what
+ * made Cloudhopper's islands read as a different picture book from the rest of Bramblewood.
+ */
 function shadowEllipse(ctx: Ctx, x: number, y: number, rx: number, ry: number, pal: Palette): void {
-  ctx.fillStyle = `rgba(20, 50, 40, ${pal.shadowAlpha})`;
-  ctx.beginPath(); ctx.ellipse(x + rx * 0.35, y + ry * 0.3, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+  const ox = x - LIGHT.x * rx * 0.36, oy = y - LIGHT.y * ry * 0.34;
+  contactShadow(ctx, ox, oy, rx, ry, pal.shadowAlpha);
 }
 
 export function drawTree(ctx: Ctx, x: number, y: number, r: number, pal: Palette, variant: number): void {
@@ -16,18 +22,18 @@ export function drawTree(ctx: Ctx, x: number, y: number, r: number, pal: Palette
   ctx.fillRect(x - r * 0.14, y - r * 0.1, r * 0.28, r * 0.5);
   const cols = [pal.treeA, pal.treeB, pal.treeC];
   const baseCol = cols[variant % 3];
+  // foliage is lumpy everywhere else in Bramblewood, so it is lumpy here too
+  const sd = variant * 7 + 1;
   ctx.fillStyle = shade(baseCol, -0.18);
-  ctx.beginPath(); ctx.arc(x, y - r * 0.15, r * 1.02, 0, Math.PI * 2); ctx.fill();
+  blobPath(ctx, x, y - r * 0.15, r * 1.02, sd, 0.16); ctx.fill();
   ctx.fillStyle = baseCol;
-  ctx.beginPath();
-  ctx.arc(x, y - r * 0.3, r * 0.82, 0, Math.PI * 2);
-  ctx.arc(x - r * 0.55, y + r * 0.02, r * 0.6, 0, Math.PI * 2);
-  ctx.arc(x + r * 0.55, y + r * 0.02, r * 0.6, 0, Math.PI * 2);
-  ctx.fill();
+  blobPath(ctx, x, y - r * 0.3, r * 0.82, sd + 1, 0.18); ctx.fill();
+  blobPath(ctx, x - r * 0.55, y + r * 0.02, r * 0.6, sd + 2, 0.2); ctx.fill();
+  blobPath(ctx, x + r * 0.55, y + r * 0.02, r * 0.6, sd + 3, 0.2); ctx.fill();
   ctx.fillStyle = shade(baseCol, 0.28);
-  ctx.beginPath(); ctx.arc(x - r * 0.25, y - r * 0.5, r * 0.36, 0, Math.PI * 2); ctx.fill();
+  blobPath(ctx, x - r * 0.25, y - r * 0.5, r * 0.36, sd + 4, 0.22); ctx.fill();
   ctx.fillStyle = shade(baseCol, 0.16);
-  ctx.beginPath(); ctx.arc(x + r * 0.3, y - r * 0.15, r * 0.22, 0, Math.PI * 2); ctx.fill();
+  blobPath(ctx, x + r * 0.3, y - r * 0.15, r * 0.22, sd + 5, 0.22); ctx.fill();
 }
 
 export function drawPine(ctx: Ctx, x: number, y: number, r: number, pal: Palette, variant: number): void {
@@ -37,10 +43,20 @@ export function drawPine(ctx: Ctx, x: number, y: number, r: number, pal: Palette
   const tiers = 3;
   for (let i = 0; i < tiers; i++) {
     const w = r * (1.1 - i * 0.28), h = r * 0.9, top = y - r * 0.2 - i * r * 0.55;
+    // the sides sag between the needles instead of ruling straight to the tip
     ctx.fillStyle = shade(col, -0.15 + i * 0.05);
-    ctx.beginPath(); ctx.moveTo(x, top - h); ctx.lineTo(x + w, top); ctx.lineTo(x - w, top); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x, top - h);
+    ctx.quadraticCurveTo(x + w * 0.42, top - h * 0.34, x + w, top);
+    ctx.quadraticCurveTo(x, top + h * 0.1, x - w, top);
+    ctx.quadraticCurveTo(x - w * 0.42, top - h * 0.34, x, top - h);
+    ctx.closePath(); ctx.fill();
     ctx.fillStyle = shade(col, 0.18 + i * 0.05);
-    ctx.beginPath(); ctx.moveTo(x, top - h); ctx.lineTo(x - w, top); ctx.lineTo(x - w * 0.15, top); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x, top - h);
+    ctx.quadraticCurveTo(x - w * 0.42, top - h * 0.34, x - w, top);
+    ctx.quadraticCurveTo(x - w * 0.5, top + h * 0.04, x - w * 0.15, top);
+    ctx.closePath(); ctx.fill();
   }
 }
 

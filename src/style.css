@@ -68,11 +68,25 @@ html, body {
 .card .sub { color: var(--ink-soft); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
 
 .logo {
-  text-align: center; color: #fff; margin-bottom: 22px;
-  text-shadow: 0 6px 24px rgba(0, 30, 80, 0.45);
+  /* White type straight onto the scene measured 1.5:1 on the hub's pale sky, and on Cloudhopper
+     the line runs across a lit island. Neither is readable on a phone in daylight. So the type
+     keeps its white and gets something to sit on: a soft dark wash that fades out well before
+     the edges, so it reads as evening light rather than as a box. */
+  position: relative; text-align: center; color: #fff; margin-bottom: 22px;
+  text-shadow: 0 2px 4px rgba(4, 22, 48, 0.55), 0 10px 30px rgba(0, 24, 66, 0.4);
 }
+.logo::before {
+  content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(150%, 720px); height: 235%; pointer-events: none; z-index: 0;
+  background: radial-gradient(56% 50% at 50% 56%, rgba(6, 26, 54, 0.76), rgba(6, 26, 54, 0.66) 56%, rgba(6, 26, 54, 0) 86%);
+}
+.logo > * { position: relative; z-index: 1; }
 .logo .word { font-size: clamp(38px, 11vw, 58px); font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
-.logo .tag { font-size: 14px; font-weight: 700; opacity: 0.85; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 8px; }
+.logo .tag {
+  /* small type, so on top of the wash it also carries its own dark halo */
+  font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 8px;
+  text-shadow: 0 0 5px rgba(4, 20, 44, 0.95), 0 0 2px rgba(4, 20, 44, 0.9), 0 1px 2px rgba(4, 20, 44, 0.8);
+}
 .logo svg { width: 120px; height: 84px; display: block; margin: 0 auto 6px; animation: floaty 4s ease-in-out infinite; filter: drop-shadow(0 12px 18px rgba(0,30,80,0.35)); }
 
 .btn {

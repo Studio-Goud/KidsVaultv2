@@ -700,7 +700,7 @@ export class MarketDay {
       ctx.fillText(`${i + 1}`, x + 24 * u, y + 28.5 * u);
 
       ctx.textAlign = 'left';
-      ctx.fillStyle = open ? '#123047' : 'rgba(18,48,71,0.45)';
+      ctx.fillStyle = open ? '#123047' : 'rgba(18,48,71,0.68)';
       ctx.font = this.font('900', 14);
       ctx.fillText(nameOf(L), x + 14 * u, y + art + 28 * u, cw - 28 * u);
       for (let sI = 0; sI < 3; sI++) drawStarGem(ctx, x + 22 * u + sI * 20 * u, y + art + 46 * u, 8 * u, sI < p.stars);
