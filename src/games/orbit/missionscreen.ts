@@ -114,8 +114,12 @@ export class MissionScreen {
   update(dt: number): void {
     this.messageT = Math.max(0, this.messageT - dt);
     if (this.stage === 'aim' || this.stage === 'pick' || this.stage === 'done') {
-      // planets keep moving while you think; that is the point
-      if (this.stage !== 'pick') this.t += dt * this.mission.speed * 0.35;
+      // The world keeps turning while you think - waiting for the right moment is half of it.
+      // But the moment a push is actually set, everything holds still until you fire it or let
+      // it go. Otherwise the shot the dotted line promised is not the shot the button sends:
+      // the launch point creeps on while a child reaches for Launch.
+      const aiming = this.stage === 'aim' && Math.hypot(this.dv.x, this.dv.y) > 0.005;
+      if (this.stage !== 'pick' && !aiming) this.t += dt * this.aimRate();
       return;
     }
     if (this.countdown > 0) {
@@ -210,15 +214,47 @@ export class MissionScreen {
     }
   }
 
-  /** The drag on screen becomes a push in map units, capped by the fuel you have. */
+  /**
+   * How fast the clock runs while you are aiming.
+   *
+   * The probe waits on a circle round the body it leaves, and that circle turns. Round the Earth
+   * it turns fast: on the Moon mission it came all the way round about once a second, so by the
+   * time a child had let go of the drag the launch point was somewhere else entirely and the shot
+   * they had just lined up was not the shot they fired. Now the clock is slowed until that circle
+   * turns no more than half a radian a second, which is slow enough to aim at and to watch. The
+   * target still creeps, so leading it is still the whole job.
+   */
+  private aimRate(): number {
+    const b = bodyById(this.mission, this.fromBodyId());
+    const r0 = b.r === 0 ? b.size * 1.4 : b.r;
+    const w = Math.pow(r0, -1.5);
+    return Math.min(this.mission.speed * 0.35, 0.5 / w);
+  }
+
+  /** How far you drag for a push at full strength: a thumb's sweep, not twenty pixels. */
+  private dragSpan = 120;
+
+  /** What the dotted line last worked out, so a test can read what a child would see. */
+  private lastPred: ReturnType<typeof predict> | null = null;
+
+
+  /** The strength of the push you may set at this moment. */
+  private dvCap(): number { return this.stage === 'burn' ? Math.min(this.fuel, 0.35) : this.fuel; }
+
+  /**
+   * The drag becomes a push. It is measured in pixels on the glass rather than in map units,
+   * because the map is squeezed differently for every mission: at the old fixed rate the whole
+   * range of the fuel fitted inside a circle the width of a fingertip, and a tremble threw the
+   * probe across the solar system.
+   */
   private setDv(p: Vec): void {
-    const dx = (p.x - this.dragFrom.x) / this.map.scale, dy = (p.y - this.dragFrom.y) / this.map.scale;
-    // a full drag of a quarter of the map is one Earth-speed of push; that keeps small pushes possible
-    const k = 3.2;
+    const dx = p.x - this.dragFrom.x, dy = p.y - this.dragFrom.y;
+    const reach = Math.max(40, this.dragSpan);
+    const cap = this.dvCap();
+    const mag = Math.hypot(dx, dy);
+    const k = cap / reach;
     let vx = dx * k, vy = dy * k;
-    const mag = Math.hypot(vx, vy);
-    const cap = this.stage === 'burn' ? Math.min(this.fuel, 0.35) : this.fuel;
-    if (mag > cap) { vx *= cap / mag; vy *= cap / mag; }
+    if (mag > reach) { vx *= reach / mag; vy *= reach / mag; }
     this.dv = { x: vx, y: vy };
   }
 
@@ -229,6 +265,7 @@ export class MissionScreen {
     const top = 100 * u, bottom = h - 150 * u;
     const size = Math.min(w - 20 * u, bottom - top);
     this.map = { cx: w / 2, cy: top + (bottom - top) / 2, scale: (size / 2) / outer };
+    this.dragSpan = Math.min(w, h) * 0.3;
   }
 
   private toScreen(p: { x: number; y: number }): Vec { return { x: this.map.cx + p.x * this.map.scale, y: this.map.cy + p.y * this.map.scale }; }
@@ -300,7 +337,7 @@ export class MissionScreen {
     // the push arrow while aiming
     if (this.stage === 'aim' || this.stage === 'burn') {
       const origin = this.stage === 'aim' ? this.toScreen(launchPoint(m, from, this.t)) : this.toScreen(this.probe!);
-      const len = Math.hypot(this.dv.x, this.dv.y) / 3.2 * this.map.scale;
+      const len = Math.hypot(this.dv.x, this.dv.y) / Math.max(0.001, this.dvCap()) * this.dragSpan;
       if (len > 2) {
         const a = Math.atan2(this.dv.y, this.dv.x);
         ctx.strokeStyle = '#ffe27a'; ctx.lineWidth = 3 * u; ctx.lineCap = 'round';
@@ -330,6 +367,7 @@ export class MissionScreen {
       this.hits.push({ id: 'probe', x: s.x - 22 * u, y: s.y - 22 * u, w: 44 * u, h: 44 * u });
     }
 
+    this.lastPred = pred;
     this.drawHud(ctx, w, h, u, pred);
     if (this.stage === 'done') this.drawDone(ctx, w, h, u);
     return this.hits;
@@ -369,7 +407,7 @@ export class MissionScreen {
           : T('Misses by ' + Math.round(pred.closest / tb.capture * 100) / 100 + ' × the catch zone', 'Mist met ' + Math.round(pred.closest / tb.capture * 100) / 100 + ' × de vangzone');
         ctx.fillStyle = pred.arrives ? '#9df7c4' : 'rgba(255,226,122,0.9)'; ctx.font = this.font('800', 12);
         ctx.fillText(text, w / 2, ry, w - 40 * u);
-        this.button(ctx, 'launch', T('Launch', 'Lanceren'), w / 2, h - 96 * u, 170 * u, 46 * u, true, u);
+        this.button(ctx, 'launch', T('Launch', 'Lanceren'), w / 2, h - 96 * u, 170 * u, 46 * u, pred.arrives, u);
       } else {
         ctx.fillStyle = 'rgba(200,216,244,0.7)'; ctx.font = this.font('700', 12);
         ctx.fillText(T('Drag anywhere to set the push.', 'Sleep ergens om de duw in te stellen.'), w / 2, ry, w - 40 * u);
@@ -463,6 +501,10 @@ export class MissionScreen {
     return {
       stage: this.stage, mission: this.mission.id, t: Math.round(this.t * 10) / 10, fuel: Math.round(this.fuel * 100) / 100,
       target: this.target, legs: this.legs, result: this.result, stars: this.earned, dv: this.dv, map: this.map,
+      dragSpan: this.dragSpan,
+      arrives: this.lastPred ? this.lastPred.arrives : null,
+      closest: this.lastPred ? Math.round(this.lastPred.closest * 1000) / 1000 : null,
+      when: this.lastPred ? Math.round(this.lastPred.when * 10) / 10 : null,
       probe: this.probe ? { x: this.probe.x, y: this.probe.y, flight: Math.round(this.probe.flight) } : null,
       buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
     };

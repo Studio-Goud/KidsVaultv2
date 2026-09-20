@@ -98,7 +98,7 @@ export interface Mission {
 }
 
 export const MISSIONS: Mission[] = [
-  { id: 'moon', name: 'To the Moon', nameNl: 'Naar de Maan', system: 'earth', from: 'earth', to: 'moon', fuel: 1.6, predict: 14, burns: 0, speed: 1.6, limit: 40,
+  { id: 'moon', name: 'To the Moon', nameNl: 'Naar de Maan', system: 'earth', from: 'earth', to: 'moon', fuel: 0.8, predict: 26, burns: 0, speed: 1.6, limit: 44,
     hint: 'Drag away from Earth to aim. The dotted line is where the probe will go. The ring is where the Moon will be when you get there.',
     hintNl: 'Sleep van de Aarde weg om te richten. De stippellijn is waar de sonde heen gaat. De ring is waar de Maan dan is.' },
   { id: 'mars', name: 'To Mars', nameNl: 'Naar Mars', system: 'sun', from: 'earth', to: 'mars', fuel: 0.5, predict: 16, burns: 0, speed: 1.4, limit: 60,
