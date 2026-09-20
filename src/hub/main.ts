@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawDigThumb, drawMarketThumb, drawPuffThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
+import { drawDigThumb, drawMarketThumb, drawMoonThumb, drawPuffThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -56,6 +56,16 @@ const GAMES: Game[] = [
     practisesNl: 'Ordenen, groottes vergelijken, beweging voorspellen, het zonnestelsel kennen',
     age: '5+',
     img: './img/planets/saturn.jpg',
+  },
+  {
+    href: './moonshot.html',
+    title: 'Moonshot',
+    line: 'Build a rocket from the parts you pick, then fly the thing you built as far as it will go.',
+    lineNl: 'Bouw een raket van de onderdelen die jij kiest, en vlieg er zo ver mee als hij komt.',
+    practises: 'Weighing one thing against another, cause and effect, reading a number that grows',
+    practisesNl: 'Afwegen, oorzaak en gevolg, een getal lezen dat groeit',
+    age: '6+',
+    paint: drawMoonThumb,
   },
   {
     href: './mill.html',

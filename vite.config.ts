@@ -20,6 +20,7 @@ export default defineConfig({
         tidepool: resolve(__dirname, 'tidepool.html'),
         market: resolve(__dirname, 'market.html'),
         puffball: resolve(__dirname, 'puffball.html'),
+        moonshot: resolve(__dirname, 'moonshot.html'),
       },
     },
   },

@@ -552,3 +552,86 @@ export function drawPuffThumb(c: HTMLCanvasElement): void {
   ctx.fillText('2', px2, py2 - r * 0.18);
   ctx.textAlign = 'left';
 }
+
+/** A rocket leaving the pad, with the Moon waiting at the top of the card. */
+export function drawMoonThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+
+  // the sky the rocket is climbing out of: blue at the bottom, space at the top
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, '#0a1330');
+  sky.addColorStop(0.45, '#2a4f8d');
+  sky.addColorStop(1, '#79b4e6');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+
+  for (let i = 0; i < 18; i++) {
+    const x = ((i * 61) % 100) / 100 * w, y = ((i * 29) % 100) / 100 * h * 0.5;
+    ctx.globalAlpha = 0.5 - y / h;
+    ctx.fillStyle = '#dce8ff';
+    ctx.beginPath(); ctx.arc(x, y, 0.8, 0, TAU); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // the Moon, which is what the whole game is aiming at
+  const mx = w * 0.78, my = h * 0.2, mr = Math.min(w, h) * 0.13;
+  const moon = ctx.createRadialGradient(mx - mr * 0.35, my - mr * 0.35, mr * 0.15, mx, my, mr);
+  moon.addColorStop(0, '#fdfbf3');
+  moon.addColorStop(1, '#c8c2b2');
+  ctx.fillStyle = moon;
+  ctx.beginPath(); ctx.arc(mx, my, mr, 0, TAU); ctx.fill();
+  ctx.fillStyle = 'rgba(150, 144, 130, 0.5)';
+  for (const [dx, dy, r] of [[-0.3, 0.1, 0.22], [0.25, -0.2, 0.16], [0.1, 0.4, 0.13]] as const) {
+    ctx.beginPath(); ctx.arc(mx + dx * mr, my + dy * mr, r * mr, 0, TAU); ctx.fill();
+  }
+
+  // the ground it has just left, far enough below to leave room for the flame
+  ctx.fillStyle = '#6b6a5c';
+  ctx.beginPath(); ctx.ellipse(w * 0.5, h * 1.18, w * 0.8, h * 0.22, 0, 0, TAU); ctx.fill();
+
+  // the rocket, the same stack the game starts you with: engine, tank, capsule
+  const rx = w * 0.36, ry = h * 0.54;
+  const u = Math.min(w, h) * 0.10;
+  const tube = (y: number, tall: number, a: string, b: string): void => {
+    const g = ctx.createLinearGradient(rx - u, 0, rx + u, 0);
+    g.addColorStop(0, b); g.addColorStop(0.35, a); g.addColorStop(1, b);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.roundRect(rx - u, y, u * 2, tall, u * 0.18); ctx.fill();
+  };
+  ctx.save();
+  ctx.translate(0, 0);
+  ctx.rotate(0);
+  // exhaust
+  const fl = ctx.createLinearGradient(0, ry + u * 2.6, 0, ry + u * 6);
+  fl.addColorStop(0, 'rgba(255,244,214,0.95)');
+  fl.addColorStop(0.5, 'rgba(255,170,60,0.8)');
+  fl.addColorStop(1, 'rgba(255,110,40,0)');
+  ctx.fillStyle = fl;
+  ctx.beginPath();
+  ctx.moveTo(rx - u * 0.6, ry + u * 2.6);
+  ctx.quadraticCurveTo(rx, ry + u * 6.4, rx + u * 0.6, ry + u * 2.6);
+  ctx.closePath(); ctx.fill();
+
+  tube(ry - u * 2.6, u * 4.6, '#f4f6f8', '#b9c2cc');      // tank
+  ctx.fillStyle = '#e0483a';
+  ctx.fillRect(rx - u, ry - u * 1.1, u * 2, u * 0.3);      // the stripe
+  ctx.fillStyle = '#2f3a47';                               // engine bell
+  ctx.beginPath();
+  ctx.moveTo(rx - u * 0.42, ry + u * 2);
+  ctx.lineTo(rx + u * 0.42, ry + u * 2);
+  ctx.lineTo(rx + u * 0.78, ry + u * 2.7);
+  ctx.lineTo(rx - u * 0.78, ry + u * 2.7);
+  ctx.closePath(); ctx.fill();
+  const nose = ctx.createLinearGradient(rx - u, 0, rx + u, 0);
+  nose.addColorStop(0, '#e8ecf1'); nose.addColorStop(0.35, '#ffffff'); nose.addColorStop(1, '#aeb8c4');
+  ctx.fillStyle = nose;
+  ctx.beginPath();
+  ctx.moveTo(rx, ry - u * 4.6);
+  ctx.quadraticCurveTo(rx + u * 0.95, ry - u * 3.1, rx + u * 0.95, ry - u * 2.5);
+  ctx.lineTo(rx - u * 0.95, ry - u * 2.5);
+  ctx.quadraticCurveTo(rx - u * 0.95, ry - u * 3.1, rx, ry - u * 4.6);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#6ec6ef';
+  ctx.beginPath(); ctx.arc(rx, ry - u * 3.1, u * 0.3, 0, TAU); ctx.fill();
+  ctx.restore();
+}

@@ -32,7 +32,9 @@ html, body {
   color: var(--ink);
 }
 
-#game, #sky, #space, #dig, #valley, #pool, #stall, #wood { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+/* Every game's canvas. This used to be a list of the ids, which meant a new game silently got a
+   three-hundred-pixel canvas until someone remembered to add it here. It is a class now. */
+canvas.full { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
 #ui { position: fixed; inset: 0; pointer-events: none; }
 

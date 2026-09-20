@@ -16,6 +16,8 @@ export interface SaveData {
   wxOpen: boolean;
   /** Millstream's village: what you have earned, what you have built, what each valley has paid */
   mill: { grain: number; built: string[]; paid: Record<string, number> };
+  /** Moonshot: how far the best flight got, on the ladder, and the rocket that did it */
+  moon: { best: number; stack: string[] };
 }
 
 const KEY = 'cloudhopper.save.v1';
@@ -25,6 +27,7 @@ const defaults = (): SaveData => ({
   levels: {}, sound: true, radio: true, music: true, haptics: true, lang: 'auto', tutorialSeen: false,
   coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false,
   mill: { grain: 0, built: [], paid: {} },
+  moon: { best: 0, stack: [] },
 });
 
 export function loadSave(): SaveData {
@@ -35,7 +38,7 @@ export function loadSave(): SaveData {
     const got = JSON.parse(raw) as Partial<SaveData>;
     // a save written before the village existed has no mill slice, and a half-written one may be
     // missing a field inside it, so it is filled in rather than trusted whole
-    return { ...d, ...got, mill: { ...d.mill, ...(got.mill ?? {}) } };
+    return { ...d, ...got, mill: { ...d.mill, ...(got.mill ?? {}) }, moon: { ...d.moon, ...(got.moon ?? {}) } };
   } catch { return defaults(); }
 }
 

@@ -33,6 +33,24 @@ left and flight time. Real physics: Kepler orbits, gravity, semi-implicit Euler,
 line that gets shorter in the harder missions.
 Practises ordering, comparing, predicting motion and the solar system. Age 5 and up.
 
+### Moonshot (`moonshot.html`)
+Build a rocket out of the parts you choose - capsule, tanks, engines, fins, strap-on boosters - and
+a balance on the workshop screen weighs the push against the weight while you build, so a rocket
+that cannot lift itself never leaves the pad. When you decide it is finished you launch it, steer it
+upright against the wind with two thumbs, drop each stage as it runs dry, and see how far the speed
+you were left with carries you: up with the birds, through the clouds, past the satellites, as far
+as the Moon, away from the Earth, as far as Mars. Each rung reached hands over the next part, so the
+rocket that got you there is the reason you can build a better one.
+
+The physics is honest. Mass falls as fuel burns, gravity weakens by the inverse square, the air
+thins out exponentially and stops both pushing back and holding you straight, a spent stage is dead
+weight until it is dropped, and exhaust speed decides how far you end up going - which is why the
+quiet vacuum engine beats the loud one, and why the last part is a nuclear engine NASA really did
+build and fire in the sixties. The only thing bent for a child is the clock: tanks empty in seconds
+rather than minutes.
+Practises weighing one thing against another, cause and effect, and reading a number that grows.
+Age 6 and up.
+
 ### Dino Dig (`dig.html`)
 Excavate real fossils (Smithsonian, NASA and Wikimedia public domain photographs) with brush, chisel,
 hammer and scribe, each with its own reach, bite and risk, before the daylight runs out. Ten species
