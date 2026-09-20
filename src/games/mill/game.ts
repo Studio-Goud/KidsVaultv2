@@ -15,12 +15,12 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
-import { uiScale } from '../../util/ui';
+import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
-  breathe, chunkyButton, contactShadow, drawStar, easeOutBack, easeOutCubic, glassPanel,
-  handCursor, heading, hexA, outlinedText, Particles, progressRing, Shake, vignette,
+  bleedEdges, breathe, chunkyButton, contactShadow, drawStar, easeOutBack, easeOutCubic,
+  glassPanel, handCursor, heading, hexA, outlinedText, Particles, progressRing, Shake, vignette,
 } from '../../render/look';
 import { mill, Stream } from './millsfx';
 import { levelThumb, paintHorizon, ValleyArt, type Grid } from './paint';
@@ -44,7 +44,12 @@ export class Millstream {
   private ctx: Ctx;
   private dpr = 1;
   private w = 0;
+  /** the safe height: the screen less the notch and the home bar */
   private h = 0;
+  /** the whole screen, for the art that runs under them */
+  private fullH = 0;
+  private st = 0;
+  private sb = 0;
   private t = 0;
   private raf = 0;
 
@@ -98,6 +103,7 @@ export class Millstream {
       this.t = now;
       this.update(dt);
       this.draw();
+      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h);
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
@@ -121,11 +127,18 @@ export class Millstream {
   private u(): number { return uiScale(this.w, this.h); }
 
   private resize(): void {
+    // The picture fills the screen, but nothing a child reads or presses may sit under the notch
+    // or the home bar. So w and h are the safe box, the canvas is the whole screen, and draw()
+    // shifts everything down by the top inset and carries the art on into the strips.
+    const safe = safeArea();
+    this.st = safe.top;
+    this.sb = safe.bottom;
+    this.fullH = Math.max(1, window.innerHeight);
     this.w = Math.max(1, window.innerWidth);
-    this.h = Math.max(1, window.innerHeight);
+    this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     this.canvas.width = Math.round(this.w * this.dpr);
-    this.canvas.height = Math.round(this.h * this.dpr);
+    this.canvas.height = Math.round(this.fullH * this.dpr);
   }
 
   /** How much sky sits above the valley, which is also where the interface lives. */
@@ -290,7 +303,8 @@ export class Millstream {
 
   private at(e: PointerEvent): Vec {
     const r = this.canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    // draw() shifts everything down past the notch, so a tap comes back up by the same amount
+    return { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
   }
 
   private hitAt(p: Vec): string | null {
@@ -349,6 +363,7 @@ export class Millstream {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.translate(0, this.st);
     ctx.fillStyle = '#8fc8e8';
     ctx.fillRect(0, 0, this.w, this.h);
     this.hits = [];

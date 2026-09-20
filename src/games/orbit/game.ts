@@ -16,7 +16,7 @@ import { drawScale } from './scale';
 import { MissionScreen } from './missionscreen';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
 import { CREDITS, loadAllMoons, loadAllPlanets } from './photo';
-import { uiScale } from '../../util/ui';
+import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { chunkyButton } from '../../render/look';
 import { paintSpace } from './paint';
@@ -47,7 +47,12 @@ export class Orbit {
   private ctx: Ctx;
   private dpr = 1;
   private w = 0;
+  /** the safe height: the screen less the notch and the home bar */
   private h = 0;
+  /** the whole screen, for the art that runs under them */
+  private fullH = 0;
+  private st = 0;
+  private sb = 0;
   private t = 0;
   private raf = 0;
 
@@ -77,7 +82,7 @@ export class Orbit {
     canvas.addEventListener('pointermove', e => {
       if (this.mode !== 'missions') return;
       const r0 = this.canvas.getBoundingClientRect();
-      this.missions.onMove({ x: e.clientX - r0.left, y: e.clientY - r0.top });
+      this.missions.onMove({ x: e.clientX - r0.left, y: e.clientY - r0.top - this.st });
     });
     canvas.addEventListener('pointerup', () => this.missions.onUp());
     canvas.addEventListener('pointercancel', () => this.missions.onUp());
@@ -111,12 +116,19 @@ export class Orbit {
   // ---------- layout ----------
 
   private resize(): void {
+    // The art fills the whole screen, but nothing a child reads or presses may sit under the
+    // notch or the home bar. So w and h are the safe box, the canvas is the whole screen, and
+    // draw() shifts everything down by the top inset. See safeArea() in util/ui.
+    const safe = safeArea();
+    this.st = safe.top;
+    this.sb = safe.bottom;
+    this.fullH = Math.max(1, window.innerHeight);
     this.w = Math.max(1, window.innerWidth);
-    this.h = Math.max(1, window.innerHeight);
+    this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     this.canvas.width = Math.round(this.w * this.dpr);
-    this.canvas.height = Math.round(this.h * this.dpr);
-    this.stars = starField(this.w, this.h);
+    this.canvas.height = Math.round(this.fullH * this.dpr);
+    this.stars = starField(this.w, this.fullH).map(s => ({ ...s, y: s.y - this.st }));
     if (this.want.length) this.layout();
   }
 
@@ -256,7 +268,8 @@ export class Orbit {
 
   private onDown(e: PointerEvent): void {
     const r = this.canvas.getBoundingClientRect();
-    const p = { x: e.clientX - r.left, y: e.clientY - r.top };
+    // draw() shifts everything down past the notch, so a tap comes back up by the same amount
+    const p = { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
     unlockAudio();
     const hit = hitAt(this.hits, p);
     if (hit && hit.startsWith('tab:')) {
@@ -314,8 +327,10 @@ export class Orbit {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    // deep space, painted once: a graded dark, a band of far stars, nebulae, a few near stars
-    paintSpace(ctx, this.w, this.h);
+    // deep space, painted once: a graded dark, a band of far stars, nebulae, a few near stars.
+    // It runs edge to edge, under the notch and the home bar; only the chrome keeps clear of them.
+    paintSpace(ctx, this.w, this.fullH);
+    ctx.translate(0, this.st);
     // the twinkling few on top, which do move
     for (const s of this.stars) {
       ctx.globalAlpha = s.a * (0.6 + 0.4 * Math.sin(this.t * 0.8 + s.p));

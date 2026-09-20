@@ -11,7 +11,7 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
-import { uiScale } from '../../util/ui';
+import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
@@ -20,8 +20,8 @@ import {
 } from './model';
 import { Sea, tide } from './tidesfx';
 import {
-  breathe, chunkyButton, drawStar as drawStarGem, easeOutBack, easeOutCubic, glassPanel, heading,
-  outlinedText, Particles, vignette,
+  bleedEdges, breathe, chunkyButton, drawStar as drawStarGem, easeOutBack, easeOutCubic,
+  glassPanel, heading, outlinedText, Particles, vignette,
 } from '../../render/look';
 import { creatureShadow, paintCreature, ShoreArt } from './paint';
 
@@ -43,7 +43,12 @@ export class Tidepool {
   private ctx: Ctx;
   private dpr = 1;
   private w = 0;
+  /** the safe height: the screen less the notch and the home bar */
   private h = 0;
+  /** the whole screen, for the art that runs under them */
+  private fullH = 0;
+  private st = 0;
+  private sb = 0;
   private t = 0;
   private raf = 0;
 
@@ -98,6 +103,7 @@ export class Tidepool {
       this.t = now;
       this.update(dt);
       this.draw();
+      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h);
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
@@ -121,11 +127,18 @@ export class Tidepool {
   private u(): number { return uiScale(this.w, this.h); }
 
   private resize(): void {
+    // The picture fills the screen, but nothing a child reads or presses may sit under the notch
+    // or the home bar. So w and h are the safe box, the canvas is the whole screen, and draw()
+    // shifts everything down by the top inset and carries the art on into the strips.
+    const safe = safeArea();
+    this.st = safe.top;
+    this.sb = safe.bottom;
+    this.fullH = Math.max(1, window.innerHeight);
     this.w = Math.max(1, window.innerWidth);
-    this.h = Math.max(1, window.innerHeight);
+    this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     this.canvas.width = Math.round(this.w * this.dpr);
-    this.canvas.height = Math.round(this.h * this.dpr);
+    this.canvas.height = Math.round(this.fullH * this.dpr);
   }
 
   /** The shore fills the screen: sea at the top, sand and the pools at the bottom. */
@@ -264,7 +277,8 @@ export class Tidepool {
 
   private at(e: PointerEvent): Vec {
     const r = this.canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    // draw() shifts everything down past the notch, so a tap comes back up by the same amount
+    return { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
   }
 
   private hitAt(p: Vec): string | null {
@@ -358,6 +372,7 @@ export class Tidepool {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.translate(0, this.st);
     this.hits = [];
     if (this.phase === 'levels') { this.drawLevels(); return; }
 

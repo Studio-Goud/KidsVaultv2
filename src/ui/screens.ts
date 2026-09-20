@@ -322,6 +322,7 @@ export class UI {
         <button class="btn mint" data-a="resume">${t('resume')}</button>
         <button class="btn secondary" data-a="retry">${t('retry')}</button>
         <button class="btn secondary" data-a="levels">${t('missions')}</button>
+        <a class="btn quiet" href="./">Bramblewood</a>
       </div></div>`;
     s.querySelector('[data-a=resume]')!.addEventListener('click', () => this.actions.resume());
     s.querySelector('[data-a=retry]')!.addEventListener('click', () => this.actions.retry());

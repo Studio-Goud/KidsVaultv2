@@ -11,10 +11,10 @@
 
 import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { makeRng } from '../../util/rng';
-import { uiScale } from '../../util/ui';
+import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { edgeKey, FIGURES, type Figure } from './figures';
-import { chunkyButton } from '../../render/look';
+import { bleedEdges, chunkyButton } from '../../render/look';
 import { paintNightSky } from './paint';
 import { night } from './nightsfx';
 
@@ -43,7 +43,12 @@ export class NightWatch {
   private ctx: Ctx;
   private dpr = 1;
   private w = 0;
+  /** the safe height: the screen less the notch and the home bar */
   private h = 0;
+  /** the whole screen, for the art that runs under them */
+  private fullH = 0;
+  private st = 0;
+  private sb = 0;
   private t = 0;
   private raf = 0;
 
@@ -80,6 +85,7 @@ export class NightWatch {
       this.t = now;
       this.update(dt);
       this.draw();
+      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h);
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
@@ -98,11 +104,18 @@ export class NightWatch {
   // ---------- layout ----------
 
   private resize(): void {
+    // The picture fills the screen, but nothing a child reads or presses may sit under the notch
+    // or the home bar. So w and h are the safe box, the canvas is the whole screen, and draw()
+    // shifts everything down by the top inset and carries the art on into the strips.
+    const safe = safeArea();
+    this.st = safe.top;
+    this.sb = safe.bottom;
+    this.fullH = Math.max(1, window.innerHeight);
     this.w = Math.max(1, window.innerWidth);
-    this.h = Math.max(1, window.innerHeight);
+    this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     this.canvas.width = Math.round(this.w * this.dpr);
-    this.canvas.height = Math.round(this.h * this.dpr);
+    this.canvas.height = Math.round(this.fullH * this.dpr);
     this.makeBackdrop();
     if (this.stars.length) this.placeStars();
   }
@@ -197,7 +210,8 @@ export class NightWatch {
 
   private at(e: PointerEvent): Vec {
     const r = this.canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    // draw() shifts everything down past the notch, so a tap comes back up by the same amount
+    return { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
   }
 
   private starAt(p: Vec): number | null {
@@ -267,6 +281,7 @@ export class NightWatch {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.translate(0, this.st);
     // night sky: graded, with a milky way, far stars and a dark land along the bottom
     paintNightSky(ctx, this.w, this.h, this.t, this.u());
     for (const s of this.bg) {

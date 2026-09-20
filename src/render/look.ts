@@ -608,3 +608,30 @@ export class CachedLayer {
   /** Throw the cached drawing away, so the next get redraws it. */
   clear(): void { this.key = ''; }
 }
+
+/**
+ * Carry the picture on under the notch and the home bar.
+ *
+ * Every game draws inside the safe box and shifts down by the top inset, so nothing a child has
+ * to read or press hides behind the phone's own furniture. That leaves a strip at the top and one
+ * at the bottom. Rather than a black band, the first and last row that were drawn are stretched
+ * into them: whatever the sky or the ground happens to be at that edge, the strip matches it.
+ */
+export function bleedEdges(
+  ctx: Ctx, canvas: HTMLCanvasElement, w: number, dpr: number, top: number, bottom: number, h: number,
+): void {
+  if (top <= 0 && bottom <= 0) return;
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const cw = canvas.width;
+  if (top > 0) {
+    const row = Math.round(top * dpr);
+    ctx.drawImage(canvas, 0, row, cw, 1, 0, 0, cw, row);
+  }
+  if (bottom > 0) {
+    const y = Math.round((top + h) * dpr);
+    const band = Math.round(bottom * dpr);
+    if (y - 1 >= 0) ctx.drawImage(canvas, 0, y - 1, cw, 1, 0, y, cw, band);
+  }
+  ctx.restore();
+}
