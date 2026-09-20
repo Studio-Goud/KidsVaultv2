@@ -1,9 +1,9 @@
 import { PLANE_TYPES, displayKmh } from '../game/planes';
 import { drawPlane } from '../render/planes';
 import type { Report } from '../game/postmortem';
-import { LEVELS_PER_WORLD, WORLDS, buildMission, firstAppearance, missionId, missionUnlocked, totalStars, worldStars, worldUnlocked } from '../game/progress';
+import { LEVELS_PER_WORLD, MAX_STARS, WORLDS, buildMission, firstAppearance, grandTotalStars, missionId, missionUnlocked, portMissionUnlocked, portStars, portUnlocked, worldStars, worldUnlocked } from '../game/progress';
 import { UPGRADES, buyUpgrade, nextCost, upgradeDesc, upgradeName } from '../game/upgrades';
-import { REAL_PORTS } from '../game/realports';
+import { PORTS_IN_ORDER } from '../game/realports';
 import { lang, t } from '../i18n';
 import { levelProgress, persist, realId, save, upgradeLevel } from '../util/storage';
 import { sfx } from '../util/audio';
@@ -101,11 +101,11 @@ export class UI {
 
   title(): void {
     const s = this.screen('');
-    const stars = totalStars();
+    const stars = grandTotalStars();
     s.innerHTML = `
       <div class="logo">${svgLogo}<div class="word">Wolkenhaven</div><div class="tag">${lang() === 'nl' ? 'Luchtverkeersleider van de archipel' : 'Air traffic controller of the archipelago'}</div></div>
       <div class="card" style="text-align:center">
-        <div class="statrow"><span>${svgStar(true, 18)}<b>${stars}</b> / ${WORLDS.length * LEVELS_PER_WORLD * 3}</span>${coinBadge()}</div>
+        <div class="statrow"><span>${svgStar(true, 18)}<b>${stars}</b> / ${MAX_STARS}</span>${coinBadge()}</div>
         <div class="stack" style="margin-top:12px">
           <button class="btn" data-a="play">${t('islandsMode')}</button>
           <button class="btn mint" data-a="ports">${t('world')}</button>
@@ -124,13 +124,18 @@ export class UI {
   ports(back: () => void): void {
     const s = this.screen('dim top');
     s.appendChild(this.topbar(t('realPorts'), back));
-    const grid = document.createElement('div'); grid.className = 'grid'; grid.style.maxWidth = '560px';
-    for (const p of REAL_PORTS) {
+    const have = grandTotalStars();
+    const head = document.createElement('div'); head.className = 'statrow light';
+    head.innerHTML = `<span>${svgStar(true, 18)}<b>${have}</b> / ${MAX_STARS}</span>${coinBadge()}`;
+    s.appendChild(head);
+    const grid = document.createElement('div'); grid.className = 'grid';
+    for (const p of PORTS_IN_ORDER) {
       const done = [0, 1, 2, 3].map(k => levelProgress(realId(p.id, k)));
-      const stars = done.reduce((a, d) => a + d.stars, 0);
+      const stars = portStars(p.id);
+      const open = portUnlocked(p);
       const firstOpen = done.findIndex(d => !d.completed);
       const nextStep = firstOpen === -1 ? 3 : firstOpen;
-      const b = document.createElement('button'); b.className = 'level port';
+      const b = document.createElement('button'); b.className = `level port${open ? '' : ' locked'}`;
       const c = document.createElement('canvas'); c.width = 300; c.height = 384;
       b.appendChild(c);
       this.actions.makePortThumb(p.id, c);
@@ -142,7 +147,16 @@ export class UI {
       const dots = document.createElement('div'); dots.className = 'steps';
       dots.innerHTML = [0, 1, 2, 3].map(k => `<i class="${done[k].completed ? 'on' : ''}"></i>`).join('');
       b.appendChild(dots);
-      b.addEventListener('click', () => this.actions.startReal(p.id, nextStep));
+      if (!open) {
+        const lock = document.createElement('div'); lock.className = 'lock';
+        lock.innerHTML = `${svgLock}<div class="lockhint">${p.unlockAt - have} ${t('starsToUnlock')}</div>`;
+        b.appendChild(lock);
+      }
+      b.addEventListener('click', () => {
+        if (!open) { this.toast(t('lockedPort')); return; }
+        if (!portMissionUnlocked(p, nextStep)) { this.toast(t('finishPrevious')); return; }
+        this.actions.startReal(p.id, nextStep);
+      });
       grid.appendChild(b);
     }
     s.appendChild(grid);
@@ -202,7 +216,7 @@ export class UI {
   worlds(): void {
     const s = this.screen('dim top');
     s.appendChild(this.topbar(t('worlds'), () => this.actions.toTitle(), { icon: svgShop, onClick: () => this.actions.openShop() }));
-    const grid = document.createElement('div'); grid.className = 'grid'; grid.style.maxWidth = '560px';
+    const grid = document.createElement('div'); grid.className = 'grid';
     WORLDS.forEach((lv, i) => {
       const unlocked = worldUnlocked(i);
       const stars = worldStars(i);

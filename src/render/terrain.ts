@@ -152,13 +152,18 @@ function drawRunway(ctx: Ctx, rw: Runway, pal: Palette, lights: LightSpot[], rl:
   // far threshold keys
   for (let i = 0; i < keys; i++) ctx.fillRect(L - 30, -w / 2 + 7 + i * kw + kw * 0.2, 22, kw * 0.6);
   if (rw.closed) {
-    // out of use: the markings fade and a cross is painted at both ends
-    ctx.globalAlpha = 0.45;
-    ctx.strokeStyle = pal.marking; ctx.lineWidth = 5; ctx.lineCap = 'round';
-    for (const cx of [26, L - 26]) {
+    // out of use: the surface greys over and a cross is painted at both ends and in the middle,
+    // big enough to read on a phone without zooming in
+    ctx.globalAlpha = 0.34;
+    ctx.fillStyle = '#20262e';
+    ctx.fillRect(0, -w / 2, L, w);
+    ctx.globalAlpha = 0.82;
+    ctx.strokeStyle = pal.marking; ctx.lineWidth = 7; ctx.lineCap = 'round';
+    const a = w * 0.42;
+    for (const cx of [30, L / 2, L - 30]) {
       ctx.beginPath();
-      ctx.moveTo(cx - w * 0.3, -w * 0.3); ctx.lineTo(cx + w * 0.3, w * 0.3);
-      ctx.moveTo(cx - w * 0.3, w * 0.3); ctx.lineTo(cx + w * 0.3, -w * 0.3);
+      ctx.moveTo(cx - a, -a); ctx.lineTo(cx + a, a);
+      ctx.moveTo(cx - a, a); ctx.lineTo(cx + a, -a);
       ctx.stroke();
     }
     ctx.globalAlpha = 1;

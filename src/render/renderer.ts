@@ -3,7 +3,7 @@ import type { Plane } from '../game/types';
 import { clamp, dist, TAU, type Vec } from '../util/math';
 import { CloudField, drawPuff, drawSeaLife, WindField } from './effects';
 import { drawHud, type HudHits, type HudLayout } from './hud';
-import { PALETTES, type Palette } from './palette';
+import { PALETTES, shade, type Palette } from './palette';
 import { drawPlane, drawPlaneLights, drawPlaneShadow, type PlaneView } from './planes';
 import { buildTerrain, type TerrainData } from './terrain';
 import { drawWindmillBlades } from './decor';
@@ -53,7 +53,8 @@ export class Renderer {
   }
 
   suggestWorldWidth(): number {
-    const w = Math.round(clamp((this.sw / this.sh) * 1600, 700, 1100));
+    // the map is 1600 tall; its width follows the screen so phones and tablets both fill the frame
+    const w = Math.round(clamp((this.sw / this.sh) * 1600, 700, 2400));
     return Number.isFinite(w) ? w : 800;
   }
 
@@ -142,8 +143,20 @@ export class Renderer {
     const px = 1 / this.viewScale(); // one screen pixel in world units
 
     this.screenTransform();
-    ctx.fillStyle = pal.seaDeep;
-    ctx.fillRect(0, 0, this.sw, this.sh);
+    // the open sea runs edge to edge, so a rotated tablet shows more ocean instead of dead bars.
+    // the stops match the terrain painter's own sea, and canvas clamps past the ends, so the
+    // seam where the map begins is invisible.
+    {
+      const top = this.viewOy(), bottom = this.viewOy() + this.H * this.viewScale();
+      const g = bottom - top > 1
+        ? ctx.createLinearGradient(0, top, 0, bottom)
+        : null;
+      if (g) {
+        g.addColorStop(0, pal.seaDeep); g.addColorStop(0.55, pal.seaMid); g.addColorStop(1, shade(pal.seaMid, 0.08));
+        ctx.fillStyle = g;
+      } else ctx.fillStyle = pal.seaDeep;
+      ctx.fillRect(0, 0, this.sw, this.sh);
+    }
 
     this.worldTransform();
     ctx.drawImage(T.canvas, 0, 0, this.W, this.H);
@@ -271,19 +284,15 @@ export class Renderer {
       g.addColorStop(0, 'rgba(120,180,255,0)'); g.addColorStop(1, 'rgba(60,110,220,0.35)');
       ctx.fillStyle = g; ctx.fillRect(0, 0, this.W, this.H);
     }
-    // letterbox edges (soft vignette)
+    // no letterbox vignette: the sea already runs edge to edge, and a dark seam at the map border
+    // is exactly what a rotated tablet must not show
     this.screenTransform();
-    if (this.ox > 0 && this.zoom <= 1.001) {
-      const g1 = ctx.createLinearGradient(this.ox, 0, this.ox + 60, 0); g1.addColorStop(0, 'rgba(0,10,30,0.35)'); g1.addColorStop(1, 'rgba(0,10,30,0)');
-      ctx.fillStyle = g1; ctx.fillRect(this.ox, 0, 60, this.sh);
-      const g2 = ctx.createLinearGradient(this.sw - this.ox, 0, this.sw - this.ox - 60, 0); g2.addColorStop(0, 'rgba(0,10,30,0.35)'); g2.addColorStop(1, 'rgba(0,10,30,0)');
-      ctx.fillStyle = g2; ctx.fillRect(this.sw - this.ox - 60, 0, 60, this.sh);
-    }
 
     if (this.wxfx) { this.wxfx.drawFog(ctx, world.weather, this.sw, this.sh, time, pal); this.wxfx.drawFlash(ctx, this.sw, this.sh); }
 
     if (showHud) {
-      const layout: HudLayout = { sw: this.sw, sh: this.sh, safeTop: this.safe.top, safeBottom: this.safe.bottom, safeLeft: this.safe.left, safeRight: this.safe.right, ui: clamp(this.sw / 430, 0.85, 1.5) };
+      const ui = clamp(Math.min(this.sw, this.sh * 0.62) / 400, 0.85, 1.65);
+      const layout: HudLayout = { sw: this.sw, sh: this.sh, safeTop: this.safe.top, safeBottom: this.safe.bottom, safeLeft: this.safe.left, safeRight: this.safe.right, ui };
       this.hudHits = drawHud(ctx, world, layout, time, pal);
     } else {
       this.hudHits = null;

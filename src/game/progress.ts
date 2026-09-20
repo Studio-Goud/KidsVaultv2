@@ -3,6 +3,8 @@ import type { LevelDef, TimeOfDay } from './types';
 import { levelProgress } from '../util/storage';
 import { lang } from '../i18n';
 import { makeScript, type WeatherProfile } from './weather';
+import { REAL_PORTS, type RealPort } from './realports';
+import { realId } from '../util/storage';
 
 export const LEVELS_PER_WORLD = 8;
 export const WORLDS = LEVELS; // each island is a world with 8 missions
@@ -111,7 +113,8 @@ export function buildMission(worldIndex: number, index: number): LevelDef & { ta
     clouds: base.clouds + (tag === 'storm' ? 4 : 0),
     seed: base.seed,
     tag, index: i, worldIndex,
-    twinRunway: i >= 5 && base.runways.some(r => r.kind === 'long'),
+    twinRunway: base.runways.some(r => r.kind === 'long'),
+    twinClosed: i < 5,
   };
 }
 
@@ -132,6 +135,28 @@ export function totalStars(): number {
   let s = 0;
   for (let w = 0; w < WORLDS.length; w++) s += worldStars(w);
   return s;
+}
+
+/** Stars earned at one real-world airport (4 missions, 3 stars each). */
+export function portStars(portId: string): number {
+  let s = 0;
+  for (let k = 0; k < 4; k++) s += levelProgress(realId(portId, k)).stars;
+  return s;
+}
+export function realStars(): number {
+  let s = 0;
+  for (const p of REAL_PORTS) s += portStars(p.id);
+  return s;
+}
+/** Every star in the game: islands plus real airports. */
+export function grandTotalStars(): number { return totalStars() + realStars(); }
+export const MAX_STARS = WORLDS.length * LEVELS_PER_WORLD * 3 + REAL_PORTS.length * 4 * 3;
+
+export function portUnlocked(port: RealPort): boolean { return grandTotalStars() >= port.unlockAt; }
+export function portMissionUnlocked(port: RealPort, step: number): boolean {
+  if (!portUnlocked(port)) return false;
+  if (step === 0) return true;
+  return levelProgress(realId(port.id, step - 1)).completed;
 }
 /** A world unlocks once the previous world has at least 12 of 24 stars. */
 export function worldUnlocked(worldIndex: number): boolean {

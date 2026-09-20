@@ -132,7 +132,7 @@ export class World {
         const threshold = add(main.threshold, mul(dirN, off));
         const end = add(threshold, mul(main.dir, main.length));
         const twin: Runway = {
-          id: main.id + 'B', kind: 'long', threshold, heading: main.heading, dir: main.dir, length: main.length, end,
+          id: main.id + 'B', kind: 'long', closed: level.twinClosed, threshold, heading: main.heading, dir: main.dir, length: main.length, end,
           gate: sub(threshold, mul(main.dir, GATE_DIST)), occupiedBy: null, center: add(threshold, mul(main.dir, main.length / 2)), width: main.width,
           airport: ap, parallelOf: main.id,
         };
@@ -177,7 +177,7 @@ export class World {
     // the band you can comfortably reach with a thumb: below the counter card, above the aircraft panel
     const HUD_TOP = 200, PANEL = 330, SIDE = 30;
     // the runways must stay well inside; the surrounding complex may hang over the edge a little
-    const SLACK = 240;
+    const SLACK = 90;
     const aim = (rLo: number, rHi: number, aLo: number, aHi: number, lo: number, hi: number, span: number): number => {
       const target = (lo + hi) / 2 - (rLo + rHi) / 2;   // centre the runways in the reachable band
       let min = Math.max(-SLACK - aLo, 24 - rLo);

@@ -9,7 +9,7 @@ import type { WeatherProfile } from './weather';
  * Runway lengths are the real ones divided by ten, the scale the rest of the game already uses.
  */
 
-export interface RealRunway { id: string; x: number; y: number; hdg: number; len: number; kind?: 'long' | 'short' | 'water'; from?: number }
+export interface RealRunway { id: string; x: number; y: number; hdg: number; len: number; kind?: 'long' | 'short' | 'water' | 'helipad'; from?: number }
 export interface RealTerminal { x: number; y: number; rot: number; w: number; gates: number; kind?: BuildingKind; label?: string; heavy?: boolean }
 export interface RealLandmark { kind: 'city' | 'mountain' | 'ridge' | 'village' | 'lighthouse' | 'castle' | 'windmill' | 'forest' | 'beach'; x: number; y: number; w?: number; h?: number; rot?: number }
 
@@ -32,7 +32,8 @@ export interface RealPort {
   openRunways: number[];
   seed: number;
   clouds: number;
-  stars?: number;   // 1..3 difficulty for the card
+  stars?: number;      // 1..3 difficulty for the card
+  unlockAt: number;    // stars you need before this field opens
 }
 
 const JETS = [{ type: 'a320', weight: 3 }, { type: 'b737', weight: 3 }, { type: 'a321', weight: 2 }, { type: 'e195', weight: 2 }, { type: 'crj900', weight: 1 }];
@@ -72,7 +73,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [...JETS, ...HEAVIES, ...REGIONAL.slice(0, 2), { type: 'b747', weight: 2 }, { type: 'a380', weight: 1 }],
     time: 'morning', weather: 'breezy', wind: { kmh: 18, gust: 8, dirDeg: 210, wander: 18 },
-    goal: 16, openRunways: [2, 3, 4, 6], seed: 1001, clouds: 6, stars: 3,
+    goal: 16, openRunways: [2, 3, 4, 6], seed: 1001, clouds: 6, stars: 3, unlockAt: 58,
   },
   {
     id: 'egll', icao: 'EGLL', iata: 'LHR', name: 'Heathrow', city: 'Londen', country: 'Verenigd Koninkrijk',
@@ -96,7 +97,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [...HEAVIES, ...JETS, { type: 'a380', weight: 2 }, { type: 'b747', weight: 2 }],
     time: 'golden', weather: 'showers', wind: { kmh: 22, gust: 10, dirDeg: 260, wander: 14 },
-    goal: 18, openRunways: [1, 2, 2, 2], seed: 1002, clouds: 8, stars: 3,
+    goal: 18, openRunways: [1, 2, 2, 2], seed: 1002, clouds: 8, stars: 3, unlockAt: 94,
   },
   {
     id: 'kjfk', icao: 'KJFK', iata: 'JFK', name: 'John F. Kennedy', city: 'New York', country: 'Verenigde Staten',
@@ -121,7 +122,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [...HEAVIES, ...JETS, { type: 'b747', weight: 2 }, { type: 'e175', weight: 2 }, { type: 'crj900', weight: 2 }],
     time: 'dusk', weather: 'front', wind: { kmh: 20, gust: 12, dirDeg: 300, wander: 25 },
-    goal: 18, openRunways: [2, 2, 3, 4], seed: 1003, clouds: 6, stars: 3,
+    goal: 18, openRunways: [2, 2, 3, 4], seed: 1003, clouds: 6, stars: 3, unlockAt: 118,
   },
   {
     id: 'lowi', icao: 'LOWI', iata: 'INN', name: 'Innsbruck', city: 'Innsbruck', country: 'Oostenrijk',
@@ -141,7 +142,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [...REGIONAL, { type: 'a320', weight: 3 }, { type: 'b737', weight: 2 }, { type: 'e195', weight: 2 }, { type: 'citation', weight: 1 }, { type: 'g650', weight: 1 }],
     time: 'morning', weather: 'gusty', wind: { kmh: 26, gust: 16, dirDeg: 260, wander: 30 },
-    goal: 12, openRunways: [1, 1, 1, 1], seed: 1004, clouds: 7, stars: 3,
+    goal: 12, openRunways: [1, 1, 1, 1], seed: 1004, clouds: 7, stars: 3, unlockAt: 26,
   },
   {
     id: 'lpma', icao: 'LPMA', iata: 'FNC', name: 'Cristiano Ronaldo', city: 'Madeira', country: 'Portugal',
@@ -159,7 +160,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [{ type: 'a320', weight: 3 }, { type: 'b737', weight: 3 }, { type: 'a321', weight: 2 }, { type: 'e195', weight: 2 }, ...REGIONAL.slice(0, 2)],
     time: 'golden', weather: 'gusty', wind: { kmh: 30, gust: 18, dirDeg: 90, wander: 34 },
-    goal: 10, openRunways: [1, 1, 1, 1], seed: 1005, clouds: 5, stars: 3,
+    goal: 10, openRunways: [1, 1, 1, 1], seed: 1005, clouds: 5, stars: 3, unlockAt: 36,
   },
   {
     id: 'lxgb', icao: 'LXGB', iata: 'GIB', name: 'Gibraltar', city: 'Gibraltar', country: 'Gibraltar',
@@ -177,7 +178,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [{ type: 'a320', weight: 3 }, { type: 'b737', weight: 3 }, { type: 'e195', weight: 1 }, { type: 'citation', weight: 1 }],
     time: 'golden', weather: 'gusty', wind: { kmh: 28, gust: 20, dirDeg: 180, wander: 40 },
-    goal: 9, openRunways: [1, 1, 1, 1], seed: 1006, clouds: 5, stars: 3,
+    goal: 9, openRunways: [1, 1, 1, 1], seed: 1006, clouds: 5, stars: 3, unlockAt: 46,
   },
   {
     id: 'tncm', icao: 'TNCM', iata: 'SXM', name: 'Princess Juliana', city: 'Sint Maarten', country: 'Koninkrijk der Nederlanden',
@@ -196,7 +197,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [{ type: 'b737', weight: 2 }, { type: 'a320', weight: 2 }, ...REGIONAL, { type: 'dhc6', weight: 2 }, { type: 'b747', weight: 1 }, { type: 'b787', weight: 1 }],
     time: 'golden', weather: 'showers', wind: { kmh: 20, gust: 9, dirDeg: 100, wander: 16 },
-    goal: 12, openRunways: [1, 1, 1, 1], seed: 1007, clouds: 6, stars: 2,
+    goal: 12, openRunways: [1, 1, 1, 1], seed: 1007, clouds: 6, stars: 2, unlockAt: 8,
   },
   {
     id: 'vhhx', icao: 'VHHX', iata: 'HKG', name: 'Kai Tak', city: 'Hongkong', country: 'China',
@@ -216,7 +217,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [...HEAVIES, { type: 'b747', weight: 3 }, ...JETS.slice(0, 3)],
     time: 'dusk', weather: 'front', wind: { kmh: 24, gust: 14, dirDeg: 120, wander: 28 },
-    goal: 12, openRunways: [1, 1, 1, 1], seed: 1008, clouds: 7, stars: 3,
+    goal: 12, openRunways: [1, 1, 1, 1], seed: 1008, clouds: 7, stars: 3, unlockAt: 106,
   },
   {
     id: 'omdb', icao: 'OMDB', iata: 'DXB', name: 'Dubai International', city: 'Dubai', country: 'Verenigde Arabische Emiraten',
@@ -237,7 +238,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [{ type: 'a380', weight: 3 }, { type: 'b777', weight: 3 }, ...HEAVIES, { type: 'a320', weight: 1 }, { type: 'b737', weight: 1 }],
     time: 'night', weather: 'heat', wind: { kmh: 14, gust: 7, dirDeg: 300, wander: 12 },
-    goal: 20, openRunways: [1, 2, 2, 2], seed: 1009, clouds: 3, stars: 2,
+    goal: 20, openRunways: [1, 2, 2, 2], seed: 1009, clouds: 3, stars: 2, unlockAt: 70,
   },
   {
     id: 'wsss', icao: 'WSSS', iata: 'SIN', name: 'Changi', city: 'Singapore', country: 'Singapore',
@@ -261,7 +262,7 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [...HEAVIES, { type: 'a380', weight: 2 }, { type: 'b747', weight: 1 }, ...JETS.slice(0, 3), { type: 'atr72', weight: 1 }],
     time: 'golden', weather: 'storm', wind: { kmh: 16, gust: 12, dirDeg: 200, wander: 24 },
-    goal: 18, openRunways: [1, 2, 2, 3], seed: 1010, clouds: 8, stars: 2,
+    goal: 18, openRunways: [1, 2, 2, 3], seed: 1010, clouds: 8, stars: 2, unlockAt: 82,
   },
   {
     id: 'egpr', icao: 'EGPR', iata: 'BRR', name: 'Barra', city: 'Isle of Barra', country: 'Schotland',
@@ -281,14 +282,17 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [{ type: 'dhc6', weight: 3 }, { type: 'c208', weight: 2 }, { type: 'pc12', weight: 2 }, ...LIGHT],
     time: 'dusk', weather: 'fog', wind: { kmh: 22, gust: 12, dirDeg: 70, wander: 30 },
-    goal: 8, openRunways: [1, 1, 2, 2], seed: 1011, clouds: 6, stars: 2,
+    goal: 8, openRunways: [1, 1, 2, 2], seed: 1011, clouds: 6, stars: 2, unlockAt: 16,
   },
   {
     id: 'vnlk', icao: 'VNLK', iata: 'LUA', name: 'Lukla', city: 'Tenzing-Hillary', country: 'Nepal',
     nl: 'Vijfhonderd meter tegen de berg op, geen tweede kans.',
     en: 'Five hundred metres uphill against the mountain, no second chance.',
     base: 'land', ground: 'rock',
-    runways: [{ id: '06', x: 0.22, y: 0.62, hdg: 60, len: 90, kind: 'short' }],
+    runways: [
+      { id: '06', x: 0.22, y: 0.62, hdg: 60, len: 90, kind: 'short' },
+      { id: 'H', x: 0.60, y: 0.80, hdg: 60, len: 1, kind: 'helipad' },
+    ],
     terminals: [{ x: 0.46, y: 0.72, rot: 60, w: 56, gates: 2, label: 'T' }],
     landmarks: [
       { kind: 'ridge', x: 0.5, y: 0.12, w: 1.2, h: 0.26 },
@@ -298,11 +302,13 @@ export const REAL_PORTS: RealPort[] = [
     ],
     fleet: [{ type: 'dhc6', weight: 4 }, { type: 'c208', weight: 3 }, { type: 'h135', weight: 1 }, { type: 'aw139', weight: 1 }],
     time: 'morning', weather: 'fog', wind: { kmh: 18, gust: 14, dirDeg: 60, wander: 36 },
-    goal: 8, openRunways: [1, 1, 1, 1], seed: 1012, clouds: 7, stars: 3,
+    goal: 8, openRunways: [1, 1, 1, 1], seed: 1012, clouds: 7, stars: 3, unlockAt: 130,
   },
 ];
 
 export const realPortById = (id: string): RealPort | undefined => REAL_PORTS.find(p => p.id === id);
+/** The fields in the order you unlock them. */
+export const PORTS_IN_ORDER: RealPort[] = [...REAL_PORTS].sort((a, b) => a.unlockAt - b.unlockAt);
 
 /** Compass degrees (landing direction) to the screen angle used by the simulation. */
 export const hdgToRad = (deg: number): number => ((deg - 90) * Math.PI) / 180;
@@ -346,9 +352,13 @@ export function realRunwayDefs(port: RealPort, step: number, W = 739, H = 1600):
   // every runway of the field is always on the map; the ones above this step are simply closed
   const anyOpen = port.runways.some(r => (r.from ?? 0) <= step);
   return port.runways.map((r, i) => {
+    const kind = r.kind ?? 'long';
+    if (kind === 'helipad' || kind === 'water') {
+      return { id: r.id, kind, x: r.x, y: r.y, heading: hdgToRad(r.hdg), length: r.len, closed: false };
+    }
     const fit = fitRunway(r, W, H);
     const open = anyOpen ? (r.from ?? 0) <= step : i === 0;
-    return { id: r.id, kind: r.kind ?? 'long', x: fit.x, y: fit.y, heading: hdgToRad(r.hdg), length: fit.len, closed: !open };
+    return { id: r.id, kind, x: fit.x, y: fit.y, heading: hdgToRad(r.hdg), length: fit.len, closed: !open };
   });
 }
 

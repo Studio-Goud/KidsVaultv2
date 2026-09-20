@@ -84,6 +84,8 @@ export interface LevelDef {
   clouds: number;
   weather?: import('./weather').WeatherScript;
   twinRunway?: boolean;
+  /** the parallel runway exists but is not in use yet */
+  twinClosed?: boolean;
   /** real-world airport level */
   port?: import('./realports').RealPort;
   step?: number;
