@@ -12,7 +12,6 @@
 import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { BODIES, MOONS, moonsOf, type Body, type Moon } from './bodies';
 import { drawExplore, hitAt } from './explore';
-import { clampView, dragView, HAS_MAP, loadMap, MAP_CREDIT, type View } from './globe';
 import { drawScale } from './scale';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
 import { CREDITS, loadAllMoons, loadAllPlanets } from './photo';
@@ -62,12 +61,6 @@ export class Orbit {
   private mode: Mode = 'quiz';
   private exploreIndex = 0;
   private openMoon: Moon | null = null;
-  /** where the globe is turned to, and how close you are looking */
-  private view: View = { lon: 2.2, lat: 0.1, zoom: 1 };
-  private dragging = false;
-  private lastPt = { x: 0, y: 0 };
-  private lastTap = 0;
-  private pinch = 0;
   private hits: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -75,18 +68,9 @@ export class Orbit {
     this.resize();
     window.addEventListener('resize', () => this.resize());
     canvas.addEventListener('pointerdown', e => this.onDown(e));
-    canvas.addEventListener('pointermove', e => this.onMove(e));
-    canvas.addEventListener('pointerup', () => { this.dragging = false; });
-    canvas.addEventListener('pointercancel', () => { this.dragging = false; });
-    canvas.addEventListener('wheel', e => {
-      if (this.mode !== 'explore') return;
-      e.preventDefault();
-      this.view = clampView({ ...this.view, zoom: this.view.zoom * (e.deltaY < 0 ? 1.12 : 0.89) });
-    }, { passive: false });
     this.startRound(0);
     void loadAllPlanets(BODIES.map(b => b.id)).then(() => { this.photosReady = true; this.layout(); });
     void loadAllMoons(MOONS.map(m => m.id));
-    for (const b of BODIES) if (HAS_MAP.has(b.id)) void loadMap(b.id);
     (window as unknown as { __orbit?: Orbit }).__orbit = this;
     const loop = (ms: number): void => {
       const now = ms / 1000;
@@ -253,21 +237,9 @@ export class Orbit {
 
   // ---------- input ----------
 
-  private onMove(e: PointerEvent): void {
-    if (!this.dragging || this.mode !== 'explore') return;
-    const r = this.canvas.getBoundingClientRect();
-    const p = { x: e.clientX - r.left, y: e.clientY - r.top };
-    const disc = this.hits.find(h => h.id === 'globe');
-    // the hit box is 2.5 radii across, so this recovers the globe's real radius
-    const rr = disc ? disc.w / 2.5 : 60;
-    this.view = dragView(this.view, p.x - this.lastPt.x, p.y - this.lastPt.y, rr);
-    this.lastPt = p;
-  }
-
   private onDown(e: PointerEvent): void {
     const r = this.canvas.getBoundingClientRect();
     const p = { x: e.clientX - r.left, y: e.clientY - r.top };
-    this.lastPt = p;
     const hit = hitAt(this.hits, p);
     if (hit) {
       if (hit.startsWith('tab:')) {
@@ -280,19 +252,6 @@ export class Orbit {
         const d = hit === 'next' ? 1 : -1;
         this.exploreIndex = (this.exploreIndex + d + BODIES.length) % BODIES.length;
         this.openMoon = null;
-        this.view = { lon: 2.2, lat: 0.1, zoom: 1 };
-        return;
-      }
-      if (hit === 'globe') {
-        // a second tap in quick succession steps the zoom, a single tap starts a turn
-        const now = performance.now();
-        if (now - this.lastTap < 320) {
-          this.view = clampView({ ...this.view, zoom: this.view.zoom > 1.05 ? 1 : 2.2 });
-          this.lastTap = 0;
-        } else {
-          this.lastTap = now;
-          this.dragging = true;
-        }
         return;
       }
       if (hit.startsWith('moon:')) {
@@ -345,7 +304,7 @@ export class Orbit {
     if (this.mode === 'explore') {
       const body = BODIES[this.exploreIndex];
       this.hits = drawExplore(ctx, body, this.openMoon, this.t, this.w, this.h - this.tabRoom(),
-        this.u(), this.dpr, (wt, sz) => this.font(wt, sz), this.view);
+        this.u(), this.dpr, (wt, sz) => this.font(wt, sz));
       this.hits.push(...this.drawTabs());
       return;
     }
@@ -464,6 +423,5 @@ export class Orbit {
     ctx.fillText(T('Photographs:', 'Foto’s:') + ' NASA, JPL-Caltech, ESA/Hubble, Cassini, Voyager, Apollo', this.w / 2, by + h + 26 * u, this.w - 24);
     const shown = [...new Set(Object.values(CREDITS))].slice(0, 3).join(' · ');
     ctx.fillText(shown, this.w / 2, by + h + 40 * u, this.w - 24);
-    ctx.fillText(MAP_CREDIT, this.w / 2, by + h + 54 * u, this.w - 24);
   }
 }
