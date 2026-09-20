@@ -122,7 +122,7 @@ export class NightWatch {
    */
   private field(): { x: number; y: number; w: number; h: number; s: number } {
     const u = this.u();
-    const top = 110 * u, bottom = 96 * u;
+    const top = 122 * u, bottom = 96 * u;
     const availW = this.w - 40 * u, availH = this.h - top - bottom;
     let w = availW, h = availH;
     if (w / h > 1.4) w = h * 1.4;
@@ -362,11 +362,11 @@ export class NightWatch {
       T('Draw it back', 'Teken hem terug');
     ctx.fillStyle = this.phase === 'solved' ? '#9df7c4' : '#eaf2ff';
     ctx.font = this.font('900', 22);
-    ctx.fillText(head, this.w / 2, 56 * this.u());
+    ctx.fillText(head, this.w / 2, 64 * this.u());
 
     if (this.phase === 'drawing') {
       ctx.fillStyle = 'rgba(220,235,255,0.6)'; ctx.font = this.font('700', 13);
-      ctx.fillText(T('Connect the stars you remember', 'Verbind de sterren die je onthouden hebt'), this.w / 2, 78 * this.u());
+      ctx.fillText(T('Connect the stars you remember', 'Verbind de sterren die je onthouden hebt'), this.w / 2, 86 * this.u());
     }
 
     // round dots
@@ -374,7 +374,7 @@ export class NightWatch {
     for (let i = 0; i < n; i++) {
       const done = i < this.solvedNames.length;
       ctx.fillStyle = done ? '#9df7c4' : i === this.round ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.28)';
-      ctx.beginPath(); ctx.arc(x0 + i * gap, 96 * this.u(), (done ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(x0 + i * gap, 104 * this.u(), (done ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
     }
 
     if (this.phase === 'drawing') {

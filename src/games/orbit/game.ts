@@ -10,13 +10,16 @@
  */
 
 import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
-import { BODIES, type Body } from './bodies';
+import { BODIES, MOONS, moonsOf, type Body, type Moon } from './bodies';
+import { drawExplore, hitAt } from './explore';
+import { drawScale } from './scale';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
-import { CREDITS, loadAllPlanets } from './photo';
+import { CREDITS, loadAllMoons, loadAllPlanets } from './photo';
 import { uiScale } from '../../util/ui';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
+type Mode = 'quiz' | 'explore' | 'scale';
 
 interface Slot { body: Body; pos: Vec; r: number; placed: boolean }
 interface Flyer { body: Body; from: Vec; to: Vec; r0: number; r1: number; t0: number }
@@ -55,6 +58,9 @@ export class Orbit {
   private wrongId: string | null = null;
   private stars = starField(1, 1);
   private photosReady = false;
+  private mode: Mode = 'quiz';
+  private exploreIndex = 0;
+  private openMoon: Moon | null = null;
   private hits: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -64,6 +70,7 @@ export class Orbit {
     canvas.addEventListener('pointerdown', e => this.onDown(e));
     this.startRound(0);
     void loadAllPlanets(BODIES.map(b => b.id)).then(() => { this.photosReady = true; this.layout(); });
+    void loadAllMoons(MOONS.map(m => m.id));
     (window as unknown as { __orbit?: Orbit }).__orbit = this;
     const loop = (ms: number): void => {
       const now = ms / 1000;
@@ -102,7 +109,7 @@ export class Orbit {
   private u(): number { return uiScale(this.w, this.h); }
 
   /** The track along the bottom, and the tray of planets still to place. */
-  private trackY(): number { return this.h - 92 * this.u(); }
+  private trackY(): number { return this.h - 92 * this.u() - this.tabRoom(); }
   /** the sun sits at the start of the track, fully on screen */
   private sunX(): number { return 34 * this.u(); }
   // no hard ceiling: on a tablet the planets should actually fill the room they have
@@ -154,9 +161,44 @@ export class Orbit {
 
   private trayRect(): { x: number; y: number; w: number; h: number } {
     const u = this.u();
-    const top = 118 * u, bottom = this.trackY() - 82 * u;
+    const top = 130 * u, bottom = this.trackY() - 82 * u;
     return { x: 16 * u, y: top, w: this.w - 32 * u, h: Math.max(110 * u, bottom - top) };
   }
+
+
+  /** The three ways in: the puzzle, one planet up close, and the honest scale. */
+  private drawTabs(): Array<{ id: string; x: number; y: number; w: number; h: number }> {
+    const ctx = this.ctx, u = this.u();
+    const labels: Array<[Mode, string]> = [
+      ['quiz', T('Puzzle', 'Puzzel')],
+      ['explore', T('Explore', 'Verken')],
+      ['scale', T('To scale', 'Op schaal')],
+    ];
+    const bh = 30 * u, pad = 10 * u;
+    ctx.font = this.font('800', 11.5);
+    const widths = labels.map(([, l]) => ctx.measureText(l).width + pad * 2.2);
+    const total = widths.reduce((a, b) => a + b, 0) + pad * (labels.length - 1);
+    let x = (this.w - total) / 2;
+    const y = this.h - bh - 12 * u;
+    const hits: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
+    labels.forEach(([id, label], i) => {
+      const bw = widths[i];
+      const on = this.mode === id;
+      ctx.fillStyle = on ? 'rgba(157,247,196,0.9)' : 'rgba(255,255,255,0.10)';
+      ctx.beginPath(); ctx.roundRect(x, y, bw, bh, bh / 2); ctx.fill();
+      if (!on) { ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.lineWidth = 1; ctx.stroke(); }
+      ctx.fillStyle = on ? '#0b2a1c' : 'rgba(226,236,255,0.85)';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x + bw / 2, y + bh * 0.64);
+      hits.push({ id: `tab:${id}`, x, y, w: bw, h: bh });
+      x += bw + pad;
+    });
+    ctx.textAlign = 'left';
+    return hits;
+  }
+
+  /** How much room the tab bar takes off the bottom of every screen. */
+  private tabRoom(): number { return 54 * this.u(); }
 
   // ---------- rounds ----------
 
@@ -174,6 +216,7 @@ export class Orbit {
   }
 
   private update(dt: number): void {
+    if (this.mode !== 'quiz') return;
     this.phaseT += dt;
     this.factT = Math.max(0, this.factT - dt);
     if (this.flyer && this.t - this.flyer.t0 > 0.55) {
@@ -197,12 +240,27 @@ export class Orbit {
   private onDown(e: PointerEvent): void {
     const r = this.canvas.getBoundingClientRect();
     const p = { x: e.clientX - r.left, y: e.clientY - r.top };
-    for (const h of this.hits) {
-      if (p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h) {
-        if (h.id === 'again') { this.startRound(0); return; }
+    const hit = hitAt(this.hits, p);
+    if (hit) {
+      if (hit.startsWith('tab:')) {
+        this.mode = hit.slice(4) as Mode;
+        this.openMoon = null;
+        return;
+      }
+      if (hit === 'again') { this.startRound(0); return; }
+      if (hit === 'prev' || hit === 'next') {
+        const d = hit === 'next' ? 1 : -1;
+        this.exploreIndex = (this.exploreIndex + d + BODIES.length) % BODIES.length;
+        this.openMoon = null;
+        return;
+      }
+      if (hit.startsWith('moon:')) {
+        const id = hit.slice(5);
+        this.openMoon = this.openMoon && this.openMoon.id === id ? null : (moonsOf(BODIES[this.exploreIndex].id).find(m => m.id === id) ?? null);
+        return;
       }
     }
-    if (this.phase !== 'picking') return;
+    if (this.mode !== 'quiz' || this.phase !== 'picking') return;
     const want = this.want[this.placedCount];
     for (const c of this.choices) {
       if (c.placed) continue;
@@ -243,7 +301,20 @@ export class Orbit {
     ctx.globalAlpha = 1;
     this.hits = [];
 
-    if (this.phase === 'finished') { this.drawFinish(); return; }
+    if (this.mode === 'explore') {
+      const body = BODIES[this.exploreIndex];
+      this.hits = drawExplore(ctx, body, this.openMoon, this.t, this.w, this.h - this.tabRoom(),
+        this.u(), this.dpr, (wt, sz) => this.font(wt, sz));
+      this.hits.push(...this.drawTabs());
+      return;
+    }
+    if (this.mode === 'scale') {
+      drawScale(ctx, this.t, this.w, this.h - this.tabRoom(), this.u(), this.dpr, (wt, sz) => this.font(wt, sz));
+      this.hits = this.drawTabs();
+      return;
+    }
+
+    if (this.phase === 'finished') { this.drawFinish(); this.hits.push(...this.drawTabs()); return; }
 
     // the track along the bottom with the sun at its left end
     ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2;
@@ -277,6 +348,7 @@ export class Orbit {
     }
 
     this.drawChrome();
+    this.hits.push(...this.drawTabs());
   }
 
   private drawChrome(): void {
@@ -288,15 +360,15 @@ export class Orbit {
       this.phase === 'roundDone' ? T('That is the order', 'Dat is de volgorde')
         : this.phase === 'wrong' ? T('Not that one yet', 'Die nog even niet')
           : T('Which comes next?', 'Welke komt hierna?'),
-      this.w / 2, 46 * this.u());
+      this.w / 2, 62 * this.u());
     ctx.fillStyle = 'rgba(214,228,255,0.68)'; ctx.font = this.font('700', 12.5);
-    ctx.fillText(NL() ? r.titleNl : r.title, this.w / 2, 70 * this.u(), this.w - 40);
+    ctx.fillText(NL() ? r.titleNl : r.title, this.w / 2, 86 * this.u(), this.w - 40);
 
     // progress dots, one per round
     const gap = 16 * this.u(), x0 = this.w / 2 - ((ROUNDS.length - 1) * gap) / 2;
     for (let i = 0; i < ROUNDS.length; i++) {
       ctx.fillStyle = i < this.round ? '#9df7c4' : i === this.round ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.28)';
-      ctx.beginPath(); ctx.arc(x0 + i * gap, 92 * this.u(), (i < this.round ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(x0 + i * gap, 106 * this.u(), (i < this.round ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
     }
 
     if (this.factT > 0 && this.fact) {
@@ -343,6 +415,8 @@ export class Orbit {
     ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('800', 15);
     ctx.fillText(T('Go round again', 'Nog een rondje'), this.w / 2, by + h * 0.63);
     this.hits.push({ id: 'again', x: bx, y: by, w, h });
+    ctx.fillStyle = 'rgba(200,214,240,0.6)'; ctx.font = this.font('700', 11);
+    ctx.fillText(T('Or go and meet them one at a time.', 'Of ga ze een voor een ontmoeten.'), this.w / 2, by - 14 * u);
 
     // the photographs are somebody's work, even when they are free to use
     ctx.fillStyle = 'rgba(200,214,240,0.45)'; ctx.font = this.font('700', 9);

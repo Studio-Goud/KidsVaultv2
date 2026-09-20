@@ -104,7 +104,7 @@ export class DinoDig {
    */
   private slab(): { x: number; y: number; w: number; h: number } {
     const u = this.u();
-    const top = 104 * u;
+    const top = 120 * u;
     const bottom = this.h - 200 * u;
     const band = Math.max(150, bottom - top);
     // no fixed ceiling: on a tablet the slab takes the width it is given
@@ -399,22 +399,22 @@ export class DinoDig {
       this.phase === 'wrong' ? T('Look again', 'Kijk nog eens') :
       nameOf(this.dino);
     ctx.fillStyle = '#4a3823'; ctx.font = this.font('900', 22);
-    ctx.fillText(head, this.w / 2, 48 * this.u());
+    ctx.fillText(head, this.w / 2, 62 * this.u());
 
     if (this.phase === 'digging') {
       ctx.fillStyle = 'rgba(74,56,35,0.6)'; ctx.font = this.font('700', 13);
-      ctx.fillText(T('Take your time, it has waited a long while.', 'Rustig aan, hij heeft lang gewacht.'), this.w / 2, 70 * this.u());
+      ctx.fillText(T('Take your time, it has waited a long while.', 'Rustig aan, hij heeft lang gewacht.'), this.w / 2, 84 * this.u());
     }
     if (this.phase === 'reveal') {
       ctx.fillStyle = 'rgba(74,56,35,0.78)'; ctx.font = this.font('700', 13);
-      ctx.fillText(factOf(this.dino), this.w / 2, 70 * this.u(), this.w - 36);
+      ctx.fillText(factOf(this.dino), this.w / 2, 84 * this.u(), this.w - 36);
     }
 
     // found so far
     const gap = 16 * this.u(), x0 = this.w / 2 - ((DINOS.length - 1) * gap) / 2;
     for (let i = 0; i < DINOS.length; i++) {
       ctx.fillStyle = i < this.found.length ? '#6b8f4e' : i === this.round ? 'rgba(74,56,35,0.75)' : 'rgba(74,56,35,0.25)';
-      ctx.beginPath(); ctx.arc(x0 + i * gap, 88 * this.u(), (i < this.found.length ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(x0 + i * gap, 102 * this.u(), (i < this.found.length ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
     }
 
     if (this.phase === 'asking' || this.phase === 'wrong') {

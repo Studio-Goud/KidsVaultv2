@@ -39,11 +39,12 @@ const smooth = (a: number, b: number, x: number): number => {
   return t * t * (3 - 2 * t);
 };
 
-/** Load one planet, knock out the black sky, and measure the globe. */
-export function loadPlanet(id: string): Promise<PlanetPhoto | null> {
-  const done = cache.get(id);
+/** Load one body, knock out the black sky, and measure the globe. */
+export function loadPhoto(id: string, folder: 'planets' | 'moons' = 'planets'): Promise<PlanetPhoto | null> {
+  const key = `${folder}/${id}`;
+  const done = cache.get(key);
   if (done) return Promise.resolve(done);
-  const running = pending.get(id);
+  const running = pending.get(key);
   if (running) return running;
 
   const p = new Promise<PlanetPhoto | null>(resolve => {
@@ -84,23 +85,31 @@ export function loadPlanet(id: string): Promise<PlanetPhoto | null> {
           cy: (y0 + y1) / 2,
           disc: Math.max(8, (y1 - y0) * 0.97),
         };
-        cache.set(id, photo);
+        cache.set(key, photo);
         resolve(photo);
       } catch { resolve(null); }
     };
     img.onerror = () => resolve(null);
     // same origin, so the canvas stays readable
-    img.src = `./img/planets/${id}.jpg`;
+    img.src = `./img/${folder}/${id}.jpg`;
   });
-  pending.set(id, p);
+  pending.set(key, p);
   return p;
 }
 
-export const planetPhoto = (id: string): PlanetPhoto | undefined => cache.get(id);
+export const loadPlanet = (id: string): Promise<PlanetPhoto | null> => loadPhoto(id, 'planets');
+export const loadMoon = (id: string): Promise<PlanetPhoto | null> => loadPhoto(id, 'moons');
+
+export const planetPhoto = (id: string): PlanetPhoto | undefined => cache.get(`planets/${id}`);
+export const moonPhoto = (id: string): PlanetPhoto | undefined => cache.get(`moons/${id}`);
 
 /** Kick off every download at once; resolves when they have all settled. */
 export function loadAllPlanets(ids: string[]): Promise<void> {
   return Promise.all(ids.map(loadPlanet)).then(() => undefined);
+}
+
+export function loadAllMoons(ids: string[]): Promise<void> {
+  return Promise.all(ids.map(loadMoon)).then(() => undefined);
 }
 
 /**
