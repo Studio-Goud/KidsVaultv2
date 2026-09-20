@@ -76,12 +76,12 @@ export const LEVELS: Level[] = [
     id: 'themole', name: 'The mole', nameNl: 'De mol',
     cols: 11, rows: 9, seed: 41, pots: 0.42, reach: 2, puffs: 2, moles: 1, moleSpeed: 1.6, goal: 'moles',
     hidden: ['reach', 'extra'],
-    hint: 'A mole is digging about. Catch it with a puff and it will sit down.',
-    hintNl: 'Er loopt een mol rond. Vang hem met een plof, dan gaat hij even zitten.',
+    hint: 'A mole runs away from a swelling puffball. Leave it nowhere to run to.',
+    hintNl: 'Een mol rent weg van een zwellende stuifzwam. Zorg dat hij nergens heen kan.',
   },
   {
     id: 'pickitup', name: 'Pick it up', nameNl: 'Raap maar op',
-    cols: 11, rows: 11, seed: 53, pots: 0.48, reach: 1, puffs: 1, moles: 1, moleSpeed: 1.8, goal: 'moles',
+    cols: 11, rows: 11, seed: 53, pots: 0.48, reach: 1, puffs: 2, moles: 1, moleSpeed: 1.6, goal: 'moles',
     hidden: ['reach', 'reach', 'extra', 'boots'],
     hint: 'Under some pots is something that makes your puffball reach further. Count again after you take it.',
     hintNl: 'Onder sommige potten ligt iets waardoor je stuifzwam verder komt. Tel daarna opnieuw.',
@@ -103,7 +103,7 @@ export const LEVELS: Level[] = [
   {
     id: 'bramblenight', name: 'Bramble night', nameNl: 'Braamnacht',
     cols: 13, rows: 11, seed: 97, pots: 0.5, reach: 3, puffs: 3, moles: 3, moleSpeed: 2.5, goal: 'moles',
-    hidden: ['reach', 'extra', 'extra', 'boots'],
+    hidden: ['reach', 'extra', 'boots', 'boots'],
     hint: 'Everything at once. Breathe, count, then move.',
     hintNl: 'Alles tegelijk. Adem, tel, en dan pas lopen.',
   },
@@ -208,7 +208,7 @@ export function reachOf(b: Board, p: { x: number; y: number; reach: number }): A
   return out;
 }
 
-export const FUSE = 2.4;
+export const FUSE = 2.6;
 export const POP_TIME = 0.55;
 
 /** Stars: everything finished, and finished without being knocked over. */

@@ -67,13 +67,31 @@ function breath(dur: number, gain: number, from: number, to: number, when = 0): 
   src.stop(t + dur + 0.05);
 }
 
+/**
+ * A chain reaction sets off several puffballs inside the same frame, and every voice sums at the
+ * destination - five of them together clip. So pops that land on top of each other are ducked, and
+ * past the third one nothing is added: by then the ear hears one big breath either way.
+ */
+let popAt = -1;
+let popVoices = 0;
+function popSlot(): number {
+  const ctx = audioContext();
+  const now = ctx ? ctx.currentTime : 0;
+  if (now - popAt > 0.15) popVoices = 0;
+  popAt = now;
+  return popVoices++;
+}
+
 export const puff = {
   place(): void { tone(180, 0.12, 0.16, 'sine', 120); breath(0.1, 0.05, 700, 300); },
-  /** the note that climbs while it swells, called once per second of fuse */
+  /** the note that climbs while it swells - the gaps shorten as the pop gets close */
   tick(step: number): void { tone(330 + step * 90, 0.07, 0.06, 'triangle'); },
   pop(): void {
-    breath(0.5, 0.2, 1800, 220);
-    tone(90, 0.28, 0.12, 'sine', 45);
+    const slot = popSlot();
+    if (slot > 2) return;
+    const duck = slot === 0 ? 1 : slot === 1 ? 0.55 : 0.35;
+    breath(0.5, 0.16 * duck, 1800, 220);
+    tone(90, 0.28, 0.12 * duck, 'sine', 45);
   },
   pot(): void { tone(420, 0.1, 0.1, 'square', 180); breath(0.18, 0.09, 2600, 700); },
   pickup(): void { tone(660, 0.1, 0.12, 'triangle'); tone(880, 0.16, 0.1, 'triangle', undefined, 0.07); tone(1320, 0.2, 0.07, 'sine', undefined, 0.14); },

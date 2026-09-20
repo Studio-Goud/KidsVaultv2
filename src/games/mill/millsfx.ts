@@ -110,7 +110,7 @@ export const mill = {
   creak(): void { burst(260, 4, 0.22, 0.05, 340); ping(140, 0.2, 0.025, 'triangle', 110); },
   fieldFull(): void { [784, 988, 1175].forEach((f, i) => ping(f, 0.28, 0.05, 'triangle', undefined, i * 0.09)); },
   wheelDone(): void { [523, 659, 784].forEach((f, i) => ping(f, 0.3, 0.05, 'sine', undefined, i * 0.1)); },
-  flood(): void { burst(120, 0.8, 0.7, 0.14, 60); ping(90, 0.6, 0.06, 'sawtooth', 50); },
+  flood(): void { burst(120, 0.8, 0.7, 0.11, 60); ping(90, 0.6, 0.06, 'sawtooth', 50); },
   spring(): void { burst(1800, 1.5, 0.5, 0.06, 900); },
   complete(): void { [523, 659, 784, 1047, 1319].forEach((f, i) => ping(f, 0.45, 0.05, 'triangle', undefined, i * 0.11)); },
   dry(): void { ping(300, 0.5, 0.05, 'sine', 160); },

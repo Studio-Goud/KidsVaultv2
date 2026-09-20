@@ -60,6 +60,9 @@ interface Walker {
   dazed: number;
   dir: { x: number; y: number };
   alive: boolean;
+  /** a nudge towards a wall just walked into, and which way it went; fades over a fifth of a second */
+  bump: number;
+  bumpDir: { x: number; y: number };
 }
 
 interface Pop { x: number; y: number; age: number }
@@ -68,7 +71,22 @@ interface Drop { x: number; y: number; kind: PickupKind }
 
 const walker = (x: number, y: number, speed: number): Walker => ({
   fx: x, fy: y, tx: x, ty: y, k: 1, speed, facing: 1, walk: 0, dazed: 0, dir: { x: 0, y: 0 }, alive: true,
+  bump: 0, bumpDir: { x: 0, y: 0 },
 });
+
+/**
+ * The scrap of board on a level card. It depends on nothing but the level, so it is built once
+ * rather than laid out afresh for every card on every frame the list is up.
+ */
+const minis = new Map<string, Board>();
+function miniBoard(l: Level): Board {
+  let m = minis.get(l.id);
+  if (!m) { m = buildBoard(l); minis.set(l.id, m); }
+  return m;
+}
+
+/** How much fuse is left when each note of the climb sounds. Deliberately accelerating. */
+const TICKS = [2.0, 1.6, 1.25, 0.95, 0.7, 0.5, 0.33, 0.18, 0.07];
 
 export class Puffball {
   private ctx: Ctx;
@@ -92,6 +110,7 @@ export class Puffball {
   private reach = 1;
   private maxPuffs = 1;
   private lives = 3;
+  private maxLives = 3;
   private knocks = 0;
   private earned = 0;
   private note = '';
@@ -104,6 +123,9 @@ export class Puffball {
   private shake = new Shake();
   private cardPop = 0;
   private wantDrop = false;
+  /** a refused tap flashes whatever refused it, because the sound is off on most phones */
+  private denyT = 0;
+  private denyCard = -1;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
@@ -191,10 +213,14 @@ export class Puffball {
     this.drops = [];
     this.reach = this.level.reach;
     this.maxPuffs = this.level.puffs;
-    this.lives = 3;
+    // the first three nights have nothing in them that can catch you, so the only way to fail is
+    // while still working out what reach means. That deserves more room than a mole night does.
+    this.lives = this.maxLives = this.level.moles === 0 ? 5 : 3;
     this.knocks = 0;
     this.earned = 0;
     this.lastTick = -1;
+    // a space bar pressed on the menu must not drop a puffball on the first frame of the level
+    this.wantDrop = false;
     this.ps.clear();
     this.phase = 'play';
     this.phaseT = 0;
@@ -242,8 +268,27 @@ export class Puffball {
       e.k = 0;
       return;
     }
+    // nothing was walkable: lean into whatever is in the way, so the tap is visibly answered
+    const into = (want.x || want.y) ? want : e.dir;
+    if ((into.x || into.y) && e.bump <= 0) {
+      e.bump = 1;
+      e.bumpDir = { x: into.x, y: into.y };
+      if (e === this.me) {
+        const g = this.grid();
+        this.ps.spawn('dust', g.x + (e.tx + 0.5 + into.x * 0.45) * g.cell, g.y + (e.ty + 0.5 + into.y * 0.45) * g.cell,
+          3, { spread: 0.7, speed: 40 * g.cell / 46, life: 0.3, size: g.cell * 0.07, colour: '#d9e6c8' });
+        puff.blocked();
+      }
+    }
     e.dir = { x: 0, y: 0 };
     e.walk = 0;
+  }
+
+  /** Where a walker is drawn: its square, plus the lean of a wall it has just walked into. */
+  private drawPos(e: Walker): Vec {
+    const p = this.posOf(e);
+    const lean = Math.sin(e.bump * Math.PI) * 0.17;
+    return { x: p.x + e.bumpDir.x * lean, y: p.y + e.bumpDir.y * lean };
   }
 
   /** Where a walker is on screen, in tile units. */
@@ -253,12 +298,20 @@ export class Puffball {
 
   private dropPuff(): void {
     if (this.phase !== 'play' || this.me.dazed > 0) return;
-    if (this.puffs.length >= this.maxPuffs) { puff.blocked(); return; }
+    if (this.puffs.length >= this.maxPuffs) { this.deny(); return; }
     const x = this.me.k < 0.5 ? this.me.fx : this.me.tx;
     const y = this.me.k < 0.5 ? this.me.fy : this.me.ty;
-    if (this.puffs.some(p => p.x === x && p.y === y)) { puff.blocked(); return; }
+    if (this.puffs.some(p => p.x === x && p.y === y)) { this.deny(); return; }
     this.puffs.push({ x, y, fuse: FUSE, reach: this.reach, mine: true });
     puff.place();
+  }
+
+  /** The answer to a tap that cannot be honoured: a flash on the dial, a shake, and a thud. */
+  private deny(card = -1): void {
+    this.denyT = 0.4;
+    this.denyCard = card;
+    this.shake.add(0.16);
+    puff.blocked();
   }
 
   private popPuff(p: Puff): void {
@@ -314,6 +367,10 @@ export class Puffball {
     this.ps.update(dt);
     this.shake.update(dt);
     this.cardPop = Math.min(1, this.cardPop + dt * 2.6);
+    this.denyT = Math.max(0, this.denyT - dt);
+    if (this.denyT === 0) this.denyCard = -1;
+    this.me.bump = Math.max(0, this.me.bump - dt * 5);
+    for (const m of this.moles) m.bump = Math.max(0, m.bump - dt * 5);
     for (const s of this.shards) s.age += dt;
     this.shards = this.shards.filter(s => s.age < 0.45);
     for (const p of this.pops) p.age += dt;
@@ -333,11 +390,15 @@ export class Puffball {
 
     // the puffballs
     for (const p of this.puffs) p.fuse -= dt;
-    // the note climbs once a second, so you can hear how long is left
+    // The note climbs while it swells. A tick a second left a second and a half of silence right
+    // before the pop, which is the moment a child most needs to hear it coming, so the gaps
+    // shorten instead: the last four notes fall inside the final half second.
     const left = this.puffs.length ? Math.min(...this.puffs.map(p => p.fuse)) : -1;
-    const tick = left > 0 ? Math.ceil(left) : -1;
-    if (tick !== this.lastTick && tick > 0) { puff.tick(Math.max(0, 3 - tick)); this.lastTick = tick; }
-    if (tick < 0) this.lastTick = -1;
+    const tick = left > 0 ? TICKS.filter(t => left <= t).length : -1;
+    if (tick !== this.lastTick) {
+      if (tick > 0) puff.tick(tick - 1);
+      this.lastTick = tick;
+    }
     const going = this.puffs.filter(p => p.fuse <= 0);
     for (const p of going) this.popPuff(p);
     if (going.length) this.puffs = this.puffs.filter(p => p.fuse > 0);
@@ -458,7 +519,7 @@ export class Puffball {
     if (hit === 'drop') { this.wantDrop = true; return; }
     if (hit.startsWith('level:')) {
       const i = Number(hit.slice(6));
-      if (this.unlocked(i)) { this.start(i); puff.tap(); } else puff.blocked();
+      if (this.unlocked(i)) { this.start(i); puff.tap(); } else this.deny(i);
       return;
     }
     if (hit === 'levels') { this.phase = 'levels'; this.cardPop = 0; puff.tap(); return; }
@@ -520,17 +581,19 @@ export class Puffball {
       }
     }
     // what a puffball is about to cover, over the pots so a pot in the way still shows its dot
-    for (const p of this.puffs) paintReach(ctx, reachOf(b, p), g.x, g.y, c, p.fuse, this.t);
+    // the first two nights hold the mark lit; after that it dims once it has counted itself out
+    const hold = this.levelIndex < 2;
+    for (const p of this.puffs) paintReach(ctx, reachOf(b, p), g.x, g.y, c, p.fuse, this.t, hold);
     for (const d of this.drops) paintPickup(ctx, g.x + (d.x + 0.5) * c, g.y + (d.y + 0.5) * c, c * 0.3, d.kind, this.t);
     // the puffballs themselves sit under whoever is standing on them, so nobody is hidden
     for (const p of this.puffs) paintPuff(ctx, g.x + p.x * c, g.y + p.y * c, c, p.fuse, p.reach, (w, s) => this.font(w, s));
 
     for (const m of this.moles) {
       if (!m.alive) continue;
-      const p = this.posOf(m);
+      const p = this.drawPos(m);
       paintMole(ctx, g.x + (p.x + 0.5) * c, g.y + (p.y + 0.5) * c, c * 0.44, m.facing, m.walk, m.dazed, this.t);
     }
-    const mp = this.posOf(this.me);
+    const mp = this.drawPos(this.me);
     paintHedgehog(ctx, g.x + (mp.x + 0.5) * c, g.y + (mp.y + 0.5) * c, c * 0.46, this.me.facing, this.me.walk, this.me.dazed, this.t);
 
     for (const p of this.pops) paintPop(ctx, g.x + p.x * c, g.y + p.y * c, c, p.age, p.x * 7 + p.y * 13);
@@ -561,8 +624,19 @@ export class Puffball {
 
     // how many puffballs you may have out, and how many knocks are left, side by side
     const px0 = this.w / 2 + 6 * u;
+    // a refused drop shakes this row and rings it, because that is the thing that said no
+    const deny = this.denyCard < 0 ? this.denyT / 0.4 : 0;
+    ctx.save();
+    if (deny > 0) ctx.translate(Math.sin(this.t * 46) * 3 * u * deny, 0);
     for (let i = 0; i < this.maxPuffs; i++) {
       const px = px0 + i * 19 * u;
+      if (deny > 0) {
+        ctx.strokeStyle = `rgba(255, 176, 96, ${0.9 * deny})`;
+        ctx.lineWidth = 2.2 * u;
+        ctx.beginPath();
+        ctx.ellipse(px, dy - 9 * u, 9.5 * u, 8.5 * u, 0, 0, TAU);
+        ctx.stroke();
+      }
       const used = i < this.puffs.length;
       ctx.fillStyle = used ? 'rgba(255,255,255,0.25)' : '#f6ecd8';
       ctx.beginPath();
@@ -575,7 +649,8 @@ export class Puffball {
         ctx.fill();
       }
     }
-    for (let i = 0; i < 3; i++) {
+    ctx.restore();
+    for (let i = 0; i < this.maxLives; i++) {
       const px = px0 + i * 19 * u;
       const on = i < this.lives;
       ctx.save();
@@ -749,8 +824,10 @@ export class Puffball {
       const open = this.unlocked(i);
       const p = levelProgress(saveKey(L));
       const appear = easeOutBack(clamp(this.cardPop * 1.5 - i * 0.05, 0, 1));
+      // a locked card shakes its head when tapped: the padlock alone answers nothing
+      const shrug = this.denyCard === i ? Math.sin(this.t * 44) * 5 * u * (this.denyT / 0.4) : 0;
       ctx.save();
-      ctx.translate(x + cw / 2, y + chh / 2);
+      ctx.translate(x + cw / 2 + shrug, y + chh / 2);
       ctx.scale(appear, appear);
       ctx.translate(-(x + cw / 2), -(y + chh / 2));
       ctx.save();
@@ -768,7 +845,7 @@ export class Puffball {
       ctx.beginPath();
       ctx.roundRect(x + 6 * u, y + 6 * u, cw - 12 * u, art, 13 * u);
       ctx.clip();
-      const mini = buildBoard(L);
+      const mini = miniBoard(L);
       const cell = (cw - 12 * u) / 7;
       paintBoard(ctx, { cols: 7, rows: Math.ceil(art / cell) + 1, tiles: mini.tiles.slice(0, 7 * 12), under: [] }, x + 6 * u, y + 6 * u, cell, L.seed);
       paintPuff(ctx, x + cw * 0.3, y + art * 0.3, cell, FUSE * 0.5, L.reach, (wt, s) => this.font(wt, s));

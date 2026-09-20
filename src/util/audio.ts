@@ -95,7 +95,7 @@ export const sfx = {
     if (!enabled() || !ctx || !master) return;
     const t = ctx.currentTime;
     tone(120, t, 0.9, 'sawtooth', 0.22, 35);
-    noiseBurst(t, 1.4, 0.7, 'lowpass', 1800, 0.5, 200);
+    noiseBurst(t, 1.4, 0.45, 'lowpass', 1800, 0.5, 200);
     noiseBurst(t + 0.05, 0.3, 0.5, 'highpass', 3000, 0.5);
   },
   tap(): void { if (enabled() && ctx) tone(740, ctx.currentTime, 0.06, 'sine', 0.07); },
@@ -187,7 +187,7 @@ export class Ambience {
     if (!ctx) return;
     this.build();
     const t = ctx.currentTime;
-    this.seaGain?.gain.setTargetAtTime(mode === 'off' ? 0 : mode === 'menu' ? 0.35 : 0.28, t, 0.8);
+    this.seaGain?.gain.setTargetAtTime(mode === 'off' ? 0 : 0.28, t, 0.8);
   }
 
   update(dt: number, windKmh: number, timeScale = 1): void {

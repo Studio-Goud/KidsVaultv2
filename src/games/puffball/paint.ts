@@ -12,14 +12,27 @@ import { makeRng } from '../../util/rng';
 import {
   blobPath, breathe, CachedLayer, contactShadow, Ctx, grainOver, LIGHT, mix, shade,
 } from '../../render/look';
-import { at, type Board, type PickupKind } from './model';
+import { at, FUSE as FUSE_SHOWN, type Board, type PickupKind } from './model';
 
-const boardLayer = new CachedLayer();
+/**
+ * One cached canvas per board, not one in total: the level list paints eight different boards in
+ * the same frame, and a single cache would have each card evicting the one before it, repainting
+ * every blade of moss on every card sixty times a second.
+ */
+const boardLayers = new Map<string, CachedLayer>();
 
 /** The floor and the pillars: fixed for a level, so painted once. */
 export function paintBoard(ctx: Ctx, b: Board, x0: number, y0: number, cell: number, seed: number): void {
-  const cv = boardLayer.get(b.cols * cell, b.rows * cell, `b${seed}:${Math.round(cell)}`,
-    (lc) => paintBoardStill(lc, b, cell, seed));
+  const key = `b${seed}:${Math.round(cell)}`;
+  const id = `${b.cols}x${b.rows}:${key}`;
+  let layer = boardLayers.get(id);
+  if (!layer) {
+    // a resize makes a fresh set of keys, so drop the old ones rather than grow without bound
+    if (boardLayers.size > 16) boardLayers.clear();
+    layer = new CachedLayer();
+    boardLayers.set(id, layer);
+  }
+  const cv = layer.get(b.cols * cell, b.rows * cell, key, (lc) => paintBoardStill(lc, b, cell, seed));
   if (cv) ctx.drawImage(cv, x0, y0);
 }
 
@@ -186,36 +199,51 @@ export function paintPuff(ctx: Ctx, px: number, py: number, cell: number, fuse: 
 /**
  * The squares a puffball is about to cover, marked while it swells.
  *
- * This is the teaching, so it is drawn plainly: one big dot per square out from the middle, the
- * count rising as it goes, and the whole thing beating faster as the moment comes.
+ * This is the teaching, so it is drawn as the gesture a child would make themselves: the light
+ * runs outward from the middle a square at a time, one square per beat, so you see one, then two,
+ * then three, rather than a shape that is simply yellow. One dot per square, not a heap of them -
+ * three dots inside a thirty pixel square on a phone is a smudge, and a smudge cannot be counted.
+ *
+ * Then it dims. On the first two nights it stays lit the whole way, because the only thing being
+ * taught there is what reach means. After that the fill drops back to a hint once the sweep is
+ * over, so the child has to hold the number rather than read it off the floor all the way to the
+ * pop. The rim never goes: nobody should be caught by a square they could not see.
  */
-export function paintReach(ctx: Ctx, cells: Array<{ x: number; y: number; step: number }>, x0: number, y0: number, cell: number, fuse: number, t: number): void {
-  const urgency = 1 - clamp(fuse / 2.4, 0, 1);
+export function paintReach(ctx: Ctx, cells: Array<{ x: number; y: number; step: number }>, x0: number, y0: number, cell: number, fuse: number, t: number, hold = true): void {
+  const age = FUSE_SHOWN - fuse;
+  const urgency = 1 - clamp(fuse / FUSE_SHOWN, 0, 1);
   const beat = 0.35 + breathe(t, 3 + urgency * 9) * 0.35 + urgency * 0.2;
+  // the sweep: a square lights up one eighth of a second after the one before it
+  const SWEEP = 0.13;
+  const swept = age / SWEEP;
+  // once the sweep is over the mark settles; on later nights it settles far lower
+  const settle = clamp((age - (SWEEP * 4 + 0.5)) / 0.5, 0, 1);
+  const level = hold ? 1 : 1 - settle * 0.72;
   ctx.save();
   for (const c of cells) {
+    const lit = clamp(swept - c.step, 0, 1);
+    if (lit <= 0) continue;
+    // each square gets a small kick as the light arrives on it, so the count has a pulse to it
+    const arrive = 1 + (1 - Math.abs(clamp(swept - c.step, 0, 2) - 1)) * 0.5;
     const px = x0 + c.x * cell, py = y0 + c.y * cell;
-    ctx.fillStyle = `rgba(255, 206, 96, ${0.22 + beat * (c.step === 0 ? 0.3 : 0.38)})`;
+    const fill = (0.22 + beat * (c.step === 0 ? 0.3 : 0.38)) * lit * level * arrive;
+    ctx.fillStyle = `rgba(255, 206, 96, ${clamp(fill, 0, 0.85)})`;
     ctx.fillRect(px + 1, py + 1, cell - 2, cell - 2);
-    // a rim, so the edge of the reach is a line you can point at
-    ctx.strokeStyle = `rgba(255, 234, 170, ${0.4 + beat * 0.5})`;
+    // a rim, so the edge of the reach is a line you can point at. This one never fades away.
+    ctx.strokeStyle = `rgba(255, 234, 170, ${(0.4 + beat * 0.5) * lit})`;
     ctx.lineWidth = Math.max(1.5, cell * 0.05);
     ctx.strokeRect(px + cell * 0.06, py + cell * 0.06, cell * 0.88, cell * 0.88);
     if (c.step === 0) continue;
-    // one dot per square, so the arm counts itself out from the middle
-    const dots = Math.min(c.step, 5);
-    for (let i = 0; i < dots; i++) {
-      const spread = cell * 0.2;
-      const ox = (i - (dots - 1) / 2) * spread;
-      ctx.fillStyle = 'rgba(92, 56, 20, 0.45)';
-      ctx.beginPath();
-      ctx.arc(px + cell / 2 + ox, py + cell / 2 + cell * 0.02, cell * 0.085, 0, TAU);
-      ctx.fill();
-      ctx.fillStyle = `rgba(255, 250, 232, ${0.7 + beat * 0.3})`;
-      ctx.beginPath();
-      ctx.arc(px + cell / 2 + ox, py + cell / 2, cell * 0.08, 0, TAU);
-      ctx.fill();
-    }
+    // one dot, big enough to be a dot: the square's place in the count, not a tally inside it
+    const rad = cell * 0.14 * (0.7 + 0.3 * arrive);
+    ctx.fillStyle = `rgba(92, 56, 20, ${0.4 * lit})`;
+    ctx.beginPath();
+    ctx.arc(px + cell / 2, py + cell / 2 + cell * 0.025, rad, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = `rgba(255, 250, 232, ${(0.75 + beat * 0.25) * lit})`;
+    ctx.beginPath();
+    ctx.arc(px + cell / 2, py + cell / 2, rad, 0, TAU);
+    ctx.fill();
   }
   ctx.restore();
 }
