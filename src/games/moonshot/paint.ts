@@ -16,7 +16,7 @@ import { makeRng } from '../../util/rng';
 import {
   blobPath, breathe, CachedLayer, contactShadow, Ctx, grainOver, roundRectPath, shade, vGrad,
 } from '../../render/look';
-import { airAt, partById, type Part, type Stack } from './model';
+import { airAt, finAnchor, partById, topRow, widthOf, type Design, type Part } from './design';
 
 // ---------------------------------------------------------------- the sky
 
@@ -97,17 +97,55 @@ function seams(ctx: Ctx, x: number, y: number, w: number, h: number, rows: numbe
 }
 
 /**
- * One part, drawn into a box. `u` is the size of one rocket unit in pixels.
+ * One part, drawn into a box. `u` is the size of one grid cell in pixels.
  *
  * Every part is drawn from its own bottom edge upwards, because that is how they stack: the thing
  * below decides where the thing above starts.
  */
-export function paintPart(ctx: Ctx, part: Part, cx: number, bottomY: number, u: number, t: number): void {
-  const w = part.w * u, h = part.h * u;
+export function paintPart(
+  ctx: Ctx, part: Part, cx: number, bottomY: number, u: number, t: number, side = 0, wu = part.w,
+): void {
+  const w = wu * u, h = part.rows * u;
   const x = cx - w / 2, y = bottomY - h;
 
-  if (part.kind === 'capsule') {
-    // a cone with a window and a dark heat shield at its foot
+  if (part.kind === 'nose') {
+    if (part.id === 'fairing') {
+      // a two-piece shell with the split line down the middle, which is what a real one looks like
+      ctx.fillStyle = tube(ctx, x, w, WHITE);
+      ctx.beginPath();
+      ctx.moveTo(cx, y);
+      ctx.quadraticCurveTo(x + w * 0.03, y + h * 0.55, x, bottomY);
+      ctx.lineTo(x + w, bottomY);
+      ctx.quadraticCurveTo(x + w * 0.97, y + h * 0.55, cx, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(40,48,60,0.3)';
+      ctx.lineWidth = Math.max(0.8, w * 0.02);
+      ctx.beginPath(); ctx.moveTo(cx, y + h * 0.06); ctx.lineTo(cx, bottomY); ctx.stroke();
+      return;
+    }
+    // a plain cone: a hundred kilos, and the cheapest speed in the game
+    ctx.fillStyle = tube(ctx, x, w, WHITE);
+    ctx.beginPath();
+    ctx.moveTo(cx, y);
+    ctx.quadraticCurveTo(x + w * 0.06, y + h * 0.66, x, bottomY);
+    ctx.lineTo(x + w, bottomY);
+    ctx.quadraticCurveTo(x + w * 0.94, y + h * 0.66, cx, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#c0473a';
+    ctx.beginPath();
+    ctx.moveTo(cx, y);
+    ctx.quadraticCurveTo(x + w * 0.42, y + h * 0.16, x + w * 0.38, y + h * 0.3);
+    ctx.lineTo(x + w * 0.62, y + h * 0.3);
+    ctx.quadraticCurveTo(x + w * 0.58, y + h * 0.16, cx, y);
+    ctx.closePath();
+    ctx.fill();
+    return;
+  }
+
+  if (part.kind === 'pod') {
+    // a cone with a window, and only the very tip dark: a cone that is half black reads as a pencil
     ctx.fillStyle = tube(ctx, x, w, WHITE);
     ctx.beginPath();
     ctx.moveTo(cx, y);
@@ -116,7 +154,6 @@ export function paintPart(ctx: Ctx, part: Part, cx: number, bottomY: number, u: 
     ctx.quadraticCurveTo(x + w * 0.98, y + h * 0.74, cx, y);
     ctx.closePath();
     ctx.fill();
-    // only the very tip is dark: a cone that is half black reads as a pencil, not a spacecraft
     ctx.fillStyle = '#39404a';
     ctx.beginPath();
     ctx.moveTo(cx, y);
@@ -125,14 +162,16 @@ export function paintPart(ctx: Ctx, part: Part, cx: number, bottomY: number, u: 
     ctx.quadraticCurveTo(x + w * 0.57, y + h * 0.12, cx, y);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#7fd2f2';
-    ctx.beginPath();
-    ctx.ellipse(cx - w * 0.02, y + h * 0.62, w * 0.14, h * 0.1, 0, 0, TAU);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.beginPath();
-    ctx.ellipse(cx - w * 0.06, y + h * 0.59, w * 0.05, h * 0.035, -0.4, 0, TAU);
-    ctx.fill();
+    const wins = part.id === 'cabin' ? 2 : 1;
+    for (let i = 0; i < wins; i++) {
+      const wy = y + h * (wins === 1 ? 0.62 : 0.5 + i * 0.22);
+      ctx.fillStyle = '#7fd2f2';
+      ctx.beginPath(); ctx.ellipse(cx - w * 0.02, wy, w * 0.14, h * (0.1 / wins), 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath();
+      ctx.ellipse(cx - w * 0.07, wy - h * 0.02, w * 0.05, h * (0.035 / wins), -0.4, 0, TAU);
+      ctx.fill();
+    }
     ctx.fillStyle = shade(DARK, 0.1);
     roundRectPath(ctx, x, bottomY - h * 0.09, w, h * 0.09, w * 0.02);
     ctx.fill();
@@ -142,71 +181,118 @@ export function paintPart(ctx: Ctx, part: Part, cx: number, bottomY: number, u: 
   if (part.kind === 'tank') {
     ctx.fillStyle = tube(ctx, x, w, WHITE);
     ctx.fillRect(x, y, w, h);
-    seams(ctx, x, y, w, h, Math.max(2, Math.round(part.h * 1.6)));
+    seams(ctx, x, y, w, h, Math.max(2, part.rows * 2));
     // a painted band, so two tanks on top of each other still read as two
     ctx.fillStyle = 'rgba(190, 62, 48, 0.85)';
-    ctx.fillRect(x, y + h * 0.06, w, h * 0.055);
+    ctx.fillRect(x, y + h * 0.05, w, Math.max(1.5, h * 0.045));
     ctx.fillStyle = 'rgba(255,255,255,0.16)';
     ctx.fillRect(x + w * 0.3, y, w * 0.07, h);
     return;
   }
 
-  if (part.kind === 'booster') {
+  if (part.kind === 'solid') {
+    // fuel and engine in one casing: a pointed cap, a long body and a small nozzle
     ctx.fillStyle = tube(ctx, x, w, WHITE);
-    roundRectPath(ctx, x, y + h * 0.1, w, h * 0.9, w * 0.14);
+    roundRectPath(ctx, x, y + h * 0.12, w, h * 0.78, w * 0.16);
     ctx.fill();
-    // a pointed cap
     ctx.fillStyle = tube(ctx, x, w, '#d9dee6');
     ctx.beginPath();
-    ctx.moveTo(cx, y - h * 0.06);
-    ctx.quadraticCurveTo(x + w * 0.04, y + h * 0.1, x, y + h * 0.16);
-    ctx.lineTo(x + w, y + h * 0.16);
-    ctx.quadraticCurveTo(x + w * 0.96, y + h * 0.1, cx, y - h * 0.06);
+    ctx.moveTo(cx, y);
+    ctx.quadraticCurveTo(x + w * 0.04, y + h * 0.1, x, y + h * 0.17);
+    ctx.lineTo(x + w, y + h * 0.17);
+    ctx.quadraticCurveTo(x + w * 0.96, y + h * 0.1, cx, y);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = tube(ctx, x, w, DARK);
-    roundRectPath(ctx, x + w * 0.1, bottomY - h * 0.1, w * 0.8, h * 0.11, w * 0.1);
+    ctx.fillStyle = 'rgba(190, 62, 48, 0.75)';
+    ctx.fillRect(x, y + h * 0.22, w, Math.max(1.2, h * 0.028));
+    ctx.fillStyle = tube(ctx, x + w * 0.12, w * 0.76, DARK);
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.28, bottomY - h * 0.1);
+    ctx.lineTo(x + w * 0.72, bottomY - h * 0.1);
+    ctx.lineTo(x + w * 0.88, bottomY);
+    ctx.lineTo(x + w * 0.12, bottomY);
+    ctx.closePath();
     ctx.fill();
     return;
   }
 
   if (part.kind === 'fin') {
-    // three fins: two swept out to the sides and one edge-on in the middle
+    // A fin bolted to the left of the rocket sweeps left and a fin on the right sweeps right, so
+    // `side` says which way this one is leaning. In the middle of nothing it grows both ways, the
+    // way it does on the shelf.
+    const ways = side === 0 ? [-1, 1] : [side];
     ctx.fillStyle = tube(ctx, x, w, COPPER);
-    for (const s of [-1, 1]) {
+    for (const s of ways) {
       ctx.beginPath();
-      ctx.moveTo(cx + s * u * 0.44, y);
+      ctx.moveTo(cx + s * u * 0.2, y);
       ctx.lineTo(cx + s * w * 0.5, bottomY);
-      ctx.lineTo(cx + s * u * 0.44, bottomY);
+      ctx.lineTo(cx + s * u * 0.2, bottomY);
       ctx.closePath();
       ctx.fill();
     }
-    ctx.fillStyle = shade(COPPER, -0.24);
+    ctx.fillStyle = shade(COPPER, -0.26);
     ctx.fillRect(cx - u * 0.1, y, u * 0.2, h);
     return;
   }
 
-  // an engine: a short body and a bell, or three of them
-  const bells = part.id === 'engine-x' ? 3 : 1;
+  if (part.kind === 'truss') {
+    if (part.id === 'adapter') {
+      // a collar: wide at the bottom, narrow at the top, for setting something small on something big
+      ctx.fillStyle = tube(ctx, x, w, '#aeb6c2');
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.22, y);
+      ctx.lineTo(x + w * 0.78, y);
+      ctx.lineTo(x + w, bottomY);
+      ctx.lineTo(x, bottomY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(40,48,60,0.22)';
+      ctx.fillRect(x + w * 0.1, bottomY - h * 0.12, w * 0.8, Math.max(1, h * 0.06));
+      return;
+    }
+    // open framework: four uprights and a row of crosses, which is what makes it read as weightless
+    ctx.strokeStyle = shade(COPPER, -0.1);
+    ctx.lineWidth = Math.max(1, w * 0.16);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.12, y); ctx.lineTo(x + w * 0.12, bottomY);
+    ctx.moveTo(x + w * 0.88, y); ctx.lineTo(x + w * 0.88, bottomY);
+    ctx.stroke();
+    ctx.lineWidth = Math.max(0.8, w * 0.1);
+    const bays = Math.max(2, part.rows * 2);
+    for (let i = 0; i < bays; i++) {
+      const y0 = y + (h * i) / bays, y1 = y + (h * (i + 1)) / bays;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.12, y0); ctx.lineTo(x + w * 0.88, y1);
+      ctx.moveTo(x + w * 0.88, y0); ctx.lineTo(x + w * 0.12, y1);
+      ctx.stroke();
+    }
+    return;
+  }
+
+  // an engine: a short body and one or more bells
+  const bells = part.id === 'engine-x' ? 3 : part.id === 'engine-w' ? 5 : 1;
+  const bellTop = part.id === 'engine-v' ? 0.3 : 0.46;
   ctx.fillStyle = tube(ctx, x, w, part.id === 'engine-n' ? '#bfc6cf' : WHITE);
-  roundRectPath(ctx, x, y, w, h * 0.5, w * 0.04);
+  roundRectPath(ctx, x, y, w, h * (bellTop + 0.04), w * 0.04);
   ctx.fill();
   if (part.id === 'engine-n') {
     // the one engine that looks different, because it is
     ctx.fillStyle = '#e2b03a';
-    ctx.fillRect(x, y + h * 0.16, w, h * 0.09);
+    ctx.fillRect(x, y + h * 0.14, w, h * 0.08);
     ctx.fillStyle = 'rgba(40,44,52,0.7)';
-    for (let i = 0; i < 3; i++) ctx.fillRect(x + w * (0.2 + i * 0.25), y + h * 0.17, w * 0.06, h * 0.07);
+    for (let i = 0; i < 3; i++) ctx.fillRect(x + w * (0.2 + i * 0.25), y + h * 0.15, w * 0.06, h * 0.06);
   }
-  const bw = (w * 0.9) / bells;
+  const bw = (w * 0.94) / bells;
   for (let i = 0; i < bells; i++) {
-    const bx = x + w * 0.05 + i * bw + bw / 2;
-    const top = y + h * 0.46;
-    ctx.fillStyle = tube(ctx, bx - bw * 0.46, bw * 0.92, DARK);
+    const bx = x + w * 0.03 + i * bw + bw / 2;
+    const top = y + h * bellTop;
+    const flare = part.id === 'engine-v' ? 0.62 : 0.46;
+    ctx.fillStyle = tube(ctx, bx - bw * flare, bw * flare * 2, DARK);
     ctx.beginPath();
     ctx.moveTo(bx - bw * 0.2, top);
-    ctx.quadraticCurveTo(bx - bw * 0.3, bottomY - h * 0.1, bx - bw * 0.46, bottomY);
-    ctx.lineTo(bx + bw * 0.46, bottomY);
+    ctx.quadraticCurveTo(bx - bw * 0.3, bottomY - h * 0.1, bx - bw * flare, bottomY);
+    ctx.lineTo(bx + bw * flare, bottomY);
     ctx.quadraticCurveTo(bx + bw * 0.3, bottomY - h * 0.1, bx + bw * 0.2, top);
     ctx.closePath();
     ctx.fill();
@@ -220,73 +306,72 @@ export function paintPart(ctx: Ctx, part: Part, cx: number, bottomY: number, u: 
     ctx.fill();
   }
   ctx.fillStyle = 'rgba(30, 34, 42, 0.5)';
-  ctx.fillRect(x, y + h * 0.44, w, h * 0.035);
+  ctx.fillRect(x, y + h * (bellTop - 0.03), w, Math.max(1, h * 0.03));
 }
 
-/** How tall a stack is, in rocket units, capsule included. */
-export function stackHeight(stack: Stack): number {
-  let h = partById('capsule').h;
-  for (const id of stack) {
-    const p = partById(id);
-    if (p.kind === 'booster' || p.kind === 'fin') continue;
-    h += p.h;
-  }
-  return h;
+// ---------------------------------------------------------------- the whole rocket
+
+export interface Box { i: number; x: number; y: number; w: number; h: number }
+
+/** The box one placed part occupies on screen, in the same frame paintDesign draws into. */
+export function boxOf(
+  part: Part, col: number, row: number, ox: number, oy: number, u: number,
+): Box {
+  const cx = ox + (col + 0.5) * u;
+  const bottom = oy - row * u;
+  return { i: -1, x: cx - (part.w * u) / 2, y: bottom - part.rows * u, w: part.w * u, h: part.rows * u };
 }
 
 /**
- * Draw a whole rocket standing on `baseY`, centred on `cx`.
+ * Draw a design on the grid.
  *
- * Boosters and fins are not part of the stack's height: they hang on the sides of whatever is at
- * the bottom, which is what makes a rocket with boosters look like a rocket with boosters rather
- * than a taller rocket.
+ * `ox` is the screen x of column zero's left edge and `oy` the screen y of row zero's floor, so a
+ * part in column c on row r stands where the grid says it does and nowhere else. Side columns are
+ * painted before the middle one, so where a booster meets the core the core is on top and the join
+ * disappears - which is the whole trick to making bolted-on parts look bolted on.
  */
-export function paintRocket(
-  ctx: Ctx, stack: Stack, cx: number, baseY: number, u: number, t: number,
-  opts: { dropped?: Set<number>; ghost?: number } = {},
-): Array<{ i: number; x: number; y: number; w: number; h: number }> {
-  const boxes: Array<{ i: number; x: number; y: number; w: number; h: number }> = [];
-  const dropped = opts.dropped ?? new Set<number>();
-  // the side parts first, so the body covers where they meet it
-  let y = baseY;
-  const spine: Array<{ i: number; bottom: number }> = [];
-  stack.forEach((id, i) => {
-    const p = partById(id);
-    if (p.kind === 'booster' || p.kind === 'fin') return;
-    spine.push({ i, bottom: y });
-    y -= p.h * u;
-  });
-  const lowest = spine.length ? spine[0].bottom : baseY;
-
-  stack.forEach((id, i) => {
-    const p = partById(id);
-    if (p.kind !== 'booster' && p.kind !== 'fin') return;
-    if (dropped.has(i)) return;
-    const body = partById(spine.length ? stack[spine[0].i] : 'tank-s');
-    const off = (body.w / 2 + p.w / 2) * u * 0.92;
-    const n = stack.filter((q, k) => partById(q).kind === p.kind && !dropped.has(k)).length;
-    const mine = stack.slice(0, i).filter(q => partById(q).kind === p.kind).length;
-    const side = n > 1 ? (mine % 2 === 0 ? -1 : 1) : -1;
-    if (p.kind === 'fin') {
-      paintPart(ctx, p, cx, lowest, u, t);
-      boxes.push({ i, x: cx - (p.w * u) / 2, y: lowest - p.h * u, w: p.w * u, h: p.h * u });
-    } else {
-      const bx = cx + side * off;
-      paintPart(ctx, p, bx, lowest - u * 0.1, u, t);
-      boxes.push({ i, x: bx - (p.w * u) / 2, y: lowest - u * 0.1 - p.h * u, w: p.w * u, h: p.h * u });
-    }
-  });
-
-  for (const s of spine) {
-    if (dropped.has(s.i)) continue;
-    const p = partById(stack[s.i]);
-    paintPart(ctx, p, cx, s.bottom, u, t);
-    boxes.push({ i: s.i, x: cx - (p.w * u) / 2, y: s.bottom - p.h * u, w: p.w * u, h: p.h * u });
+export function paintDesign(
+  ctx: Ctx, design: Design, ox: number, oy: number, u: number, t: number,
+  opts: { dropped?: ReadonlySet<number>; centre?: number; fade?: number } = {},
+): Box[] {
+  const boxes: Box[] = [];
+  const dropped = opts.dropped;
+  const centre = opts.centre ?? 4;
+  const order = design
+    .map((p, i) => ({ p, i }))
+    .filter(({ i }) => !dropped?.has(i))
+    // furthest from the middle first, and fins behind everything
+    .sort((a, b) => {
+      const fa = partById(a.p.id).kind === 'fin' ? 1 : 0;
+      const fb = partById(b.p.id).kind === 'fin' ? 1 : 0;
+      if (fa !== fb) return fb - fa;
+      return Math.abs(b.p.col - centre) - Math.abs(a.p.col - centre);
+    });
+  for (const { p, i } of order) {
+    const part = partById(p.id);
+    const cx = ox + (part.kind === 'fin' ? finAnchor(design, i, centre) : p.col + 0.5) * u;
+    const bottom = oy - p.row * u;
+    const side = part.kind === 'fin' ? Math.sign(p.col - centre) : 0;
+    const wu = widthOf(design, i);
+    if (opts.fade !== undefined) { ctx.save(); ctx.globalAlpha = opts.fade; }
+    paintPart(ctx, part, cx, bottom, u, t, side, wu);
+    if (opts.fade !== undefined) ctx.restore();
+    boxes.push({ i, x: cx - (wu * u) / 2, y: bottom - part.rows * u, w: wu * u, h: part.rows * u });
   }
-  const cap = partById('capsule');
-  paintPart(ctx, cap, cx, y, u, t);
-  boxes.push({ i: -1, x: cx - (cap.w * u) / 2, y: y - cap.h * u, w: cap.w * u, h: cap.h * u });
   return boxes;
+}
+
+/** How tall and wide the built rocket is, in grid cells, for fitting it on the screen. */
+export function designBounds(design: Design): { c0: number; c1: number; r0: number; r1: number } {
+  if (!design.length) return { c0: 4, c1: 4, r0: 0, r1: 1 };
+  let c0 = Infinity, c1 = -Infinity, r0 = Infinity, r1 = -Infinity;
+  for (const p of design) {
+    c0 = Math.min(c0, p.col);
+    c1 = Math.max(c1, p.col);
+    r0 = Math.min(r0, p.row);
+    r1 = Math.max(r1, topRow(p) + 1);
+  }
+  return { c0, c1, r0, r1 };
 }
 
 // ---------------------------------------------------------------- fire

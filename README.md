@@ -34,32 +34,45 @@ line that gets shorter in the harder missions.
 Practises ordering, comparing, predicting motion and the solar system. Age 5 and up.
 
 ### Moonshot (`moonshot.html`)
-Build a rocket out of the parts you choose - capsule, tanks, engines, fins, strap-on boosters - and
-a balance on the workshop screen weighs the push against the weight while you build, so a rocket
-that cannot lift itself never leaves the pad. When you decide it is finished you launch it, steer it
-upright against the wind with two thumbs, drop each stage as it runs dry, and see how far the speed
-you were left with carries you: up with the birds, through the clouds, past the satellites, as far
-as the Moon, away from the Earth, as far as Mars. Each rung reached hands over the next part, so the
-rocket that got you there is the reason you can build a better one.
+A workshop, a grid, and a launch button. Twenty-four parts - nose cones, probes, capsules, a crew
+cabin, a fairing, six tanks from two tonnes to sixteen, eight engines from a toy to a nuclear one,
+two solid boosters, two sets of fins, a collar and a girder - and every one of them is on the shelf
+from the first second. Nothing is locked, nothing is earned, nothing costs anything.
 
-Shape matters as much as power. The air only cares about two things and both of them are visible
-in the drawing: how wide the rocket is across, and how long it is for that width. A short fat
-rocket leaves a hole behind it that the air falls into, and that hole is most of the drag; a long
-thin one lets the air close up gently. Boosters strapped to the sides make the rocket wider and
-cost more than they look, which is why a fourth pair buys almost nothing - and why the rocket
-visibly picks up speed the moment they drop off. Fins keep it pointing straight in the thick air
-and cost a slice of the top speed for it. A gauge under the balance says how slippery the thing you
-have built is and what is costing the most, and in flight the air itself shows up: streaks past the
-body and a nose that glows hotter the harder the air is pushing.
+You put parts where you want them. Drag one out of the tray and the grid lights up every cell it
+could legally go in; drop it and it bolts on. Drag one that is already on the rocket to move it, or
+let go of it over the shelf to take it off. Tap instead of dragging and the game guesses: an engine
+goes underneath, a tank slides in under the capsule, a booster goes on whichever side has fewer,
+and a second engine becomes a second stage. Take a tank out of the middle and what was above it
+falls onto what is below. There is an undo button and there is no limit but the grid itself, which
+is nine columns wide and twenty-six rows tall.
 
-The rest of the physics is honest too. Mass falls as fuel burns, gravity weakens by the inverse
-square, the air thins out exponentially and stops both pushing back and holding you straight, a
-spent stage is dead weight until it is dropped, and exhaust speed decides how far you end up going
-- which is why the quiet vacuum engine beats the loud one, and why the last part is a nuclear
-engine NASA really did build and fire in the sixties. The only thing bent for a child is the clock:
-tanks empty in seconds rather than minutes.
-Practises weighing one thing against another, cause and effect, shape against speed, and
-reading a number that grows. Age 6 and up.
+The rules are the teacher. Each column of the grid stages itself: an engine owns the tanks above it
+until the next engine, and drops away when they run dry - so strap-on boosters fall off first and
+the core keeps going, exactly as they do. A tank with no engine under it is dead weight for the
+whole flight, an engine with no tank above it never lights, and a rocket whose push is not under
+its weight leans over on its own. The build screen says which of those is wrong, one line at a
+time, in the order a builder would notice them.
+
+Shape counts as much as power. The air feels how wide the rocket is across, how long it is for that
+width, and what is capping each column - so a flat-topped stack is noticeably draggier than the
+same stack wearing nose cones, and a fourth pair of boosters buys almost nothing because the drag
+eats what the thrust adds. A bar under the rocket says how slippery the thing is; in flight the air
+itself shows up as streaks past the body and a nose that glows hotter the harder it is being
+pushed.
+
+The physics is honest throughout: mass falls as fuel burns, gravity weakens by the inverse square,
+the air thins out exponentially and stops both pushing back and holding you straight, a spent stage
+is dead weight until it goes, and exhaust speed - not thrust - decides how far you end up. One grid
+column is 1.8 m, which is what makes a two-row tank hold exactly the four and a half tonnes it says
+it holds. The only thing bent for a child is the clock: tanks empty in seconds rather than minutes.
+
+At the end, a name for how far you got: up with the birds, through the clouds, above the
+aeroplanes, the edge of the air, round the Earth, past the satellites, as far as the Moon, away
+from the Earth, as far as Mars, as far as Jupiter, out past the planets. Reaching one hands over
+nothing at all. It is a pencil mark on a doorframe.
+Practises weighing one thing against another, cause and effect, shape against speed, and reading a
+number that grows. Age 6 and up.
 
 ### Dino Dig (`dig.html`)
 Excavate real fossils (Smithsonian, NASA and Wikimedia public domain photographs) with brush, chisel,

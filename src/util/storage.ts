@@ -16,8 +16,8 @@ export interface SaveData {
   wxOpen: boolean;
   /** Millstream's village: what you have earned, what you have built, what each valley has paid */
   mill: { grain: number; built: string[]; paid: Record<string, number> };
-  /** Moonshot: how far the best flight got, on the ladder, and the rocket that did it */
-  moon: { best: number; stack: string[] };
+  /** Moonshot: how far the best flight got, on the ladder, and the rocket on the pad */
+  moon: { best: number; design: Array<{ id: string; col: number; row: number }> };
 }
 
 const KEY = 'cloudhopper.save.v1';
@@ -27,7 +27,7 @@ const defaults = (): SaveData => ({
   levels: {}, sound: true, radio: true, music: true, haptics: true, lang: 'auto', tutorialSeen: false,
   coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false,
   mill: { grain: 0, built: [], paid: {} },
-  moon: { best: 0, stack: [] },
+  moon: { best: 0, design: [] },
 });
 
 export function loadSave(): SaveData {
