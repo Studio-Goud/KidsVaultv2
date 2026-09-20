@@ -45,6 +45,8 @@ html, body {
 }
 .screen.dim { background: radial-gradient(120% 90% at 50% 20%, rgba(12, 30, 60, 0.35), rgba(8, 20, 45, 0.78)); }
 .screen.top { justify-content: flex-start; overflow-y: auto; }
+/* the wash behind the wordmark is wider than the screen on purpose - clip it, do not scroll to it */
+.screen, #hub { overflow-x: clip; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
@@ -77,8 +79,8 @@ html, body {
 }
 .logo::before {
   content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: min(150%, 720px); height: 235%; pointer-events: none; z-index: 0;
-  background: radial-gradient(56% 50% at 50% 56%, rgba(6, 26, 54, 0.76), rgba(6, 26, 54, 0.66) 56%, rgba(6, 26, 54, 0) 86%);
+  width: min(160%, 760px); height: 235%; pointer-events: none; z-index: 0;
+  background: radial-gradient(52% 50% at 50% 56%, rgba(6, 26, 54, 0.86), rgba(6, 26, 54, 0.78) 58%, rgba(6, 26, 54, 0) 88%);
 }
 .logo > * { position: relative; z-index: 1; }
 .logo .word { font-size: clamp(38px, 11vw, 58px); font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
