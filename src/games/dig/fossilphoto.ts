@@ -25,6 +25,10 @@ export const FOSSILS: Record<string, FossilSource> = {
   velo: { id: 'velo', crop: [0.0, 0.0, 1.0, 1.0], flip: true, credit: 'Museo Civico di Zoologia, Rome, CC0' },
   para: { id: 'para', crop: [0.0, 0.0, 1.0, 1.0], credit: 'Parks, 1922, public domain' },
   diplo: { id: 'diplo', crop: [0.0, 0.0, 1.0, 1.0], credit: 'Hatcher, 1901, public domain' },
+  allo: { id: 'allo', crop: [0.0, 0.0, 1.0, 0.86], flip: true, credit: 'National Museum of Nature and Science, Tokyo, public domain' },
+  anky: { id: 'anky', crop: [0.0, 0.0, 1.0, 1.0], credit: 'Brown, 1908, public domain' },
+  iguano: { id: 'iguano', crop: [0.0, 0.0, 1.0, 1.0], credit: 'Royal Belgian Institute of Natural Sciences, public domain' },
+  archaeo: { id: 'archaeo', crop: [0.0, 0.0, 1.0, 1.0], credit: 'Museum fur Naturkunde, Berlin, CC0' },
 };
 
 const cache = new Map<string, HTMLCanvasElement>();

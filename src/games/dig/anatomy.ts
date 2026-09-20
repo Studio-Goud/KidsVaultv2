@@ -157,6 +157,29 @@ export function drawCrest(ctx: Ctx, d: Dino, slab: Box, fill: string, stroke: st
       ctx.closePath(); ctx.fill(); ctx.stroke();
     }
   }
+  if (d.crest === 'club') {
+    const tip = P(d.tail.to);
+    ctx.beginPath();
+    ctx.ellipse(tip.x, tip.y, 0.055 * S, 0.042 * S, 0, 0, TAU);
+    ctx.fill(); ctx.stroke();
+  }
+  if (d.crest === 'wings') {
+    // one wing swept back from the shoulder, with a fan of primaries
+    const sh = P([d.body.x - d.body.rx * 0.3, d.body.y - d.body.ry * 0.7]);
+    ctx.beginPath();
+    ctx.moveTo(sh.x, sh.y);
+    ctx.quadraticCurveTo(sh.x + 0.16 * S, sh.y - 0.14 * S, sh.x + 0.30 * S, sh.y - 0.04 * S);
+    ctx.quadraticCurveTo(sh.x + 0.18 * S, sh.y + 0.06 * S, sh.x, sh.y + 0.03 * S);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.lineWidth = Math.max(1, slab.w * 0.002);
+    for (let i = 0; i < 5; i++) {
+      const t = i / 4;
+      ctx.beginPath();
+      ctx.moveTo(sh.x + 0.05 * S + t * 0.16 * S, sh.y - 0.01 * S);
+      ctx.lineTo(sh.x + 0.12 * S + t * 0.2 * S, sh.y - 0.09 * S + t * 0.05 * S);
+      ctx.stroke();
+    }
+  }
   if (d.crest === 'tube') {
     const h = P(d.neck.to);
     ctx.beginPath();
