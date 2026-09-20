@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
+import { drawMarketThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -76,6 +76,16 @@ const GAMES: Game[] = [
     practisesNl: 'Denkflexibiliteit, van regel wisselen',
     age: '4+',
     paint: drawTideThumb,
+  },
+  {
+    href: './market.html',
+    title: 'Market Day',
+    line: 'Fill the basket with exactly what they asked for, share it fairly, and ring the bell.',
+    lineNl: 'Vul de mand met precies wat ze vroegen, deel eerlijk, en bel.',
+    practises: 'Counting out, sharing equally, how many more',
+    practisesNl: 'Uittellen, eerlijk delen, hoeveel erbij',
+    age: '4+',
+    paint: drawMarketThumb,
   },
   {
     href: './dig.html',

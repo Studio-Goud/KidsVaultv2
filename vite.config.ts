@@ -18,6 +18,7 @@ export default defineConfig({
         dig: resolve(__dirname, 'dig.html'),
         mill: resolve(__dirname, 'mill.html'),
         tidepool: resolve(__dirname, 'tidepool.html'),
+        market: resolve(__dirname, 'market.html'),
       },
     },
   },

@@ -149,3 +149,31 @@ export function drawTideThumb(c: HTMLCanvasElement): void {
   ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.restore();
 }
+
+/** A striped awning, a basket and three apples, in Market Day's palette. */
+export function drawMarketThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#d9efd2'); g.addColorStop(1, '#e9d9b0');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  for (let x = 0; x < w; x += w * 0.1) { ctx.fillStyle = Math.round(x / (w * 0.1)) % 2 ? '#fff7ea' : '#e0574a'; ctx.fillRect(x, 0, w * 0.1, h * 0.16); }
+  ctx.fillStyle = '#b98b5a'; ctx.fillRect(0, h * 0.7, w, h * 0.3);
+  ctx.fillStyle = '#d9a86c'; ctx.fillRect(0, h * 0.68, w, h * 0.05);
+  // basket
+  ctx.fillStyle = '#d3a56a';
+  ctx.beginPath(); ctx.moveTo(w * 0.3, h * 0.42); ctx.lineTo(w * 0.7, h * 0.42); ctx.lineTo(w * 0.64, h * 0.7); ctx.lineTo(w * 0.36, h * 0.7); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(90,60,30,0.35)'; ctx.lineWidth = 1;
+  for (let y = h * 0.5; y < h * 0.68; y += h * 0.06) { ctx.beginPath(); ctx.moveTo(w * 0.33, y); ctx.lineTo(w * 0.67, y); ctx.stroke(); }
+  ctx.fillStyle = '#b98b5a'; ctx.beginPath(); ctx.roundRect(w * 0.28, h * 0.38, w * 0.44, h * 0.08, 4); ctx.fill();
+  // three apples in it
+  for (const ax of [0.4, 0.5, 0.6]) {
+    ctx.fillStyle = '#e0574a'; ctx.beginPath(); ctx.arc(w * ax, h * 0.36, h * 0.07, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#5a3a2a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(w * ax, h * 0.29); ctx.lineTo(w * ax + 2, h * 0.25); ctx.stroke();
+    ctx.fillStyle = '#5fae6a'; ctx.beginPath(); ctx.ellipse(w * ax + 4, h * 0.27, 4, 2, -0.5, 0, TAU); ctx.fill();
+  }
+  // the order: a numeral 3
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.beginPath(); ctx.roundRect(w * 0.74, h * 0.22, w * 0.2, h * 0.24, 6); ctx.fill();
+  ctx.fillStyle = '#14324f'; ctx.font = `900 ${Math.round(h * 0.16)}px Nunito, system-ui, sans-serif`; ctx.textAlign = 'center';
+  ctx.fillText('3', w * 0.84, h * 0.4);
+}
