@@ -134,18 +134,37 @@ export function buildSite(cols: number, rows: number, seed: number, hardness: nu
   return { cols, rows, depth, hard, bone, chip: new Uint8Array(n), boneCount };
 }
 
-export interface StrokeResult { removed: number; chipped: number; uncovered: number; blocked: boolean }
+export interface StrokeResult {
+  removed: number;
+  chipped: number;
+  uncovered: number;
+  blocked: boolean;
+  /** true when a heavy tool landed on bone that was already bare, which is never an accident */
+  onBare: boolean;
+}
 
 /** One touch of a tool at a cell position. */
 export function strike(site: Site, tool: Tool, cx: number, cy: number, rng: () => number): StrokeResult {
-  const out: StrokeResult = { removed: 0, chipped: 0, uncovered: 0, blocked: false };
+  const out: StrokeResult = { removed: 0, chipped: 0, uncovered: 0, blocked: false, onBare: false };
   const r = tool.radius;
   for (let gy = Math.floor(cy - r); gy <= Math.ceil(cy + r); gy++) {
     for (let gx = Math.floor(cx - r); gx <= Math.ceil(cx + r); gx++) {
       if (gx < 0 || gy < 0 || gx >= site.cols || gy >= site.rows) continue;
       if (Math.hypot(gx + 0.5 - cx, gy + 0.5 - cy) > r) continue;
       const i = gy * site.cols + gx;
-      if (site.depth[i] === 0) continue;
+      if (site.depth[i] === 0) {
+        // The rock here is already off. Swinging a heavy tool at bare bone used to cost nothing
+        // at all, so hammering the same spot over and over was free. It is not: the bone is what
+        // breaks. The brush and the air scribe carry no risk, so careful work stays safe.
+        // squared, so the hammer is plainly dangerous here and the chisel is all but safe: a
+        // child dragging the careful tool across finished bone should not be punished for it
+        if (site.bone[i] && !site.chip[i] && tool.risk > 0 && rng() < tool.risk * tool.risk * 1.8) {
+          site.chip[i] = 1;
+          out.chipped++;
+          out.onBare = true;
+        }
+        continue;
+      }
       if (site.hard[i] > tool.maxHard) { out.blocked = true; continue; }
       const before = site.depth[i];
       site.depth[i] = Math.max(0, before - tool.bite);

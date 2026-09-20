@@ -214,7 +214,7 @@ export class DinoDig {
       'Begin rustig. Zacht gesteente gaat er met een kwast af.'));
   }
 
-  private say(text: string): void { this.note = text; this.noteT = 4; }
+  private say(text: string, secs = 4): void { this.note = text; this.noteT = secs; }
 
   private unlocked(t: Tool): boolean { return foundCount() >= t.unlockAt; }
 
@@ -312,7 +312,15 @@ export class DinoDig {
     const r = strike(this.site, this.tool, cx, cy, this.rng);
     if (r.removed > 0 || r.chipped) this.rockArt.touch();
     if (r.removed === 0) {
-      if (r.blocked && this.noteT <= 0) {
+      // a swing that moves nothing still costs a little daylight - the sun does not wait
+      this.stamina = Math.max(0, this.stamina - this.tool.cost * 0.4);
+      if (r.chipped) {
+        // struck bone that was already bare, which is the one mistake with no excuse
+        dig.crack(); this.shake = 0.85;
+        this.ps.spawn('spark', p.x, p.y, 9, { colour: '#ff9a8a', speed: 160, size: c * 1.25, max: 0.6, spread: 6.28 });
+        this.say(T('The bone is already bare there. Hitting it again breaks it.',
+          'Daar ligt het bot al bloot. Er nog een keer op slaan breekt het.'), 2.6);
+      } else if (r.blocked && this.noteT <= 0) {
         this.say(T('That rock is too hard for this tool.', 'Dat gesteente is te hard voor dit gereedschap.'));
         dig.tap();
       }
@@ -331,8 +339,11 @@ export class DinoDig {
     if (r.chipped) {
       dig.crack(); this.shake = 0.7;
       this.ps.spawn('spark', p.x, p.y, 8, { colour: '#ff9a8a', speed: 150, size: c * 1.2, max: 0.6, spread: 6.28 });
-      this.say(T('You broke a piece off. Something gentler here.',
-        'Je hebt er een stuk afgeslagen. Iets zachters hier.'));
+      this.say(r.onBare
+        ? T('The bone is already bare there. Hitting it again breaks it.',
+          'Daar ligt het bot al bloot. Er nog een keer op slaan breekt het.')
+        : T('You broke a piece off. Something gentler here.',
+          'Je hebt er een stuk afgeslagen. Iets zachters hier.'));
     } else if (r.uncovered) {
       dig.uncover();
       this.ps.spawn('spark', p.x, p.y, 4, { colour: '#ffe9a8', speed: 90, size: c, max: 0.5, spread: 6.28 });
