@@ -188,7 +188,7 @@ export class Orbit {
       ['explore', T('Explore', 'Verken')],
       ['scale', T('To scale', 'Op schaal')],
     ];
-    const bh = 38 * u, pad = 9 * u;
+    const bh = 44 * u, pad = 9 * u;
     ctx.font = this.font('800', 11.5);
     const widths = labels.map(([, l]) => ctx.measureText(l).width + pad * 2.2);
     const total = widths.reduce((a, b) => a + b, 0) + pad * (labels.length - 1);
@@ -211,7 +211,7 @@ export class Orbit {
   }
 
   /** How much room the tab bar takes off the bottom of every screen. */
-  private tabRoom(): number { return 62 * this.u(); }
+  private tabRoom(): number { return 68 * this.u(); }
 
   // ---------- rounds ----------
 

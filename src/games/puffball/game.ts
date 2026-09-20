@@ -605,7 +605,7 @@ export class Puffball {
     }
 
     if (this.phase === 'play') this.drawPad();
-    this.button('levels', T('Nights', 'Nachten'), 12 * u, 12 * u, 84 * u, 32 * u);
+    this.button('levels', T('Nights', 'Nachten'), 12 * u, 12 * u, 92 * u, 44 * u);
     ctx.textAlign = 'left';
   }
 

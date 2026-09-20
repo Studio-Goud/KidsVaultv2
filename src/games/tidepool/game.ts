@@ -15,7 +15,7 @@ import { uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
-  COLOUR_HEX, dimLabel, labelFor, LEVELS, nextRule, poolFor, rngFor, spawnCreature, starsFor,
+  COLOUR_HEX, dimLabel, labelFor, LEVELS, makeRule, nextRule, poolFor, rngFor, spawnCreature, starsFor,
   type Colour, type Creature, type Dim, type Kind, type Level, type Rule,
 } from './model';
 import { Sea, tide } from './tidesfx';
@@ -142,10 +142,14 @@ export class Tidepool {
     const f = this.field(), u = this.u();
     const n = this.rule.values.length;
     const gap = 10 * u;
-    const pw = (f.w - 24 * u - gap * (n - 1)) / n;
     const top = f.y + f.h * SHORE + 46 * u;
-    const ph = Math.min(f.y + f.h - top - 34 * u, pw * 0.88);
-    return this.rule.values.map((_, i) => ({ x: 12 * u + i * (pw + gap), y: top, w: pw, h: ph }));
+    const ph = Math.max(60 * u, f.y + f.h - top - 34 * u);
+    // a pool is a basin, not a puddle stretched across the beach: on a short wide screen the width
+    // is held back to what the height can carry, and the row is centred instead
+    const pw = Math.min((f.w - 24 * u - gap * (n - 1)) / n, ph * 1.7);
+    const total = n * pw + gap * (n - 1);
+    const x0 = f.x + (f.w - total) / 2;
+    return this.rule.values.map((_, i) => ({ x: x0 + i * (pw + gap), y: top, w: pw, h: Math.min(ph, pw * 0.88) }));
   }
 
   /** How big a creature is on screen. */
@@ -164,7 +168,8 @@ export class Tidepool {
     this.attempt++;
     this.rng = rngFor(this.level, this.attempt);
     this.previous = null;
-    this.rule = nextRule(this.level, null, this.rng);
+    // a tide opens on the rule its own hint talks about; the switches after that are random
+    this.rule = makeRule(this.level.dims[0], this.level.pools, this.rng);
     this.creatures = [];
     this.spawned = 0; this.resolved = 0; this.correct = 0; this.wrong = 0; this.missed = 0;
     this.streak = 0; this.best = 0; this.shells = 3;
@@ -543,7 +548,7 @@ export class Tidepool {
       ctx.restore();
     }
 
-    this.button('levels', T('Tides', 'Getijden'), 14 * u, 14 * u, 84 * u, 34 * u);
+    this.button('levels', T('Tides', 'Getijden'), 14 * u, 12 * u, 92 * u, 44 * u);
     ctx.textAlign = 'left';
   }
 

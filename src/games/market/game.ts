@@ -257,7 +257,7 @@ export class MarketDay {
       this.served++;
       market.happy(); market.coins(Math.min(4, n));
       this.mood = 'happy';
-      this.pops.push({ x: this.w / 2, y: this.counterTop() - 30 * this.u(), t0: this.t, text: `+${n}`, good: true });
+      this.pops.push({ x: this.w / 2, y: this.counterTop() - 8 * this.u(), t0: this.t, text: `+${n}`, good: true });
       // coins tumbling onto the counter
       this.ps.spawn('spark', this.w / 2, this.counterTop(), Math.min(10, n + 3),
         { colour: '#f3c14a', speed: 200, size: 9 * this.u(), max: 0.9, spread: 2.2 });
@@ -314,8 +314,10 @@ export class MarketDay {
   private drawCustomer(): void {
     const ctx = this.ctx, u = this.u(), o = this.order!;
     const slide = this.leaveT > 0 ? (1 - this.leaveT / 1.0) : this.arriveT > 0 ? -(this.arriveT / 0.6) : 0;
-    const cx = this.w * 0.24 + slide * this.w * 0.9, cy = 236 * u;
+    const cx = this.w * 0.24 + slide * this.w * 0.9;
     const r = 42 * u;
+    // they stand behind the counter, not under it: on a short screen that means further up
+    const cy = Math.min(236 * u, this.counterTop() - r * 1.5);
     // how long they will wait, as a ring behind them, so it never cuts across a face
     progressRing(ctx, cx, cy, r + 13 * u, clamp(this.patience, 0, 1),
       this.patience > 0.35 ? '#5fae6a' : '#e0574a', 6 * u, 'rgba(255,255,255,0.4)');
@@ -333,10 +335,11 @@ export class MarketDay {
     const ctx = this.ctx, u = this.u();
     const items = FRUITS.filter(f => o.wants[f]);
     const cardX = Math.min(this.w * 0.46, cx + r * 1.5);
-    const cardW = this.w - cardX - 14 * u;
+    // on a wide screen the card must not stretch to the far edge; an order is a note, not a banner
+    const cardW = Math.min(this.w - cardX - 14 * u, 300 * u);
     const lineH = 34 * u;
     const cardH = 30 * u + items.length * lineH;
-    const cardY = cy - r - 16 * u;
+    const cardY = Math.max(52 * u, cy - r - 16 * u);
     const tilt = -0.02;
 
     ctx.save();
@@ -395,7 +398,7 @@ export class MarketDay {
   /** The crates and the bell live on the counter at the bottom; the counter starts just above them. */
   private crateTop(): number { return this.h - 66 * this.u() - 20 * this.u(); }
   /** The counter is deep enough for the baskets to stand on it rather than float above it. */
-  private counterTop(): number { return this.crateTop() - 156 * this.u(); }
+  private counterTop(): number { return this.crateTop() - Math.min(156 * this.u(), this.h * 0.3); }
 
   private basketRects(): Array<{ x: number; y: number; w: number; h: number }> {
     const u = this.u(), n = this.baskets.length;
@@ -547,7 +550,7 @@ export class MarketDay {
       ctx.restore();
     }
 
-    this.button('levels', T('Days', 'Dagen'), 12 * u, 48 * u, 84 * u, 32 * u);
+    this.button('levels', T('Days', 'Dagen'), 12 * u, 46 * u, 92 * u, 44 * u);
     ctx.textAlign = 'left';
   }
 

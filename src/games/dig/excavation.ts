@@ -131,15 +131,22 @@ export class DinoDig {
     this.canvas.height = Math.round(this.h * this.dpr);
   }
 
-  /** The slab of rock: landscape, because a dinosaur is a wide animal. */
+  /**
+   * The slab of rock: landscape, because a dinosaur is a wide animal.
+   *
+   * It has to fit the room it is given. The old sizing forced a minimum height from the width,
+   * which on a short wide screen made the slab taller than the screen and pushed the fossil out
+   * under the tool belt; now the height leads and the width follows it.
+   */
   private slab(): { x: number; y: number; w: number; h: number } {
     const u = this.u();
-    const top = 132 * u;
+    const top = 140 * u;
     const bottom = this.h - (this.phase === 'dig' ? 96 * u : 212 * u);
-    const band = Math.max(140, bottom - top);
-    const w = this.w - 20 * u;
-    // fill the room that is there, but never so tall that the slab stops reading as a slab
-    const h = clamp(band, w / 2.4, w * 1.3);
+    const band = Math.max(120, bottom - top);
+    let w = this.w - 20 * u;
+    let h = Math.min(band, w * 1.3);
+    // never wider than it is tall by more than a slab should be
+    if (h < w / 2.4) w = h * 2.4;
     return { x: (this.w - w) / 2, y: top + Math.max(0, (band - h) / 2), w, h };
   }
 
@@ -424,7 +431,7 @@ export class DinoDig {
       this.phase === 'wrong' ? T('Look again', 'Kijk nog eens') :
       this.phase === 'failed' ? T('The light went', 'Het licht was op') :
       nameOf(this.dino);
-    heading(ctx, head, this.w / 2, 66 * u, this.font('900', 21), '#4a3823');
+    heading(ctx, head, this.w / 2, 34 * u, this.font('900', 19), '#4a3823');
 
     if (this.phase === 'dig') this.drawMeters(p.exposed, p.chipped);
     if (this.phase === 'reveal') this.drawCard();
@@ -441,7 +448,7 @@ export class DinoDig {
       ctx.globalAlpha = clamp(this.noteT, 0, 1);
       ctx.font = this.font('800', 11.5);
       const tw = Math.min(this.w - 32 * u, ctx.measureText(this.note).width + 30 * u);
-      const ny = this.slab().y - 40 * u;
+      const ny = 104 * u;
       glassPanel(ctx, this.w / 2 - tw / 2, ny, tw, 28 * u, 14 * u, 0.94);
       ctx.fillStyle = '#4a3823';
       ctx.textAlign = 'center';
@@ -462,7 +469,8 @@ export class DinoDig {
     }
     if (this.phase === 'dig') this.drawTools();
 
-    const mw = 86 * u, mh = 30 * u;
+    // a thumb-sized target: this is the button a small child presses to get out
+    const mw = 94 * u, mh = 44 * u;
     this.button('museum', T('Museum', 'Museum'), 12 * u + mw / 2, 12 * u + mh / 2, mw, mh, false);
     ctx.textAlign = 'left';
   }
@@ -484,7 +492,7 @@ export class DinoDig {
   /** How much is out, how much is broken, and how much daylight is left - as dials, not numbers. */
   private drawMeters(exposed: number, chipped: number): void {
     const ctx = this.ctx, u = this.u();
-    const r = 21 * u, y = 96 * u;
+    const r = 21 * u, y = 74 * u;
     paintExposedDial(ctx, this.w / 2 - 32 * u, y, r, exposed, u);
     paintSunDial(ctx, this.w / 2 + 32 * u, y, r, clamp(this.stamina, 0, 1), u);
     if (chipped > 0) {
