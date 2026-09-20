@@ -235,12 +235,15 @@ html, body {
   .grid { grid-template-columns: repeat(3, 1fr); max-width: 780px; }
   .mgrid { grid-template-columns: repeat(8, 1fr); max-width: 780px; }
   .topbar, .statrow.light { width: min(780px, 100%); }
-  .card { width: min(560px, 100%); }
+  .card { width: min(660px, 100%); }
+  .card h2 { font-size: 30px; }
+  .btn { font-size: 18px; padding: 17px 24px; }
   .card.wide { width: min(720px, 100%); }
   .fleetgrid { grid-template-columns: repeat(4, 1fr); }
 }
 @media (min-width: 1040px) {
   .grid { grid-template-columns: repeat(4, 1fr); max-width: 980px; }
+  .card { width: min(760px, 100%); }
   .mgrid { max-width: 900px; }
   .topbar, .statrow.light { width: min(980px, 100%); }
   .fleetgrid { grid-template-columns: repeat(5, 1fr); }

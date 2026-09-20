@@ -13,6 +13,7 @@
 
 import { clamp, TAU, type Vec } from '../../util/math';
 import { makeRng, ValueNoise } from '../../util/rng';
+import { uiScale } from '../../util/ui';
 import { bodyPath, bones, drawCrest } from './anatomy';
 import { DINOS, type Dino } from './dinos';
 import { drawFossil, fossilPhoto, FOSSILS, loadAllFossils } from './fossilphoto';
@@ -26,7 +27,7 @@ const nameOf = (d: Dino): string => (NL() ? d.nameNl : d.name);
 const factOf = (d: Dino): string => (NL() ? d.factNl : d.fact);
 
 /** The dirt is a coarse grid of cells; brushing clears the cells under your finger. */
-const GRID = 34;
+const GRID_BASE = 34;
 
 export class DinoDig {
   private ctx: Ctx;
@@ -92,8 +93,8 @@ export class DinoDig {
     this.canvas.width = Math.round(this.w * this.dpr);
     this.canvas.height = Math.round(this.h * this.dpr);
     const slab = this.slab();
-    this.cols = Math.ceil(slab.w / GRID);
-    this.rows = Math.ceil(slab.h / GRID);
+    this.cols = Math.ceil(slab.w / this.grid());
+    this.rows = Math.ceil(slab.h / this.grid());
     if (this.cleared.length !== this.cols * this.rows) this.cleared = new Uint8Array(this.cols * this.rows);
   }
 
@@ -102,14 +103,22 @@ export class DinoDig {
    * whatever the screen does. The leftover height below it holds the three answers.
    */
   private slab(): { x: number; y: number; w: number; h: number } {
-    const top = 104;
-    const bottom = this.h - 200;
+    const u = this.u();
+    const top = 104 * u;
+    const bottom = this.h - 200 * u;
     const band = Math.max(150, bottom - top);
-    let w = Math.min(this.w - 28, 760);
+    // no fixed ceiling: on a tablet the slab takes the width it is given
+    let w = this.w - 28 * u;
     let h = w / 1.75;
-    if (h > band) { h = band; w = Math.min(this.w - 28, h * 1.75); }
+    if (h > band) { h = band; w = Math.min(this.w - 28 * u, h * 1.75); }
     return { x: (this.w - w) / 2, y: top + (band - h) / 2, w, h };
   }
+
+  /** How much bigger than a phone this screen is. */
+  private u(): number { return uiScale(this.w, this.h); }
+
+  /** Dirt cells grow with the screen, so brushing feels the same on a phone and on a tablet. */
+  private grid(): number { return GRID_BASE * this.u(); }
 
   private clearedFraction(): number {
     let n = 0;
@@ -150,7 +159,7 @@ export class DinoDig {
 
   private brush(p: Vec): void {
     const slab = this.slab();
-    const cx = (p.x - slab.x) / GRID, cy = (p.y - slab.y) / GRID;
+    const cx = (p.x - slab.x) / this.grid(), cy = (p.y - slab.y) / this.grid();
     const rad = 1.6;
     for (let gy = Math.floor(cy - rad); gy <= Math.ceil(cy + rad); gy++) {
       for (let gx = Math.floor(cx - rad); gx <= Math.ceil(cx + rad); gx++) {
@@ -189,7 +198,7 @@ export class DinoDig {
 
   // ---------- drawing ----------
 
-  private font(weight: string, size: number): string { return `${weight} ${Math.round(size)}px Nunito, system-ui, sans-serif`; }
+  private font(weight: string, size: number): string { return `${weight} ${Math.round(size * this.u())}px Nunito, system-ui, sans-serif`; }
 
   private draw(): void {
     const ctx = this.ctx;
@@ -242,15 +251,15 @@ export class DinoDig {
     for (let gy = 0; gy < this.rows; gy++) {
       for (let gx = 0; gx < this.cols; gx++) {
         if (this.cleared[gy * this.cols + gx]) continue;
-        const x = slab.x + gx * GRID, y = slab.y + gy * GRID;
+        const x = slab.x + gx * this.grid(), y = slab.y + gy * this.grid();
         const n = this.dirt.noise2(gx * 0.6, gy * 0.6);
         ctx.fillStyle = `rgb(${Math.round(176 + n * 26)},${Math.round(146 + n * 24)},${Math.round(104 + n * 22)})`;
         ctx.beginPath();
-        ctx.roundRect(x - 1, y - 1, GRID + 2, GRID + 2, 7);
+        ctx.roundRect(x - 1, y - 1, this.grid() + 2, this.grid() + 2, 7);
         ctx.fill();
         ctx.fillStyle = `rgba(120,95,62,${0.12 + n * 0.12})`;
-        ctx.beginPath(); ctx.arc(x + GRID * 0.35, y + GRID * 0.4, GRID * 0.16, 0, TAU); ctx.fill();
-        ctx.beginPath(); ctx.arc(x + GRID * 0.7, y + GRID * 0.66, GRID * 0.11, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(x + this.grid() * 0.35, y + this.grid() * 0.4, this.grid() * 0.16, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(x + this.grid() * 0.7, y + this.grid() * 0.66, this.grid() * 0.11, 0, TAU); ctx.fill();
       }
     }
   }
@@ -390,35 +399,35 @@ export class DinoDig {
       this.phase === 'wrong' ? T('Look again', 'Kijk nog eens') :
       nameOf(this.dino);
     ctx.fillStyle = '#4a3823'; ctx.font = this.font('900', 22);
-    ctx.fillText(head, this.w / 2, 48);
+    ctx.fillText(head, this.w / 2, 48 * this.u());
 
     if (this.phase === 'digging') {
       ctx.fillStyle = 'rgba(74,56,35,0.6)'; ctx.font = this.font('700', 13);
-      ctx.fillText(T('Take your time, it has waited a long while.', 'Rustig aan, hij heeft lang gewacht.'), this.w / 2, 70);
+      ctx.fillText(T('Take your time, it has waited a long while.', 'Rustig aan, hij heeft lang gewacht.'), this.w / 2, 70 * this.u());
     }
     if (this.phase === 'reveal') {
       ctx.fillStyle = 'rgba(74,56,35,0.78)'; ctx.font = this.font('700', 13);
-      ctx.fillText(factOf(this.dino), this.w / 2, 70, this.w - 36);
+      ctx.fillText(factOf(this.dino), this.w / 2, 70 * this.u(), this.w - 36);
     }
 
     // found so far
-    const gap = 16, x0 = this.w / 2 - ((DINOS.length - 1) * gap) / 2;
+    const gap = 16 * this.u(), x0 = this.w / 2 - ((DINOS.length - 1) * gap) / 2;
     for (let i = 0; i < DINOS.length; i++) {
       ctx.fillStyle = i < this.found.length ? '#6b8f4e' : i === this.round ? 'rgba(74,56,35,0.75)' : 'rgba(74,56,35,0.25)';
-      ctx.beginPath(); ctx.arc(x0 + i * gap, 88, i < this.found.length ? 4.5 : 3.5, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(x0 + i * gap, 88 * this.u(), (i < this.found.length ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
     }
 
     if (this.phase === 'asking' || this.phase === 'wrong') {
-      const bw = Math.min(300, this.w - 40), bh = 46;
-      const y0 = slab.y + slab.h + 16;
+      const u = this.u(), bw = Math.min(360 * u, this.w - 40), bh = 46 * u;
+      const y0 = slab.y + slab.h + 16 * u;
       this.options.forEach((o, i) => {
-        const x = this.w / 2 - bw / 2, y = y0 + i * (bh + 8);
+        const x = this.w / 2 - bw / 2, y = y0 + i * (bh + 8 * u);
         const bad = this.wrongId === o.id;
         ctx.fillStyle = bad ? 'rgba(200,90,80,0.9)' : 'rgba(255,255,255,0.85)';
-        ctx.beginPath(); ctx.roundRect(x, y, bw, bh, 23); ctx.fill();
+        ctx.beginPath(); ctx.roundRect(x, y, bw, bh, bh / 2); ctx.fill();
         ctx.strokeStyle = 'rgba(80,60,40,0.25)'; ctx.lineWidth = 1; ctx.stroke();
         ctx.fillStyle = bad ? '#fff' : '#4a3823'; ctx.font = this.font('800', 15);
-        ctx.fillText(nameOf(o), this.w / 2, y + 29, bw - 24);
+        ctx.fillText(nameOf(o), this.w / 2, y + bh * 0.63, bw - 24);
         this.hits.push({ id: o.id, x, y, w: bw, h: bh });
       });
     }
@@ -435,21 +444,21 @@ export class DinoDig {
     ctx.font = this.font('800', 15);
     this.found.forEach((nm, i) => {
       ctx.fillStyle = '#6b8f4e';
-      ctx.fillText(nm, this.w / 2, this.h * 0.36 + 26 + i * 26);
+      ctx.fillText(nm, this.w / 2, this.h * 0.36 + 26 * this.u() + i * 26 * this.u());
     });
 
-    const w = 210, h = 48, x = this.w / 2 - w / 2, y = this.h * 0.36 + 44 + this.found.length * 26;
+    const u = this.u(), w = 210 * u, h = 48 * u, x = this.w / 2 - w / 2, y = this.h * 0.36 + 44 * u + this.found.length * 26 * u;
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.beginPath(); ctx.roundRect(x, y, w, h, 24); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
     ctx.strokeStyle = 'rgba(80,60,40,0.25)'; ctx.lineWidth = 1; ctx.stroke();
     ctx.fillStyle = '#4a3823'; ctx.font = this.font('800', 15);
-    ctx.fillText(T('Dig again', 'Nog een keer graven'), this.w / 2, y + 30);
+    ctx.fillText(T('Dig again', 'Nog een keer graven'), this.w / 2, y + h * 0.63);
     this.hits.push({ id: 'again', x, y, w, h });
 
     // attribution: one of the fossil photographs is CC BY and the rest are public domain
     ctx.fillStyle = 'rgba(74,56,35,0.55)'; ctx.font = this.font('700', 9);
-    ctx.fillText(T('Fossil photographs:', 'Fossielfoto’s:'), this.w / 2, y + h + 26);
+    ctx.fillText(T('Fossil photographs:', 'Fossielfoto’s:'), this.w / 2, y + h + 26 * u);
     const lines = [...new Set(Object.values(FOSSILS).map(f => f.credit))];
-    lines.forEach((c, i) => ctx.fillText(c, this.w / 2, y + h + 40 + i * 12, this.w - 24));
+    lines.forEach((c, i) => ctx.fillText(c, this.w / 2, y + h + 40 * u + i * 12 * u, this.w - 24));
   }
 }

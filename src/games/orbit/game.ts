@@ -13,6 +13,7 @@ import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { BODIES, type Body } from './bodies';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
 import { CREDITS, loadAllPlanets } from './photo';
+import { uiScale } from '../../util/ui';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
@@ -97,11 +98,15 @@ export class Orbit {
     if (this.want.length) this.layout();
   }
 
+  /** How much bigger than a phone this screen is. */
+  private u(): number { return uiScale(this.w, this.h); }
+
   /** The track along the bottom, and the tray of planets still to place. */
-  private trackY(): number { return this.h - 92; }
+  private trackY(): number { return this.h - 92 * this.u(); }
   /** the sun sits at the start of the track, fully on screen */
-  private sunX(): number { return 34; }
-  private maxR(): number { return clamp(Math.min(this.w / 11, this.h / 13), 16, 46); }
+  private sunX(): number { return 34 * this.u(); }
+  // no hard ceiling: on a tablet the planets should actually fill the room they have
+  private maxR(): number { return clamp(Math.min(this.w / 11, this.h / 13), 16, 110); }
 
   /** How wide a body is on screen, rings included. */
   private halfWidth(b: Body, r: number): number { return r * reachOf(b); }
@@ -113,7 +118,7 @@ export class Orbit {
 
   private layout(): void {
     const n = this.want.length;
-    const left = 78, right = this.w - 22;
+    const left = 78 * this.u(), right = this.w - 22 * this.u();
     const step = (right - left) / n;
     const placed = this.choices.filter(c => c.placed);
     const loose = this.choices.filter(c => !c.placed);
@@ -148,8 +153,9 @@ export class Orbit {
   }
 
   private trayRect(): { x: number; y: number; w: number; h: number } {
-    const top = 118, bottom = this.trackY() - 82;
-    return { x: 16, y: top, w: this.w - 32, h: Math.max(110, bottom - top) };
+    const u = this.u();
+    const top = 118 * u, bottom = this.trackY() - 82 * u;
+    return { x: 16 * u, y: top, w: this.w - 32 * u, h: Math.max(110 * u, bottom - top) };
   }
 
   // ---------- rounds ----------
@@ -200,10 +206,10 @@ export class Orbit {
     const want = this.want[this.placedCount];
     for (const c of this.choices) {
       if (c.placed) continue;
-      if (dist(c.pos, p) > Math.max(30, c.r * 1.5)) continue;
+      if (dist(c.pos, p) > Math.max(30 * this.u(), c.r * 1.5)) continue;
       if (c.body.id === want.id) {
         const k = this.placedCount;
-        const left = 78, step = (this.w - 22 - left) / this.want.length;
+        const left = 78 * this.u(), step = (this.w - 22 * this.u() - left) / this.want.length;
         this.flyer = {
           body: c.body, from: { ...c.pos }, to: { x: left + step * (k + 0.5), y: this.trackY() },
           r0: c.r, r1: this.trackR(c.body, step), t0: this.t,
@@ -221,7 +227,7 @@ export class Orbit {
 
   // ---------- drawing ----------
 
-  private font(weight: string, size: number): string { return `${weight} ${Math.round(size)}px Nunito, system-ui, sans-serif`; }
+  private font(weight: string, size: number): string { return `${weight} ${Math.round(size * this.u())}px Nunito, system-ui, sans-serif`; }
 
   private draw(): void {
     const ctx = this.ctx;
@@ -242,9 +248,9 @@ export class Orbit {
     // the track along the bottom with the sun at its left end
     ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2;
     ctx.setLineDash([3, 9]);
-    ctx.beginPath(); ctx.moveTo(this.sunX() + 30, this.trackY()); ctx.lineTo(this.w - 14, this.trackY()); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(this.sunX() + 30 * this.u(), this.trackY()); ctx.lineTo(this.w - 14, this.trackY()); ctx.stroke();
     ctx.setLineDash([]);
-    drawSun(ctx, this.sunX(), this.trackY(), 22, this.t);
+    drawSun(ctx, this.sunX(), this.trackY(), 22 * this.u(), this.t);
 
     // planets already on the track, and the tray
     for (const c of this.choices) {
@@ -258,7 +264,7 @@ export class Orbit {
         if (roomy || k === this.placedCount - 1 || this.phase === 'roundDone') {
           ctx.fillStyle = roomy ? 'rgba(226,236,255,0.85)' : 'rgba(226,236,255,0.55)';
           ctx.font = this.font('800', roomy ? 10 : 8.5); ctx.textAlign = 'center';
-          ctx.fillText(nameOf(c.body), c.pos.x, this.trackY() + 26, 64);
+          ctx.fillText(nameOf(c.body), c.pos.x, this.trackY() + 26 * this.u(), 64 * this.u());
         }
       }
     }
@@ -282,25 +288,25 @@ export class Orbit {
       this.phase === 'roundDone' ? T('That is the order', 'Dat is de volgorde')
         : this.phase === 'wrong' ? T('Not that one yet', 'Die nog even niet')
           : T('Which comes next?', 'Welke komt hierna?'),
-      this.w / 2, 46);
+      this.w / 2, 46 * this.u());
     ctx.fillStyle = 'rgba(214,228,255,0.68)'; ctx.font = this.font('700', 12.5);
-    ctx.fillText(NL() ? r.titleNl : r.title, this.w / 2, 70, this.w - 40);
+    ctx.fillText(NL() ? r.titleNl : r.title, this.w / 2, 70 * this.u(), this.w - 40);
 
     // progress dots, one per round
-    const gap = 16, x0 = this.w / 2 - ((ROUNDS.length - 1) * gap) / 2;
+    const gap = 16 * this.u(), x0 = this.w / 2 - ((ROUNDS.length - 1) * gap) / 2;
     for (let i = 0; i < ROUNDS.length; i++) {
       ctx.fillStyle = i < this.round ? '#9df7c4' : i === this.round ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.28)';
-      ctx.beginPath(); ctx.arc(x0 + i * gap, 92, i < this.round ? 4.5 : 3.5, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(x0 + i * gap, 92 * this.u(), (i < this.round ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
     }
 
     if (this.factT > 0 && this.fact) {
       const a = clamp(this.factT / 0.6, 0, 1);
       ctx.globalAlpha = a;
-      const y = this.trackY() - 54;
+      const u = this.u(), y = this.trackY() - 54 * u;
       ctx.fillStyle = 'rgba(255,255,255,0.10)';
-      ctx.beginPath(); ctx.roundRect(18, y - 22, this.w - 36, 36, 12); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(18 * u, y - 22 * u, this.w - 36 * u, 36 * u, 12 * u); ctx.fill();
       ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('800', 12.5);
-      ctx.fillText(this.fact, this.w / 2, y + 2, this.w - 52);
+      ctx.fillText(this.fact, this.w / 2, y + 2 * u, this.w - 52 * u);
       ctx.globalAlpha = 1;
     }
   }
@@ -316,7 +322,7 @@ export class Orbit {
     // a parade of all eight at their real relative sizes, rings and labels given their own room
     const order = sunOrder(BODIES);
     const gap = 6;
-    let maxR = clamp(this.w / 13, 12, 34);
+    let maxR = clamp(this.w / 13, 12, 90);
     const widths = (mr: number): number[] => order.map(b => Math.max(this.halfWidth(b, radiusFor(b, mr)) * 2 + gap, 40));
     while (maxR > 8 && widths(maxR).reduce((s, x) => s + x, 0) > this.w - 16) maxR -= 1;
     const ws = widths(maxR);
@@ -326,22 +332,22 @@ export class Orbit {
       const cx = x + ws[i] / 2;
       drawBody(ctx, b, cx, this.h * 0.5, rr, this.dpr);
       ctx.fillStyle = 'rgba(226,236,255,0.8)'; ctx.font = this.font('800', 8.5);
-      ctx.fillText(nameOf(b), cx, this.h * 0.5 + maxR + 18, ws[i] - 2);
+      ctx.fillText(nameOf(b), cx, this.h * 0.5 + maxR + 18 * this.u(), ws[i] - 2);
       x += ws[i];
     });
 
-    const w = 200, h = 48, bx = this.w / 2 - w / 2, by = this.h * 0.68;
+    const u = this.u(), w = 200 * u, h = 48 * u, bx = this.w / 2 - w / 2, by = this.h * 0.68;
     ctx.fillStyle = 'rgba(255,255,255,0.14)';
-    ctx.beginPath(); ctx.roundRect(bx, by, w, h, 24); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(bx, by, w, h, h / 2); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.stroke();
     ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('800', 15);
-    ctx.fillText(T('Go round again', 'Nog een rondje'), this.w / 2, by + 30);
+    ctx.fillText(T('Go round again', 'Nog een rondje'), this.w / 2, by + h * 0.63);
     this.hits.push({ id: 'again', x: bx, y: by, w, h });
 
     // the photographs are somebody's work, even when they are free to use
     ctx.fillStyle = 'rgba(200,214,240,0.45)'; ctx.font = this.font('700', 9);
-    ctx.fillText(T('Photographs:', 'Foto’s:') + ' NASA, JPL-Caltech, ESA/Hubble, Cassini, Voyager, Apollo', this.w / 2, by + h + 26, this.w - 24);
+    ctx.fillText(T('Photographs:', 'Foto’s:') + ' NASA, JPL-Caltech, ESA/Hubble, Cassini, Voyager, Apollo', this.w / 2, by + h + 26 * u, this.w - 24);
     const shown = [...new Set(Object.values(CREDITS))].slice(0, 3).join(' · ');
-    ctx.fillText(shown, this.w / 2, by + h + 40, this.w - 24);
+    ctx.fillText(shown, this.w / 2, by + h + 40 * u, this.w - 24);
   }
 }

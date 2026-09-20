@@ -292,7 +292,8 @@ export class Renderer {
     if (this.wxfx) { this.wxfx.drawFog(ctx, world.weather, this.sw, this.sh, time, pal); this.wxfx.drawFlash(ctx, this.sw, this.sh); }
 
     if (showHud) {
-      const ui = clamp(Math.min(this.sw, this.sh * 0.62) / 400, 0.85, 1.65);
+      // a tablet gets a bigger HUD, not a phone HUD floating in a large screen
+      const ui = clamp(Math.min(this.sw, this.sh * 0.62) / 400, 0.85, 2.2);
       const layout: HudLayout = { sw: this.sw, sh: this.sh, safeTop: this.safe.top, safeBottom: this.safe.bottom, safeLeft: this.safe.left, safeRight: this.safe.right, ui };
       this.hudHits = drawHud(ctx, world, layout, time, pal);
     } else {

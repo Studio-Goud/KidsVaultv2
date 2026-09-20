@@ -11,6 +11,7 @@
 
 import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { makeRng } from '../../util/rng';
+import { uiScale } from '../../util/ui';
 import { edgeKey, FIGURES, type Figure } from './figures';
 
 type Ctx = CanvasRenderingContext2D;
@@ -111,11 +112,22 @@ export class NightWatch {
     }
   }
 
-  /** The play field: a centred square with room for the header and the footer. */
-  private field(): { x: number; y: number; s: number } {
-    const top = 110, bottom = 96;
-    const s = Math.min(this.w - 48, this.h - top - bottom);
-    return { x: (this.w - s) / 2, y: top + (this.h - top - bottom - s) / 2, s };
+  /** How much bigger than a phone this screen is. */
+  private u(): number { return uiScale(this.w, this.h); }
+
+  /**
+   * The play field. It follows the screen rather than staying square, so a tablet held sideways
+   * actually uses its width, but never stretches further than 1.4 to 1 or the figures would start
+   * to look like different figures.
+   */
+  private field(): { x: number; y: number; w: number; h: number; s: number } {
+    const u = this.u();
+    const top = 110 * u, bottom = 96 * u;
+    const availW = this.w - 40 * u, availH = this.h - top - bottom;
+    let w = availW, h = availH;
+    if (w / h > 1.4) w = h * 1.4;
+    if (h / w > 1.4) h = w * 1.4;
+    return { x: (this.w - w) / 2, y: top + (availH - h) / 2, w, h, s: Math.min(w, h) };
   }
 
   // ---------- rounds ----------
@@ -140,14 +152,14 @@ export class NightWatch {
     this.figureStars = [];
     for (const [nx, ny] of this.figure.stars) {
       this.figureStars.push(stars.length);
-      stars.push({ pos: { x: f.x + nx * f.s, y: f.y + ny * f.s }, r: 4.6, twinkle: rng() * TAU, figureIndex: stars.length });
+      stars.push({ pos: { x: f.x + nx * f.w, y: f.y + ny * f.h }, r: 4.6 * this.u(), twinkle: rng() * TAU, figureIndex: stars.length });
     }
     // look-alike stars, never so close that two stars become one tap target
     let guard = 0;
     while (stars.length < this.figure.stars.length + plan.distractors && guard++ < 4000) {
-      const p = { x: f.x + (0.04 + rng() * 0.92) * f.s, y: f.y + (0.04 + rng() * 0.92) * f.s };
+      const p = { x: f.x + (0.04 + rng() * 0.92) * f.w, y: f.y + (0.04 + rng() * 0.92) * f.h };
       if (stars.some(s => dist(s.pos, p) < f.s * 0.11)) continue;
-      stars.push({ pos: p, r: 3.4 + rng() * 1.4, twinkle: rng() * TAU, figureIndex: null });
+      stars.push({ pos: p, r: (3.4 + rng() * 1.4) * this.u(), twinkle: rng() * TAU, figureIndex: null });
     }
     this.stars = stars;
   }
@@ -177,7 +189,7 @@ export class NightWatch {
   }
 
   private starAt(p: Vec): number | null {
-    const grab = Math.max(26, this.field().s * 0.055);
+    const grab = Math.max(26 * this.u(), this.field().s * 0.055);
     let best: number | null = null, bd = grab;
     this.stars.forEach((s, i) => { const d = dist(s.pos, p); if (d < bd) { bd = d; best = i; } });
     return best;
@@ -236,7 +248,7 @@ export class NightWatch {
 
   // ---------- drawing ----------
 
-  private font(weight: string, size: number): string { return `${weight} ${Math.round(size)}px Nunito, system-ui, sans-serif`; }
+  private font(weight: string, size: number): string { return `${weight} ${Math.round(size * this.u())}px Nunito, system-ui, sans-serif`; }
 
   private draw(): void {
     const ctx = this.ctx;
@@ -350,28 +362,28 @@ export class NightWatch {
       T('Draw it back', 'Teken hem terug');
     ctx.fillStyle = this.phase === 'solved' ? '#9df7c4' : '#eaf2ff';
     ctx.font = this.font('900', 22);
-    ctx.fillText(head, this.w / 2, 56);
+    ctx.fillText(head, this.w / 2, 56 * this.u());
 
     if (this.phase === 'drawing') {
       ctx.fillStyle = 'rgba(220,235,255,0.6)'; ctx.font = this.font('700', 13);
-      ctx.fillText(T('Connect the stars you remember', 'Verbind de sterren die je onthouden hebt'), this.w / 2, 78);
+      ctx.fillText(T('Connect the stars you remember', 'Verbind de sterren die je onthouden hebt'), this.w / 2, 78 * this.u());
     }
 
     // round dots
-    const n = ROUNDS, gap = 16, x0 = this.w / 2 - ((n - 1) * gap) / 2;
+    const n = ROUNDS, gap = 16 * this.u(), x0 = this.w / 2 - ((n - 1) * gap) / 2;
     for (let i = 0; i < n; i++) {
       const done = i < this.solvedNames.length;
       ctx.fillStyle = done ? '#9df7c4' : i === this.round ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.28)';
-      ctx.beginPath(); ctx.arc(x0 + i * gap, 96, done ? 4.5 : 3.5, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(x0 + i * gap, 96 * this.u(), (done ? 4.5 : 3.5) * this.u(), 0, TAU); ctx.fill();
     }
 
     if (this.phase === 'drawing') {
-      const w = 190, h = 44, x = this.w / 2 - w / 2, y = this.h - h - 26;
+      const u = this.u(), w = 190 * u, h = 44 * u, x = this.w / 2 - w / 2, y = this.h - h - 26 * u;
       ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      ctx.beginPath(); ctx.roundRect(x, y, w, h, 22); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
       ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.stroke();
       ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('800', 14);
-      ctx.fillText(T('Show me again', 'Laat nog eens zien'), this.w / 2, y + 28);
+      ctx.fillText(T('Show me again', 'Laat nog eens zien'), this.w / 2, y + h * 0.64);
       this.hits.push({ id: 'peek', x, y, w, h });
     }
   }
@@ -388,15 +400,15 @@ export class NightWatch {
     ctx.font = this.font('800', 15);
     this.solvedNames.forEach((nm, i) => {
       ctx.fillStyle = '#9df7c4';
-      ctx.fillText(nm, this.w / 2, this.h * 0.4 + 26 + i * 26);
+      ctx.fillText(nm, this.w / 2, this.h * 0.4 + 26 * this.u() + i * 26 * this.u());
     });
 
-    const w = 200, h = 48, x = this.w / 2 - w / 2, y = this.h * 0.4 + 40 + this.solvedNames.length * 26;
+    const u = this.u(), w = 200 * u, h = 48 * u, x = this.w / 2 - w / 2, y = this.h * 0.4 + 40 * u + this.solvedNames.length * 26 * u;
     ctx.fillStyle = 'rgba(255,255,255,0.14)';
-    ctx.beginPath(); ctx.roundRect(x, y, w, h, 24); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.stroke();
     ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('800', 15);
-    ctx.fillText(T('Watch again', 'Nog een nacht'), this.w / 2, y + 30);
+    ctx.fillText(T('Watch again', 'Nog een nacht'), this.w / 2, y + h * 0.63);
     this.hits.push({ id: 'again', x, y, w, h });
   }
 }
