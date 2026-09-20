@@ -30,7 +30,7 @@ export interface Runway {
 }
 
 export interface Toast { text: string; until: number; kind: 'info' | 'warn' | 'bad' | 'good' }
-export interface Puff { pos: Vec; t0: number; kind: 'crash' | 'land' | 'spawn' | 'lock'; dir?: number }
+export interface Puff { pos: Vec; t0: number; kind: 'crash' | 'land' | 'spawn' | 'lock' | 'tire'; dir?: number }
 
 export interface Failure {
   kind: 'crash' | 'hearts';
@@ -133,6 +133,7 @@ export class World {
     plane.path = [];
     plane.pathIndex = 0;
     plane.lockedRunway = null;
+    plane.hold = false; plane.evadeUntil = -1;
     plane.pathDrawnAt = this.time;
     sfx.pathStart();
   }
@@ -183,7 +184,7 @@ export class World {
     const out: Vec[] = [];
     let pos = { ...p.pos }, heading = p.heading, idx = p.pathIndex;
     const sens = p.type.windSensitivity * (this.demo ? 1 : this.fx.windFactor);
-    const speed = p.type.speed * (1 - 0.18 * p.ice);
+    const speed = p.type.speed * p.boost * (1 - 0.18 * p.ice);
     const r = Math.max(13, speed * 0.2, (speed / p.type.turnRate) * 0.55);
     for (let tt = 0; tt < seconds; tt += step) {
       let desired = heading;
@@ -212,6 +213,48 @@ export class World {
     this.status = 'running';
     this.toast(t('revive').split(' (')[0], 'good', 2);
   }
+
+  /** ATC commands for the selected aircraft. Returns false when not applicable right now. */
+  command(p: Plane, cmd: 'faster' | 'slower' | 'tcas' | 'hold'): boolean {
+    if (p.state !== 'flying' || this.status !== 'running') return false;
+    const NL = lang() === 'nl';
+    switch (cmd) {
+      case 'faster':
+        if (p.boost > 1) return false;
+        p.boost = p.type.family === 'fighter' ? 1.35 : 1.25; p.boostUntil = this.time + 14;
+        this.pushEvent('command', [p.id], NL ? 'sneller' : 'faster', { cmd });
+        this.toast(`${p.type.name}: ${NL ? 'snelheid omhoog, ruimere bocht' : 'speed up, wider turns'}`, 'info', 2);
+        return true;
+      case 'slower':
+        if (p.boost < 1) return false;
+        p.boost = 0.72; p.boostUntil = this.time + 16;
+        this.pushEvent('command', [p.id], NL ? 'langzamer' : 'slower', { cmd });
+        this.toast(`${p.type.name}: ${NL ? 'snelheid omlaag' : 'reduce speed'}`, 'info', 2);
+        return true;
+      case 'tcas': {
+        // resolution advisory: break away from the nearest traffic, drop the route
+        let nearest: Plane | null = null, nd = Infinity;
+        for (const o of this.planes) { if (o === p || (o.state !== 'flying' && o.state !== 'landing')) continue; const d = dist(o.pos, p.pos); if (d < nd) { nd = d; nearest = o; } }
+        p.path = []; p.pathIndex = 0; p.lockedRunway = null; p.hold = false;
+        p.evadeUntil = this.time + 5;
+        const away = nearest ? rot(nearest.pos, p.pos) : p.heading;
+        // store the escape heading in wanderTimer-free field: reuse turbSeed sign trick is ugly, so keep a map
+        this.evadeHeading.set(p.id, away);
+        this.pushEvent('command', [p.id], 'TCAS', { cmd, with: nearest ? nearest.id : -1 });
+        this.toast(`${p.type.name}: TCAS ${NL ? 'uitwijken' : 'resolution'}`, 'warn', 2);
+        haptic('medium');
+        return true;
+      }
+      case 'hold':
+        p.path = []; p.pathIndex = 0; p.lockedRunway = null; p.evadeUntil = -1;
+        p.hold = !p.hold;
+        this.pushEvent('command', [p.id], p.hold ? (NL ? 'wachtrondje' : 'hold') : (NL ? 'wachtrondje beëindigd' : 'hold cancelled'), { cmd });
+        this.toast(`${p.type.name}: ${p.hold ? (NL ? 'in wachtrondje' : 'holding') : (NL ? 'wachtrondje beëindigd' : 'hold cancelled')}`, 'info', 2);
+        return true;
+    }
+    return false;
+  }
+  private evadeHeading = new Map<number, number>();
 
   activateSlowmo(): boolean {
     if (this.status !== 'running' || this.slowmoCharges <= 0 || this.slowmoUntil > this.time) return false;
@@ -355,7 +398,7 @@ export class World {
         id: this.nextId++, type, pos, heading, speed: type.speed, state: 'flying', path: [], pathIndex: 0,
         lockedRunway: null, pathDrawnAt: -1, landingT: 0, runway: null, altitude: 1, crossTrack: 0,
         spawnedAt: this.time, trail: [], conflictWith: new Set(), bank: 0, livery: Math.floor(this.rng() * 3), goArounds: 0,
-        wanderTimer: 0, fuel: type.fuel > 0 && !this.demo ? type.fuel : -1, urgent: type.fuel > 0 && !this.demo, ice: 0, turbSeed: this.rng() * 100,
+        wanderTimer: 0, fuel: type.fuel > 0 && !this.demo ? type.fuel : -1, urgent: type.fuel > 0 && !this.demo, ice: 0, turbSeed: this.rng() * 100, boost: 1, boostUntil: -1, hold: false, evadeUntil: -1,
       };
       this.planes.push(plane);
       this.puffs.push({ pos: { ...pos }, t0: this.time, kind: 'spawn', dir: heading });
@@ -425,7 +468,15 @@ export class World {
       else { p.path = []; p.crossTrack = 0; }
     }
 
-    if (p.path.length === 0) {
+    if (p.boostUntil > 0 && this.time >= p.boostUntil) { p.boost = 1; p.boostUntil = -1; }
+    if (p.evadeUntil > this.time) {
+      desired = this.evadeHeading.get(p.id) ?? p.heading;
+      turnScale = 1.4;
+    } else if (p.hold && p.path.length === 0) {
+      // standard holding circle: keep a steady bank
+      desired = p.heading + 1;
+      turnScale = 0.55;
+    } else if (p.path.length === 0) {
       // unguided: fly straight, but turn back gently when leaving the map
       const m = 30;
       const out = p.pos.x < -m || p.pos.x > this.W + m || p.pos.y < -m || p.pos.y > this.H + m;
@@ -456,7 +507,7 @@ export class World {
       if (rate > 0) { const was = p.ice; p.ice = Math.min(1, p.ice + rate * dt); if (was < 0.5 && p.ice >= 0.5) this.toast(`${p.type.name}: ${lang() === 'nl' ? 'ijsafzetting, trager en stroever' : 'icing, slower and sluggish'}`, 'warn', 3); }
     }
     const iceTurn = 1 - 0.3 * p.ice;
-    p.speed = p.type.speed * (1 - 0.18 * p.ice) * (1 + (wxs.turb > 0.02 ? ((this.weather['noise'] as ValueNoise).noise2(this.time * 1.1, p.turbSeed + 9) - 0.5) * 0.16 * wxs.turb * sens : 0));
+    p.speed = p.type.speed * p.boost * (1 - 0.18 * p.ice) * (1 + (wxs.turb > 0.02 ? ((this.weather['noise'] as ValueNoise).noise2(this.time * 1.1, p.turbSeed + 9) - 0.5) * 0.16 * wxs.turb * sens : 0));
     const before = p.heading;
     p.heading = turnToward(p.heading, desired, p.type.turnRate * iceTurn * turnScale * dt);
     const turning = angleDiff(before, p.heading) / Math.max(dt, 1e-4);
@@ -521,6 +572,7 @@ export class World {
     p.path = [];
     rw.occupiedBy = p.id;
     this.pushEvent('touchdown', [p.id], p.type.name, { heavy: p.type.cls === 'heavy' || p.type.cls === 'medium' ? 1 : 0 });
+    if (rw.kind !== 'helipad' && rw.kind !== 'water') this.puffs.push({ pos: add(rw.threshold, mul(rw.dir, 30)), t0: this.time, kind: 'tire', dir: rw.heading });
     // store the entry offset so we can blend onto the centre line
     (p as unknown as { entryOffset: Vec }).entryOffset = sub(p.pos, rw.threshold);
   }

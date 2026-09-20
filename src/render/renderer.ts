@@ -25,7 +25,7 @@ function lightSprite(color: string): HTMLCanvasElement {
 }
 
 export function planeView(p: Plane): PlaneView {
-  return { type: p.type, pos: p.pos, heading: p.heading, altitude: p.altitude, bank: p.bank, livery: p.livery, state: p.state, id: p.id };
+  return { type: p.type, pos: p.pos, heading: p.heading, altitude: p.altitude, bank: p.bank, livery: p.livery, state: p.state, id: p.id, landingT: p.state === 'landing' ? p.landingT : undefined, boost: p.boost };
 }
 
 export class Renderer {
@@ -90,10 +90,12 @@ export class Renderer {
 
   toWorld = (sx: number, sy: number): Vec => ({ x: (sx - this.ox) / this.scale, y: (sy - this.oy) / this.scale });
 
-  hudHit = (sx: number, sy: number): 'pause' | 'slowmo' | null => {
+  hudHit = (sx: number, sy: number): string | null => {
     const inside = (h?: { x: number; y: number; w: number; h: number }): boolean => !!h && sx >= h.x && sx <= h.x + h.w && sy >= h.y && sy <= h.y + h.h;
     if (inside(this.hudHits?.pause)) return 'pause';
     if (inside(this.hudHits?.slowmo)) return 'slowmo';
+    for (const c of this.hudHits?.commands ?? []) if (inside(c.rect)) return `cmd:${c.id}`;
+    if (this.hudHits?.panel && inside(this.hudHits.panel)) return 'panel';
     return null;
   };
 
@@ -148,6 +150,19 @@ export class Renderer {
         ctx.beginPath(); ctx.moveTo(ox - ux * L, oy - uy * L); ctx.lineTo(ox, oy); ctx.stroke();
         ctx.fillStyle = 'rgba(255,220,120,0.95)';
         ctx.beginPath(); ctx.moveTo(ox + ux * 8 * px, oy + uy * 8 * px); ctx.lineTo(ox - uy * 5 * px, oy + ux * 5 * px); ctx.lineTo(ox + uy * 5 * px, oy - ux * 5 * px); ctx.closePath(); ctx.fill();
+      }
+    }
+    for (const p of world.planes) {
+      if (p.state !== 'flying') continue;
+      if (p.hold) {
+        const R = (p.type.speed * p.boost) / (p.type.turnRate * 0.55);
+        const cx = p.pos.x + Math.cos(p.heading + Math.PI / 2) * R, cy = p.pos.y + Math.sin(p.heading + Math.PI / 2) * R;
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1.5 * px; ctx.setLineDash([6 * px, 6 * px]); ctx.lineDashOffset = -time * 20;
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+      }
+      if (p.evadeUntil > world.time) {
+        ctx.strokeStyle = `rgba(255,170,60,${0.5 + 0.5 * Math.sin(time * 12)})`; ctx.lineWidth = 3 * px;
+        ctx.beginPath(); ctx.arc(p.pos.x, p.pos.y, p.type.hull + 18, 0, TAU); ctx.stroke();
       }
     }
     // contrails

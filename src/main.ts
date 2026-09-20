@@ -63,6 +63,14 @@ function onWorldEvent(e: GameEvent): void {
     case 'goaround': radio.say(`${cs}, go around, I say again, go around.`, { urgent: true }); break;
     case 'nearmiss': radio.say(`Traffic alert, ${cs}, traffic, turn immediately.`, { urgent: true }); break;
     case 'ditch': radio.say(`${cs} is going down, ditching, ditching.`, { who: 'pilot', urgent: true }); break;
+    case 'command': {
+      const c = String(e.meta?.cmd);
+      if (c === 'faster') { radio.say(`${cs}, increase speed, expedite.`); radio.say(`Increasing speed, ${cs}.`, { who: 'pilot' }); }
+      else if (c === 'slower') { radio.say(`${cs}, reduce speed, minimum clean.`); radio.say(`Reducing speed, ${cs}.`, { who: 'pilot' }); }
+      else if (c === 'tcas') { radio.say(`${cs}, TCAS RA, turning to avoid traffic.`, { who: 'pilot', urgent: true }); }
+      else if (c === 'hold') { radio.say(`${cs}, hold present position, expect further clearance.`); }
+      break;
+    }
     case 'crash': radio.stop(); break;
   }
 }
@@ -151,6 +159,12 @@ const input = new Input(canvas, () => (mode === 'playing' ? world : null), rende
   const hit = renderer.hudHit(sx, sy);
   if (hit === 'pause') { pause(); return true; }
   if (hit === 'slowmo') { world.activateSlowmo(); return true; }
+  if (hit && hit.startsWith('cmd:')) {
+    const p = world.selected !== null ? world.planeById(world.selected) : undefined;
+    if (p) { if (world.command(p, hit.slice(4) as 'faster' | 'slower' | 'tcas' | 'hold')) sfx.tap(); }
+    return true;
+  }
+  if (hit === 'panel') return true;
   return false;
 });
 

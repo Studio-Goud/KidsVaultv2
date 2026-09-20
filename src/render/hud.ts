@@ -12,7 +12,7 @@ type Ctx = CanvasRenderingContext2D;
 
 export interface HudLayout { sw: number; sh: number; safeTop: number; safeBottom: number; safeLeft: number; safeRight: number; ui: number }
 export interface Rect { x: number; y: number; w: number; h: number }
-export interface HudHits { pause: Rect; slowmo?: Rect }
+export interface HudHits { pause: Rect; slowmo?: Rect; commands?: Array<{ id: string; rect: Rect }>; panel?: Rect }
 
 function roundedCard(ctx: Ctx, x: number, y: number, w: number, h: number, r: number, fill: string): void {
   ctx.fillStyle = fill;
@@ -137,7 +137,7 @@ export function drawHud(ctx: Ctx, world: World, L: HudLayout, time: number, pal:
   if (sel && sel.state === 'flying' && !world.demo) {
     const adv = advise(world, sel);
     const rowsN = adv.rows.length;
-    const w = Math.min(L.sw - 24 * u, 360 * u), h = (96 + rowsN * 17 + 58 + 30) * u;
+    const w = Math.min(L.sw - 24 * u, 360 * u), h = (96 + 54 + rowsN * 17 + 58 + 30) * u;
     const x = L.safeLeft + 12 * u, y = L.sh - L.safeBottom - h - 16 * u;
     roundedCard(ctx, x, y, w, h, 20 * u, pal.hud);
     ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, 20 * u); ctx.clip();
@@ -152,11 +152,32 @@ export function drawHud(ctx: Ctx, world: World, L: HudLayout, time: number, pal:
     ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = font('700', 11.5);
     const rws = world.runways.filter(r => runwayAccepts(r.kind, sel.type)).map(r => world.runwayName(r));
     ctx.fillText(`${displayKmh(sel.type.speed)} ${t('kmh')} · ${t('landsOn')}: ${rws.join(' / ') || '-'}`, x + 80 * u, y + 42 * u);
+    hits.panel = { x, y, w, h };
+    // ATC command buttons
+    const cmds: Array<{ id: string; label: string; active: boolean; enabled: boolean }> = [
+      { id: 'faster', label: t('cmdFaster'), active: sel.boost > 1, enabled: sel.boost <= 1 },
+      { id: 'slower', label: t('cmdSlower'), active: sel.boost < 1, enabled: sel.boost >= 1 },
+      { id: 'tcas', label: 'TCAS', active: sel.evadeUntil > world.time, enabled: true },
+      { id: 'hold', label: t('cmdHold'), active: sel.hold, enabled: true },
+    ];
+    hits.commands = [];
+    const bw = (w - 16 * u - 6 * u * 3) / 4, bh = 40 * u, by = y + 66 * u;
+    cmds.forEach((c, i) => {
+      const bx = x + 8 * u + i * (bw + 6 * u);
+      ctx.fillStyle = c.active ? 'rgba(90,209,165,0.95)' : c.enabled ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)';
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 12 * u); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.stroke();
+      drawCmdGlyph(ctx, c.id, bx + bw / 2, by + 14 * u, 9 * u, c.enabled ? '#fff' : 'rgba(255,255,255,0.4)');
+      ctx.fillStyle = c.enabled ? '#fff' : 'rgba(255,255,255,0.4)'; ctx.font = font('800', 9.5); ctx.textAlign = 'center';
+      ctx.fillText(c.label, bx + bw / 2, by + 33 * u);
+      hits.commands!.push({ id: c.id, rect: { x: bx, y: by, w: bw, h: bh } });
+    });
+    ctx.textAlign = 'left';
     ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = font('800', 9.5);
-    ctx.fillText((t('weatherNav') || 'WEERNAVIGATIE').toUpperCase(), x + 80 * u, y + 58 * u);
+    ctx.fillText((t('weatherNav') || 'WEERNAVIGATIE').toUpperCase(), x + 16 * u, y + 122 * u);
     // rows
     const colors = ['#7cf7a0', '#ffe27a', '#ffb04d', '#ff6a6a'];
-    let ry = y + 78 * u;
+    let ry = y + 138 * u;
     for (const r of adv.rows) {
       ctx.fillStyle = colors[r.level]; ctx.beginPath(); ctx.arc(x + 20 * u, ry - 4 * u, 4 * u, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = font('800', 11);
@@ -199,4 +220,23 @@ function wrapText(ctx: Ctx, text: string, x: number, y: number, maxW: number, li
     } else line = test;
   }
   if (lines < maxLines) ctx.fillText(line, x, y + lines * lineH, maxW);
+}
+
+function drawCmdGlyph(ctx: Ctx, id: string, x: number, y: number, r: number, color: string): void {
+  ctx.save(); ctx.translate(x, y); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = r * 0.22; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (id === 'faster' || id === 'slower') {
+    // double chevrons pointing up (faster) or down (slower)
+    const d = id === 'faster' ? -1 : 1;
+    for (const off of [-r * 0.45, r * 0.35]) { ctx.beginPath(); ctx.moveTo(-r * 0.7, off - d * r * 0.4 * -1); ctx.lineTo(0, off + d * r * 0.5); ctx.lineTo(r * 0.7, off - d * r * 0.4 * -1); ctx.stroke(); }
+  } else if (id === 'tcas') {
+    // two aircraft dots diverging with arrows
+    ctx.beginPath(); ctx.arc(-r * 0.35, r * 0.3, r * 0.22, 0, Math.PI * 2); ctx.arc(r * 0.35, -r * 0.3, r * 0.22, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-r * 0.35, r * 0.1); ctx.lineTo(-r * 0.35, -r * 0.7); ctx.moveTo(-r * 0.6, -r * 0.45); ctx.lineTo(-r * 0.35, -r * 0.7); ctx.lineTo(-r * 0.1, -r * 0.45); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(r * 0.35, -r * 0.1); ctx.lineTo(r * 0.35, r * 0.7); ctx.moveTo(r * 0.1, r * 0.45); ctx.lineTo(r * 0.35, r * 0.7); ctx.lineTo(r * 0.6, r * 0.45); ctx.stroke();
+  } else {
+    // racetrack holding pattern
+    ctx.beginPath(); ctx.roundRect(-r * 0.8, -r * 0.45, r * 1.6, r * 0.9, r * 0.45); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-r * 0.1, -r * 0.75); ctx.lineTo(r * 0.2, -r * 0.45); ctx.lineTo(-r * 0.1, -r * 0.15); ctx.stroke();
+  }
+  ctx.restore();
 }

@@ -190,6 +190,19 @@ export function drawPuff(ctx: Ctx, puff: Puff, time: number, W: number, H: numbe
     }
     return;
   }
+  if (puff.kind === 'tire') {
+    const dur = 1.6; if (age > dur) return;
+    const k = age / dur;
+    const d = puff.dir ?? 0;
+    for (let i = 0; i < 6; i++) {
+      const side = i % 2 === 0 ? -1 : 1;
+      const back = 6 + i * 5 + k * 30;
+      const x = puff.pos.x - Math.cos(d) * back + Math.cos(d + Math.PI / 2) * side * (6 + k * 8), y = puff.pos.y - Math.sin(d) * back + Math.sin(d + Math.PI / 2) * side * (6 + k * 8);
+      ctx.fillStyle = `rgba(200,205,215,${0.45 * (1 - k)})`;
+      ctx.beginPath(); ctx.arc(x, y, 3 + k * 9 + i, 0, TAU); ctx.fill();
+    }
+    return;
+  }
   if (puff.kind === 'land') {
     const dur = 1.3; if (age > dur) return;
     const k = age / dur;

@@ -109,6 +109,10 @@ export interface Plane {
   urgent: boolean;
   ice: number;           // 0..1 accumulated ice
   turbSeed: number;
+  boost: number;         // speed multiplier from ATC speed commands
+  boostUntil: number;
+  hold: boolean;         // flying a holding circle
+  evadeUntil: number;    // TCAS resolution in progress
 }
 
 export interface Snapshot {
@@ -116,7 +120,7 @@ export interface Snapshot {
   planes: Array<{ id: number; x: number; y: number; h: number; state: PlaneState; alt: number; path: Vec[]; lock: string | null; cross: number }>;
 }
 
-export type EventKind = 'path' | 'lock' | 'nearmiss' | 'crash' | 'goaround' | 'landed' | 'spawn' | 'touchdown' | 'mayday' | 'ditch';
+export type EventKind = 'path' | 'lock' | 'nearmiss' | 'crash' | 'goaround' | 'landed' | 'spawn' | 'touchdown' | 'mayday' | 'ditch' | 'command';
 export interface GameEvent {
   t: number;
   kind: EventKind;
