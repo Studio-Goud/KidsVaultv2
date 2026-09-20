@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawPlaneThumb, drawStarsThumb } from './thumbs';
+import { drawPlaneThumb, drawStarsThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -58,6 +58,16 @@ const GAMES: Game[] = [
     img: './img/planets/saturn.jpg',
   },
   {
+    href: './mill.html',
+    title: 'Millstream',
+    line: 'Dig channels, and the water finds its own way to the fields and the mill.',
+    lineNl: 'Graaf geulen, en het water vindt zelf zijn weg naar de akkers en de molen.',
+    practises: 'Spatial reasoning, planning ahead, cause and effect',
+    practisesNl: 'Ruimtelijk inzicht, vooruitdenken, oorzaak en gevolg',
+    age: '5+',
+    paint: drawValleyThumb,
+  },
+  {
     href: './dig.html',
     title: 'Dino Dig',
     line: 'Brush the dirt from a real fossil and work out whose bones these are.',
@@ -66,7 +76,8 @@ const GAMES: Game[] = [
     practisesNl: 'Geduld, het geheel herkennen aan de delen',
     age: '5+',
     img: './img/fossils/velo.png',
-    tint: '#d9c49a',
+    // the photograph has a white ground, so the frame is white too and the skeleton reads whole
+    tint: '#fbfaf6',
   },
 ];
 

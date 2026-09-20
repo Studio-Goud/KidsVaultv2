@@ -32,7 +32,7 @@ html, body {
   color: var(--ink);
 }
 
-#game, #sky, #space, #dig { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#game, #sky, #space, #dig, #valley { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
 #ui { position: fixed; inset: 0; pointer-events: none; }
 
@@ -268,39 +268,43 @@ html, body {
 @media (min-width: 760px) { .skills { grid-template-columns: repeat(2, 1fr); } }
 
 /* --- Bramblewood home --- */
+/* the games pin a canvas and lock scrolling; the home page is a page, and must scroll */
+html.page, html.page body { overflow: auto; height: auto; min-height: 100%; }
 #hub {
-  min-height: 100%; padding: calc(var(--sat) + 22px) 16px calc(var(--sab) + 28px);
-  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  min-height: 100vh; padding: calc(var(--sat) + 22px) 16px calc(var(--sab) + 32px);
+  display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box;
   background: linear-gradient(180deg, #bfe7ff 0%, #8fd0f2 38%, #d9efd2 100%);
 }
 #hub .logo { margin: 4px 0 2px; }
-.gamegrid { display: grid; gap: 12px; width: 100%; max-width: 560px; }
+.gamegrid { display: grid; gap: 14px; width: 100%; max-width: 520px; }
 @media (min-width: 760px) { .gamegrid { grid-template-columns: repeat(2, 1fr); max-width: 880px; } }
-@media (min-width: 1180px) { .gamegrid { grid-template-columns: repeat(4, 1fr); max-width: 1240px; } }
+@media (min-width: 1180px) { .gamegrid { grid-template-columns: repeat(3, 1fr); max-width: 1240px; } }
 
+/* every card is the same shape: a picture on top, the words underneath, full width for both */
 .gamecard {
-  display: flex; gap: 12px; align-items: stretch; text-decoration: none; color: inherit;
-  background: rgba(255,255,255,0.94); border-radius: 20px; overflow: hidden;
+  display: flex; flex-direction: column; text-decoration: none; color: inherit;
+  background: rgba(255,255,255,0.94); border-radius: 22px; overflow: hidden;
   box-shadow: 0 12px 28px rgba(10,40,80,0.16); transition: transform .12s ease, box-shadow .12s ease;
 }
 .gamecard:active { transform: translateY(2px) scale(0.995); box-shadow: 0 6px 16px rgba(10,40,80,0.16); }
-@media (min-width: 760px) { .gamecard { flex-direction: column; } }
 
-.gamethumb { flex: 0 0 116px; position: relative; background: #0b1236; }
-.gamethumb canvas, .gamethumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
-@media (min-width: 760px) { .gamethumb { flex: 0 0 132px; height: 132px; } }
+.gamethumb { position: relative; height: 158px; background: #0b1236; }
+.gamethumb canvas { width: 100%; height: 100%; display: block; }
+/* photographs are shown whole, never cropped: Saturn keeps its rings, the raptor keeps its tail */
+.gamethumb img { width: 100%; height: 100%; display: block; object-fit: contain; padding: 10px; box-sizing: border-box; }
+@media (min-width: 760px) { .gamethumb { height: 170px; } }
 
-.gamebody { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.gamehead { display: flex; align-items: center; gap: 8px; }
-.gamehead h3 { margin: 0; font-size: 18px; font-weight: 900; color: var(--ink); }
+.gamebody { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.gamehead { display: flex; align-items: center; gap: 10px; }
+.gamehead h3 { margin: 0; font-size: 19px; font-weight: 900; color: var(--ink); }
 .agepill {
   font-size: 11px; font-weight: 900; color: #2c6a4a; background: rgba(67,197,146,0.22);
-  padding: 3px 8px; border-radius: 999px;
+  padding: 3px 9px; border-radius: 999px;
 }
-.gamecard p { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink); opacity: .82; }
-.practises { font-size: 11.5px; font-weight: 800; color: #4a6a8a; opacity: .9; }
+.gamecard p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink); opacity: .84; }
+.practises { font-size: 11.5px; font-weight: 800; color: #4a6a8a; opacity: .9; letter-spacing: .01em; }
 
-.promise { max-width: 560px; }
+.promise { max-width: 520px; }
 @media (min-width: 760px) { .promise { max-width: 880px; } }
 
 /* back to the world, from inside a game */

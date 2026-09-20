@@ -16,6 +16,7 @@ export default defineConfig({
         nightwatch: resolve(__dirname, 'nightwatch.html'),
         orbit: resolve(__dirname, 'orbit.html'),
         dig: resolve(__dirname, 'dig.html'),
+        mill: resolve(__dirname, 'mill.html'),
       },
     },
   },

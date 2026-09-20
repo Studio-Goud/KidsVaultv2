@@ -88,3 +88,32 @@ export function drawStarsThumb(c: HTMLCanvasElement): void {
     ctx.beginPath(); ctx.arc(x * w, y * h, 2.2, 0, TAU); ctx.fill();
   }
 }
+
+/** A green valley with a stream cut through it and a wheel, in Millstream's palette. */
+export function drawValleyThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#bfe0a0'); g.addColorStop(1, '#6fae5c');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  // the stream
+  ctx.strokeStyle = '#3a8fd6'; ctx.lineWidth = w * 0.07; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(w * 0.5, 0);
+  ctx.quadraticCurveTo(w * 0.3, h * 0.35, w * 0.45, h * 0.55);
+  ctx.quadraticCurveTo(w * 0.62, h * 0.78, w * 0.4, h);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = w * 0.018;
+  ctx.stroke();
+  // a field
+  ctx.fillStyle = 'rgba(215,180,90,0.85)';
+  ctx.beginPath(); ctx.ellipse(w * 0.78, h * 0.72, w * 0.16, h * 0.14, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(90,110,40,0.5)'; ctx.lineWidth = 1;
+  for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(w * 0.64, h * 0.72 + i * h * 0.05); ctx.lineTo(w * 0.92, h * 0.72 + i * h * 0.05); ctx.stroke(); }
+  // the wheel
+  ctx.save(); ctx.translate(w * 0.24, h * 0.36);
+  ctx.strokeStyle = '#5a3d2a'; ctx.lineWidth = w * 0.02;
+  ctx.beginPath(); ctx.arc(0, 0, w * 0.12, 0, TAU); ctx.stroke();
+  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * w * 0.12, Math.sin(a) * w * 0.12); ctx.stroke(); }
+  ctx.restore();
+}
