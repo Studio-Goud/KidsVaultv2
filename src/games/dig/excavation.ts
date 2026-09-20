@@ -24,6 +24,11 @@ import { DINOS, ERAS, type Dino } from './dinos';
 import { dig } from './digsfx';
 import { drawFossil, fossilPhoto, FOSSILS, loadAllFossils } from './fossilphoto';
 import { buildSite, MAX_DEPTH, progress, starsFor, strike, TOOLS, toolById, type Site, type Tool } from './site';
+import {
+  breathe, chunkyButton, drawStar as drawStarGem, easeOutBack, glassPanel, heading, outlinedText,
+  Particles, vignette,
+} from '../../render/look';
+import { paintBadlands, paintExposedDial, paintSunDial, paintTool, paintTrench, RockPainter } from './paint';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'dig' | 'ask' | 'wrong' | 'reveal' | 'failed' | 'museum';
@@ -66,6 +71,10 @@ export class DinoDig {
   private noteT = 0;
   private earned = 0;
   private hits: Hit[] = [];
+  private rockArt = new RockPainter();
+  private ps = new Particles();
+  private held0: string | null = null;
+  private cardPop = 0;
   private rng = makeRng(1);
   private grain = new ValueNoise(3);
 
@@ -173,6 +182,8 @@ export class DinoDig {
     this.phaseT += dt;
     this.noteT = Math.max(0, this.noteT - dt);
     this.shake = Math.max(0, this.shake - dt * 3);
+    this.ps.update(dt);
+    this.cardPop = Math.min(1, this.cardPop + dt * 2.6);
     if (this.phase === 'wrong' && this.phaseT > 0.8) { this.wrongId = null; this.phase = 'ask'; }
     if (this.phase === 'dig' && this.site) {
       const p = progress(this.site);
@@ -199,6 +210,8 @@ export class DinoDig {
   }
 
   private onDown(e: PointerEvent): void {
+    this.held0 = this.hitAt(this.at(e));
+    setTimeout(() => { this.held0 = null; }, 130);
     unlockAudio();
     const p = this.at(e);
     const hit = this.hitAt(p);
@@ -264,15 +277,24 @@ export class DinoDig {
       return;
     }
     this.stamina = Math.max(0, this.stamina - this.tool.cost);
+    // dust and grit coming off under the tool, so a stroke is something you can see working
+    const grit = this.tool.id === 'brush' ? 'rgba(226, 205, 165, 0.9)' : 'rgba(150, 126, 94, 0.95)';
+    this.ps.spawn(this.tool.id === 'brush' ? 'dust' : 'crumb', p.x, p.y,
+      this.tool.id === 'hammer' ? 5 : 3,
+      { colour: grit, speed: this.tool.id === 'hammer' ? 130 : 70, size: c * 1.1, max: 0.45, spread: 2.4 });
     if (this.tool.id === 'brush') dig.brush();
     else if (this.tool.id === 'chisel') dig.chisel();
     else if (this.tool.id === 'hammer') dig.hammer();
     else dig.scribe();
     if (r.chipped) {
       dig.crack(); this.shake = 0.7;
+      this.ps.spawn('spark', p.x, p.y, 8, { colour: '#ff9a8a', speed: 150, size: c * 1.2, max: 0.6, spread: 6.28 });
       this.say(T('You broke a piece off. Something gentler here.',
         'Je hebt er een stuk afgeslagen. Iets zachters hier.'));
-    } else if (r.uncovered) dig.uncover();
+    } else if (r.uncovered) {
+      dig.uncover();
+      this.ps.spawn('spark', p.x, p.y, 4, { colour: '#ffe9a8', speed: 90, size: c, max: 0.5, spread: 6.28 });
+    }
   }
 
   // ---------- drawing ----------
@@ -284,20 +306,32 @@ export class DinoDig {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    const g = ctx.createLinearGradient(0, 0, 0, this.h);
-    g.addColorStop(0, '#f2e3c8'); g.addColorStop(0.5, '#e2cda8'); g.addColorStop(1, '#c9ad83');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, this.w, this.h);
     this.hits = [];
 
-    if (this.phase === 'museum') { this.drawMuseum(); return; }
+    if (this.phase === 'museum') {
+      const g = ctx.createLinearGradient(0, 0, 0, this.h);
+      g.addColorStop(0, '#f2e3c8'); g.addColorStop(0.5, '#e2cda8'); g.addColorStop(1, '#c9ad83');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, this.w, this.h);
+      this.drawMuseum();
+      return;
+    }
 
     const slab = this.slab();
+    paintBadlands(ctx, this.w, this.h, Math.max(80 * this.u(), slab.y - 26 * this.u()), this.t, this.u());
+
     ctx.save();
     if (this.shake > 0) ctx.translate(Math.sin(this.t * 44) * this.shake * 5, 0);
+    paintTrench(ctx, slab, this.u());
     ctx.save();
     ctx.beginPath(); ctx.roundRect(slab.x, slab.y, slab.w, slab.h, 16 * this.u()); ctx.clip();
 
-    ctx.fillStyle = '#6b5f52'; ctx.fillRect(slab.x, slab.y, slab.w, slab.h);
+    // the floor of the trench, where the photograph does not reach
+    const floor = ctx.createLinearGradient(0, slab.y, 0, slab.y + slab.h);
+    floor.addColorStop(0, '#6d5c48');
+    floor.addColorStop(0.5, '#5d4e3d');
+    floor.addColorStop(1, '#4f4234');
+    ctx.fillStyle = floor;
+    ctx.fillRect(slab.x, slab.y, slab.w, slab.h);
     const photo = fossilPhoto(this.dino.id);
     if (photo) {
       drawFossil(ctx, photo, slab);
@@ -309,43 +343,22 @@ export class DinoDig {
     this.drawChips(slab);
     if (this.phase === 'reveal') this.drawLiving(ctx, slab);
     this.drawRock(slab);
+    this.ps.draw(ctx);
     ctx.restore();
 
     ctx.strokeStyle = 'rgba(80,60,40,0.45)'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.roundRect(slab.x, slab.y, slab.w, slab.h, 16 * this.u()); ctx.stroke();
     ctx.restore();
 
+    vignette(ctx, this.w, this.h, 0.2, '60, 40, 20');
     this.drawChrome(slab);
   }
 
-  /** The rock still lying on the fossil, one lump per cell, coloured by how hard it is. */
+  /** The rock still lying on the fossil, painted as sediment rather than as a grid of cells. */
   private drawRock(slab: { x: number; y: number; w: number; h: number }): void {
-    const ctx = this.ctx, s = this.site;
+    const s = this.site;
     if (!s) return;
-    const c = this.cell();
-    for (let gy = 0; gy < s.rows; gy++) {
-      for (let gx = 0; gx < s.cols; gx++) {
-        const i = gy * s.cols + gx;
-        const d = s.depth[i];
-        if (d === 0) continue;
-        const x = slab.x + gx * c, y = slab.y + gy * c;
-        const hard = s.hard[i];
-        // soft rock is sandy and warm, hard rock is grey and cold
-        const warm = 1 - hard;
-        const base = 116 + warm * 70 + this.grain.noise2(gx * 0.7, gy * 0.7) * 16;
-        const rr = Math.round(base * (0.86 + warm * 0.22));
-        const gg = Math.round(base * (0.8 + warm * 0.2));
-        const bb = Math.round(base * (0.66 + warm * 0.18));
-        ctx.fillStyle = 'rgb(' + rr + ',' + gg + ',' + bb + ')';
-        ctx.globalAlpha = d >= MAX_DEPTH ? 1 : 0.72;
-        ctx.beginPath(); ctx.roundRect(x - 0.6, y - 0.6, c + 1.2, c + 1.2, c * 0.22); ctx.fill();
-        ctx.globalAlpha = (d === 1 ? 0.5 : 0.85) * (0.12 + hard * 0.22);
-        ctx.fillStyle = '#4d4034';
-        ctx.beginPath(); ctx.arc(x + c * 0.36, y + c * 0.42, c * 0.15, 0, TAU); ctx.fill();
-        ctx.beginPath(); ctx.arc(x + c * 0.7, y + c * 0.68, c * 0.1, 0, TAU); ctx.fill();
-        ctx.globalAlpha = 1;
-      }
-    }
+    this.rockArt.paint(this.ctx, slab, s.cols, s.rows, s.depth, s.hard, MAX_DEPTH, this.cell());
   }
 
   /** Where the specimen has been damaged: a scar you cannot undo. */
@@ -409,8 +422,7 @@ export class DinoDig {
       this.phase === 'wrong' ? T('Look again', 'Kijk nog eens') :
       this.phase === 'failed' ? T('The light went', 'Het licht was op') :
       nameOf(this.dino);
-    ctx.fillStyle = '#4a3823'; ctx.font = this.font('900', 21);
-    ctx.fillText(head, this.w / 2, 66 * u, this.w - 230 * u > 120 * u ? this.w - 230 * u : this.w - 40 * u);
+    heading(ctx, head, this.w / 2, 66 * u, this.font('900', 21), '#4a3823');
 
     if (this.phase === 'dig') this.drawMeters(p.exposed, p.chipped);
     if (this.phase === 'reveal') this.drawCard();
@@ -423,11 +435,16 @@ export class DinoDig {
     }
 
     if (this.noteT > 0 && this.phase === 'dig') {
+      ctx.save();
       ctx.globalAlpha = clamp(this.noteT, 0, 1);
+      ctx.font = this.font('800', 11.5);
+      const tw = Math.min(this.w - 32 * u, ctx.measureText(this.note).width + 30 * u);
+      const ny = this.slab().y - 40 * u;
+      glassPanel(ctx, this.w / 2 - tw / 2, ny, tw, 28 * u, 14 * u, 0.94);
+      ctx.fillStyle = '#4a3823';
       ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(74,56,35,0.62)'; ctx.font = this.font('700', 11.5);
-      ctx.fillText(this.note, this.w / 2, 118 * u, this.w - 30 * u);
-      ctx.globalAlpha = 1;
+      ctx.fillText(this.note, this.w / 2, ny + 19 * u, tw - 22 * u);
+      ctx.restore();
     }
 
     if (this.phase === 'ask' || this.phase === 'wrong') {
@@ -451,64 +468,77 @@ export class DinoDig {
   private button(id: string, label: string, cx: number, cy: number, w: number, h: number, strong: boolean, bad = false): void {
     const ctx = this.ctx;
     const x = cx - w / 2, y = cy - h / 2;
-    ctx.fillStyle = bad ? 'rgba(200,90,80,0.92)' : strong ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.62)';
-    ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
-    ctx.strokeStyle = 'rgba(80,60,40,0.25)'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.fillStyle = bad ? '#fff' : '#4a3823';
-    ctx.font = this.font('800', h > 40 * this.u() ? 15 : 11.5);
+    const face = chunkyButton(ctx, x, y, w, h, {
+      tone: bad ? '#d06a58' : strong ? '#fdf6e6' : '#efe3cc',
+      pressed: this.held0 === id,
+    });
+    ctx.fillStyle = bad ? '#ffffff' : '#4a3823';
+    ctx.font = this.font('900', h > 40 * this.u() ? 15 : 12);
     ctx.textAlign = 'center';
-    ctx.fillText(label, cx, cy + h * 0.16, w - 20);
+    ctx.fillText(label, cx, face.y + h * 0.63, w - 20);
     this.hits.push({ id, x, y, w, h });
   }
 
-  /** How much is out, how much is broken, and how much daylight is left. */
+  /** How much is out, how much is broken, and how much daylight is left - as dials, not numbers. */
   private drawMeters(exposed: number, chipped: number): void {
     const ctx = this.ctx, u = this.u();
-    const y = 96 * u, bw = Math.min(150 * u, this.w * 0.34), bh = 8 * u;
-    const bars: Array<[number, string, string, number]> = [
-      [exposed, T('uncovered', 'vrijgelegd'), '#6b8f4e', this.w / 2 - bw - 8 * u],
-      [this.stamina, T('daylight', 'daglicht'), '#c9903f', this.w / 2 + 8 * u],
-    ];
-    ctx.textAlign = 'left';
-    for (const [v, label, color, x] of bars) {
-      ctx.fillStyle = 'rgba(74,56,35,0.18)';
-      ctx.beginPath(); ctx.roundRect(x, y, bw, bh, bh / 2); ctx.fill();
-      ctx.fillStyle = color;
-      ctx.beginPath(); ctx.roundRect(x, y, Math.max(bh, bw * clamp(v, 0, 1)), bh, bh / 2); ctx.fill();
-      ctx.fillStyle = 'rgba(74,56,35,0.62)'; ctx.font = this.font('800', 9);
-      ctx.fillText(label + ' ' + Math.round(v * 100) + '%', x, y - 5 * u);
-    }
+    const r = 21 * u, y = 96 * u;
+    paintExposedDial(ctx, this.w / 2 - 32 * u, y, r, exposed, u);
+    paintSunDial(ctx, this.w / 2 + 32 * u, y, r, clamp(this.stamina, 0, 1), u);
     if (chipped > 0) {
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#b4543f'; ctx.font = this.font('800', 9.5);
-      ctx.fillText(chipped + ' ' + T('broken', 'gebroken'), this.w / 2 + bw + 8 * u, y - 5 * u);
+      ctx.textAlign = 'left';
+      outlinedText(ctx, String(chipped), this.w / 2 + 62 * u, y + 5 * u, this.font('900', 13), '#c1462f', 'rgba(255,255,255,0.9)', 4);
+      // a cracked bone beside the count, so it reads without the word
+      ctx.save();
+      ctx.translate(this.w / 2 + 84 * u, y);
+      ctx.strokeStyle = '#c1462f';
+      ctx.lineWidth = 2.2 * u;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-6 * u, -5 * u); ctx.lineTo(6 * u, 5 * u);
+      ctx.moveTo(6 * u, -5 * u); ctx.lineTo(-6 * u, 5 * u);
+      ctx.stroke();
+      ctx.restore();
     }
     ctx.textAlign = 'center';
   }
 
-  /** The tool belt. Locked tools show how many finds they cost. */
+  /** The tool belt. Locked tools show a padlock and how many finds they cost. */
   private drawTools(): void {
     const ctx = this.ctx, u = this.u();
     const n = TOOLS.length;
-    const bw = Math.min(84 * u, (this.w - 24 * u) / n - 6 * u), bh = 54 * u;
+    const bw = Math.min(86 * u, (this.w - 24 * u) / n - 6 * u), bh = 60 * u;
     const gap = 6 * u;
     const total = n * bw + (n - 1) * gap;
     let x = (this.w - total) / 2;
-    const y = this.h - bh - 26 * u;
+    const y = this.h - bh - 24 * u;
     for (const t of TOOLS) {
       const open = this.unlocked(t);
       const on = this.tool.id === t.id;
-      ctx.fillStyle = on ? 'rgba(107,143,78,0.92)' : open ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.32)';
-      ctx.beginPath(); ctx.roundRect(x, y, bw, bh, 14 * u); ctx.fill();
-      ctx.strokeStyle = 'rgba(80,60,40,0.22)'; ctx.lineWidth = 1; ctx.stroke();
-      drawToolGlyph(ctx, t.id, x + bw / 2, y + 19 * u, 11 * u, on ? '#fff' : open ? '#4a3823' : 'rgba(74,56,35,0.4)');
+      chunkyButton(ctx, x, y, bw, bh, {
+        tone: on ? '#6b8f4e' : '#fdf6e6',
+        pressed: on || this.held0 === 'tool:' + t.id,
+        disabled: !open,
+        radius: 15 * u,
+      });
+      paintTool(ctx, t.id, x + bw / 2, y + 24 * u, 13 * u, on);
       ctx.textAlign = 'center';
-      ctx.fillStyle = on ? '#fff' : open ? '#4a3823' : 'rgba(74,56,35,0.45)';
-      ctx.font = this.font('800', 9.5);
-      ctx.fillText(NL() ? t.nameNl : t.name, x + bw / 2, y + 42 * u, bw - 8 * u);
+      ctx.fillStyle = on ? '#ffffff' : open ? '#4a3823' : 'rgba(74,56,35,0.5)';
+      ctx.font = this.font('900', 10);
+      ctx.fillText(NL() ? t.nameNl : t.name, x + bw / 2, y + bh - 10 * u, bw - 8 * u);
       if (!open) {
-        ctx.fillStyle = 'rgba(74,56,35,0.55)'; ctx.font = this.font('800', 8);
-        ctx.fillText(T('after ' + t.unlockAt, 'na ' + t.unlockAt), x + bw / 2, y + 51 * u);
+        // a padlock and the number of finds still to go
+        ctx.save();
+        ctx.translate(x + bw - 15 * u, y + 15 * u);
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.strokeStyle = 'rgba(74,56,35,0.6)';
+        ctx.lineWidth = 2 * u;
+        ctx.beginPath(); ctx.arc(0, -4 * u, 4 * u, Math.PI, 0); ctx.stroke();
+        ctx.beginPath(); ctx.roundRect(-6 * u, -4 * u, 12 * u, 9 * u, 2 * u); ctx.fill(); ctx.stroke();
+        ctx.restore();
+        ctx.fillStyle = 'rgba(74,56,35,0.6)';
+        ctx.font = this.font('900', 9);
+        ctx.fillText(String(t.unlockAt), x + bw / 2, y + 40 * u);
       }
       this.hits.push({ id: 'tool:' + t.id, x, y, w: bw, h: bh });
       x += bw + gap;
