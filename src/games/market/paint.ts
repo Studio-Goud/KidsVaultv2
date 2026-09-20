@@ -525,7 +525,7 @@ export function paintCustomer(ctx: Ctx, who: Customer, x: number, y: number, r: 
   const fur: Record<Customer, [string, string]> = {
     hedgehog: ['#a5825c', '#6f5335'],
     rabbit: ['#dcd6cf', '#b3aaa0'],
-    fox: ['#ef9а4e'.replace('а', 'a'), '#c96c2a'],
+    fox: ['#ef9a4e', '#c96c2a'],
     owl: ['#b98f62', '#8a6640'],
     badger: ['#7e7d85', '#55545c'],
   };

@@ -297,7 +297,8 @@ export class Particles {
   spawn(kind: PKind, x: number, y: number, n: number, o: Partial<Particle> & { spread?: number; speed?: number } = {}): void {
     const speed = o.speed ?? 90;
     const spread = o.spread ?? TAU;
-    const base = o.kind === 'splash' ? -Math.PI / 2 : -Math.PI / 2;
+    // particles go up and outwards: straight down looks like a leak, not a spray
+    const base = -Math.PI / 2;
     for (let i = 0; i < n; i++) {
       const a = base + (Math.random() - 0.5) * spread;
       const s = speed * (0.45 + Math.random() * 0.9);
