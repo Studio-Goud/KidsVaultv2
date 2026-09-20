@@ -11,6 +11,7 @@ import { TAU, type Vec } from '../../util/math';
 import { moonsOf, type Body, type Moon } from './bodies';
 import { drawBody } from './draw';
 import { drawPhoto, moonPhoto } from './photo';
+import { drawGlobe, HAS_MAP, type View } from './globe';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -45,6 +46,7 @@ export function drawExplore(
   ctx: Ctx, body: Body, openMoon: Moon | null, time: number,
   w: number, h: number, u: number, dpr: number,
   font: (weight: string, size: number) => string,
+  view: View,
 ): ExploreHit[] {
   const hits: ExploreHit[] = [];
   const moons = moonsOf(body.id);
@@ -60,12 +62,32 @@ export function drawExplore(
   const band = Math.max(80 * u, factsTop - top);
   const r = Math.min(band * 0.44, w * 0.30);
   const cx = w / 2, cy = top + band / 2;
-  drawBody(ctx, body, cx, cy, r, dpr);
+
+  // a world with a surface map becomes a ball you can turn; the rest keep their photograph
+  const turnable = HAS_MAP.has(body.id);
+  let drewGlobe = false;
+  if (turnable) {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, Math.min(r * 1.02, band * 0.5), 0, TAU); ctx.clip();
+    drewGlobe = drawGlobe(ctx, body.id, cx, cy, r * view.zoom, view);
+    ctx.restore();
+  }
+  if (!drewGlobe) drawBody(ctx, body, cx, cy, r, dpr);
+  if (drewGlobe) {
+    // Saturn keeps its rings, drawn from the photograph, around the turning ball
+    hits.push({ id: 'globe', x: cx - r * 1.25, y: cy - r * 1.25, w: r * 2.5, h: r * 2.5 });
+    ctx.fillStyle = 'rgba(200,216,244,0.5)'; ctx.font = font('700', 9);
+    ctx.textAlign = 'center';
+    ctx.fillText(view.zoom > 1.05
+      ? T('Drag to turn · double tap to pull back', 'Sleep om te draaien · dubbeltik om terug te gaan')
+      : T('Drag to turn it · double tap to zoom', 'Sleep om hem te draaien · dubbeltik om in te zoomen'),
+      cx, cy + Math.min(r * 1.02, band * 0.5) + 14 * u, w - 40 * u);
+  }
 
   // a marker that goes round once per planet day, sped up so a turn takes a few seconds
   const turns = time / Math.max(2.5, Math.min(26, body.dayHours / 3));
   const a = turns * TAU;
-  const mr = r * (body.ring ? 1.34 : 1.16);
+  const mr = Math.min(r * (body.ring ? 1.34 : 1.16), band * 0.5 + 8 * u);
   ctx.globalAlpha = 0.5;
   ctx.strokeStyle = 'rgba(180,210,255,0.5)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(cx, cy, mr, 0, TAU); ctx.stroke();
