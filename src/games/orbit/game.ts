@@ -17,8 +17,10 @@ import { MissionScreen } from './missionscreen';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
 import { CREDITS, loadAllMoons, loadAllPlanets } from './photo';
 import { uiScale } from '../../util/ui';
+import { unlockAudio } from '../../util/audio';
 import { chunkyButton } from '../../render/look';
 import { paintSpace } from './paint';
+import { orbit as osfx } from './orbitsfx';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
@@ -237,9 +239,10 @@ export class Orbit {
       const c = this.choices.find(x => x.body.id === this.flyer!.body.id)!;
       c.placed = true;
       this.flyer = null;
+      osfx.place(this.placedCount);
       this.placedCount++;
       this.layout();
-      if (this.placedCount >= this.want.length) { this.phase = 'roundDone'; this.phaseT = 0; }
+      if (this.placedCount >= this.want.length) { osfx.roundDone(); this.phase = 'roundDone'; this.phaseT = 0; }
       else this.phase = 'picking';
     }
     if (this.phase === 'wrong' && this.phaseT > 0.7) { this.wrongId = null; this.phase = 'picking'; }
@@ -254,24 +257,28 @@ export class Orbit {
   private onDown(e: PointerEvent): void {
     const r = this.canvas.getBoundingClientRect();
     const p = { x: e.clientX - r.left, y: e.clientY - r.top };
+    unlockAudio();
     const hit = hitAt(this.hits, p);
     if (hit && hit.startsWith('tab:')) {
+      if (this.mode !== hit.slice(4)) osfx.tab();
       this.mode = hit.slice(4) as Mode;
       this.openMoon = null;
       return;
     }
     if (this.mode === 'missions') { this.missions.onDown(p, hit); return; }
     if (hit) {
-      if (hit === 'again') { this.startRound(0); return; }
+      if (hit === 'again') { osfx.tap(); this.startRound(0); return; }
       if (hit === 'prev' || hit === 'next') {
         const d = hit === 'next' ? 1 : -1;
         this.exploreIndex = (this.exploreIndex + d + BODIES.length) % BODIES.length;
         this.openMoon = null;
+        osfx.turn();
         return;
       }
       if (hit.startsWith('moon:')) {
         const id = hit.slice(5);
         this.openMoon = this.openMoon && this.openMoon.id === id ? null : (moonsOf(BODIES[this.exploreIndex].id).find(m => m.id === id) ?? null);
+        osfx.moon();
         return;
       }
     }
@@ -289,8 +296,10 @@ export class Orbit {
         };
         this.fact = `${nameOf(c.body)} - ${factOf(c.body)}`;
         this.factT = 3.2;
+        osfx.pick();
         this.phase = 'flying'; this.phaseT = 0;
       } else {
+        osfx.wrong();
         this.wrongId = c.body.id;
         this.phase = 'wrong'; this.phaseT = 0;
       }

@@ -6,9 +6,12 @@ has a beginning and an end, with no endless loop and no daily reward pulling any
 
 English is the first language; Dutch is included.
 
+`index.html` is Bramblewood itself: the page that holds every game and says in a line what each
+one practises. Each game has its own page beside it.
+
 ## The games
 
-### Cloudhopper (`index.html`)
+### Cloudhopper (`cloudhopper.html`)
 Draw a route with your finger from every incoming aircraft to the runway. Aircraft must not touch:
 within 60 m is a near miss, within 10 m a collision. Six islands rising in difficulty, plus twelve
 real-world airports, with weather, multiple runways, seaplanes and helicopters. After a failed
@@ -40,9 +43,12 @@ Practises fine motor control, patience, tool choice and deep time. Age 5 and up.
 ### Puffball (`puffball.html`)
 Put down a puffball, count how far it reaches, and be somewhere else when it pops. It is
 Bomberman's shape - a grid, a fuse, a cross of effect, pots to clear and moles to catch - with the
-counting brought to the front: the reach is a number on the cap, and while the puffball swells the
-squares it will cover light up with one dot apiece. Pick-ups raise the reach, so the comparison has
-to be made again. Nobody is hurt; whoever is caught sits down dizzy. Eight nights.
+counting brought to the front: the reach is a number on the cap, and when the puffball goes down
+the squares it will cover light up one at a time from the middle outwards, a dot apiece, so the
+count happens in front of you. From the third night on the marking dims once it has counted
+itself out, leaving only the outline, so the number has to be held rather than read off the floor.
+Pick-ups raise the reach, so the comparison has to be made again. Nobody is hurt; whoever is caught
+sits down dizzy. Eight nights.
 Practises counting squares, comparing two numbers and planning a way out. Age 5 and up.
 
 ### Millstream (`mill.html`)

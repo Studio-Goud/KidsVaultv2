@@ -12,9 +12,11 @@
 import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { makeRng } from '../../util/rng';
 import { uiScale } from '../../util/ui';
+import { unlockAudio } from '../../util/audio';
 import { edgeKey, FIGURES, type Figure } from './figures';
 import { chunkyButton } from '../../render/look';
 import { paintNightSky } from './paint';
+import { night } from './nightsfx';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'intro' | 'showing' | 'drawing' | 'wrong' | 'solved' | 'finished';
@@ -166,7 +168,15 @@ export class NightWatch {
     this.stars = stars;
   }
 
-  private setPhase(p: Phase): void { this.phase = p; this.phaseT = 0; }
+  private setPhase(p: Phase): void {
+    if (p !== this.phase) {
+      if (p === 'showing') night.show();
+      else if (p === 'solved') night.solved();
+      else if (p === 'wrong') night.wrong();
+    }
+    this.phase = p;
+    this.phaseT = 0;
+  }
 
   private update(dt: number): void {
     this.phaseT += dt;
@@ -178,7 +188,7 @@ export class NightWatch {
       this.setPhase('drawing');
     }
     if (this.phase === 'solved' && this.phaseT > 2.2) {
-      if (this.round + 1 >= ROUNDS) this.setPhase('finished');
+      if (this.round + 1 >= ROUNDS) { night.complete(); this.setPhase('finished'); }
       else this.startRound(this.round + 1);
     }
   }
@@ -205,11 +215,12 @@ export class NightWatch {
   private onDown(e: PointerEvent): void {
     const p = this.at(e);
     const hit = this.hitAt(p);
-    if (hit === 'peek' && this.phase === 'drawing') { this.peeks++; this.setPhase('showing'); return; }
-    if (hit === 'again' && this.phase === 'finished') { this.solvedNames = []; this.startRound(0); return; }
+    unlockAudio();
+    if (hit === 'peek' && this.phase === 'drawing') { this.peeks++; night.peek(); this.setPhase('showing'); return; }
+    if (hit === 'again' && this.phase === 'finished') { night.tap(); this.solvedNames = []; this.startRound(0); return; }
     if (this.phase !== 'drawing') return;
     const s = this.starAt(p);
-    if (s !== null) { this.from = s; this.pointer = p; }
+    if (s !== null) { this.from = s; this.pointer = p; night.hold(); }
   }
 
   private onMove(e: PointerEvent): void {
@@ -226,8 +237,9 @@ export class NightWatch {
     const key = edgeKey(from, to);
     // tapping an existing line removes it again, so a mistake is never a dead end
     const existing = this.drawn.findIndex(d => edgeKey(d.a, d.b) === key);
-    if (existing >= 0) { this.drawn.splice(existing, 1); return; }
+    if (existing >= 0) { this.drawn.splice(existing, 1); night.undo(); return; }
     this.drawn.push({ a: from, b: to, t0: this.t });
+    night.line(this.drawn.length - 1);
     if (this.drawn.length >= this.target.size) this.check();
   }
 

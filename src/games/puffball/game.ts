@@ -17,8 +17,8 @@ import { uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
-  chunkyButton, drawStar, easeOutBack, easeOutCubic, glassPanel, heading, outlinedText, Particles,
-  progressRing, Shake, vignette,
+  chunkyButton, drawStar, easeOutBack, easeOutCubic, glassPanel, handCursor, heading, outlinedText,
+  Particles, progressRing, Shake, vignette,
 } from '../../render/look';
 import { puff } from './puffsfx';
 import {
@@ -126,6 +126,9 @@ export class Puffball {
   /** a refused tap flashes whatever refused it, because the sound is off on most phones */
   private denyT = 0;
   private denyCard = -1;
+  /** how long since the child last touched anything, and whether they have worked out the button */
+  private idle = 0;
+  private everDropped = false;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
@@ -221,6 +224,8 @@ export class Puffball {
     this.lastTick = -1;
     // a space bar pressed on the menu must not drop a puffball on the first frame of the level
     this.wantDrop = false;
+    this.idle = 0;
+    this.everDropped = false;
     this.ps.clear();
     this.phase = 'play';
     this.phaseT = 0;
@@ -303,6 +308,7 @@ export class Puffball {
     const y = this.me.k < 0.5 ? this.me.fy : this.me.ty;
     if (this.puffs.some(p => p.x === x && p.y === y)) { this.deny(); return; }
     this.puffs.push({ x, y, fuse: FUSE, reach: this.reach, mine: true });
+    this.everDropped = true;
     puff.place();
   }
 
@@ -367,6 +373,7 @@ export class Puffball {
     this.ps.update(dt);
     this.shake.update(dt);
     this.cardPop = Math.min(1, this.cardPop + dt * 2.6);
+    this.idle += dt;
     this.denyT = Math.max(0, this.denyT - dt);
     if (this.denyT === 0) this.denyCard = -1;
     this.me.bump = Math.max(0, this.me.bump - dt * 5);
@@ -512,6 +519,7 @@ export class Puffball {
 
   private onDown(e: PointerEvent): void {
     unlockAudio();
+    this.idle = 0;
     const hit = this.hitAt(this.at(e));
     if (!hit) return;
     this.held.set(e.pointerId, hit);
@@ -534,6 +542,7 @@ export class Puffball {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' ', 'w', 'a', 's', 'd'].includes(k)) e.preventDefault();
     if (down) {
       unlockAudio();
+      this.idle = 0;
       if (k === ' ' || k === 'Enter') { this.wantDrop = true; return; }
       this.keys.add(k);
     } else this.keys.delete(k);
@@ -679,9 +688,62 @@ export class Puffball {
       ctx.restore();
     }
 
-    if (this.phase === 'play') this.drawPad();
+    if (this.phase === 'play') { this.drawPad(); this.drawHandHint(); }
     this.button('levels', T('Nights', 'Nachten'), 12 * u, 12 * u, 92 * u, 44 * u);
     ctx.textAlign = 'left';
+  }
+
+/**
+   * The only instruction a four year old gets, and it has no words in it: when nothing has
+   * happened for a while a hand comes in and presses the button they need. First the big button,
+   * until they have put one down; after that, if they are standing in the cloud, the arrow that
+   * walks them out of it. It is only on the first two nights - after that they know.
+   */
+  private drawHandHint(): void {
+    if (this.levelIndex > 1 || this.me.dazed > 0) return;
+    const want = this.handWants();
+    if (!want) return;
+    const hit = this.hits.find(h => h.id === want);
+    if (!hit) return;
+    const cycle = (this.t % 1.6) / 1.6;
+    const press = clamp(Math.sin(cycle * Math.PI) * 1.8, 0, 1);
+    const fade = clamp((this.idle - 1.6) / 0.6, 0, 1) * (0.55 + 0.45 * press);
+    const ctx = this.ctx, u = this.u();
+    ctx.save();
+    ctx.globalAlpha = fade;
+    // a ring that closes in on the button, so the eye is taken there before the hand arrives
+    ctx.strokeStyle = 'rgba(255, 244, 214, 0.75)';
+    ctx.lineWidth = 3 * u;
+    ctx.beginPath();
+    ctx.arc(hit.x + hit.w / 2, hit.y + hit.h / 2, hit.w * (0.72 + 0.22 * (1 - press)), 0, TAU);
+    ctx.stroke();
+    handCursor(ctx, hit.x + hit.w * 0.62, hit.y + hit.h * 0.52, 15 * u, press);
+    ctx.restore();
+  }
+
+  /** Which button the hand should press, or nothing if the child is getting on with it. */
+  private handWants(): string | null {
+    if (this.idle < 1.6) return null;
+    if (!this.everDropped) return this.puffs.length < this.maxPuffs ? 'drop' : null;
+    // Standing where a puffball is about to reach: show the way out. One step is often not enough
+    // - at reach two you need three - so each direction is walked until it leaves the cloud, and
+    // the one that gets clear soonest wins.
+    const danger = this.danger();
+    const mx = this.me.tx, my = this.me.ty;
+    if (!danger.has(my * this.board.cols + mx)) return null;
+    let best: string | null = null;
+    let bestSteps = 99;
+    for (const [id, dx, dy] of [['pad:down', 0, 1], ['pad:up', 0, -1], ['pad:right', 1, 0], ['pad:left', -1, 0]] as const) {
+      for (let n = 1; n <= 6; n++) {
+        const nx = mx + dx * n, ny = my + dy * n;
+        if (this.blocked(nx, ny)) break;
+        if (!danger.has(ny * this.board.cols + nx)) {
+          if (n < bestSteps) { bestSteps = n; best = id; }
+          break;
+        }
+      }
+    }
+    return best;
   }
 
   /** A cross of arrows under the left thumb and one big button under the right. */
