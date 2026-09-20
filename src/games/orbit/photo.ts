@@ -29,6 +29,9 @@ export const CREDITS: Record<string, string> = {
   saturn: 'NASA / JPL / Space Science Institute, Cassini',
   uranus: 'NASA / JPL, Voyager 2',
   neptune: 'NASA / JPL, Voyager 2',
+  sun: 'NASA / SDO',
+  ceres: 'NASA / JPL-Caltech / UCLA / MPS / DLR / IDA, Dawn',
+  pluto: 'NASA / JHUAPL / SwRI, New Horizons',
 };
 
 const cache = new Map<string, PlanetPhoto>();

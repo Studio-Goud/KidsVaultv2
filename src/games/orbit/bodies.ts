@@ -6,10 +6,12 @@
  * so the size round is honest. Distances are in millions of kilometres from the sun.
  */
 
-export type Surface = 'rock' | 'cloudy' | 'ocean' | 'rusty' | 'banded' | 'icy';
+export type Surface = 'rock' | 'cloudy' | 'ocean' | 'rusty' | 'banded' | 'icy' | 'star';
 
 export interface Body {
   id: string;
+  /** a planet unless it says otherwise; the puzzle only ever asks about the eight planets */
+  kind?: 'star' | 'dwarf';
   name: string;
   nameNl: string;
   /** equatorial diameter in km */
@@ -67,6 +69,9 @@ export const MOONS: Moon[] = [
   { id: 'ganymede', name: 'Ganymede', nameNl: 'Ganymedes', parent: 'jupiter', diameter: 5268,
     fact: 'The largest moon there is, bigger than the planet Mercury.',
     factNl: 'De grootste maan die er is, groter dan de planeet Mercurius.' },
+  { id: 'callisto', name: 'Callisto', nameNl: 'Callisto', parent: 'jupiter', diameter: 4821,
+    fact: 'The most cratered world we know of: nothing has smoothed it over in four billion years.',
+    factNl: 'De wereld met de meeste kraters die we kennen: in vier miljard jaar is er niets gladgestreken.' },
   { id: 'titan', name: 'Titan', nameNl: 'Titan', parent: 'saturn', diameter: 5150,
     fact: 'It has rivers and lakes, but of liquid methane, not water.',
     factNl: 'Het heeft rivieren en meren, maar van vloeibaar methaan, niet van water.' },
@@ -76,6 +81,9 @@ export const MOONS: Moon[] = [
   { id: 'triton', name: 'Triton', nameNl: 'Triton', parent: 'neptune', diameter: 2707,
     fact: 'It goes round Neptune backwards, so it was probably captured.',
     factNl: 'Hij draait achterstevoren om Neptunus, dus hij is waarschijnlijk gevangen.' },
+  { id: 'charon', name: 'Charon', nameNl: 'Charon', parent: 'pluto', diameter: 1212,
+    fact: 'So big next to Pluto that the two of them swing round a point in the empty space between.',
+    factNl: 'Zo groot naast Pluto dat ze samen om een punt in de lege ruimte ertussen draaien.' },
 ];
 
 export const moonsOf = (planetId: string): Moon[] => MOONS.filter(m => m.parent === planetId);
@@ -124,7 +132,7 @@ export const BODIES: Body[] = [
     storm: { x: 0.22, y: 0.18, r: 0.17, color: '#b5604a' },
     fact: 'So big that every other planet would fit inside it.',
     factNl: 'Zo groot dat alle andere planeten erin passen.',
-    dayHours: 9.9, yearDays: 4331, moonCount: 95, tempC: -110, moonIds: ['io', 'europa', 'ganymede'],
+    dayHours: 9.9, yearDays: 4331, moonCount: 95, tempC: -110, moonIds: ['io', 'europa', 'ganymede', 'callisto'],
   },
   {
     id: 'saturn', name: 'Saturn', nameNl: 'Saturnus',
@@ -155,4 +163,47 @@ export const BODIES: Body[] = [
   },
 ];
 
-export const byId = (id: string): Body => BODIES.find(b => b.id === id)!;
+/**
+ * The sun and the two dwarf planets a child is most likely to ask about.
+ *
+ * They are kept out of BODIES on purpose: the puzzle is about the eight planets and nothing else,
+ * and the to-scale strip would squash everything inside Neptune if Pluto joined it. Explore has
+ * room for them, and Explore is where the asking happens.
+ */
+export const EXTRA_WORLDS: Body[] = [
+  {
+    id: 'sun', kind: 'star', name: 'The Sun', nameNl: 'De Zon',
+    diameter: 1391400, distance: 0, surface: 'star',
+    base: '#ff8c2b', light: '#ffd06a', dark: '#d4531a',
+    fact: 'Everything else here goes round it. It is almost all of the solar system by weight.',
+    factNl: 'Al het andere hier draait eromheen. Hij is bijna het hele zonnestelsel, qua gewicht.',
+    dayHours: 609.1, yearDays: 0, moonCount: 0, tempC: 5500, moonIds: [],
+  },
+  {
+    id: 'ceres', kind: 'dwarf', name: 'Ceres', nameNl: 'Ceres',
+    diameter: 939, distance: 414, surface: 'rock',
+    base: '#9a958e', light: '#c9c5bd', dark: '#6a6660',
+    fact: 'The biggest thing in the asteroid belt, with bright salt patches at the bottom of a crater.',
+    factNl: 'Het grootste ding in de planetoidengordel, met heldere zoutvlekken in een kraterbodem.',
+    dayHours: 9.07, yearDays: 1682, moonCount: 0, tempC: -105, moonIds: [],
+  },
+  {
+    id: 'pluto', kind: 'dwarf', name: 'Pluto', nameNl: 'Pluto',
+    diameter: 2377, distance: 5906, surface: 'icy',
+    base: '#c9a98d', light: '#e8dcc9', dark: '#8a6f56',
+    fact: 'A dwarf planet with a frozen heart of nitrogen, and a moon half its own size.',
+    factNl: 'Een dwergplaneet met een bevroren hart van stikstof, en een maan half zo groot als hijzelf.',
+    dayHours: 153.3, yearDays: 90560, moonCount: 5, tempC: -229, moonIds: ['charon'],
+  },
+];
+
+/** Everything Explore will show, in order out from the sun. */
+export const EXPLORE_WORLDS: Body[] = [
+  EXTRA_WORLDS[0],
+  ...BODIES.slice(0, 4),
+  EXTRA_WORLDS[1],
+  ...BODIES.slice(4),
+  EXTRA_WORLDS[2],
+];
+
+export const byId = (id: string): Body => [...BODIES, ...EXTRA_WORLDS].find(b => b.id === id)!;

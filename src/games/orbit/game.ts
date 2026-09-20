@@ -10,7 +10,7 @@
  */
 
 import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
-import { BODIES, MOONS, moonsOf, type Body, type Moon } from './bodies';
+import { BODIES, EXPLORE_WORLDS, MOONS, moonsOf, type Body, type Moon } from './bodies';
 import { drawExplore, hitAt } from './explore';
 import { drawScale } from './scale';
 import { MissionScreen } from './missionscreen';
@@ -87,7 +87,7 @@ export class Orbit {
     canvas.addEventListener('pointerup', () => this.missions.onUp());
     canvas.addEventListener('pointercancel', () => this.missions.onUp());
     this.startRound(0);
-    void loadAllPlanets(BODIES.map(b => b.id)).then(() => { this.photosReady = true; this.layout(); });
+    void loadAllPlanets(EXPLORE_WORLDS.map(b => b.id)).then(() => { this.photosReady = true; this.layout(); });
     void loadAllMoons(MOONS.map(m => m.id));
     (window as unknown as { __orbit?: Orbit }).__orbit = this;
     const loop = (ms: number): void => {
@@ -283,14 +283,14 @@ export class Orbit {
       if (hit === 'again') { osfx.tap(); this.startRound(0); return; }
       if (hit === 'prev' || hit === 'next') {
         const d = hit === 'next' ? 1 : -1;
-        this.exploreIndex = (this.exploreIndex + d + BODIES.length) % BODIES.length;
+        this.exploreIndex = (this.exploreIndex + d + EXPLORE_WORLDS.length) % EXPLORE_WORLDS.length;
         this.openMoon = null;
         osfx.turn();
         return;
       }
       if (hit.startsWith('moon:')) {
         const id = hit.slice(5);
-        this.openMoon = this.openMoon && this.openMoon.id === id ? null : (moonsOf(BODIES[this.exploreIndex].id).find(m => m.id === id) ?? null);
+        this.openMoon = this.openMoon && this.openMoon.id === id ? null : (moonsOf(EXPLORE_WORLDS[this.exploreIndex].id).find(m => m.id === id) ?? null);
         osfx.moon();
         return;
       }
@@ -346,7 +346,7 @@ export class Orbit {
       return;
     }
     if (this.mode === 'explore') {
-      const body = BODIES[this.exploreIndex];
+      const body = EXPLORE_WORLDS[this.exploreIndex];
       this.hits = drawExplore(ctx, body, this.openMoon, this.t, this.w, this.h - this.tabRoom(),
         this.u(), this.dpr, (wt, sz) => this.font(wt, sz));
       this.hits.push(...this.drawTabs());

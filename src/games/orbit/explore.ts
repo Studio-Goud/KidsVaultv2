@@ -74,13 +74,22 @@ export function drawExplore(
   ctx.beginPath(); ctx.arc(cx + Math.cos(a) * mr, cy + Math.sin(a) * mr, 3.2 * u, 0, TAU); ctx.fill();
 
   // the numbers
-  const rows: Array<[string, string]> = [
-    [T('One day', 'Een dag'), dayLabel(body.dayHours)],
-    [T('One year', 'Een jaar'), yearLabel(body.yearDays)],
-    [T('Temperature', 'Temperatuur'), tempLabel(body.tempC)],
-    [T('Across', 'Doorsnede'), `${body.diameter.toLocaleString(NL() ? 'nl-NL' : 'en-GB')} km`],
-    [T('Moons', 'Manen'), body.moonCount === 0 ? T('none', 'geen') : `${T('at least', 'minstens')} ${body.moonCount}`],
-  ];
+  // A star has no year and no moons, so it is asked different questions: what goes round it, and
+  // how hot the surface you are looking at actually is.
+  const rows: Array<[string, string]> = body.kind === 'star'
+    ? [
+      [T('One turn', 'Een omwenteling'), dayLabel(body.dayHours)],
+      [T('Surface', 'Oppervlak'), tempLabel(body.tempC)],
+      [T('Across', 'Doorsnede'), `${body.diameter.toLocaleString(NL() ? 'nl-NL' : 'en-GB')} km`],
+      [T('Goes round it', 'Draait eromheen'), T('eight planets, and everything else', 'acht planeten, en al het andere')],
+    ]
+    : [
+      [T('One day', 'Een dag'), dayLabel(body.dayHours)],
+      [T('One year', 'Een jaar'), yearLabel(body.yearDays)],
+      [T('Temperature', 'Temperatuur'), tempLabel(body.tempC)],
+      [T('Across', 'Doorsnede'), `${body.diameter.toLocaleString(NL() ? 'nl-NL' : 'en-GB')} km`],
+      [T('Moons', 'Manen'), body.moonCount === 0 ? T('none', 'geen') : `${T('at least', 'minstens')} ${body.moonCount}`],
+    ];
   let ry = factsTop;
   ctx.font = font('700', 12.5);
   for (const [k, v] of rows) {

@@ -123,6 +123,7 @@ function discCanvas(body: Body, r: number, dpr: number): HTMLCanvasElement {
   if (body.surface === 'cloudy') mottle(ctx, r, body, 20, 0.3, 0.3);
   if (body.surface === 'rusty') mottle(ctx, r, body, 26, 0.2, 0.42);
   if (body.surface === 'ocean') land(ctx, r, body);
+  if (body.surface === 'star') mottle(ctx, r, body, 60, 0.35, 0.5);
   if (body.caps) caps(ctx, r, body.caps);
 
   if (body.storm) {
@@ -137,12 +138,11 @@ function discCanvas(body: Body, r: number, dpr: number): HTMLCanvasElement {
     ctx.globalAlpha = 1;
   }
 
-  // sunlight from the upper left, and the night side falling away to the lower right
-  const lg = ctx.createRadialGradient(-r * 0.4, -r * 0.45, r * 0.1, 0, 0, r * 1.25);
-  lg.addColorStop(0, 'rgba(255,255,255,0.32)');
-  lg.addColorStop(0.42, 'rgba(255,255,255,0)');
-  lg.addColorStop(0.72, 'rgba(0,0,10,0.16)');
-  lg.addColorStop(1, 'rgba(0,0,10,0.62)');
+  // Sunlight from the upper left, and the night side falling away to the lower right. A star
+  // makes its own light, so it has no night side: it only gets brighter towards the middle.
+  const lg = body.surface === 'star'
+    ? (() => { const g = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r); g.addColorStop(0, 'rgba(255,240,190,0.45)'); g.addColorStop(0.7, 'rgba(255,200,120,0)'); g.addColorStop(1, 'rgba(200,60,0,0.35)'); return g; })()
+    : (() => { const g = ctx.createRadialGradient(-r * 0.4, -r * 0.45, r * 0.1, 0, 0, r * 1.25); g.addColorStop(0, 'rgba(255,255,255,0.32)'); g.addColorStop(0.42, 'rgba(255,255,255,0)'); g.addColorStop(0.72, 'rgba(0,0,10,0.16)'); g.addColorStop(1, 'rgba(0,0,10,0.62)'); return g; })();
   ctx.fillStyle = lg; ctx.fillRect(-r, -r, r * 2, r * 2);
   ctx.restore();
 

@@ -25,8 +25,8 @@ Practises visual working memory. Age 5 and up.
 
 ### Orbit (`orbit.html`)
 Four tabs. Puzzle: put the eight planets in order by distance, size, day length and temperature, in
-real NASA photographs. Explore: every planet and eight moons with their day, year, temperature and
-size. To scale: distance and size on one strip. Missions: launch a probe from Earth (or from a
+real NASA photographs. Explore: eleven worlds - the sun, the eight planets, and the dwarf planets
+Ceres and Pluto - and ten moons, with their day, year, temperature and size. To scale: distance and size on one strip. Missions: launch a probe from Earth (or from a
 parking orbit around Earth for the Moon) and aim at where the planet will be, not where it is. Eight
 missions, from the Moon to a grand tour past Mars to Jupiter with a mid-course burn, scored on fuel
 left and flight time. Real physics: Kepler orbits, gravity, semi-implicit Euler, a dotted prediction
