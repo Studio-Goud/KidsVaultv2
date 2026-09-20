@@ -173,7 +173,7 @@ export function labelFor(dim: Dim, value: string, nl: boolean): string {
 
 export function dimLabel(dim: Dim, nl: boolean): string {
   const d: Record<Dim, [string, string]> = {
-    kind: ['Sort by SHAPE', 'Sorteer op VORM'], colour: ['Sort by COLOUR', 'Sorteer op KLEUR'],
+    kind: ['Sort by KIND', 'Sorteer op SOORT'], colour: ['Sort by COLOUR', 'Sorteer op KLEUR'],
     size: ['Sort by SIZE', 'Sorteer op GROOTTE'], spots: ['Sort by SPOTS', 'Sorteer op STIPPEN'],
   };
   return nl ? d[dim][1] : d[dim][0];

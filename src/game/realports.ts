@@ -517,7 +517,9 @@ export function realLevel(port: RealPort, step: number, nl: boolean, W = 739, H 
   }));
   return {
     id: `real:${port.id}:${step}`,
+    // a real airport is called the same thing in both languages
     name: `${port.name} ${step + 1}`,
+    nameEn: `${port.name} ${step + 1}`,
     subtitle: nl ? port.nl : port.en,
     subtitleEn: port.en,
     time: port.time,

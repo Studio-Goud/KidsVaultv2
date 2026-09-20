@@ -84,7 +84,7 @@ export function buildReport(world: World): Report {
   if (finals.length === 1) {
     const other = finals[0].n === nameA ? nameB : nameA;
     causes.push(nl()
-      ? `<strong>${finals[0].n}</strong> zat al in de eindnadering. De streep vóór de baan is een no-go-zone: <strong>${other}</strong> kruiste die op het verkeerde moment.`
+      ? `<strong>${finals[0].n}</strong> zat al in de eindnadering. De streep vóór de baan is verboden gebied: <strong>${other}</strong> kruiste die op het verkeerde moment.`
       : `<strong>${finals[0].n}</strong> was already on final approach. The strip in front of the runway is a no-go zone: <strong>${other}</strong> crossed it at the wrong moment.`);
   } else if (finals.length === 2 && lockA === lockB) {
     const faster = (typeA?.speed ?? 0) >= (typeB?.speed ?? 0) ? nameA : nameB;

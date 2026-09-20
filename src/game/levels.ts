@@ -4,7 +4,7 @@ const S = Math.PI / 2; // landing heading: towards the bottom of the screen
 
 export const LEVELS: LevelDef[] = [
   {
-    id: 'linden', name: 'Lindeneiland', subtitle: 'Rustige ochtend, kleine toestellen', subtitleEn: 'Calm morning, small aircraft',
+    id: 'linden', name: 'Lindeneiland', nameEn: 'Linden Island', subtitle: 'Rustige ochtend, kleine toestellen', subtitleEn: 'Calm morning, small aircraft',
     time: 'morning', goal: 8, seed: 11,
     islands: [
       { cx: 0.50, cy: 0.80, rx: 0.56, ry: 0.26, seed: 101, style: 'meadow',
@@ -18,7 +18,7 @@ export const LEVELS: LevelDef[] = [
     wind: null, clouds: 4,
   },
   {
-    id: 'vuurtoren', name: 'Vuurtorenbaai', subtitle: 'Gouden middag, eerste turboprops', subtitleEn: 'Golden afternoon, first turboprops',
+    id: 'vuurtoren', name: 'Vuurtorenbaai', nameEn: 'Lighthouse Bay', subtitle: 'Gouden middag, eerste turboprops', subtitleEn: 'Golden afternoon, first turboprops',
     time: 'golden', goal: 10, seed: 22,
     islands: [
       { cx: 0.58, cy: 0.82, rx: 0.58, ry: 0.24, seed: 201, style: 'meadow',
@@ -33,7 +33,7 @@ export const LEVELS: LevelDef[] = [
     wind: { kmh: 8, gust: 3, dirDeg: 120, wander: 10 }, clouds: 5,
   },
   {
-    id: 'molenrif', name: 'Molenrif', subtitle: 'Stevige zijwind en straalvliegtuigen', subtitleEn: 'Stiff crosswind and jets',
+    id: 'molenrif', name: 'Molenrif', nameEn: 'Windmill Reef', subtitle: 'Stevige zijwind en straalvliegtuigen', subtitleEn: 'Stiff crosswind and jets',
     time: 'morning', goal: 12, seed: 33,
     islands: [
       { cx: 0.50, cy: 0.83, rx: 0.58, ry: 0.23, seed: 301, style: 'meadow',
@@ -47,7 +47,7 @@ export const LEVELS: LevelDef[] = [
     wind: { kmh: 20, gust: 10, dirDeg: 90, wander: 25 }, clouds: 7,
   },
   {
-    id: 'zusters', name: 'Tweelingzusters', subtitle: 'Twee banen, de Jumbo komt eraan', subtitleEn: 'Two runways, the Jumbo arrives',
+    id: 'zusters', name: 'Tweelingzusters', nameEn: 'The Twin Sisters', subtitle: 'Twee banen, de Jumbo komt eraan', subtitleEn: 'Two runways, the Jumbo arrives',
     time: 'golden', goal: 14, seed: 44,
     islands: [
       { cx: 0.20, cy: 0.76, rx: 0.26, ry: 0.26, seed: 401, style: 'pine',
@@ -65,7 +65,7 @@ export const LEVELS: LevelDef[] = [
     wind: { kmh: 10, gust: 5, dirDeg: 200, wander: 15 }, clouds: 6,
   },
   {
-    id: 'lagune', name: 'Zeemeerminlagune', subtitle: 'Schemering en watervliegtuigen', subtitleEn: 'Twilight and seaplanes',
+    id: 'lagune', name: 'Zeemeerminlagune', nameEn: 'Mermaid Lagoon', subtitle: 'Schemering en watervliegtuigen', subtitleEn: 'Twilight and seaplanes',
     time: 'dusk', goal: 15, seed: 55,
     islands: [
       { cx: 0.66, cy: 0.84, rx: 0.48, ry: 0.22, seed: 501, style: 'tropic',
@@ -82,7 +82,7 @@ export const LEVELS: LevelDef[] = [
     wind: { kmh: 12, gust: 6, dirDeg: 45, wander: 20 }, clouds: 5,
   },
   {
-    id: 'sterren', name: 'Sterrenhaven', subtitle: 'Nachtvluchten, helikopters, alles tegelijk', subtitleEn: 'Night flights, helicopters, everything at once',
+    id: 'sterren', name: 'Sterrenhaven', nameEn: 'Star Harbour', subtitle: 'Nachtvluchten, helikopters, alles tegelijk', subtitleEn: 'Night flights, helicopters, everything at once',
     time: 'night', goal: 18, seed: 66,
     islands: [
       { cx: 0.52, cy: 0.82, rx: 0.56, ry: 0.24, seed: 601, style: 'meadow',

@@ -480,7 +480,7 @@ export class Millstream {
       this.toolButton('tool:dig', T('Dig', 'Graven'), this.w / 2 - bw - 7 * u, yb, bw, bh, this.tool === 'dig');
       this.toolButton('tool:bank', T('Bank', 'Ophogen'), this.w / 2 + 7 * u, yb, bw, bh, this.tool === 'bank');
     }
-    this.smallButton('levels', T('Levels', 'Levels'), 14 * u, 12 * u, 92 * u, 44 * u);
+    this.smallButton('levels', T('Valleys', 'Valleien'), 14 * u, 12 * u, 92 * u, 44 * u);
     ctx.textAlign = 'left';
   }
 

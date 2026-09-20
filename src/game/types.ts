@@ -70,7 +70,9 @@ export interface WindDef {
 
 export interface LevelDef {
   id: string;
+  /** the island's Dutch name; nameEn is what an English-speaking child sees */
   name: string;
+  nameEn: string;
   subtitle: string;
   subtitleEn: string;
   time: TimeOfDay;

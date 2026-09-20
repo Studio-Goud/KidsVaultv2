@@ -6,6 +6,9 @@ import { UPGRADES, buyUpgrade, nextCost, upgradeDesc, upgradeName } from '../gam
 import { PORTS_IN_ORDER } from '../game/realports';
 import { lang, t } from '../i18n';
 import { levelProgress, persist, realId, save, upgradeLevel } from '../util/storage';
+
+/** The islands have a Dutch name and an English one; every other game's level names work this way. */
+const worldName = (w: { name: string; nameEn: string }): string => (lang() === 'nl' ? w.name : w.nameEn);
 import { sfx } from '../util/audio';
 
 export interface UIActions {
@@ -191,7 +194,7 @@ export class UI {
         const unlocked = fa ? worldUnlocked(fa.worldIndex) : true;
         const card = document.createElement('div'); card.className = `fleetcard${unlocked ? '' : ' locked'}`;
         const c = document.createElement('canvas'); c.width = 240; c.height = 150; canvases.push({ c, id: p.id });
-        const where = fa ? `${WORLDS[fa.worldIndex].name} · ${t('mission').toLowerCase()} ${fa.index + 1}` : '-';
+        const where = fa ? `${worldName(WORLDS[fa.worldIndex])} · ${t('mission').toLowerCase()} ${fa.index + 1}` : '-';
         card.appendChild(c);
         card.insertAdjacentHTML('beforeend', `<div class="fname">${p.name}</div><div class="fmeta">${p.maker}${p.military ? ' · ' + (lang() === 'nl' ? 'militair' : 'military') : ''}</div>
           <div class="fstats"><span>${displayKmh(p.speed)} km/u</span><span>${t('crosswind')} ${p.crosswindLimit}</span><span>${p.ils ? 'ILS' : (lang() === 'nl' ? 'visueel' : 'visual')}</span></div>
@@ -231,7 +234,7 @@ export class UI {
       b.appendChild(c);
       this.actions.makeThumb(i, c);
       const meta = document.createElement('div'); meta.className = 'meta';
-      meta.innerHTML = `<div class="name">${lv.name}</div><div class="info"><span>${lang() === 'nl' ? lv.subtitle : lv.subtitleEn}</span></div><div class="info"><span>${svgStar(true, 12)} ${stars} / ${LEVELS_PER_WORLD * 3}</span><span>${LEVELS_PER_WORLD} ${t('missions').toLowerCase()}</span></div>`
+      meta.innerHTML = `<div class="name">${worldName(lv)}</div><div class="info"><span>${lang() === 'nl' ? lv.subtitle : lv.subtitleEn}</span></div><div class="info"><span>${svgStar(true, 12)} ${stars} / ${LEVELS_PER_WORLD * 3}</span><span>${LEVELS_PER_WORLD} ${t('missions').toLowerCase()}</span></div>`
         + (unlocked ? '' : `<div class="lockline">12 ${t('starsToUnlock')}</div>`);
       b.appendChild(meta);
       const num = document.createElement('div'); num.className = 'num'; num.textContent = String(i + 1); b.appendChild(num);
@@ -246,7 +249,7 @@ export class UI {
   missions(worldIndex: number): void {
     const world = WORLDS[worldIndex];
     const s = this.screen('dim top');
-    s.appendChild(this.topbar(world.name, () => this.actions.toWorlds(), { icon: svgShop, onClick: () => this.actions.openShop() }));
+    s.appendChild(this.topbar(worldName(world), () => this.actions.toWorlds(), { icon: svgShop, onClick: () => this.actions.openShop() }));
     const head = document.createElement('div'); head.className = 'statrow light';
     head.innerHTML = `<span>${svgStar(true, 18)}<b>${worldStars(worldIndex)}</b> / ${LEVELS_PER_WORLD * 3}</span>${coinBadge()}`;
     s.appendChild(head);

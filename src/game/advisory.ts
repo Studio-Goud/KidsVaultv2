@@ -19,7 +19,12 @@ export interface Advisory {
 }
 
 const nl = (): boolean => lang() === 'nl';
-const T = (a: string, b: string): string => (nl() ? a : b);
+/**
+ * Dutch first here, unlike every other T() in Bramblewood - this file was written that way and
+ * has some twenty-five call sites. The name says which order it takes, so a line copied in from
+ * a file that uses the usual English-first T() cannot silently swap the two languages.
+ */
+const T = (dutch: string, english: string): string => (nl() ? dutch : english);
 
 /** Weather navigation for one aircraft: what the sky does to *this* type right now. */
 export function advise(world: World, p: Plane): Advisory {

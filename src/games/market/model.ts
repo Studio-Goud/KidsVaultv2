@@ -53,6 +53,8 @@ export interface Level {
   /** which fruit are on the stall today */
   fruits: Fruit[];
   patience: number;
+  /** how many ways a sharing order splits, where the level is named after the answer */
+  share?: number;
   hint: string;
   hintNl: string;
 }
@@ -68,8 +70,10 @@ export const LEVELS: Level[] = [
     hint: 'Two baskets, and they must get the same. One for you, one for me.', hintNl: 'Twee manden, en ze moeten hetzelfde krijgen. Een voor jou, een voor mij.' },
   { id: 'howmanymore', name: 'How many more', nameNl: 'Hoeveel erbij', customers: 8, kinds: ['count', 'more'], maxCount: 6, fruits: ['apple', 'carrot', 'pear'], patience: 38,
     hint: 'The basket already has some in it. Add only what is missing.', hintNl: 'Er zit al wat in de mand. Doe er alleen bij wat mist.' },
-  { id: 'threeways', name: 'Three ways', nameNl: 'In drieen', customers: 8, kinds: ['share', 'mixed'], maxCount: 9, fruits: ['strawberry', 'plum', 'carrot'], patience: 40,
-    hint: 'Three baskets now. Go round: one, one, one, then again.', hintNl: 'Drie manden nu. Ga rond: een, een, een, en dan weer.' },
+  { id: 'threeways', name: 'Three ways', nameNl: 'In drieën', customers: 8, kinds: ['share', 'mixed'], maxCount: 9, fruits: ['strawberry', 'plum', 'carrot'], patience: 40,
+    share: 3,
+    hint: 'When they want to share, it is three baskets now. One, one, one, then round again.',
+    hintNl: 'Als ze willen delen, zijn het nu drie manden. Een, een, een, en dan weer rond.' },
   { id: 'busystall', name: 'The busy stall', nameNl: 'De drukke kraam', customers: 10, kinds: ['count', 'mixed', 'share', 'more'], maxCount: 8, fruits: ['apple', 'pear', 'strawberry', 'plum'], patience: 30,
     hint: 'A little of everything, and they are in more of a hurry.', hintNl: 'Van alles wat, en ze hebben meer haast.' },
   { id: 'marketday', name: 'Market day', nameNl: 'Marktdag', customers: 12, kinds: ['count', 'mixed', 'share', 'more'], maxCount: 10, fruits: FRUITS, patience: 26,
@@ -96,7 +100,7 @@ export function makeOrder(level: Level, rng: () => number, index: number): Order
     const first = n(1, total - 1);
     wants[a] = first; wants[b] = total - first;
   } else if (kind === 'share') {
-    between = level.maxCount >= 9 && rng() < 0.6 ? 3 : 2;
+    between = level.share ?? (level.maxCount >= 9 && rng() < 0.6 ? 3 : 2);
     const each = n(1, Math.max(1, Math.floor(level.maxCount / between)));
     wants[pick(level.fruits)] = each * between;
   } else {
