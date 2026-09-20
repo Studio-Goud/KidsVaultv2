@@ -8,7 +8,22 @@ type Ctx = CanvasRenderingContext2D;
 
 // ---------------- clouds ----------------
 
-interface Cloud { x: number; y: number; s: number; sprite: HTMLCanvasElement; vx: number; vy: number }
+interface Cloud { x: number; y: number; s: number; sprite: HTMLCanvasElement; shadow: HTMLCanvasElement; vx: number; vy: number }
+
+/**
+ * The shadow of a cloud is its own sprite at brightness(0.35). Asking the canvas for that filter at
+ * draw time costs a full-screen save-layer per cloud -- at 1440x900 that alone was two thirds of the
+ * frame. Baking the same filter into a sprite once gives pixel-identical output for free.
+ */
+function makeShadowSprite(sprite: HTMLCanvasElement): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = sprite.width; c.height = sprite.height;
+  const ctx = c.getContext('2d')!;
+  ctx.filter = 'brightness(0.35)';
+  ctx.drawImage(sprite, 0, 0);
+  ctx.filter = 'none';
+  return c;
+}
 
 function makeCloudSprite(rng: () => number): HTMLCanvasElement {
   const c = document.createElement('canvas');
@@ -31,7 +46,8 @@ export class CloudField {
   constructor(count: number, W: number, H: number, seed: number, private pal: Palette) {
     const rng = makeRng(seed + 99);
     for (let i = 0; i < count; i++) {
-      this.clouds.push({ x: rng() * W, y: rng() * H, s: 0.7 + rng() * 0.9, sprite: makeCloudSprite(rng), vx: 4 + rng() * 5, vy: 1 + rng() * 2 });
+      const sprite = makeCloudSprite(rng);
+      this.clouds.push({ x: rng() * W, y: rng() * H, s: 0.7 + rng() * 0.9, sprite, shadow: makeShadowSprite(sprite), vx: 4 + rng() * 5, vy: 1 + rng() * 2 });
     }
   }
   update(dt: number, wind: Vec, W: number, H: number): void {
@@ -46,8 +62,7 @@ export class CloudField {
     ctx.save(); ctx.globalAlpha = this.pal.shadowAlpha * 0.6; ctx.globalCompositeOperation = 'multiply';
     for (const c of this.clouds) {
       ctx.save(); ctx.translate(c.x + 40 * c.s, c.y + 60 * c.s); ctx.scale(c.s, c.s);
-      ctx.filter = 'brightness(0.35)';
-      ctx.drawImage(c.sprite, -130, -70);
+      ctx.drawImage(c.shadow, -130, -70);
       ctx.restore();
     }
     ctx.restore();

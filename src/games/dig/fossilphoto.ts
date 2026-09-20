@@ -85,8 +85,27 @@ export function loadAllFossils(keys: string[]): Promise<void> {
 }
 
 /** Draw the fossil to fill the slab, keeping its aspect and centring what does not fit. */
+/**
+ * The specimen, scaled into the slab.
+ *
+ * The source plate is far bigger than the slab it is shown in, and rescaling it on every frame is
+ * one of the most expensive things on the screen. The scaled copy is kept until the slab or the
+ * specimen changes, which is to say once a site.
+ */
+let scaled: { src: HTMLCanvasElement; w: number; h: number; cv: HTMLCanvasElement } | null = null;
+
 export function drawFossil(ctx: CanvasRenderingContext2D, c: HTMLCanvasElement, slab: { x: number; y: number; w: number; h: number }): void {
   const k = Math.min(slab.w / c.width, slab.h / c.height) * 0.98;
-  const w = c.width * k, h = c.height * k;
-  ctx.drawImage(c, slab.x + (slab.w - w) / 2, slab.y + (slab.h - h) / 2, w, h);
+  const w = Math.max(1, Math.round(c.width * k)), h = Math.max(1, Math.round(c.height * k));
+  if (!scaled || scaled.src !== c || scaled.w !== w || scaled.h !== h) {
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const cc = cv.getContext('2d');
+    if (!cc) { ctx.drawImage(c, slab.x + (slab.w - w) / 2, slab.y + (slab.h - h) / 2, w, h); return; }
+    cc.imageSmoothingEnabled = true;
+    cc.imageSmoothingQuality = 'high';
+    cc.drawImage(c, 0, 0, w, h);
+    scaled = { src: c, w, h, cv };
+  }
+  ctx.drawImage(scaled.cv, slab.x + (slab.w - w) / 2, slab.y + (slab.h - h) / 2);
 }

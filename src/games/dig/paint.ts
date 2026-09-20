@@ -10,14 +10,28 @@
 
 import { clamp, TAU } from '../../util/math';
 import { makeRng, ValueNoise } from '../../util/rng';
-import { blobPath, contactShadow, Ctx, grainOver, LIGHT, mix, shade } from '../../render/look';
+import { blobPath, CachedLayer, contactShadow, Ctx, grainOver, LIGHT, mix, shade } from '../../render/look';
 
 export interface Slab { x: number; y: number; w: number; h: number }
 
 // ---------------------------------------------------------------- the landscape
 
-/** Sky, buttes, and the sand the trench is cut into. */
+const landLayer = new CachedLayer();
+
+/**
+ * Sky, buttes, and the sand the trench is cut into.
+ *
+ * None of it moves, and all of it is expensive - two silhouettes built point by point, fourteen
+ * full-width wind ripples, and two dozen stones that each want their own gradient. At laptop width
+ * that was most of the frame, so it is painted once and kept.
+ */
 export function paintBadlands(ctx: Ctx, w: number, h: number, horizon: number, t: number, u: number): void {
+  const cv = landLayer.get(w, h, `bl${Math.round(horizon)}:${Math.round(u * 10)}`,
+    (lc, lw, lh) => paintBadlandsStill(lc, lw, lh, horizon, u));
+  if (cv) ctx.drawImage(cv, 0, 0);
+}
+
+function paintBadlandsStill(ctx: Ctx, w: number, h: number, horizon: number, u: number): void {
   // the buttes are far away, so they stand low on the skyline and leave the sky to the interface
   const ridge = Math.min(horizon * 0.42, 52 * u);
   const sky = ctx.createLinearGradient(0, 0, 0, horizon);
@@ -118,11 +132,25 @@ export function paintBadlands(ctx: Ctx, w: number, h: number, horizon: number, t
   grainOver(ctx, 0, horizon, w, h - horizon, 0.05);
 }
 
+const trenchLayer = new CachedLayer();
+
 /**
  * The trench the slab sits in: a rim of spoil around a cut into the ground, with the string grid
  * an excavation actually uses pegged across the corners.
+ *
+ * It carries a wide shadow blur, which the canvas charges for by the pixel every time it is asked,
+ * so this too is painted once for a given slab and blitted after that.
  */
 export function paintTrench(ctx: Ctx, slab: Slab, u: number): void {
+  const pad = 16 * u;
+  const bleed = pad * 3;
+  const cv = trenchLayer.get(slab.w + bleed * 2, slab.h + bleed * 2,
+    `tr${Math.round(slab.w)}x${Math.round(slab.h)}:${Math.round(u * 10)}`,
+    (lc, lw, lh) => paintTrenchStill(lc, { x: bleed, y: bleed, w: slab.w, h: slab.h }, u));
+  if (cv) ctx.drawImage(cv, slab.x - bleed, slab.y - bleed);
+}
+
+function paintTrenchStill(ctx: Ctx, slab: Slab, u: number): void {
   const pad = 16 * u;
   const o = { x: slab.x - pad, y: slab.y - pad, w: slab.w + pad * 2, h: slab.h + pad * 2 };
   // spoil heaped around the cut
