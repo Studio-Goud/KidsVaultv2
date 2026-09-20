@@ -79,9 +79,10 @@ export interface LevelDef {
   wind: WindDef | null;
   clouds: number;
   weather?: import('./weather').WeatherScript;
+  twinRunway?: boolean;
 }
 
-export type PlaneState = 'flying' | 'landing' | 'landed' | 'crashed';
+export type PlaneState = 'flying' | 'landing' | 'landed' | 'crashed' | 'taxi' | 'parked' | 'pushback' | 'holding' | 'takeoff' | 'departing';
 
 export interface Plane {
   id: number;
@@ -113,6 +114,14 @@ export interface Plane {
   boostUntil: number;
   hold: boolean;         // flying a holding circle
   evadeUntil: number;    // TCAS resolution in progress
+  // ground handling
+  ground: { path: Vec[]; seg: number; reverse: boolean } | null;
+  gateId: number | null;
+  parkUntil: number;
+  airportId: string | null;
+  landedOn?: string;
+  takeoffAlong: number;  // metres rolled during the take-off run
+  outbound: boolean;     // taxiing out for departure
 }
 
 export interface Snapshot {
@@ -120,7 +129,7 @@ export interface Snapshot {
   planes: Array<{ id: number; x: number; y: number; h: number; state: PlaneState; alt: number; path: Vec[]; lock: string | null; cross: number }>;
 }
 
-export type EventKind = 'path' | 'lock' | 'nearmiss' | 'crash' | 'goaround' | 'landed' | 'spawn' | 'touchdown' | 'mayday' | 'ditch' | 'command';
+export type EventKind = 'path' | 'lock' | 'nearmiss' | 'crash' | 'goaround' | 'landed' | 'spawn' | 'touchdown' | 'mayday' | 'ditch' | 'command' | 'taxi' | 'pushback' | 'takeoff';
 export interface GameEvent {
   t: number;
   kind: EventKind;

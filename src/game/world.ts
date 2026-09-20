@@ -6,6 +6,7 @@ import { PLANE_TYPES, runwayAccepts } from './planes';
 import type { GameEvent, LevelDef, Plane, PlaneType, RunwayKind, Snapshot } from './types';
 import { effects as upgradeEffects } from './upgrades';
 import { Weather, makeScript } from './weather';
+import { initAirports, isGroundState, startArrivalTaxi, updateGround, type Airport } from './ground';
 
 export const SEP_GAP = 60;      // metres of clear air required between hulls
 export const CRASH_GAP = 10;    // metres: closer than this is a collision
@@ -27,6 +28,8 @@ export interface Runway {
   occupiedBy: number | null;
   center: Vec;
   width: number;
+  airport?: Airport;
+  parallelOf?: string;
 }
 
 export interface Toast { text: string; until: number; kind: 'info' | 'warn' | 'bad' | 'good' }
@@ -112,8 +115,25 @@ export class World {
     });
     const script = level.weather ?? makeScript(level.wind ? 'breezy' : 'clear', 0, level.wind, level.time === 'night');
     this.weather = new Weather(script, this.W, this.H, level.seed);
+    initAirports(this);
+    if (level.twinRunway) {
+      const main = this.runways.find(r => r.kind === 'long' && r.airport);
+      if (main && main.airport) {
+        const ap = main.airport;
+        const off = -(main.width / 2 + 92 + main.width / 2);
+        const threshold = add(main.threshold, mul(ap.uy, off));
+        const end = add(threshold, mul(main.dir, main.length));
+        this.runways.push({
+          id: main.id + 'B', kind: 'long', threshold, heading: main.heading, dir: main.dir, length: main.length, end,
+          gate: sub(threshold, mul(main.dir, GATE_DIST)), occupiedBy: null, center: add(threshold, mul(main.dir, main.length / 2)), width: main.width,
+          airport: ap, parallelOf: main.id,
+        });
+      }
+    }
     this.updateWind(0);
   }
+
+  emit(kind: GameEvent['kind'], planes: number[], text: string, meta?: Record<string, number | string>): void { this.pushEvent(kind, planes, text, meta); }
 
   // ---------- public API used by input/UI ----------
 
@@ -266,7 +286,14 @@ export class World {
   }
 
   runwayName(rw: Runway): string {
-    return rw.kind === 'short' ? t('rwShort') : rw.kind === 'long' ? t('rwLong') : rw.kind === 'water' ? t('rwWater') : t('rwHeli');
+    const base = rw.kind === 'short' ? t('rwShort') : rw.kind === 'long' ? t('rwLong') : rw.kind === 'water' ? t('rwWater') : t('rwHeli');
+    const twin = rw.parallelOf ? rw : this.runways.find(r => r.parallelOf === rw.id);
+    if (!twin) return base;
+    // left/right as seen by a landing pilot
+    const other = rw.parallelOf ? this.runwayById(rw.parallelOf)! : twin;
+    const cross = -rw.dir.y * (other.threshold.x - rw.threshold.x) + rw.dir.x * (other.threshold.y - rw.threshold.y);
+    const right = cross < 0;
+    return `${base} ${right ? (lang() === 'nl' ? 'rechts' : 'right') : (lang() === 'nl' ? 'links' : 'left')}`;
   }
 
   runwayById(id: string | null): Runway | undefined { return id ? this.runways.find(r => r.id === id) : undefined; }
@@ -398,7 +425,7 @@ export class World {
         id: this.nextId++, type, pos, heading, speed: type.speed, state: 'flying', path: [], pathIndex: 0,
         lockedRunway: null, pathDrawnAt: -1, landingT: 0, runway: null, altitude: 1, crossTrack: 0,
         spawnedAt: this.time, trail: [], conflictWith: new Set(), bank: 0, livery: Math.floor(this.rng() * 3), goArounds: 0,
-        wanderTimer: 0, fuel: type.fuel > 0 && !this.demo ? type.fuel : -1, urgent: type.fuel > 0 && !this.demo, ice: 0, turbSeed: this.rng() * 100, boost: 1, boostUntil: -1, hold: false, evadeUntil: -1,
+        wanderTimer: 0, fuel: type.fuel > 0 && !this.demo ? type.fuel : -1, urgent: type.fuel > 0 && !this.demo, ice: 0, turbSeed: this.rng() * 100, boost: 1, boostUntil: -1, hold: false, evadeUntil: -1, ground: null, gateId: null, parkUntil: 0, airportId: null, takeoffAlong: 0, outbound: false,
       };
       this.planes.push(plane);
       this.puffs.push({ pos: { ...pos }, t0: this.time, kind: 'spawn', dir: heading });
@@ -438,6 +465,7 @@ export class World {
   private updatePlane(p: Plane, dt: number): void {
     if (p.state === 'crashed' || p.state === 'landed') return;
     if (p.state === 'landing') { this.updateLanding(p, dt); return; }
+    if (isGroundState(p.state) || p.state === 'departing') { updateGround(this, p, dt); return; }
     if (p.urgent && p.fuel > 0) {
       p.fuel -= dt;
       if (p.fuel <= 0) { this.ditch(p); return; }
@@ -603,13 +631,12 @@ export class World {
       p.bank = lerp(p.bank, 0, 1 - Math.exp(-dt * 4));
       // release the runway for the next arrival once well down the strip
       const roll = this.weather.rollFactor(p.type);
-      if (p.landingT > Math.min(0.9, this.fx.taxiRelease * roll) && rw.occupiedBy === p.id) rw.occupiedBy = null;
+      if (!rw.airport && p.landingT > Math.min(0.9, this.fx.taxiRelease * roll) && rw.occupiedBy === p.id) rw.occupiedBy = null;
     }
     if (p.landingT >= (rw.kind === 'helipad' ? 1 : Math.min(0.97, 0.86 * this.weather.rollFactor(p.type)))) {
-      p.state = 'landed';
-      p.landingT = this.time; // reused as "landed at" timestamp for cleanup
-      if (rw.occupiedBy === p.id) rw.occupiedBy = null;
       this.landed++;
+      if (rw.kind === 'helipad' || rw.kind === 'water') { p.state = 'landed'; p.landingT = this.time; if (rw.occupiedBy === p.id) rw.occupiedBy = null; }
+      else startArrivalTaxi(this, p, rw);
       if (!this.demo) this.coinsEarned += Math.round((p.urgent ? 18 : 6) * this.fx.coinMultiplier);
       if (p.urgent) this.toast(`${p.type.name}: ${lang() === 'nl' ? 'veilig binnen, bonus' : 'safe, bonus'} +${Math.round(12 * this.fx.coinMultiplier)}`, 'good', 2.5);
       this.pushEvent('landed', [p.id], `${p.type.name} ${t('landed').toLowerCase()}`);
@@ -621,7 +648,7 @@ export class World {
   // ---------- separation ----------
 
   private checkSeparation(): void {
-    const airborne = this.planes.filter(p => p.state === 'flying' || (p.state === 'landing' && p.altitude > 0.12));
+    const airborne = this.planes.filter(p => p.state === 'flying' || ((p.state === 'landing' || p.state === 'takeoff' || p.state === 'departing') && p.altitude > 0.12));
     for (let i = 0; i < airborne.length; i++) {
       for (let j = i + 1; j < airborne.length; j++) {
         const a = airborne[i], b = airborne[j];

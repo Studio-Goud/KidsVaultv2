@@ -210,7 +210,9 @@ export function drawPlane(ctx: CanvasRenderingContext2D, pv: PlaneView, time: nu
   const body = t.livery.body;
   const wing = t.military ? shade(body, -0.06) : shade(body, -0.04);
   const bankAng = Math.max(-1, Math.min(1, pv.bank)) * 0.5;
-  const gearDown = !g.rotor && (pv.altitude < 0.45 || pv.state === 'landing' || pv.state === 'landed');
+  const onGround = pv.state === 'taxi' || pv.state === 'parked' || pv.state === 'pushback' || pv.state === 'holding' || pv.state === 'takeoff';
+  const parked = pv.state === 'parked';
+  const gearDown = !g.rotor && (pv.altitude < 0.45 || pv.state === 'landing' || pv.state === 'landed' || onGround);
   const rolling = pv.state === 'landing' && (pv.landingT ?? 0) > 0.03 && pv.altitude < 0.05;
 
   ctx.save();
@@ -246,8 +248,9 @@ export function drawPlane(ctx: CanvasRenderingContext2D, pv: PlaneView, time: nu
     ctx.beginPath(); ctx.moveTo(g.L * 0.05, -g.w * 0.45); ctx.lineTo(-g.L * 0.7, -g.w * 0.05); ctx.stroke();
     // engine cowling + exhaust
     ctx.fillStyle = shade(body, -0.22); ctx.beginPath(); ctx.roundRect(-g.L * 0.18, -g.w * 0.45, g.L * 0.3, g.w * 0.9, g.w * 0.3); ctx.fill();
-    if (g.rotor === 'tandem') { drawRotor(ctx, g.L * 0.28, t.hull * 1.25, time, pv.id); drawRotor(ctx, -g.L * 0.3, t.hull * 1.25, time * 1.02, pv.id + 2); }
-    else drawRotor(ctx, 0, t.hull * 1.65, time, pv.id);
+    const rt = pv.state === 'parked' ? 0.2 : time;
+    if (g.rotor === 'tandem') { drawRotor(ctx, g.L * 0.28, t.hull * 1.25, rt, pv.id); drawRotor(ctx, -g.L * 0.3, t.hull * 1.25, rt * 1.02, pv.id + 2); }
+    else drawRotor(ctx, 0, t.hull * 1.65, rt, pv.id);
     ctx.restore();
     return;
   }
@@ -399,7 +402,7 @@ export function drawPlane(ctx: CanvasRenderingContext2D, pv: PlaneView, time: nu
     const onWing = e.x < g.L * 0.45;
     const px = onWing ? e.x + g.w * 1.0 : g.L * 0.5 + 1.5;
     const R = t.hull * (onWing ? 0.55 : 0.6);
-    drawProp(ctx, px, e.y, R, time, e.y + pv.id, t.family === 'ga' ? 2 : 6);
+    drawProp(ctx, px, e.y, R, parked ? 0.37 : time, e.y + pv.id, t.family === 'ga' ? 2 : 6);
   }
   // ===== landing gear =====
   if (gearDown) {
@@ -409,7 +412,7 @@ export function drawPlane(ctx: CanvasRenderingContext2D, pv: PlaneView, time: nu
     ctx.beginPath(); ctx.arc(gx, -gy, g.w * 0.19, 0, TAU); ctx.arc(gx, gy, g.w * 0.19, 0, TAU); ctx.fill();
   }
   // ===== afterburner =====
-  if (g.afterburner && pv.state === 'flying') {
+  if (g.afterburner && (pv.state === 'flying' || pv.state === 'takeoff' || pv.state === 'departing')) {
     const n = g.afterburners ?? 1;
     const boost = pv.boost && pv.boost > 1 ? 1.5 : 1;
     for (let i = 0; i < n; i++) {
@@ -421,12 +424,12 @@ export function drawPlane(ctx: CanvasRenderingContext2D, pv: PlaneView, time: nu
     }
   }
   // ===== lights =====
-  const strobe = (time * 1.4 + pv.id * 0.37) % 1 < 0.08;
+  const strobe = !parked && (time * 1.4 + pv.id * 0.37) % 1 < 0.08;
   const tipX = g.wingX + g.chord * 0.2 - g.sweep * 0.9;
   ctx.fillStyle = '#ff4d4d'; ctx.beginPath(); ctx.arc(tipX, -g.span / 2 * Math.cos(bankAng), 1.5, 0, TAU); ctx.fill();
   ctx.fillStyle = '#4dff7a'; ctx.beginPath(); ctx.arc(tipX, g.span / 2 * Math.cos(bankAng), 1.5, 0, TAU); ctx.fill();
   if (strobe || night) { ctx.fillStyle = strobe ? '#ffffff' : 'rgba(255,255,255,0.6)'; ctx.beginPath(); ctx.arc(-g.L * 0.5 + 1, 0, strobe ? 2.4 : 1.4, 0, TAU); ctx.fill(); }
-  if (gearDown && pv.state !== 'landed') { ctx.fillStyle = 'rgba(255,250,220,0.9)'; ctx.beginPath(); ctx.arc(g.L * 0.4, 0, 1.6, 0, TAU); ctx.fill(); }
+  if (gearDown && pv.state !== 'landed' && !parked && pv.state !== 'taxi' && pv.state !== 'pushback') { ctx.fillStyle = 'rgba(255,250,220,0.9)'; ctx.beginPath(); ctx.arc(g.L * 0.4, 0, 1.6, 0, TAU); ctx.fill(); }
   ctx.restore();
 }
 

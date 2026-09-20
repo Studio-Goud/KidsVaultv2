@@ -1,14 +1,14 @@
 import type { IslandDef, LevelDef } from '../game/types';
-import { PLANE_TYPES } from '../game/planes';
 import type { Runway } from '../game/world';
-import { angleDiff, dist, TAU, type Vec } from '../util/math';
-import { makeRng, ValueNoise } from '../util/rng';
+import { dist, TAU, type Vec } from '../util/math';
+import { islandPolygon, pointInPoly, polyArea, scalePoly, type IslandShape } from '../game/geo';
+import { drawAirport } from './airportfx';
+import { makeRng } from '../util/rng';
 import { drawBoat, drawBush, drawCastle, drawFlowers, drawHangar, drawHouse, drawLighthouse, drawPalm, drawPine, drawTerminal, drawTowerBase, drawTree, drawVillage, drawWindmillBase, type LightSpot } from './decor';
 import { hexA, shade, type Palette } from './palette';
-import { drawPlane } from './planes';
 import { effects as upgradeEffects } from '../game/upgrades';
 
-export interface IslandShape { poly: Vec[]; def: IslandDef; cx: number; cy: number }
+export type { IslandShape };
 export interface TerrainData {
   canvas: HTMLCanvasElement;
   pixelScale: number;
@@ -23,74 +23,11 @@ export interface TerrainData {
 
 type Ctx = CanvasRenderingContext2D;
 
-export function pointInPoly(p: Vec, poly: Vec[]): boolean {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
-    const hit = ((yi > p.y) !== (yj > p.y)) && (p.x < (xj - xi) * (p.y - yi) / (yj - yi) + xi);
-    if (hit) inside = !inside;
-  }
-  return inside;
-}
-
-function scalePoly(poly: Vec[], cx: number, cy: number, s: number, dy = 0): Vec[] {
-  return poly.map(p => ({ x: cx + (p.x - cx) * s, y: cy + (p.y - cy) * s + dy }));
-}
-
 function tracePoly(ctx: Ctx, poly: Vec[]): void {
   ctx.beginPath();
   ctx.moveTo(poly[0].x, poly[0].y);
   for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y);
   ctx.closePath();
-}
-
-function polyArea(poly: Vec[]): number {
-  let a = 0;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) a += (poly[j].x + poly[i].x) * (poly[j].y - poly[i].y);
-  return Math.abs(a / 2);
-}
-
-export function islandPolygon(def: IslandDef, W: number, H: number, runways: Runway[]): IslandShape {
-  const n = 110;
-  const noise = new ValueNoise(def.seed);
-  const cx = def.cx * W, cy = def.cy * H, rx = def.rx * W, ry = def.ry * H;
-  // runway samples that must be inside the island
-  const samples: Array<{ ang: number; rn: number }> = [];
-  for (const rw of runways) {
-    if (rw.kind === 'water') continue;
-    const dxc = (rw.center.x - cx) / rx, dyc = (rw.center.y - cy) / ry;
-    if (Math.hypot(dxc, dyc) > 1.25) continue;
-    const perp = { x: -rw.dir.y, y: rw.dir.x };
-    const halfW = rw.width * 0.5 + 34;
-    for (let along = -50; along <= rw.length + 60; along += 20) {
-      for (const side of [-1, 0, 1]) {
-        const p = { x: rw.threshold.x + rw.dir.x * along + perp.x * halfW * side, y: rw.threshold.y + rw.dir.y * along + perp.y * halfW * side };
-        const dx = (p.x - cx) / rx, dy = (p.y - cy) / ry;
-        samples.push({ ang: Math.atan2(dy, dx), rn: Math.hypot(dx, dy) });
-      }
-    }
-    for (const d of def.decor) {
-      const dx = (d.x * W - cx) / rx, dy = (d.y * H - cy) / ry;
-      samples.push({ ang: Math.atan2(dy, dx), rn: Math.hypot(dx, dy) + 0.06 });
-    }
-  }
-  const radii: number[] = [];
-  for (let i = 0; i < n; i++) {
-    const th = (i / n) * TAU;
-    const f = noise.fbm2(Math.cos(th) * 1.7 + def.seed * 0.01, Math.sin(th) * 1.7, 3);
-    let rn = 0.66 + 0.46 * f;
-    for (const s of samples) if (Math.abs(angleDiff(th, s.ang)) < 0.26) rn = Math.max(rn, s.rn + 0.1);
-    radii.push(rn);
-  }
-  // circular smoothing to avoid kinks where the runway bulge meets the noise
-  const sm: number[] = [];
-  for (let i = 0; i < n; i++) {
-    let s = 0;
-    for (let k = -3; k <= 3; k++) s += radii[(i + k + n) % n];
-    sm.push(s / 7);
-  }
-  const poly = sm.map((rn, i) => { const th = (i / n) * TAU; return { x: cx + Math.cos(th) * rx * rn, y: cy + Math.sin(th) * ry * rn }; });
-  return { poly, def, cx, cy };
 }
 
 function runwayRectContains(rw: Runway, p: Vec, margin: number): boolean {
@@ -197,30 +134,14 @@ function drawRunway(ctx: Ctx, rw: Runway, pal: Palette, lights: LightSpot[], rl:
   void lights;
 }
 
-function drawTaxiwayAndApron(ctx: Ctx, rw: Runway, apron: Vec, pal: Palette, rng: () => number, time: string): void {
-  // connector from the runway to the apron
-  const startAlong = rw.length * 0.72;
-  const start = { x: rw.threshold.x + rw.dir.x * startAlong, y: rw.threshold.y + rw.dir.y * startAlong };
-  const side = Math.sign((apron.x - start.x) * -rw.dir.y + (apron.y - start.y) * rw.dir.x) || 1;
-  const exit = { x: start.x - rw.dir.y * side * (rw.width / 2), y: start.y + rw.dir.x * side * (rw.width / 2) };
-  const mid = { x: exit.x - rw.dir.y * side * 60, y: exit.y + rw.dir.x * side * 60 };
-  ctx.strokeStyle = pal.taxiway; ctx.lineWidth = 16; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.beginPath(); ctx.moveTo(exit.x, exit.y); ctx.quadraticCurveTo(mid.x, mid.y, apron.x, apron.y); ctx.stroke();
-  ctx.strokeStyle = 'rgba(255,214,90,0.8)'; ctx.lineWidth = 1.2; ctx.setLineDash([6, 6]);
-  ctx.beginPath(); ctx.moveTo(exit.x, exit.y); ctx.quadraticCurveTo(mid.x, mid.y, apron.x, apron.y); ctx.stroke(); ctx.setLineDash([]);
-  // apron
-  ctx.fillStyle = `rgba(20,50,40,${pal.shadowAlpha * 0.6})`; ctx.beginPath(); ctx.roundRect(apron.x - 52 + 3, apron.y - 30 + 4, 104, 60, 14); ctx.fill();
-  ctx.fillStyle = pal.taxiway; ctx.beginPath(); ctx.roundRect(apron.x - 52, apron.y - 30, 104, 60, 14); ctx.fill();
-  ctx.fillStyle = shade(pal.taxiway, 0.12); ctx.beginPath(); ctx.roundRect(apron.x - 46, apron.y - 24, 92, 48, 10); ctx.fill();
-  // parked aircraft
-  const tier = upgradeEffects().terminalTier;
-  const parked = [PLANE_TYPES.c172, PLANE_TYPES.dhc6, PLANE_TYPES.atr72, PLANE_TYPES.e195].slice(0, 2 + Math.min(2, tier));
-  parked.forEach((t, i) => {
-    drawPlane(ctx, { type: t, pos: { x: apron.x - 22 - (parked.length - 2) * 16 + i * 40, y: apron.y + 2 }, heading: -Math.PI / 2 + (rng() - 0.5) * 0.2, altitude: 0, bank: 0, livery: i, state: 'landed', id: 900 + i }, 0, time === 'night');
-  });
+function inFootprint(r: { x: number; y: number; w: number; h: number; rot: number }, p: Vec, margin: number): boolean {
+  const dx = p.x - r.x, dy = p.y - r.y;
+  const c = Math.cos(-r.rot), s = Math.sin(-r.rot);
+  const lx = dx * c - dy * s, ly = dx * s + dy * c;
+  return Math.abs(lx) < r.w / 2 + margin && Math.abs(ly) < r.h / 2 + margin;
 }
 
-export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: number, pixelScale: number, pal: Palette): TerrainData {
+export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: number, pixelScale: number, pal: Palette, mustContain: Vec[] = []): TerrainData {
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(W * pixelScale); canvas.height = Math.ceil(H * pixelScale);
   const ctx = canvas.getContext('2d')!;
@@ -233,7 +154,7 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
   const boats: TerrainData['boats'] = [];
 
   drawSea(ctx, W, H, pal, rng);
-  const islands = level.islands.map(def => islandPolygon(def, W, H, runways));
+  const islands = level.islands.map(def => islandPolygon(def, W, H, mustContain));
 
   // shallow halos first for all islands
   for (const isl of islands) {
@@ -271,30 +192,33 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
     ctx.restore();
 
     // decor anchors for later
-    const decorPts = isl.def.decor.map(d => ({ ...d, wx: d.x * W, wy: d.y * H }));
     const islandRunways = runways.filter(rw => rw.kind !== 'water' && pointInPoly(rw.center, isl.poly));
+    // named decor is pushed out of any airport footprint so villages never end up on the apron
+    const decorPts = isl.def.decor.map(d => {
+      let wx = d.x * W, wy = d.y * H;
+      for (const rw of islandRunways) {
+        const fp = rw.airport?.footprint; if (!fp) continue;
+        const margin = d.kind === 'village' ? 90 : 50;
+        if (!inFootprint(fp, { x: wx, y: wy }, margin)) continue;
+        const dx = wx - fp.x, dy = wy - fp.y; const l = Math.hypot(dx, dy) || 1;
+        for (let k = 0; k < 40 && inFootprint(fp, { x: wx, y: wy }, margin); k++) { wx += (dx / l) * 20; wy += (dy / l) * 20; }
+      }
+      return { ...d, wx, wy };
+    });
 
-    // road from village to apron / runway
+    // airport complexes (taxiways, aprons, terminal ...) and the access road from the village
     const village = decorPts.find(d => d.kind === 'village');
-    const terminal = decorPts.find(d => d.kind === 'terminal');
     let apron: Vec | null = null;
-    if (islandRunways.length) {
-      const rw = islandRunways.find(r => r.kind !== 'helipad');
-      if (rw) {
-        const side = terminal ? Math.sign((terminal.wx - rw.center.x) * -rw.dir.y + (terminal.wy - rw.center.y) * rw.dir.x) || 1 : 1;
-        apron = terminal
-          ? { x: terminal.wx - rw.dir.y * 0 , y: terminal.wy + 44 }
-          : { x: rw.center.x - rw.dir.y * side * (rw.width / 2 + 95) + rw.dir.x * rw.length * 0.22, y: rw.center.y + rw.dir.x * side * (rw.width / 2 + 95) + rw.dir.y * rw.length * 0.22 };
-        // keep the apron on the island
-        if (!pointInPoly(apron, grassPoly)) apron = { x: rw.center.x - rw.dir.y * side * (rw.width / 2 + 80), y: rw.center.y + rw.dir.x * side * (rw.width / 2 + 80) };
-        if (village) {
-          ctx.strokeStyle = shade(pal.sandDark, -0.05); ctx.lineWidth = 9; ctx.lineCap = 'round';
-          const c = { x: (village.wx + apron.x) / 2 + (irng() - 0.5) * 120, y: (village.wy + apron.y) / 2 + (irng() - 0.5) * 80 };
-          ctx.beginPath(); ctx.moveTo(village.wx, village.wy); ctx.quadraticCurveTo(c.x, c.y, apron.x, apron.y); ctx.stroke();
-          ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.setLineDash([5, 7]);
-          ctx.beginPath(); ctx.moveTo(village.wx, village.wy); ctx.quadraticCurveTo(c.x, c.y, apron.x, apron.y); ctx.stroke(); ctx.setLineDash([]);
-        }
-        drawTaxiwayAndApron(ctx, rw, apron, pal, irng, level.time);
+    for (const rw of islandRunways) {
+      if (!rw.airport || rw.parallelOf) continue;
+      drawAirport(ctx, rw.airport, pal, lights, runwayLights);
+      apron = rw.airport.roadAnchor;
+      if (village) {
+        ctx.strokeStyle = shade(pal.sandDark, -0.05); ctx.lineWidth = 9; ctx.lineCap = 'round';
+        const c = { x: (village.wx + apron.x) / 2 + (irng() - 0.5) * 120, y: (village.wy + apron.y) / 2 + (irng() - 0.5) * 80 };
+        ctx.beginPath(); ctx.moveTo(village.wx, village.wy); ctx.quadraticCurveTo(c.x, c.y, apron.x, apron.y); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.setLineDash([5, 7]);
+        ctx.beginPath(); ctx.moveTo(village.wx, village.wy); ctx.quadraticCurveTo(c.x, c.y, apron.x, apron.y); ctx.stroke(); ctx.setLineDash([]);
       }
     }
     for (const rw of islandRunways) drawRunway(ctx, rw, pal, lights, runwayLights);
@@ -304,8 +228,8 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
     const treeCount = Math.floor(area / (style === 'pine' ? 5200 : 6800));
     const occupied = (p: Vec, margin: number): boolean => {
       if (!pointInPoly(p, scalePoly(isl.poly, isl.cx, isl.cy, 0.9, -4))) return true;
-      for (const rw of islandRunways) if (runwayRectContains(rw, p, margin + 26)) return true;
-      if (apron && dist(p, apron) < 80 + margin) return true;
+      for (const rw of islandRunways) { if (runwayRectContains(rw, p, margin + 26)) return true; if (rw.airport && inFootprint(rw.airport.footprint, p, margin + 10)) return true; }
+      if (apron && dist(p, apron) < 40 + margin) return true;
       for (const d of decorPts) if (dist(p, { x: d.wx, y: d.wy }) < (d.kind === 'village' ? 78 : d.kind === 'terminal' ? 60 : 44) + margin) return true;
       return false;
     };

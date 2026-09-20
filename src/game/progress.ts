@@ -111,6 +111,7 @@ export function buildMission(worldIndex: number, index: number): LevelDef & { ta
     clouds: base.clouds + (tag === 'storm' ? 4 : 0),
     seed: base.seed,
     tag, index: i, worldIndex,
+    twinRunway: i >= 5 && base.runways.some(r => r.kind === 'long'),
   };
 }
 

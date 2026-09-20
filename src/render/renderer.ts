@@ -8,6 +8,8 @@ import { drawPlane, drawPlaneLights, drawPlaneShadow, type PlaneView } from './p
 import { buildTerrain, type TerrainData } from './terrain';
 import { drawWindmillBlades } from './decor';
 import { WeatherFx } from './weatherfx';
+import { drawVehicles } from './airportfx';
+import { mustContainPoints } from '../game/ground';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -33,6 +35,8 @@ export class Renderer {
   dpr = 1;
   sw = 1; sh = 1;
   scale = 1; ox = 0; oy = 0;
+  /** camera: zoom factor and pan (screen px) on top of the fitted view */
+  zoom = 1; panX = 0; panY = 0;
   W = 800; H = 1600;
   terrain: TerrainData | null = null;
   clouds: CloudField | null = null;
@@ -74,12 +78,14 @@ export class Renderer {
     this.ox = (this.sw - this.W * this.scale) / 2;
     this.oy = (this.sh - this.H * this.scale) / 2;
     if (rebuild || !this.terrain) {
-      this.terrain = buildTerrain(world.level, world.runways, this.W, this.H, this.scale * this.dpr, this.pal);
+      const res = Math.min(1.7, Math.sqrt(9e6 / (this.W * this.H * this.scale * this.scale * this.dpr * this.dpr)));
+      this.terrain = buildTerrain(world.level, world.runways, this.W, this.H, this.scale * this.dpr * Math.max(1, res), this.pal, mustContainPoints(world));
     }
   }
 
   setWorld(world: World): void {
     this.worldRef = world;
+    this.resetView();
     this.pal = PALETTES[world.level.time];
     this.terrain = null;
     this.fit(world, true);
@@ -88,7 +94,29 @@ export class Renderer {
     this.wxfx = new WeatherFx(this.W, this.H);
   }
 
-  toWorld = (sx: number, sy: number): Vec => ({ x: (sx - this.ox) / this.scale, y: (sy - this.oy) / this.scale });
+  private viewScale(): number { return this.scale * this.zoom; }
+  private viewOx(): number { return this.ox + this.panX; }
+  private viewOy(): number { return this.oy + this.panY; }
+  toWorld = (sx: number, sy: number): Vec => ({ x: (sx - this.viewOx()) / this.viewScale(), y: (sy - this.viewOy()) / this.viewScale() });
+  zoomAt = (sx: number, sy: number, factor: number): void => {
+    const before = this.toWorld(sx, sy);
+    this.zoom = clamp(this.zoom * factor, 1, 3);
+    // keep the world point under the finger fixed
+    this.panX = sx - before.x * this.viewScale() - this.ox;
+    this.panY = sy - before.y * this.viewScale() - this.oy;
+    this.clampPan();
+  };
+  panBy = (dx: number, dy: number): void => { this.panX += dx; this.panY += dy; this.clampPan(); };
+  resetView = (): void => { this.zoom = 1; this.panX = 0; this.panY = 0; };
+  private clampPan(): void {
+    if (this.zoom <= 1.001) { this.panX = 0; this.panY = 0; return; }
+    const vw = this.W * this.viewScale(), vh = this.H * this.viewScale();
+    const minX = Math.min(0, this.sw - vw - this.ox * 2) , maxX = 0;
+    const minY = Math.min(0, this.sh - vh - this.oy * 2), maxY = 0;
+    // pan is relative to the fitted offset; allow the zoomed world to slide but never show beyond its edges
+    this.panX = clamp(this.panX, minX - this.ox * (this.zoom - 1), maxX + this.ox * 0) ;
+    this.panY = clamp(this.panY, minY - this.oy * (this.zoom - 1), maxY);
+  }
 
   hudHit = (sx: number, sy: number): string | null => {
     const inside = (h?: { x: number; y: number; w: number; h: number }): boolean => !!h && sx >= h.x && sx <= h.x + h.w && sy >= h.y && sy <= h.y + h.h;
@@ -100,7 +128,8 @@ export class Renderer {
   };
 
   private worldTransform(): void {
-    this.ctx.setTransform(this.dpr * this.scale, 0, 0, this.dpr * this.scale, this.ox * this.dpr, this.oy * this.dpr);
+    const vs = this.viewScale();
+    this.ctx.setTransform(this.dpr * vs, 0, 0, this.dpr * vs, this.viewOx() * this.dpr, this.viewOy() * this.dpr);
   }
   private screenTransform(): void {
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -110,7 +139,7 @@ export class Renderer {
     const ctx = this.ctx, pal = this.pal;
     if (!this.terrain) this.fit(world, true);
     const T = this.terrain!;
-    const px = 1 / this.scale; // one screen pixel in world units
+    const px = 1 / this.viewScale(); // one screen pixel in world units
 
     this.screenTransform();
     ctx.fillStyle = pal.seaDeep;
@@ -127,6 +156,7 @@ export class Renderer {
     // approach corridors and gates
     for (const rw of world.runways) this.drawGate(ctx, rw, world, time, px);
 
+    for (const rw of world.runways) if (rw.airport && !rw.parallelOf) drawVehicles(ctx, rw.airport, time);
     // animated decor
     const bladeSpeed = 0.5 + world.wind.kmh * 0.09;
     for (const wm of T.windmills) drawWindmillBlades(ctx, wm, time * bladeSpeed);
@@ -243,7 +273,7 @@ export class Renderer {
     }
     // letterbox edges (soft vignette)
     this.screenTransform();
-    if (this.ox > 0) {
+    if (this.ox > 0 && this.zoom <= 1.001) {
       const g1 = ctx.createLinearGradient(this.ox, 0, this.ox + 60, 0); g1.addColorStop(0, 'rgba(0,10,30,0.35)'); g1.addColorStop(1, 'rgba(0,10,30,0)');
       ctx.fillStyle = g1; ctx.fillRect(this.ox, 0, 60, this.sh);
       const g2 = ctx.createLinearGradient(this.sw - this.ox, 0, this.sw - this.ox - 60, 0); g2.addColorStop(0, 'rgba(0,10,30,0.35)'); g2.addColorStop(1, 'rgba(0,10,30,0)');

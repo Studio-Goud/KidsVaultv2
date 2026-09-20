@@ -63,6 +63,9 @@ function onWorldEvent(e: GameEvent): void {
     case 'goaround': radio.say(`${cs}, go around, I say again, go around.`, { urgent: true }); break;
     case 'nearmiss': radio.say(`Traffic alert, ${cs}, traffic, turn immediately.`, { urgent: true }); break;
     case 'ditch': radio.say(`${cs} is going down, ditching, ditching.`, { who: 'pilot', urgent: true }); break;
+    case 'taxi': { const g = Number(e.meta?.gate ?? -1); radio.say(g > 0 && g < 100 ? `${cs}, taxi to gate ${g} via alpha.` : `${cs}, taxi to the apron via alpha.`); break; }
+    case 'pushback': radio.say(`${cs}, pushback approved.`); break;
+    case 'takeoff': radio.say(`${cs}, wind ${Math.round(world.wind.kmh)} kilometers, runway ${runwayCallout(world.runwayById(p?.airportId ?? '')?.heading ?? 0)}, cleared for take-off.`); break;
     case 'command': {
       const c = String(e.meta?.cmd);
       if (c === 'faster') { radio.say(`${cs}, increase speed, expedite.`); radio.say(`Increasing speed, ${cs}.`, { who: 'pilot' }); }
@@ -154,7 +157,7 @@ const actions: UIActions = {
 };
 const ui = new UI(actions);
 
-const input = new Input(canvas, () => (mode === 'playing' ? world : null), renderer.toWorld, (sx, sy) => {
+const input = new Input(canvas, () => (mode === 'playing' ? world : null), renderer, (sx, sy) => {
   if (mode !== 'playing') return false;
   const hit = renderer.hudHit(sx, sy);
   if (hit === 'pause') { pause(); return true; }
