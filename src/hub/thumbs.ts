@@ -117,3 +117,35 @@ export function drawValleyThumb(c: HTMLCanvasElement): void {
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * w * 0.12, Math.sin(a) * w * 0.12); ctx.stroke(); }
   ctx.restore();
 }
+
+/** A rock pool with a crab and a starfish and two pools waiting, in Tidepool's palette. */
+export function drawTideThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#2f8fd6'); g.addColorStop(0.62, '#6fc9ea'); g.addColorStop(0.63, '#f1dfb4'); g.addColorStop(1, '#dcc490');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.2;
+  for (let k = 0; k < 4; k++) { ctx.beginPath(); for (let x = 0; x <= w; x += 8) ctx.lineTo(x, h * (0.12 + k * 0.13) + Math.sin(x * 0.08 + k) * 1.5); ctx.stroke(); }
+  // two pools
+  for (const [px, col] of [[0.28, '#e0574a'], [0.72, '#3f86d6']] as Array<[number, string]>) {
+    ctx.fillStyle = 'rgba(80,160,200,0.6)';
+    ctx.beginPath(); ctx.roundRect(w * px - w * 0.17, h * 0.7, w * 0.34, h * 0.24, 8); ctx.fill();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(w * px, h * 0.82, h * 0.07, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2; ctx.stroke();
+  }
+  // a red crab
+  ctx.save(); ctx.translate(w * 0.36, h * 0.36);
+  ctx.fillStyle = '#e0574a'; ctx.strokeStyle = 'rgba(30,40,60,0.45)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(0, 0, w * 0.09, w * 0.065, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  for (const sx of [-1, 1]) { ctx.beginPath(); ctx.arc(sx * w * 0.1, -w * 0.05, w * 0.028, 0, TAU); ctx.fill(); ctx.stroke(); }
+  ctx.fillStyle = '#20304a'; ctx.beginPath(); ctx.arc(-w * 0.027, -w * 0.02, 1.6, 0, TAU); ctx.arc(w * 0.027, -w * 0.02, 1.6, 0, TAU); ctx.fill();
+  ctx.restore();
+  // a blue starfish
+  ctx.save(); ctx.translate(w * 0.68, h * 0.42);
+  ctx.fillStyle = '#3f86d6'; ctx.strokeStyle = 'rgba(30,40,60,0.45)'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) { const a = (i / 10) * TAU - Math.PI / 2; const rr = i % 2 === 0 ? w * 0.1 : w * 0.045; const x = Math.cos(a) * rr, y = Math.sin(a) * rr; if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}

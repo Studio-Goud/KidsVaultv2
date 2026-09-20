@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawPlaneThumb, drawStarsThumb, drawValleyThumb } from './thumbs';
+import { drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -66,6 +66,16 @@ const GAMES: Game[] = [
     practisesNl: 'Ruimtelijk inzicht, vooruitdenken, oorzaak en gevolg',
     age: '5+',
     paint: drawValleyThumb,
+  },
+  {
+    href: './tidepool.html',
+    title: 'Tidepool',
+    line: 'Sort what the tide brings into the right pools. Then the rule changes.',
+    lineNl: 'Sorteer wat het tij brengt in de juiste poelen. Dan verandert de regel.',
+    practises: 'Cognitive flexibility, switching rules',
+    practisesNl: 'Denkflexibiliteit, van regel wisselen',
+    age: '4+',
+    paint: drawTideThumb,
   },
   {
     href: './dig.html',

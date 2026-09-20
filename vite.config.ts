@@ -17,6 +17,7 @@ export default defineConfig({
         orbit: resolve(__dirname, 'orbit.html'),
         dig: resolve(__dirname, 'dig.html'),
         mill: resolve(__dirname, 'mill.html'),
+        tidepool: resolve(__dirname, 'tidepool.html'),
       },
     },
   },
