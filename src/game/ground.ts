@@ -205,7 +205,7 @@ export function onRunwaySurface(rw: Runway, p: Vec): boolean {
 function pickDepartureRunway(world: World, ap: Airport, p: Plane): string | null {
   const options = ap.departRunways.filter(id => {
     const r = world.runwayById(id);
-    return r && runwayAccepts(r.kind, p.type) && ap.holds[id] !== undefined;
+    return r && !r.closed && runwayAccepts(r.kind, p.type) && ap.holds[id] !== undefined;
   });
   if (!options.length) return null;
   const score = (id: string): number => {

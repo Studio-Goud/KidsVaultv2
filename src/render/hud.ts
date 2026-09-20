@@ -150,7 +150,7 @@ export function drawHud(ctx: Ctx, world: World, L: HudLayout, time: number, pal:
     ctx.fillStyle = '#fff'; ctx.font = font('900', 15);
     ctx.fillText(sel.type.name, x + 80 * u, y + 24 * u);
     ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = font('700', 11.5);
-    const rws = world.runways.filter(r => runwayAccepts(r.kind, sel.type)).map(r => world.runwayName(r));
+    const rws = world.runways.filter(r => !r.closed && runwayAccepts(r.kind, sel.type)).map(r => world.runwayName(r));
     ctx.fillText(`${displayKmh(sel.type.speed)} ${t('kmh')} · ${t('landsOn')}: ${rws.join(' / ') || '-'}`, x + 80 * u, y + 42 * u);
     hits.panel = { x, y, w, h };
     // ATC command buttons

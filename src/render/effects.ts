@@ -106,19 +106,6 @@ export function drawSeaLife(ctx: Ctx, W: number, H: number, time: number, pal: P
     ctx.beginPath(); ctx.arc(x, y, 1.6, 0, TAU); ctx.fill();
   }
   ctx.globalAlpha = 1;
-  // foam rings around islands
-  for (const isl of islands) {
-    for (const [s, a, w, speed] of [[1.025, 0.55, 3, 14], [1.06, 0.28, 2, -10], [1.1, 0.14, 1.5, 6]] as Array<[number, number, number, number]>) {
-      ctx.strokeStyle = `rgba(255,255,255,${a})`;
-      ctx.lineWidth = w; ctx.setLineDash([26, 18]); ctx.lineDashOffset = time * speed;
-      ctx.beginPath();
-      isl.poly.forEach((p, i) => {
-        const x = isl.cx + (p.x - isl.cx) * s, y = isl.cy + (p.y - isl.cy) * s + 2;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.closePath(); ctx.stroke();
-    }
-  }
   ctx.setLineDash([]);
   ctx.restore();
 }

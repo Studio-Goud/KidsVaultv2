@@ -42,6 +42,8 @@ export interface PlaneType {
 export interface RunwayDef {
   id: string;
   kind: RunwayKind;
+  /** painted on the map but not in use at this difficulty */
+  closed?: boolean;
   /** threshold (touchdown start) in normalized coords 0..1 of the world */
   x: number; y: number;
   /** landing heading in radians (0 = east, PI/2 = south on screen) */

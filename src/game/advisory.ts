@@ -58,7 +58,7 @@ export function advise(world: World, p: Plane): Advisory {
   }
 
   // runways for this type
-  const runways: RunwayAdvice[] = world.runways.filter(rw => runwayAccepts(rw.kind, type)).map(rw => {
+  const runways: RunwayAdvice[] = world.runways.filter(rw => !rw.closed && runwayAccepts(rw.kind, type)).map(rw => {
     const c = wx.components(rw.heading);
     const reasons: string[] = [];
     let ok = true, score = 0;

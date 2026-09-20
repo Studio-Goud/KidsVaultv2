@@ -343,11 +343,12 @@ function fitRunway(r: RealRunway, W: number, H: number): { x: number; y: number;
 }
 
 export function realRunwayDefs(port: RealPort, step: number, W = 739, H = 1600): RunwayDef[] {
-  const open = port.runways.filter(r => (r.from ?? 0) <= step);
-  const list = open.length ? open : [port.runways[0]];
-  return list.map(r => {
+  // every runway of the field is always on the map; the ones above this step are simply closed
+  const anyOpen = port.runways.some(r => (r.from ?? 0) <= step);
+  return port.runways.map((r, i) => {
     const fit = fitRunway(r, W, H);
-    return { id: r.id, kind: r.kind ?? 'long', x: fit.x, y: fit.y, heading: hdgToRad(r.hdg), length: fit.len };
+    const open = anyOpen ? (r.from ?? 0) <= step : i === 0;
+    return { id: r.id, kind: r.kind ?? 'long', x: fit.x, y: fit.y, heading: hdgToRad(r.hdg), length: fit.len, closed: !open };
   });
 }
 

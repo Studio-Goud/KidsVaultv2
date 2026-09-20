@@ -31,6 +31,8 @@ export interface Runway {
   width: number;
   airport?: Airport;
   parallelOf?: string;
+  /** the runway exists and is painted, but is not in use right now */
+  closed?: boolean;
 }
 
 export interface Toast { text: string; until: number; kind: 'info' | 'warn' | 'bad' | 'good' }
@@ -109,7 +111,7 @@ export class World {
       const end = add(threshold, mul(dir, r.length));
       const width = r.kind === 'long' ? 46 : r.kind === 'short' ? 34 : r.kind === 'water' ? 60 : 44;
       return {
-        id: r.id, kind: r.kind, threshold, heading: r.heading, dir, length: r.length, end,
+        id: r.id, kind: r.kind, closed: r.closed, threshold, heading: r.heading, dir, length: r.length, end,
         gate: r.kind === 'helipad' ? { ...threshold } : sub(threshold, mul(dir, GATE_DIST)),
         occupiedBy: null,
         center: add(threshold, mul(dir, r.length / 2)),
@@ -237,6 +239,7 @@ export class World {
     this.syncPathIndex(plane);
     const last = raw[raw.length - 1];
     for (const rw of this.runways) {
+      if (rw.closed) continue;
       if (dist(last, rw.gate) > GATE_R) continue;
       if (!runwayAccepts(rw.kind, plane.type)) {
         this.toast(`${plane.type.name} ${t('wrongRunwayHint')}`, 'warn', 1.6);
@@ -642,7 +645,7 @@ export class World {
   }
 
   private tryLand(p: Plane, rw: Runway): void {
-    const kindOk = runwayAccepts(rw.kind, p.type);
+    const kindOk = runwayAccepts(rw.kind, p.type) && !rw.closed;
     const busy = rw.occupiedBy !== null && rw.occupiedBy !== p.id;
     let reason: string | null = null;
     const wx = this.weather;

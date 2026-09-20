@@ -291,6 +291,7 @@ export class Renderer {
   }
 
   private drawGate(ctx: Ctx, rw: Runway, world: World, time: number, px: number): void {
+    if (rw.closed) return;
     const locked = world.planes.some(p => p.lockedRunway === rw.id && p.state === 'flying');
     const busy = rw.occupiedBy !== null;
     const pulse = 0.5 + 0.5 * Math.sin(time * 3);
