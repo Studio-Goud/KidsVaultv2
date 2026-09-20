@@ -12,6 +12,7 @@
 import { clamp, TAU } from '../../util/math';
 import { makeRng, ValueNoise } from '../../util/rng';
 import { SUN, type Body } from './bodies';
+import { drawPhoto, photoReach, planetPhoto } from './photo';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -152,8 +153,17 @@ function discCanvas(body: Body, r: number, dpr: number): HTMLCanvasElement {
   return c;
 }
 
-/** Draw a planet centred on (x, y) with disc radius r, rings and all. */
+/**
+ * Draw a planet centred on (x, y) with disc radius r.
+ *
+ * If the real photograph has finished loading it is used, because no amount of procedural banding
+ * matches a Hubble frame. The drawn version stays as the stand-in while the images load and as the
+ * fallback if they cannot be read.
+ */
 export function drawBody(ctx: Ctx, body: Body, x: number, y: number, r: number, dpr = 1): void {
+  const photo = planetPhoto(body.id);
+  if (photo) { drawPhoto(ctx, photo, x, y, r); return; }
+
   const key = `${body.id}|${Math.round(r)}|${dpr}`;
   let c = cache.get(key);
   if (!c) { c = discCanvas(body, r, dpr); cache.set(key, c); }
@@ -167,6 +177,13 @@ export function drawBody(ctx: Ctx, body: Body, x: number, y: number, r: number, 
   } else {
     ctx.drawImage(c, x - size / 2, y - size / 2, size, size);
   }
+}
+
+/** How wide this body is on screen, rings and all, as a multiple of its globe radius. */
+export function reachOf(body: Body): number {
+  const photo = planetPhoto(body.id);
+  if (photo) return photoReach(photo);
+  return body.ring ? body.ring.outer : 1;
 }
 
 function drawRing(ctx: Ctx, body: Body, x: number, y: number, r: number, half: 'back' | 'front'): void {

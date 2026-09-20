@@ -11,7 +11,8 @@
 
 import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { BODIES, type Body } from './bodies';
-import { drawBody, drawSun, radiusFor, sizeOrder, starField, sunOrder } from './draw';
+import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
+import { CREDITS, loadAllPlanets } from './photo';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
@@ -52,6 +53,7 @@ export class Orbit {
   private factT = 0;
   private wrongId: string | null = null;
   private stars = starField(1, 1);
+  private photosReady = false;
   private hits: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -60,6 +62,7 @@ export class Orbit {
     window.addEventListener('resize', () => this.resize());
     canvas.addEventListener('pointerdown', e => this.onDown(e));
     this.startRound(0);
+    void loadAllPlanets(BODIES.map(b => b.id)).then(() => { this.photosReady = true; this.layout(); });
     (window as unknown as { __orbit?: Orbit }).__orbit = this;
     const loop = (ms: number): void => {
       const now = ms / 1000;
@@ -101,7 +104,7 @@ export class Orbit {
   private maxR(): number { return clamp(Math.min(this.w / 11, this.h / 13), 16, 46); }
 
   /** How wide a body is on screen, rings included. */
-  private halfWidth(b: Body, r: number): number { return r * (b.ring ? b.ring.outer : 1); }
+  private halfWidth(b: Body, r: number): number { return r * reachOf(b); }
 
   /** A planet on the track must fit its slot, so the track radius follows the spacing. */
   private trackR(b: Body, step: number): number {

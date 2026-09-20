@@ -15,6 +15,7 @@ import { clamp, TAU, type Vec } from '../../util/math';
 import { makeRng, ValueNoise } from '../../util/rng';
 import { bodyPath, bones, drawCrest } from './anatomy';
 import { DINOS, type Dino } from './dinos';
+import { drawFossil, fossilPhoto, loadAllFossils } from './fossilphoto';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'digging' | 'asking' | 'wrong' | 'reveal' | 'finished';
@@ -58,6 +59,7 @@ export class DinoDig {
     canvas.addEventListener('pointerup', () => { this.brushing = false; });
     canvas.addEventListener('pointercancel', () => { this.brushing = false; });
     this.startRound(0);
+    void loadAllFossils(DINOS.map(d => d.id));
     (window as unknown as { __dig?: DinoDig }).__dig = this;
     const loop = (ms: number): void => {
       const now = ms / 1000;
@@ -213,8 +215,18 @@ export class DinoDig {
       ctx.fill();
     }
 
+    const photo = fossilPhoto(this.dino.id);
+    if (photo) {
+      drawFossil(ctx, photo, slab);
+      // a little shade around the edges so the plate sits in the rock instead of on top of it
+      const vg = ctx.createRadialGradient(slab.x + slab.w / 2, slab.y + slab.h / 2, slab.h * 0.3,
+        slab.x + slab.w / 2, slab.y + slab.h / 2, slab.h * 0.85);
+      vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(30,20,10,0.5)');
+      ctx.fillStyle = vg; ctx.fillRect(slab.x, slab.y, slab.w, slab.h);
+    } else {
+      this.drawSkeleton(ctx, slab, 1);
+    }
     if (this.phase === 'reveal') this.drawLiving(ctx, slab);
-    this.drawSkeleton(ctx, slab, this.phase === 'reveal' ? 0.35 : 1);
     this.drawDirt(ctx, slab);
     ctx.restore();
 
@@ -345,7 +357,7 @@ export class DinoDig {
     const cx = slab.x + slab.w / 2, cy = slab.y + slab.h * 0.6;
 
     ctx.save();
-    ctx.globalAlpha = grow;
+    ctx.globalAlpha = grow * (fossilPhoto(d.id) ? 0.9 : 1);
     ctx.translate(cx, cy);
     ctx.scale(0.55 + 0.45 * grow, 0.55 + 0.45 * grow);
     ctx.translate(-cx, -cy);
