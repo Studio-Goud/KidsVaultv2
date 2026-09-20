@@ -83,17 +83,19 @@ function paintPillar(ctx: Ctx, px: number, py: number, cell: number, seed: numbe
   const lift = cell * 0.2;
   contactShadow(ctx, px + cell * 0.55, py + cell * 0.92, cell * 0.6, cell * 0.2, 0.4);
   // the face
+  // The face is kept well darker than the top: with the two close together the stone read as
+  // another floor tile, and a child has to see at a glance which squares they cannot walk on.
   const face = ctx.createLinearGradient(px, py + cell - lift, px, py + cell);
-  face.addColorStop(0, '#6a6156');
-  face.addColorStop(1, '#443e36');
+  face.addColorStop(0, '#554e44');
+  face.addColorStop(1, '#2f2a24');
   ctx.fillStyle = face;
   ctx.beginPath();
   ctx.roundRect(px + cell * 0.04, py + cell * 0.3, cell * 0.92, cell * 0.66, cell * 0.1);
   ctx.fill();
   // the top, catching the light
   const top = ctx.createLinearGradient(px + LIGHT.x * cell, py, px - LIGHT.x * cell, py + cell);
-  top.addColorStop(0, '#a79d8c');
-  top.addColorStop(1, '#7b7265');
+  top.addColorStop(0, '#c4b9a4');
+  top.addColorStop(1, '#8d8373');
   ctx.fillStyle = top;
   ctx.beginPath();
   ctx.roundRect(px + cell * 0.04, py + cell * 0.06, cell * 0.92, cell * 0.5, cell * 0.1);
@@ -105,7 +107,14 @@ function paintPillar(ctx: Ctx, px: number, py: number, cell: number, seed: numbe
     blobPath(ctx, px + cell * (0.2 + rng() * 0.6), py + cell * (0.5 + rng() * 0.12), cell * (0.08 + rng() * 0.08), seed + i, 0.4, 8);
     ctx.fill();
   }
-  ctx.strokeStyle = 'rgba(40, 36, 30, 0.25)';
+  // a lit lip where the top meets the face, so the block stands up off the moss
+  ctx.strokeStyle = 'rgba(255, 246, 226, 0.34)';
+  ctx.lineWidth = Math.max(1, cell * 0.035);
+  ctx.beginPath();
+  ctx.moveTo(px + cell * 0.1, py + cell * 0.55);
+  ctx.lineTo(px + cell * 0.9, py + cell * 0.55);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(30, 26, 21, 0.38)';
   ctx.lineWidth = Math.max(0.8, cell * 0.02);
   ctx.beginPath();
   ctx.roundRect(px + cell * 0.04, py + cell * 0.06, cell * 0.92, cell * 0.9, cell * 0.1);
@@ -290,17 +299,34 @@ export function paintHedgehog(ctx: Ctx, cx: number, cy: number, r: number, facin
     ctx.ellipse(s * r * 0.3, r * 0.82 + step * 0.3, r * 0.2, r * 0.12, 0, 0, TAU);
     ctx.fill();
   }
-  // spines
-  ctx.fillStyle = '#6f5335';
-  for (let i = 0; i <= 11; i++) {
-    const a = -Math.PI - 0.15 + (i / 11) * (Math.PI + 0.3);
-    ctx.beginPath();
-    ctx.moveTo(Math.cos(a) * r * 0.62, Math.sin(a) * r * 0.62);
-    ctx.lineTo(Math.cos(a - 0.05) * r * 1.02, Math.sin(a - 0.05) * r * 1.02);
-    ctx.lineTo(Math.cos(a + 0.09) * r * 0.64, Math.sin(a + 0.09) * r * 0.64);
-    ctx.closePath();
-    ctx.fill();
-  }
+  // Spines. Flat and all one colour they read as a brown smudge at the size a board square
+  // allows, so they are graded against the house light and laid in two rows: a dark back row
+  // and a shorter lit row in front of it, the way the same animal is drawn in Market Day.
+  const quills = (from: number, to: number, tone: string | CanvasGradient, jitter: number, i0 = 0, i1 = 13): void => {
+    ctx.fillStyle = tone;
+    for (let i = i0; i <= i1; i++) {
+      const a = -Math.PI - 0.18 + (i / 13) * (Math.PI + 0.36);
+      const len = to * (0.93 + 0.07 * Math.sin(i * 2.7 + jitter));
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * r * from, Math.sin(a) * r * from);
+      ctx.lineTo(Math.cos(a - 0.045) * r * len, Math.sin(a - 0.045) * r * len);
+      ctx.lineTo(Math.cos(a + 0.085) * r * (from + 0.02), Math.sin(a + 0.085) * r * (from + 0.02));
+      ctx.closePath();
+      ctx.fill();
+    }
+  };
+  const coat = ctx.createLinearGradient(LIGHT.x * r, LIGHT.y * r, -LIGHT.x * r, -LIGHT.y * r);
+  coat.addColorStop(0, '#8c6c47');
+  coat.addColorStop(0.5, '#6f5335');
+  coat.addColorStop(1, '#4f3a25');
+  quills(0.58, 1.06, '#4f3a25', 0);
+  ctx.fillStyle = coat;
+  quills(0.56, 0.94, coat, 1.3);
+  // a bright edge on the side the light comes from, and nowhere else
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  quills(0.72, 0.9, '#bb9464', 2.1, 1, 5);
+  ctx.restore();
   // face, turned the way it is walking
   const look = facing * r * 0.12;
   const g = ctx.createRadialGradient(-r * 0.2, -r * 0.2, r * 0.1, 0, 0, r);
