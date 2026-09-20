@@ -37,6 +37,14 @@ across the Triassic, Jurassic and Cretaceous; every find goes into a museum with
 size comparison against a person.
 Practises fine motor control, patience, tool choice and deep time. Age 5 and up.
 
+### Puffball (`puffball.html`)
+Put down a puffball, count how far it reaches, and be somewhere else when it pops. It is
+Bomberman's shape - a grid, a fuse, a cross of effect, pots to clear and moles to catch - with the
+counting brought to the front: the reach is a number on the cap, and while the puffball swells the
+squares it will cover light up with one dot apiece. Pick-ups raise the reach, so the comparison has
+to be made again. Nobody is hurt; whoever is caught sits down dizzy. Eight nights.
+Practises counting squares, comparing two numbers and planning a way out. Age 5 and up.
+
 ### Millstream (`mill.html`)
 Dig channels and raise banks so the spring water reaches the fields and turns the mill wheels. Eight
 valleys with rocks, slopes and multiple targets; the water is a real flow simulation, so a channel

@@ -453,3 +453,102 @@ export function drawDigThumb(c: HTMLCanvasElement): void {
   }
   ctx.restore();
 }
+
+/** Puffball: a puffball about to go off, the squares it will reach marked, and a pot in the way. */
+export function drawPuffThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const cell = h / 3.4;
+  // moss, with stone pillars on the even squares
+  const moss = ctx.createLinearGradient(0, 0, 0, h);
+  moss.addColorStop(0, '#5f9147');
+  moss.addColorStop(1, '#3d6632');
+  ctx.fillStyle = moss;
+  ctx.fillRect(0, 0, w, h);
+  for (let y = 0; y * cell < h + cell; y++) {
+    for (let x = 0; x * cell < w + cell; x++) {
+      if (x % 2 === 1 || y % 2 === 1) continue;
+      const px = x * cell, py = y * cell;
+      ctx.fillStyle = 'rgba(24, 38, 30, 0.3)';
+      ctx.beginPath();
+      ctx.ellipse(px + cell * 0.55, py + cell * 0.9, cell * 0.42, cell * 0.14, 0, 0, TAU);
+      ctx.fill();
+      const face = ctx.createLinearGradient(px, py + cell * 0.3, px, py + cell);
+      face.addColorStop(0, '#6a6156');
+      face.addColorStop(1, '#443e36');
+      ctx.fillStyle = face;
+      ctx.beginPath();
+      ctx.roundRect(px + cell * 0.06, py + cell * 0.3, cell * 0.88, cell * 0.64, cell * 0.1);
+      ctx.fill();
+      const top = ctx.createLinearGradient(px, py, px + cell, py + cell);
+      top.addColorStop(0, '#a79d8c');
+      top.addColorStop(1, '#7b7265');
+      ctx.fillStyle = top;
+      ctx.beginPath();
+      ctx.roundRect(px + cell * 0.06, py + cell * 0.08, cell * 0.88, cell * 0.48, cell * 0.1);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(96, 142, 74, 0.5)';
+      ctx.beginPath();
+      ctx.ellipse(px + cell * 0.4, py + cell * 0.5, cell * 0.16, cell * 0.08, 0, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  // the squares the puffball will reach, counted out in dots
+  const bx = cell * 1.0, by = cell * 1.0;
+  for (const [dx, dy, n] of [[0, 0, 0], [1, 0, 1], [2, 0, 2], [0, 1, 1]] as const) {
+    const px = bx + dx * cell, py = by + dy * cell;
+    ctx.fillStyle = 'rgba(255, 206, 96, 0.5)';
+    ctx.fillRect(px, py, cell, cell);
+    ctx.strokeStyle = 'rgba(255, 234, 170, 0.85)';
+    ctx.lineWidth = Math.max(1.2, cell * 0.05);
+    ctx.strokeRect(px + cell * 0.06, py + cell * 0.06, cell * 0.88, cell * 0.88);
+    for (let i = 0; i < n; i++) {
+      const ox = (i - (n - 1) / 2) * cell * 0.2;
+      ctx.fillStyle = 'rgba(92, 56, 20, 0.45)';
+      ctx.beginPath(); ctx.arc(px + cell / 2 + ox, py + cell / 2 + cell * 0.02, cell * 0.085, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#fffaea';
+      ctx.beginPath(); ctx.arc(px + cell / 2 + ox, py + cell / 2, cell * 0.08, 0, TAU); ctx.fill();
+    }
+  }
+
+  // a pot standing in the way
+  const potX = bx + cell * 2.5, potY = by + cell * 0.56;
+  ctx.fillStyle = 'rgba(24, 38, 30, 0.3)';
+  ctx.beginPath(); ctx.ellipse(potX, potY + cell * 0.3, cell * 0.3, cell * 0.1, 0, 0, TAU); ctx.fill();
+  const pot = ctx.createLinearGradient(potX - cell * 0.3, potY - cell * 0.3, potX + cell * 0.3, potY + cell * 0.3);
+  pot.addColorStop(0, '#d79a6a');
+  pot.addColorStop(1, '#8d5836');
+  ctx.fillStyle = pot;
+  ctx.beginPath();
+  ctx.moveTo(potX - cell * 0.28, potY - cell * 0.18);
+  ctx.quadraticCurveTo(potX - cell * 0.34, potY + cell * 0.16, potX - cell * 0.16, potY + cell * 0.3);
+  ctx.lineTo(potX + cell * 0.16, potY + cell * 0.3);
+  ctx.quadraticCurveTo(potX + cell * 0.34, potY + cell * 0.16, potX + cell * 0.28, potY - cell * 0.18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#e0a878';
+  ctx.beginPath(); ctx.ellipse(potX, potY - cell * 0.18, cell * 0.3, cell * 0.09, 0, 0, TAU); ctx.fill();
+
+  // the puffball, with how far it reaches on its cap
+  const px2 = bx + cell * 0.5, py2 = by + cell * 0.58;
+  const r = cell * 0.34;
+  ctx.fillStyle = 'rgba(24, 38, 30, 0.3)';
+  ctx.beginPath(); ctx.ellipse(px2, py2 + r * 0.85, r * 1.1, r * 0.3, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#efe2c6';
+  ctx.beginPath(); ctx.roundRect(px2 - r * 0.26, py2 - r * 0.1, r * 0.52, r * 0.95, r * 0.2); ctx.fill();
+  const cap = ctx.createRadialGradient(px2 - r * 0.3, py2 - r * 0.4, r * 0.1, px2, py2, r * 1.2);
+  cap.addColorStop(0, '#fff6ee');
+  cap.addColorStop(0.55, '#f2b7a6');
+  cap.addColorStop(1, '#d97a66');
+  ctx.fillStyle = cap;
+  ctx.beginPath();
+  ctx.ellipse(px2, py2 - r * 0.1, r, r * 0.86, 0, Math.PI, 0);
+  ctx.ellipse(px2, py2 - r * 0.1, r, r * 0.5, 0, 0, Math.PI);
+  ctx.fill();
+  ctx.fillStyle = '#5a3326';
+  ctx.font = `900 ${Math.round(cell * 0.3)}px Nunito, system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('2', px2, py2 - r * 0.18);
+  ctx.textAlign = 'left';
+}

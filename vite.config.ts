@@ -19,6 +19,7 @@ export default defineConfig({
         mill: resolve(__dirname, 'mill.html'),
         tidepool: resolve(__dirname, 'tidepool.html'),
         market: resolve(__dirname, 'market.html'),
+        puffball: resolve(__dirname, 'puffball.html'),
       },
     },
   },

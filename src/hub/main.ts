@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawDigThumb, drawMarketThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
+import { drawDigThumb, drawMarketThumb, drawPuffThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -86,6 +86,16 @@ const GAMES: Game[] = [
     practisesNl: 'Uittellen, eerlijk delen, hoeveel erbij',
     age: '4+',
     paint: drawMarketThumb,
+  },
+  {
+    href: './puffball.html',
+    title: 'Puffball',
+    line: 'Put down a puffball, count how far it reaches, and be somewhere else when it pops.',
+    lineNl: 'Zet een stuifzwam neer, tel hoe ver hij komt, en sta ergens anders als hij plooft.',
+    practises: 'Counting squares, comparing two numbers, planning a way out',
+    practisesNl: 'Vakjes tellen, twee getallen vergelijken, een uitweg plannen',
+    age: '5+',
+    paint: drawPuffThumb,
   },
   {
     href: './dig.html',
