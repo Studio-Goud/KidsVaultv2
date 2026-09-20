@@ -404,25 +404,81 @@ export class Millstream {
     }
     art.paintSea(ctx, g, v, this.t);
     art.paintGrain(ctx, g);
-    if (this.phase === 'play') this.drawHandHint(g);
+    if (this.phase === 'play') { this.drawWants(g); this.drawHandHint(g); }
+  }
+
+  /**
+   * A drop over everything that is still waiting.
+   *
+   * Without this the valley is a pretty picture with no question in it: a child can see a field
+   * and a wheel but nothing says those are the things to get the water to. The drop bobs over
+   * each one until it is satisfied, and then it is simply gone.
+   */
+  private drawWants(g: Grid): void {
+    const ctx = this.ctx, v = this.valley, u = this.u();
+    const marks: Array<{ x: number; y: number }> = [];
+    this.level.fields.forEach((f, i) => { if (!this.done.fields[i]) marks.push(f); });
+    this.level.wheels.forEach((wh, i) => { if (!this.done.wheels[i]) marks.push(wh); });
+    if (!marks.length) return;
+    const r = 15 * u;
+    for (const m of marks) {
+      const x = g.x + (m.x * (v.cols - 1) + 0.5) * g.cell;
+      const y = g.y + (m.y * (v.rows - 1) + 0.5) * g.cell;
+      const beat = breathe(this.t, 2.4, x * 0.01);
+      const cy = y - Math.max(g.cell * 0.9, 34 * u) - r + Math.sin(this.t * 2.4 + x * 0.01) * 3 * u;
+      ctx.save();
+      // a ring that opens outward, the way a drop lands in water
+      ctx.strokeStyle = `rgba(122, 200, 240, ${0.5 * (1 - beat)})`;
+      ctx.lineWidth = 2.4 * u;
+      ctx.beginPath(); ctx.arc(x, cy, r * (1 + beat * 0.55), 0, TAU); ctx.stroke();
+      contactShadow(ctx, x, cy + r * 1.25, r * 0.85, r * 0.3, 0.3);
+      ctx.fillStyle = '#fffdf8';
+      ctx.beginPath(); ctx.arc(x, cy, r, 0, TAU); ctx.fill();
+      ctx.strokeStyle = 'rgba(30, 80, 120, 0.25)';
+      ctx.lineWidth = 1.4 * u;
+      ctx.stroke();
+      // the drop itself: a point at the top, round at the bottom
+      const dr = r * 0.56;
+      const drop = ctx.createLinearGradient(x, cy - dr * 1.3, x, cy + dr);
+      drop.addColorStop(0, '#8fd8f7');
+      drop.addColorStop(1, '#2a86c4');
+      ctx.fillStyle = drop;
+      ctx.beginPath();
+      ctx.moveTo(x, cy - dr * 1.35);
+      ctx.quadraticCurveTo(x + dr * 1.05, cy + dr * 0.1, x, cy + dr);
+      ctx.quadraticCurveTo(x - dr * 1.05, cy + dr * 0.1, x, cy - dr * 1.35);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.beginPath(); ctx.ellipse(x - dr * 0.32, cy + dr * 0.08, dr * 0.18, dr * 0.3, -0.35, 0, TAU); ctx.fill();
+      // a point down at the thing that wants it
+      ctx.fillStyle = '#fffdf8';
+      ctx.beginPath();
+      ctx.moveTo(x - 5.5 * u, cy + r * 0.82);
+      ctx.lineTo(x + 5.5 * u, cy + r * 0.82);
+      ctx.lineTo(x, cy + r * 1.5);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
   }
 
   /**
    * When nothing has happened for a while, a hand comes in and shows the stroke: from the spring
    * towards the first thing that still needs water. It is the only instruction a four year old
-   * needs, and it costs no words at all.
+   * needs, and it costs no words at all. On the first two valleys it comes almost at once,
+   * because there the child does not yet know there is a stroke to make.
    */
   private drawHandHint(g: Grid): void {
-    if (this.idle < 2.6 || this.spade <= 0) return;
+    const wait = this.levelIndex < 2 ? 1.1 : 2.6;
+    if (this.idle < wait || this.spade <= 0) return;
     const L = this.level, v = this.valley;
     const target = L.fields.find((_, i) => !this.done.fields[i]) ?? L.wheels.find((_, i) => !this.done.wheels[i]);
     if (!target || !L.springs.length) return;
     const [sx, sy] = L.springs[0];
     const ax = g.x + (sx * (v.cols - 1) + 0.5) * g.cell, ay = g.y + (sy * (v.rows - 1) + 0.5) * g.cell;
     const bx = g.x + (target.x * (v.cols - 1) + 0.5) * g.cell, by = g.y + (target.y * (v.rows - 1) + 0.5) * g.cell;
-    const cycle = ((this.t - 2.6) % 3) / 3;
+    const cycle = ((this.t - wait) % 3) / 3;
     const k = easeOutCubic(clamp(cycle * 1.5, 0, 1));
-    const fade = clamp(Math.sin(cycle * Math.PI) * 2.2, 0, 1) * clamp((this.idle - 2.6) / 0.6, 0, 1);
+    const fade = clamp(Math.sin(cycle * Math.PI) * 2.2, 0, 1) * clamp((this.idle - wait) / 0.6, 0, 1);
     const ctx = this.ctx;
     ctx.save();
     ctx.globalAlpha = fade * 0.9;
@@ -457,7 +513,7 @@ export class Millstream {
       ...this.level.houses.map((_, i) => ({ done: this.valley.wet[i] < 0.5, kind: 'house' as const })),
     ];
     const gap = 25 * u, x0 = this.w / 2 - ((goals.length - 1) * gap) / 2;
-    goals.forEach((gl, i) => this.goalPip(x0 + i * gap, inset - 66 * u, 9.5 * u, gl.kind, gl.done));
+    goals.forEach((gl, i) => this.goalPip(x0 + i * gap, inset - 2 * u, 9 * u, gl.kind, gl.done));
 
     // the valley's name, only for the first moments of a level
     if (this.phase === 'play' && this.phaseT < 2.6) {
