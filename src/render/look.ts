@@ -574,3 +574,36 @@ export function handCursor(ctx: Ctx, x: number, y: number, s: number, press = 0)
   ctx.stroke();
   ctx.restore();
 }
+
+// ---------------------------------------------------------------- cached layers
+
+/**
+ * A piece of a scene that does not change from frame to frame, drawn once into its own canvas.
+ *
+ * Backdrops are where the time goes: a street of houses, a beach of pebbles, a wooden counter with
+ * its grain. Each is a few hundred paths and a gradient apiece, and none of it moves. Drawing them
+ * once and blitting the result keeps the frame for the things that actually animate.
+ */
+export class CachedLayer {
+  private cv: HTMLCanvasElement | null = null;
+  private key = '';
+
+  /** The cached canvas for this size and key, redrawing it only when either has changed. */
+  get(w: number, h: number, key: string, draw: (ctx: Ctx, w: number, h: number) => void): HTMLCanvasElement | null {
+    const want = `${Math.round(w)}x${Math.round(h)}:${key}`;
+    if (this.cv && this.key === want) return this.cv;
+    const cv = this.cv ?? document.createElement('canvas');
+    cv.width = Math.max(1, Math.round(w));
+    cv.height = Math.max(1, Math.round(h));
+    const ctx = cv.getContext('2d');
+    if (!ctx) return null;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    draw(ctx, cv.width, cv.height);
+    this.cv = cv;
+    this.key = want;
+    return cv;
+  }
+
+  /** Throw the cached drawing away, so the next get redraws it. */
+  clear(): void { this.key = ''; }
+}

@@ -9,13 +9,52 @@
 
 import { clamp, TAU } from '../../util/math';
 import { makeRng } from '../../util/rng';
-import { blobPath, contactShadow, Ctx, grainOver, LIGHT, mix, shade } from '../../render/look';
+import { blobPath, CachedLayer, contactShadow, Ctx, grainOver, LIGHT, mix, shade } from '../../render/look';
 import type { Customer, Fruit } from './model';
 
 // ---------------------------------------------------------------- the square and the stall
 
-/** The village behind the stall: roofs, shutters, bunting, and a cobbled square. */
+const squareLayer = new CachedLayer();
+const stallLayer = new CachedLayer();
+
+/**
+ * The village behind the stall: roofs, shutters, and a cobbled square, drawn once into a layer,
+ * with the bunting strung over the top of it live because it moves in the breeze.
+ */
 export function paintSquare(ctx: Ctx, w: number, h: number, counterTop: number, t: number, u: number): void {
+  const layer = squareLayer.get(w, counterTop, `sq${Math.round(u * 10)}`, (lc, lw, lh) => paintSquareStill(lc, lw, lh, lh, u));
+  if (layer) ctx.drawImage(layer, 0, 0);
+  paintBunting(ctx, w, t, u);
+}
+
+/** The bunting, which moves, so it is drawn every frame over the cached square. */
+function paintBunting(ctx: Ctx, w: number, t: number, u: number): void {
+  for (let s = 0; s < 2; s++) {
+    const y0 = (26 + s * 16) * u;
+    const sag = (18 + s * 6) * u;
+    ctx.strokeStyle = 'rgba(90,70,50,0.5)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(-10 * u, y0);
+    ctx.quadraticCurveTo(w / 2, y0 + sag, w + 10 * u, y0);
+    ctx.stroke();
+    const flags = Math.max(6, Math.round(w / (34 * u)));
+    for (let i = 0; i <= flags; i++) {
+      const p = i / flags;
+      const fx = -10 * u + p * (w + 20 * u);
+      const fy = y0 + Math.sin(p * Math.PI) * sag + Math.sin(t * 1.3 + i) * 1.4 * u;
+      ctx.fillStyle = ['#e8705f', '#f3c14a', '#6fb6d8', '#7fbd72'][i % 4];
+      ctx.beginPath();
+      ctx.moveTo(fx - 7 * u, fy);
+      ctx.lineTo(fx + 7 * u, fy);
+      ctx.lineTo(fx, fy + 15 * u);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+}
+
+function paintSquareStill(ctx: Ctx, w: number, h: number, counterTop: number, u: number): void {
   const sky = ctx.createLinearGradient(0, 0, 0, counterTop);
   sky.addColorStop(0, '#7cc6ef');
   sky.addColorStop(0.45, '#bde3f5');
@@ -99,35 +138,16 @@ export function paintSquare(ctx: Ctx, w: number, h: number, counterTop: number, 
   }
   grainOver(ctx, 0, stoneTop, w, counterTop - stoneTop, 0.05);
 
-  // bunting strung across the square
-  const strings = 2;
-  for (let s = 0; s < strings; s++) {
-    const y0 = (26 + s * 16) * u;
-    const sag = (18 + s * 6) * u;
-    ctx.strokeStyle = 'rgba(90,70,50,0.5)';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(-10 * u, y0);
-    ctx.quadraticCurveTo(w / 2, y0 + sag, w + 10 * u, y0);
-    ctx.stroke();
-    const flags = Math.max(6, Math.round(w / (34 * u)));
-    for (let i = 0; i <= flags; i++) {
-      const p = i / flags;
-      const fx = -10 * u + p * (w + 20 * u);
-      const fy = y0 + Math.sin(p * Math.PI) * sag + Math.sin(t * 1.3 + i) * 1.4 * u;
-      ctx.fillStyle = ['#e8705f', '#f3c14a', '#6fb6d8', '#7fbd72'][i % 4];
-      ctx.beginPath();
-      ctx.moveTo(fx - 7 * u, fy);
-      ctx.lineTo(fx + 7 * u, fy);
-      ctx.lineTo(fx, fy + 15 * u);
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
 }
 
 /** The awning over the stall and the counter it stands on. */
 export function paintStall(ctx: Ctx, w: number, h: number, counterTop: number, u: number): void {
+  const layer = stallLayer.get(w, h, `st${Math.round(counterTop)}:${Math.round(u * 10)}`,
+    (lc, lw, lh) => paintStallStill(lc, lw, lh, counterTop, u));
+  if (layer) ctx.drawImage(layer, 0, 0);
+}
+
+function paintStallStill(ctx: Ctx, w: number, h: number, counterTop: number, u: number): void {
   const ah = 44 * u;
   // the cloth, in stripes, with a scalloped edge
   const stripe = 30 * u;

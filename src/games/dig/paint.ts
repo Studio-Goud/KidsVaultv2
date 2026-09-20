@@ -182,9 +182,17 @@ export function paintTrench(ctx: Ctx, slab: Slab, u: number): void {
 export class RockPainter {
   private cv = document.createElement('canvas');
   private img: ImageData | null = null;
+  /** the finished rock layer at screen size, redrawn only when the rock actually changes */
+  private layer = document.createElement('canvas');
   private cols = 0;
   private rows = 0;
+  private lw = 0;
+  private lh = 0;
   private noise = new ValueNoise(9);
+  private dirty = true;
+
+  /** Call when the rock has changed, or when a new site is laid out. */
+  touch(): void { this.dirty = true; }
 
   private fit(cols: number, rows: number): void {
     if (this.cols === cols && this.rows === rows && this.img) return;
@@ -192,22 +200,39 @@ export class RockPainter {
     this.cv.width = cols; this.cv.height = rows;
     const c = this.cv.getContext('2d');
     if (c) this.img = c.createImageData(cols, rows);
+    this.dirty = true;
   }
 
   paint(ctx: Ctx, slab: Slab, cols: number, rows: number, depth: Uint8Array, hard: Float32Array, maxDepth: number, cell: number): void {
     this.fit(cols, rows);
+    const w = Math.max(1, Math.round(cols * cell));
+    const h = Math.max(1, Math.round(rows * cell));
+    if (this.lw !== w || this.lh !== h) {
+      this.layer.width = w; this.layer.height = h;
+      this.lw = w; this.lh = h;
+      this.dirty = true;
+    }
+    if (this.dirty) this.render(cols, rows, depth, hard, maxDepth, cell);
+    ctx.drawImage(this.layer, slab.x, slab.y);
+  }
+
+  /**
+   * Redraw the rock layer. This is the expensive part - an image the size of the slab, a blur and
+   * a few hundred grains of grit - so it happens when a stroke changes something, not every frame.
+   */
+  private render(cols: number, rows: number, depth: Uint8Array, hard: Float32Array, maxDepth: number, cell: number): void {
     const img = this.img;
-    const cv2 = this.cv.getContext('2d');
-    if (!img || !cv2) return;
+    const src = this.cv.getContext('2d');
+    const out = this.layer.getContext('2d');
+    if (!img || !src || !out) return;
     const d = img.data;
     for (let i = 0; i < depth.length; i++) {
       const o = i * 4;
       const dep = depth[i];
       if (dep === 0) { d[o + 3] = 0; continue; }
       const gx = i % cols, gy = (i / cols) | 0;
-      const h = hard[i];
-      // soft rock is warm and sandy, hard rock grey and cold
-      const warm = 1 - h;
+      const hrd = hard[i];
+      const warm = 1 - hrd;
       const n = this.noise.fbm2(gx * 0.5, gy * 0.5, 3);
       const base = 118 + warm * 66 + n * 26;
       d[o] = clamp(base * (0.9 + warm * 0.2), 0, 255);
@@ -215,47 +240,47 @@ export class RockPainter {
       d[o + 2] = clamp(base * (0.68 + warm * 0.16), 0, 255);
       d[o + 3] = dep >= maxDepth ? 255 : 208;
     }
-    cv2.putImageData(img, 0, 0);
-    ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.filter = `blur(${(cell * 0.16).toFixed(2)}px)`;
-    ctx.drawImage(this.cv, slab.x, slab.y, cols * cell, rows * cell);
-    ctx.filter = 'none';
-    ctx.restore();
+    src.putImageData(img, 0, 0);
 
-    // grit and cracks on what is left, so the surface has a texture to work at
+    out.clearRect(0, 0, this.lw, this.lh);
+    out.save();
+    out.imageSmoothingEnabled = true;
+    out.imageSmoothingQuality = 'high';
+    out.filter = `blur(${(cell * 0.16).toFixed(2)}px)`;
+    out.drawImage(this.cv, 0, 0, this.lw, this.lh);
+    out.restore();
+
     // grit, scattered rather than laid out: a regular dot per cell reads as a polka dot pattern
     const rng = makeRng(31);
-    ctx.save();
+    out.save();
     const grains = Math.round(cols * rows * 0.5);
     for (let k = 0; k < grains; k++) {
       const gx = Math.floor(rng() * cols), gy = Math.floor(rng() * rows);
       const i = gy * cols + gx;
       if (!depth[i]) continue;
-      const x = slab.x + (gx + rng()) * cell, y = slab.y + (gy + rng()) * cell;
-      const h = hard[i];
-      ctx.fillStyle = rng() > 0.55
-        ? `rgba(74, 58, 40, ${0.06 + h * 0.14})`
-        : `rgba(255, 244, 222, ${0.05 + (1 - h) * 0.1})`;
-      ctx.beginPath();
-      ctx.ellipse(x, y, cell * (0.06 + rng() * 0.18), cell * (0.05 + rng() * 0.14), rng() * 3, 0, TAU);
-      ctx.fill();
+      const x = (gx + rng()) * cell, y = (gy + rng()) * cell;
+      const hrd = hard[i];
+      out.fillStyle = rng() > 0.55
+        ? `rgba(74, 58, 40, ${0.06 + hrd * 0.14})`
+        : `rgba(255, 244, 222, ${0.05 + (1 - hrd) * 0.1})`;
+      out.beginPath();
+      out.ellipse(x, y, cell * (0.06 + rng() * 0.18), cell * (0.05 + rng() * 0.14), rng() * 3, 0, TAU);
+      out.fill();
     }
     // a few hairline cracks where the rock is hardest
-    ctx.strokeStyle = 'rgba(60, 44, 28, 0.2)';
-    ctx.lineWidth = Math.max(0.6, cell * 0.07);
+    out.strokeStyle = 'rgba(60, 44, 28, 0.2)';
+    out.lineWidth = Math.max(0.6, cell * 0.07);
     for (let k = 0; k < 14; k++) {
       const gx = Math.floor(rng() * cols), gy = Math.floor(rng() * rows);
       const i = gy * cols + gx;
       if (!depth[i] || hard[i] < 0.55) continue;
-      const x = slab.x + gx * cell, y = slab.y + gy * cell;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x + (rng() - 0.5) * cell * 6, y + (rng() - 0.5) * cell * 6);
-      ctx.stroke();
+      out.beginPath();
+      out.moveTo(gx * cell, gy * cell);
+      out.lineTo(gx * cell + (rng() - 0.5) * cell * 6, gy * cell + (rng() - 0.5) * cell * 6);
+      out.stroke();
     }
-    ctx.restore();
+    out.restore();
+    this.dirty = false;
   }
 }
 

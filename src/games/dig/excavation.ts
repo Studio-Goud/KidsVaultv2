@@ -117,7 +117,7 @@ export class DinoDig {
   }
 
   /** Test hook: take the rock off without playing, to reach the later phases. */
-  debugClear(): void { if (this.site) this.site.depth.fill(0); }
+  debugClear(): void { if (this.site) { this.site.depth.fill(0); this.rockArt.touch(); } }
 
   // ---------- layout ----------
 
@@ -159,6 +159,7 @@ export class DinoDig {
     const cols = 28, rows = Math.max(12, Math.round(cols * (slab.h / slab.w)));
     this.site = buildSite(cols, rows, this.dino.id.length * 977 + this.siteIndex * 13,
       this.dino.hardness, fossilPhoto(this.dino.id) ?? null);
+    this.rockArt.touch();
     this.rng = makeRng(this.siteIndex * 4099 + 11);
     this.grain = new ValueNoise(this.siteIndex * 7 + 5);
     this.stamina = 1;
@@ -269,6 +270,7 @@ export class DinoDig {
     this.lastCell = { x: cx, y: cy };
 
     const r = strike(this.site, this.tool, cx, cy, this.rng);
+    if (r.removed > 0 || r.chipped) this.rockArt.touch();
     if (r.removed === 0) {
       if (r.blocked && this.noteT <= 0) {
         this.say(T('That rock is too hard for this tool.', 'Dat gesteente is te hard voor dit gereedschap.'));

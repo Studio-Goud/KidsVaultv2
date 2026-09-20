@@ -9,7 +9,7 @@
 
 import { clamp, TAU } from '../../util/math';
 import { makeRng } from '../../util/rng';
-import { blobPath, contactShadow, Ctx, grainOver, LIGHT, mix, shade } from '../../render/look';
+import { blobPath, CachedLayer, contactShadow, Ctx, grainOver, LIGHT, mix, shade } from '../../render/look';
 import { COLOUR_HEX, type Colour, type Kind } from './model';
 
 export interface Field { x: number; y: number; w: number; h: number }
@@ -19,6 +19,8 @@ interface Scatter { x: number; y: number; r: number; a: number; kind: 'pebble' |
 export class ShoreArt {
   private scatter: Scatter[] = [];
   private seed: number;
+  /** the beach and what is lying on it never move, so they are drawn once */
+  private sandLayer = new CachedLayer();
 
   constructor(seed = 3) {
     this.seed = seed;
@@ -164,14 +166,12 @@ export class ShoreArt {
   /** Where the water gives out: wet sand that still shines, then dry sand with things lying on it. */
   paintSand(ctx: Ctx, f: Field, shoreY: number, t: number): void {
     const bottom = f.y + f.h;
-    const sand = ctx.createLinearGradient(0, shoreY, 0, bottom);
-    sand.addColorStop(0, '#c4a877');
-    sand.addColorStop(0.18, '#e6cf9d');
-    sand.addColorStop(1, '#f3e3bd');
-    ctx.fillStyle = sand;
-    ctx.fillRect(f.x, shoreY - 2, f.w, bottom - shoreY + 2);
+    const bandH = Math.max(1, bottom - shoreY + 2);
+    // the beach itself, with its pebbles, shells and weed: drawn once and kept
+    const layer = this.sandLayer.get(f.w, bandH, 'sand', (lc, lw, lh) => this.paintBeach(lc, lw, lh));
+    if (layer) ctx.drawImage(layer, f.x, shoreY - 2);
 
-    // the wave that has just run up the beach, and the foam it leaves
+    // the wave that has just run up the beach, and the foam it leaves, which do move
     const reach = 26 + Math.sin(t * 0.7) * 10;
     ctx.save();
     ctx.beginPath();
@@ -190,15 +190,14 @@ export class ShoreArt {
     ctx.lineWidth = 3.2;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    for (let x = 0; x <= f.w; x += 6) {
+    for (let x = 0; x <= f.w; x += 8) {
       const y = shoreY + reach * 0.5 + Math.sin(x * 0.022 + t * 0.9) * reach * 0.42;
       if (x === 0) ctx.moveTo(f.x + x, y); else ctx.lineTo(f.x + x, y);
     }
     ctx.stroke();
-    // bubbles in the foam
     const rng = makeRng(this.seed * 31 + 5);
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 24; i++) {
       const x = rng() * f.w;
       const y = shoreY + reach * 0.5 + Math.sin(x * 0.022 + t * 0.9) * reach * 0.42 + (rng() - 0.5) * 9;
       ctx.beginPath();
@@ -206,12 +205,20 @@ export class ShoreArt {
       ctx.fill();
     }
     ctx.restore();
+  }
 
-    // what the tide has left lying about
+  /** The beach as it lies: sand, pebbles, shells and weed. Drawn into the cached layer. */
+  private paintBeach(ctx: Ctx, w: number, h: number): void {
+    const sand = ctx.createLinearGradient(0, 0, 0, h);
+    sand.addColorStop(0, '#c4a877');
+    sand.addColorStop(0.18, '#e6cf9d');
+    sand.addColorStop(1, '#f3e3bd');
+    ctx.fillStyle = sand;
+    ctx.fillRect(0, 0, w, h);
     for (const s of this.scatter) {
-      const x = f.x + s.x * f.w;
-      const y = shoreY + 26 + s.y * (bottom - shoreY - 26);
-      if (y > bottom - 4) continue;
+      const x = s.x * w;
+      const y = 28 + s.y * (h - 34);
+      if (y > h - 4) continue;
       if (s.kind === 'grain') {
         ctx.fillStyle = s.tone > 0.5 ? 'rgba(255,255,255,0.3)' : 'rgba(140,110,70,0.2)';
         ctx.beginPath();
@@ -246,7 +253,6 @@ export class ShoreArt {
         ctx.stroke();
         ctx.restore();
       } else {
-        // a frond of weed, lifting a little
         const r = 6 + s.r * 10;
         ctx.strokeStyle = 'rgba(78, 120, 74, 0.75)';
         ctx.lineWidth = 2;
@@ -254,13 +260,12 @@ export class ShoreArt {
         for (let b = -1; b <= 1; b++) {
           ctx.beginPath();
           ctx.moveTo(x, y);
-          ctx.quadraticCurveTo(x + b * r * 0.5, y - r * 0.6,
-            x + b * r * 0.8 + Math.sin(t * 1.3 + s.a) * 2, y - r);
+          ctx.quadraticCurveTo(x + b * r * 0.5, y - r * 0.6, x + b * r * 0.8, y - r);
           ctx.stroke();
         }
       }
     }
-    grainOver(ctx, f.x, shoreY, f.w, bottom - shoreY, 0.05);
+    grainOver(ctx, 0, 0, w, h, 0.05);
   }
 
   /**
