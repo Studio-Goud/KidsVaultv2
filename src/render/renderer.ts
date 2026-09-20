@@ -79,7 +79,7 @@ export class Renderer {
     this.oy = (this.sh - this.H * this.scale) / 2;
     if (rebuild || !this.terrain) {
       const res = Math.min(1.7, Math.sqrt(9e6 / (this.W * this.H * this.scale * this.scale * this.dpr * this.dpr)));
-      this.terrain = buildTerrain(world.level, world.runways, this.W, this.H, this.scale * this.dpr * Math.max(1, res), this.pal, mustContainPoints(world));
+      this.terrain = buildTerrain(world.level, world.runways, this.W, this.H, this.scale * this.dpr * Math.max(1, res), this.pal, mustContainPoints(world), world.shift);
     }
   }
 

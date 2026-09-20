@@ -175,7 +175,7 @@ function inFootprint(r: { x: number; y: number; w: number; h: number; rot: numbe
   return Math.abs(lx) < r.w / 2 + margin && Math.abs(ly) < r.h / 2 + margin;
 }
 
-export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: number, pixelScale: number, pal: Palette, mustContain: Vec[] = []): TerrainData {
+export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: number, pixelScale: number, pal: Palette, mustContain: Vec[] = [], shift: Vec = { x: 0, y: 0 }): TerrainData {
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(W * pixelScale); canvas.height = Math.ceil(H * pixelScale);
   const ctx = canvas.getContext('2d')!;
@@ -189,7 +189,14 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
 
   const gpal = groundPalette(pal, level.ground);
   drawSea(ctx, W, H, pal, rng);
-  const islands = level.islands.map(def => islandPolygon(def, W, H, mustContain));
+  const islands = level.islands.map(def => {
+    const isl = islandPolygon(def, W, H, mustContain);
+    if (shift.x || shift.y) {
+      isl.poly = isl.poly.map(p => ({ x: p.x + shift.x, y: p.y + shift.y }));
+      isl.cx += shift.x; isl.cy += shift.y;
+    }
+    return isl;
+  });
 
   // shallow halos first for all islands
   for (const isl of islands) {
@@ -237,7 +244,7 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
     const islandRunways = runways.filter(rw => rw.kind !== 'water' && pointInPoly(rw.center, isl.poly));
     // named decor is pushed out of any airport footprint so villages never end up on the apron
     const decorPts = isl.def.decor.map(d => {
-      let wx = d.x * W, wy = d.y * H;
+      let wx = d.x * W + shift.x, wy = d.y * H + shift.y;
       for (const rw of islandRunways) {
         const fp = rw.airport?.footprint; if (!fp) continue;
         const margin = d.kind === 'village' ? 90 : 50;
@@ -354,7 +361,7 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
   // lakes, canals and bays cut out of the land
   if (level.water) {
     for (const wpoly of level.water) {
-      const poly = wpoly.map(([nx, ny]) => ({ x: nx * W, y: ny * H }));
+      const poly = wpoly.map(([nx, ny]) => ({ x: nx * W + shift.x, y: ny * H + shift.y }));
       const cx = poly.reduce((a, p) => a + p.x, 0) / poly.length, cy = poly.reduce((a, p) => a + p.y, 0) / poly.length;
       ctx.fillStyle = hexA(pal.seaShallow, 0.55); tracePoly(ctx, scalePoly(poly, cx, cy, 1.06)); ctx.fill();
       const g = ctx.createLinearGradient(0, 0, 0, H);

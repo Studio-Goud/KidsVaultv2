@@ -7,7 +7,7 @@ import type { GameEvent, LevelDef, Plane, PlaneType, RunwayKind, Snapshot } from
 import { effects as upgradeEffects } from './upgrades';
 import { Weather, makeScript } from './weather';
 import { addParallelRunway, initAirports, isGroundState, startArrivalTaxi, updateGround } from './ground';
-import type { Airport } from './airport';
+import { translateAirport, type Airport } from './airport';
 
 export const SEP_GAP = 60;      // metres of clear air required between hulls
 export const CRASH_GAP = 10;    // metres: closer than this is a collision
@@ -77,6 +77,8 @@ export class World {
   selected: number | null = null;
   selectedUntil = 0;
   wind = { vec: { x: 0, y: 0 }, kmh: 0, dirRad: 0 };
+  /** how far the whole field was nudged to sit comfortably on screen */
+  shift: Vec = { x: 0, y: 0 };
   weather!: Weather;
   private lastWxKind = '';
   private rng: () => number;
@@ -136,10 +138,71 @@ export class World {
         addParallelRunway(ap, twin, main);
       }
     }
+    this.centreField();
     this.updateWind(0);
   }
 
   emit(kind: GameEvent['kind'], planes: number[], text: string, meta?: Record<string, number | string>): void { this.pushEvent(kind, planes, text, meta); }
+
+  /**
+   * Nudges every runway and airport so the whole field sits in the middle of the screen: fully
+   * centred left to right, and vertically only far enough to clear the HUD and the panel.
+   */
+  private centreField(): void {
+    const rwPts: Vec[] = [];
+    const allPts: Vec[] = [];
+    for (const rw of this.runways) {
+      const perp = { x: -rw.dir.y, y: rw.dir.x };
+      for (const a of [-GATE_DIST - 30, rw.length + 20]) for (const s of [-1, 1]) {
+        const p = add(add(rw.threshold, mul(rw.dir, a)), mul(perp, (rw.width / 2 + 12) * s));
+        rwPts.push(p); allPts.push(p);
+      }
+    }
+    if (!rwPts.length) return;
+    for (const ap of this.airports()) {
+      const f = ap.footprint;
+      const c = Math.cos(f.rot), sn = Math.sin(f.rot);
+      for (const sx of [-0.5, 0.5]) for (const sy of [-0.5, 0.5]) {
+        const lx = sx * f.w, ly = sy * f.h;
+        allPts.push({ x: f.x + lx * c - ly * sn, y: f.y + lx * sn + ly * c });
+      }
+    }
+    const box = (pts: Vec[]): { x0: number; x1: number; y0: number; y1: number } => ({
+      x0: Math.min(...pts.map(p => p.x)), x1: Math.max(...pts.map(p => p.x)),
+      y0: Math.min(...pts.map(p => p.y)), y1: Math.max(...pts.map(p => p.y)),
+    });
+    const r = box(rwPts), all = box(allPts);
+    // the band you can comfortably reach with a thumb: below the counter card, above the aircraft panel
+    const HUD_TOP = 200, PANEL = 330, SIDE = 30;
+    // the runways must stay well inside; the surrounding complex may hang over the edge a little
+    const SLACK = 240;
+    const aim = (rLo: number, rHi: number, aLo: number, aHi: number, lo: number, hi: number, span: number): number => {
+      const target = (lo + hi) / 2 - (rLo + rHi) / 2;   // centre the runways in the reachable band
+      let min = Math.max(-SLACK - aLo, 24 - rLo);
+      let max = Math.min(span + SLACK - aHi, span - 24 - rHi);
+      if (min > max) { min = 24 - rLo; max = span - 24 - rHi; }
+      return min > max ? (min + max) / 2 : clamp(target, min, max);
+    };
+    const dx = aim(r.x0, r.x1, all.x0, all.x1, SIDE, this.W - SIDE, this.W);
+    const dy = aim(r.y0, r.y1, all.y0, all.y1, HUD_TOP, this.H - PANEL, this.H);
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+    const d = { x: dx, y: dy };
+    this.shift = d;
+    for (const rw of this.runways) {
+      rw.threshold = add(rw.threshold, d);
+      rw.end = add(rw.end, d);
+      rw.center = add(rw.center, d);
+      rw.gate = add(rw.gate, d);
+    }
+    for (const ap of this.airports()) translateAirport(ap, d);
+  }
+
+  /** Every distinct airport complex on this map. */
+  airports(): Airport[] {
+    const out: Airport[] = [];
+    for (const r of this.runways) if (r.airport && !out.includes(r.airport)) out.push(r.airport);
+    return out;
+  }
 
   // ---------- public API used by input/UI ----------
 

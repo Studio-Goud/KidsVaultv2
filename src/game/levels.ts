@@ -57,8 +57,8 @@ export const LEVELS: LevelDef[] = [
       { cx: 0.50, cy: 0.12, rx: 0.10, ry: 0.06, seed: 403, style: 'tropic', decor: [ { kind: 'lighthouse', x: 0.50, y: 0.11 } ] },
     ],
     runways: [
-      { id: 'rwS', kind: 'short', x: 0.30, y: 0.62, heading: S, length: 260 },
-      { id: 'rwL', kind: 'long', x: 0.86, y: 0.66, heading: S, length: 380 },
+      { id: 'rwS', kind: 'short', x: 0.34, y: 0.62, heading: S, length: 260 },
+      { id: 'rwL', kind: 'long', x: 0.80, y: 0.66, heading: S, length: 380 },
     ],
     planes: [ { type: 'c172', weight: 2 }, { type: 'dhc6', weight: 1 }, { type: 'atr72', weight: 2 }, { type: 'e195', weight: 1 }, { type: 'a320', weight: 2 }, { type: 'b747', weight: 1 } ],
     spawn: { first: 1.2, base: 13, min: 5, step: 0.55, maxConcurrent: 3, maxConcurrentEnd: 5 },
@@ -74,8 +74,8 @@ export const LEVELS: LevelDef[] = [
       { cx: 0.84, cy: 0.14, rx: 0.13, ry: 0.08, seed: 503, style: 'tropic', decor: [ { kind: 'lighthouse', x: 0.84, y: 0.13 } ] },
     ],
     runways: [
-      { id: 'rwL', kind: 'long', x: 0.84, y: 0.68, heading: S, length: 360 },
-      { id: 'rwW', kind: 'water', x: 0.20, y: 0.58, heading: S, length: 300 },
+      { id: 'rwL', kind: 'long', x: 0.78, y: 0.68, heading: S, length: 360 },
+      { id: 'rwW', kind: 'water', x: 0.27, y: 0.58, heading: S, length: 300 },
     ],
     planes: [ { type: 'c208a', weight: 3 }, { type: 'c172', weight: 1 }, { type: 'atr72', weight: 2 }, { type: 'a320', weight: 2 }, { type: 'e195', weight: 1 } ],
     spawn: { first: 1.2, base: 12, min: 4.8, step: 0.5, maxConcurrent: 3, maxConcurrentEnd: 6 },

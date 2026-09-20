@@ -233,3 +233,15 @@ export function buildAirport(
     compact,
   };
 }
+
+/** Move a whole airport complex by a world-space offset. */
+export function translateAirport(ap: Airport, d: Vec): void {
+  for (const n of ap.nodes) { n.x += d.x; n.y += d.y; }
+  for (const g of ap.gates) { g.pos = add(g.pos, d); }
+  for (const b of ap.buildings) { b.pos = add(b.pos, d); }
+  for (const a of ap.aprons) a.poly = a.poly.map(p => add(p, d));
+  for (const v of ap.vehicles) v.path = v.path.map(p => add(p, d));
+  for (const k of Object.keys(ap.lineUp)) ap.lineUp[k] = add(ap.lineUp[k], d);
+  ap.footprint = { ...ap.footprint, x: ap.footprint.x + d.x, y: ap.footprint.y + d.y };
+  ap.roadAnchor = add(ap.roadAnchor, d);
+}

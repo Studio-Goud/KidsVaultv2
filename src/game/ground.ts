@@ -47,12 +47,13 @@ export function initAirports(world: World): void {
 export function mustContainPoints(world: World): Vec[] {
   const pts: Vec[] = [];
   if (world.level.port) return pts;
+  const back = { x: -world.shift.x, y: -world.shift.y };
   for (const rw of world.runways) {
     if (rw.kind === 'water') continue;
-    if (rw.kind === 'helipad') { pts.push(rw.threshold); continue; }
+    if (rw.kind === 'helipad') { pts.push(add(rw.threshold, back)); continue; }
     const perp = { x: -rw.dir.y, y: rw.dir.x };
-    for (let a = -60; a <= rw.length + 60; a += 30) for (const s of [-1, 0, 1]) pts.push(add(add(rw.threshold, mul(rw.dir, a)), mul(perp, (rw.width / 2 + 40) * s)));
-    if (rw.airport) pts.push(...rectSamples(rw.airport.footprint, 40));
+    for (let a = -60; a <= rw.length + 60; a += 30) for (const s of [-1, 0, 1]) pts.push(add(add(add(rw.threshold, back), mul(rw.dir, a)), mul(perp, (rw.width / 2 + 40) * s)));
+    if (rw.airport) pts.push(...rectSamples(rw.airport.footprint, 40).map(p => add(p, back)));
   }
   return pts;
 }
