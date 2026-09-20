@@ -13,13 +13,14 @@ import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { BODIES, MOONS, moonsOf, type Body, type Moon } from './bodies';
 import { drawExplore, hitAt } from './explore';
 import { drawScale } from './scale';
+import { MissionScreen } from './missionscreen';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
 import { CREDITS, loadAllMoons, loadAllPlanets } from './photo';
 import { uiScale } from '../../util/ui';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
-type Mode = 'quiz' | 'explore' | 'scale';
+type Mode = 'quiz' | 'explore' | 'scale' | 'missions';
 
 interface Slot { body: Body; pos: Vec; r: number; placed: boolean }
 interface Flyer { body: Body; from: Vec; to: Vec; r0: number; r1: number; t0: number }
@@ -59,6 +60,7 @@ export class Orbit {
   private stars = starField(1, 1);
   private photosReady = false;
   private mode: Mode = 'quiz';
+  private missions = new MissionScreen((wt, sz) => this.font(wt, sz));
   private exploreIndex = 0;
   private openMoon: Moon | null = null;
   private hits: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
@@ -68,6 +70,13 @@ export class Orbit {
     this.resize();
     window.addEventListener('resize', () => this.resize());
     canvas.addEventListener('pointerdown', e => this.onDown(e));
+    canvas.addEventListener('pointermove', e => {
+      if (this.mode !== 'missions') return;
+      const r0 = this.canvas.getBoundingClientRect();
+      this.missions.onMove({ x: e.clientX - r0.left, y: e.clientY - r0.top });
+    });
+    canvas.addEventListener('pointerup', () => this.missions.onUp());
+    canvas.addEventListener('pointercancel', () => this.missions.onUp());
     this.startRound(0);
     void loadAllPlanets(BODIES.map(b => b.id)).then(() => { this.photosReady = true; this.layout(); });
     void loadAllMoons(MOONS.map(m => m.id));
@@ -84,6 +93,8 @@ export class Orbit {
   }
 
   destroy(): void { cancelAnimationFrame(this.raf); }
+
+  missionState(): Record<string, unknown> { return this.missions.debugState(); }
 
   debugState(): { phase: Phase; round: number; placed: number; next: string | null; choices: Array<{ id: string; x: number; y: number; placed: boolean }> } {
     return {
@@ -171,6 +182,7 @@ export class Orbit {
     const ctx = this.ctx, u = this.u();
     const labels: Array<[Mode, string]> = [
       ['quiz', T('Puzzle', 'Puzzel')],
+      ['missions', T('Missions', 'Missies')],
       ['explore', T('Explore', 'Verken')],
       ['scale', T('To scale', 'Op schaal')],
     ];
@@ -216,6 +228,7 @@ export class Orbit {
   }
 
   private update(dt: number): void {
+    if (this.mode === 'missions') { this.missions.update(dt); return; }
     if (this.mode !== 'quiz') return;
     this.phaseT += dt;
     this.factT = Math.max(0, this.factT - dt);
@@ -241,12 +254,13 @@ export class Orbit {
     const r = this.canvas.getBoundingClientRect();
     const p = { x: e.clientX - r.left, y: e.clientY - r.top };
     const hit = hitAt(this.hits, p);
+    if (hit && hit.startsWith('tab:')) {
+      this.mode = hit.slice(4) as Mode;
+      this.openMoon = null;
+      return;
+    }
+    if (this.mode === 'missions') { this.missions.onDown(p, hit); return; }
     if (hit) {
-      if (hit.startsWith('tab:')) {
-        this.mode = hit.slice(4) as Mode;
-        this.openMoon = null;
-        return;
-      }
       if (hit === 'again') { this.startRound(0); return; }
       if (hit === 'prev' || hit === 'next') {
         const d = hit === 'next' ? 1 : -1;
@@ -301,6 +315,11 @@ export class Orbit {
     ctx.globalAlpha = 1;
     this.hits = [];
 
+    if (this.mode === 'missions') {
+      this.hits = this.missions.draw(ctx, this.w, this.h - this.tabRoom(), this.u(), this.dpr, this.t);
+      this.hits.push(...this.drawTabs());
+      return;
+    }
     if (this.mode === 'explore') {
       const body = BODIES[this.exploreIndex];
       this.hits = drawExplore(ctx, body, this.openMoon, this.t, this.w, this.h - this.tabRoom(),
