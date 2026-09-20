@@ -43,8 +43,8 @@ const LIGHT = [{ type: 'c172', weight: 2 }, { type: 'pa28', weight: 1 }, { type:
 export const REAL_PORTS: RealPort[] = [
   {
     id: 'eham', icao: 'EHAM', iata: 'AMS', name: 'Schiphol', city: 'Amsterdam', country: 'Nederland',
-    nl: 'Zes banen in de polder, de Polderbaan ligt kilometers van de terminal.',
-    en: 'Six runways in the polder, with the Polderbaan miles from the terminal.',
+    nl: 'Vijf grote banen in de polder plus de korte Oostbaan; de Polderbaan ligt kilometers van de terminal.',
+    en: 'Five main runways in the polder plus the short Oostbaan; the Polderbaan sits miles from the terminal.',
     base: 'land', ground: 'polder',
     water: [
       [[0.0, 0.355], [0.20, 0.35], [0.20, 0.383], [0.0, 0.39]],
@@ -57,7 +57,7 @@ export const REAL_PORTS: RealPort[] = [
       { id: '24', x: 0.94, y: 0.085, hdg: 240, len: 350, from: 1 },     // Kaagbaan
       { id: '18L', x: 0.76, y: 0.545, hdg: 180, len: 340, from: 1 },    // Aalsmeerbaan
       { id: '27', x: 0.98, y: 0.285, hdg: 270, len: 345, from: 2 },     // Buitenveldertbaan
-      { id: '22', x: 0.88, y: 0.365, hdg: 220, len: 200, from: 3 }, // Oostbaan
+      { id: '22', x: 0.88, y: 0.365, hdg: 220, len: 201, kind: 'short', from: 3 }, // Oostbaan: alleen klein verkeer
     ],
     terminals: [
       { x: 0.42, y: 0.50, rot: 0, w: 150, gates: 7, label: 'D', heavy: true },
