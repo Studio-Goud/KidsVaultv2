@@ -273,3 +273,121 @@ export function drawBoat(ctx: Ctx, x: number, y: number, rot: number, pal: Palet
   ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -1.5, 5, 3);
   ctx.restore();
 }
+
+/** Dense city block grid: roads, blocks and a few towers. */
+export function drawCity(ctx: Ctx, x: number, y: number, w: number, h: number, rot: number, pal: Palette, lights: LightSpot[], rng: () => number): void {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.fillStyle = shade(pal.taxiway, 0.18);
+  ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 10); ctx.fill();
+  const cols = Math.max(3, Math.round(w / 46)), rows = Math.max(2, Math.round(h / 46));
+  const cw = w / cols, ch = h / rows;
+  // roads
+  ctx.strokeStyle = shade(pal.taxiway, -0.12); ctx.lineWidth = 5;
+  for (let i = 1; i < cols; i++) { ctx.beginPath(); ctx.moveTo(-w / 2 + i * cw, -h / 2); ctx.lineTo(-w / 2 + i * cw, h / 2); ctx.stroke(); }
+  for (let j = 1; j < rows; j++) { ctx.beginPath(); ctx.moveTo(-w / 2, -h / 2 + j * ch); ctx.lineTo(w / 2, -h / 2 + j * ch); ctx.stroke(); }
+  const roofs = ['#d9d3c6', '#c9c2b4', '#bfc6cf', '#d6c4b0', '#c3cbbd'];
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+    const bx = -w / 2 + i * cw + cw / 2, by = -h / 2 + j * ch + ch / 2;
+    const n = 1 + Math.floor(rng() * 3);
+    for (let k = 0; k < n; k++) {
+      const bw = cw * (0.22 + rng() * 0.3), bh = ch * (0.22 + rng() * 0.3);
+      const ox = (rng() - 0.5) * (cw - bw - 6), oy = (rng() - 0.5) * (ch - bh - 6);
+      const tall = rng() < 0.16;
+      ctx.fillStyle = `rgba(20,40,60,${pal.shadowAlpha * (tall ? 0.6 : 0.35)})`;
+      ctx.fillRect(bx + ox - bw / 2 + (tall ? 5 : 2), by + oy - bh / 2 + (tall ? 6 : 2), bw, bh);
+      ctx.fillStyle = tall ? '#e6e9ef' : roofs[Math.floor(rng() * roofs.length)];
+      ctx.fillRect(bx + ox - bw / 2, by + oy - bh / 2, bw, bh);
+      if (tall) {
+        ctx.fillStyle = 'rgba(150,200,240,0.55)';
+        ctx.fillRect(bx + ox - bw / 2 + 1.5, by + oy - bh / 2 + 1.5, bw - 3, bh - 3);
+        if (pal.lightsOn) lights.push({ x: x + Math.cos(rot) * (bx + ox) - Math.sin(rot) * (by + oy), y: y + Math.sin(rot) * (bx + ox) + Math.cos(rot) * (by + oy), r: 14, color: 'rgba(255,220,150,0.45)', kind: 'window' });
+      }
+    }
+  }
+  if (pal.lightsOn) {
+    for (let i = 0; i < 8; i++) {
+      const lx = (rng() - 0.5) * w, ly = (rng() - 0.5) * h;
+      lights.push({ x: x + Math.cos(rot) * lx - Math.sin(rot) * ly, y: y + Math.sin(rot) * lx + Math.cos(rot) * ly, r: 34, color: 'rgba(255,220,150,0.16)', kind: 'lamp' });
+    }
+  }
+  ctx.restore();
+}
+
+/** A mountain ridge seen from above: a rocky band with contour lines and snow on the spine. */
+export function drawRidge(ctx: Ctx, x: number, y: number, w: number, h: number, rot: number, pal: Palette, rng: () => number): void {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  const layers: Array<[number, string]> = [[1, '#6d675f'], [0.74, '#837c72'], [0.5, '#9b9488'], [0.28, '#cfcac1']];
+  const n = 16;
+  const edge: number[] = [];
+  for (let i = 0; i <= n; i++) edge.push(0.72 + rng() * 0.5);
+  for (const [k, col] of layers) {
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const px = -w / 2 + (w * i) / n;
+      const py = -h / 2 * k * edge[i];
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    for (let i = n; i >= 0; i--) {
+      const px = -w / 2 + (w * i) / n;
+      ctx.lineTo(px, (h / 2) * k * edge[(i + 5) % (n + 1)]);
+    }
+    ctx.closePath();
+    ctx.fillStyle = col; ctx.fill();
+  }
+  // snow along the spine
+  ctx.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const px = -w / 2 + (w * i) / n;
+    ctx.lineTo(px, -h * 0.06 * edge[i]);
+  }
+  for (let i = n; i >= 0; i--) {
+    const px = -w / 2 + (w * i) / n;
+    ctx.lineTo(px, h * 0.07 * edge[(i + 3) % (n + 1)]);
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fill();
+  // ravines running down both flanks
+  ctx.strokeStyle = 'rgba(60,55,50,0.28)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  for (let i = 1; i < n; i += 2) {
+    const px = -w / 2 + (w * i) / n;
+    ctx.beginPath(); ctx.moveTo(px, -h * 0.04); ctx.lineTo(px + (rng() - 0.5) * 18, -h / 2 * 0.92 * edge[i]); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px, h * 0.04); ctx.lineTo(px + (rng() - 0.5) * 18, h / 2 * 0.92 * edge[(i + 5) % (n + 1)]); ctx.stroke();
+  }
+  ctx.restore();
+  void pal;
+}
+
+/** A single peak from above: concentric contours with a snow cap. */
+export function drawMountain(ctx: Ctx, x: number, y: number, r: number, pal: Palette): void {
+  ctx.fillStyle = `rgba(20,50,40,${pal.shadowAlpha * 0.7})`;
+  ctx.beginPath(); ctx.ellipse(x + r * 0.22, y + r * 0.2, r * 1.02, r * 0.92, 0, 0, Math.PI * 2); ctx.fill();
+  const rings: Array<[number, string]> = [[1, '#6d675f'], [0.78, '#7f786e'], [0.58, '#948d82'], [0.4, '#b6b0a6'], [0.24, '#ffffff']];
+  for (const [k, col] of rings) {
+    ctx.beginPath();
+    const steps = 14;
+    for (let i = 0; i <= steps; i++) {
+      const a = (i / steps) * Math.PI * 2;
+      const wob = 1 + 0.16 * Math.sin(a * 3 + k * 7);
+      const px = x + Math.cos(a) * r * k * wob - r * 0.08 * (1 - k);
+      const py = y + Math.sin(a) * r * k * 0.9 * wob - r * 0.1 * (1 - k);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  }
+  // ridge lines radiating from the summit
+  ctx.strokeStyle = 'rgba(60,55,50,0.3)'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + 0.4;
+    ctx.beginPath(); ctx.moveTo(x - r * 0.06, y - r * 0.08); ctx.lineTo(x + Math.cos(a) * r * 0.95, y + Math.sin(a) * r * 0.86); ctx.stroke();
+  }
+}
+
+/** Sandy beach strip. */
+export function drawBeach(ctx: Ctx, x: number, y: number, w: number, h: number, rot: number, pal: Palette): void {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.fillStyle = pal.sand; ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, h / 2); ctx.fill();
+  ctx.fillStyle = hexA(pal.sandDark, 0.5); ctx.beginPath(); ctx.roundRect(-w / 2, h * 0.1, w, h * 0.4, h * 0.2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  for (let i = 0; i < 6; i++) ctx.fillRect(-w / 2 + (w / 6) * i + 6, -h / 2 - 2, 10, 2);
+  ctx.restore();
+}

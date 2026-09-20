@@ -4,7 +4,7 @@ import { dist, TAU, type Vec } from '../util/math';
 import { islandPolygon, pointInPoly, polyArea, scalePoly, type IslandShape } from '../game/geo';
 import { drawAirport } from './airportfx';
 import { makeRng } from '../util/rng';
-import { drawBoat, drawBush, drawCastle, drawFlowers, drawHangar, drawHouse, drawLighthouse, drawPalm, drawPine, drawTerminal, drawTowerBase, drawTree, drawVillage, drawWindmillBase, type LightSpot } from './decor';
+import { drawBeach, drawBoat, drawBush, drawCastle, drawCity, drawFlowers, drawHangar, drawHouse, drawLighthouse, drawMountain, drawPalm, drawPine, drawRidge, drawTerminal, drawTowerBase, drawTree, drawVillage, drawWindmillBase, type LightSpot } from './decor';
 import { hexA, shade, type Palette } from './palette';
 import { effects as upgradeEffects } from '../game/upgrades';
 
@@ -22,6 +22,34 @@ export interface TerrainData {
 }
 
 type Ctx = CanvasRenderingContext2D;
+
+function groundPalette(pal: Palette, ground?: string): Palette {
+  if (!ground || ground === 'grass') return pal;
+  const p = { ...pal };
+  switch (ground) {
+    case 'polder':
+      p.grass = shade(pal.grass, -0.06); p.grassDark = shade(pal.grassDark, -0.05);
+      p.sand = '#cbb98a'; p.sandDark = '#b3a173'; p.cliff = '#9e8c66';
+      break;
+    case 'desert':
+      p.grass = '#e3c78d'; p.grassDark = '#cdae74'; p.grassLight = '#f0d9a6';
+      p.sand = '#e8d3a0'; p.sandDark = '#cdb47f'; p.cliff = '#b99a68';
+      p.treeA = '#7d8a5a'; p.treeB = '#909c68'; p.treeC = '#a6b07c';
+      break;
+    case 'rock':
+      p.grass = '#8a9070'; p.grassDark = '#727a5c'; p.grassLight = '#a3a886';
+      p.sand = '#b0a894'; p.sandDark = '#968f7d'; p.cliff = '#7c7466';
+      break;
+    case 'urban':
+      p.grass = '#9cb383'; p.grassDark = '#87a06f'; p.grassLight = '#b2c69b';
+      p.sand = '#c9c2ae'; p.sandDark = '#b0a996'; p.cliff = '#9a9382';
+      break;
+    case 'tropic':
+      p.grass = '#7fcf72'; p.grassDark = '#5fb257'; p.grassLight = '#a5e493';
+      break;
+  }
+  return p;
+}
 
 function tracePoly(ctx: Ctx, poly: Vec[]): void {
   ctx.beginPath();
@@ -105,11 +133,17 @@ function drawRunway(ctx: Ctx, rw: Runway, pal: Palette, lights: LightSpot[], rl:
   for (let i = 0; i < keys; i++) {
     ctx.fillStyle = pal.marking; ctx.fillRect(6, -w / 2 + 7 + i * kw + kw * 0.2, 26, kw * 0.6);
   }
-  // runway number
+  // runway designator: the real one when the level provides it, otherwise from the heading
+  const real = /^\d{2}[LCR]?$/.test(rw.id) ? rw.id : null;
   const num = Math.round((((rw.heading * 180 / Math.PI) + 90 + 360) % 360) / 10) || 36;
+  const label = real ?? num.toString().padStart(2, '0');
   ctx.save(); ctx.translate(58, 0); ctx.rotate(-Math.PI / 2);
   ctx.fillStyle = pal.marking; ctx.font = `bold ${Math.round(w * 0.42)}px Nunito, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(num.toString().padStart(2, '0'), 0, 0);
+  if (label.length > 2) {
+    ctx.fillText(label.slice(0, 2), 0, -w * 0.02);
+    ctx.font = `bold ${Math.round(w * 0.3)}px Nunito, system-ui, sans-serif`;
+    ctx.fillText(label.slice(2), 0, w * 0.3);
+  } else ctx.fillText(label, 0, 0);
   ctx.restore();
   // aiming point bars
   ctx.fillStyle = pal.marking; ctx.fillRect(95, -w * 0.3, 24, w * 0.11); ctx.fillRect(95, w * 0.19, 24, w * 0.11);
@@ -153,6 +187,7 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
   const runwayLights: TerrainData['runwayLights'] = [];
   const boats: TerrainData['boats'] = [];
 
+  const gpal = groundPalette(pal, level.ground);
   drawSea(ctx, W, H, pal, rng);
   const islands = level.islands.map(def => islandPolygon(def, W, H, mustContain));
 
@@ -169,15 +204,15 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
   for (const isl of islands) {
     const irng = makeRng(isl.def.seed);
     // cliff / thickness
-    ctx.fillStyle = pal.cliff; tracePoly(ctx, scalePoly(isl.poly, isl.cx, isl.cy, 1, 16)); ctx.fill();
-    ctx.fillStyle = shade(pal.cliff, 0.18); tracePoly(ctx, scalePoly(isl.poly, isl.cx, isl.cy, 1, 8)); ctx.fill();
+    ctx.fillStyle = gpal.cliff; tracePoly(ctx, scalePoly(isl.poly, isl.cx, isl.cy, 1, 16)); ctx.fill();
+    ctx.fillStyle = shade(gpal.cliff, 0.18); tracePoly(ctx, scalePoly(isl.poly, isl.cx, isl.cy, 1, 8)); ctx.fill();
     // sand
-    ctx.fillStyle = pal.sand; tracePoly(ctx, isl.poly); ctx.fill();
-    ctx.fillStyle = hexA(pal.sandDark, 0.5); tracePoly(ctx, scalePoly(isl.poly, isl.cx, isl.cy, 0.985, 3)); ctx.fill();
+    ctx.fillStyle = gpal.sand; tracePoly(ctx, isl.poly); ctx.fill();
+    ctx.fillStyle = hexA(gpal.sandDark, 0.5); tracePoly(ctx, scalePoly(isl.poly, isl.cx, isl.cy, 0.985, 3)); ctx.fill();
     // grass
     const grassPoly = scalePoly(isl.poly, isl.cx, isl.cy, 0.94, -5);
-    ctx.fillStyle = pal.grassDark; tracePoly(ctx, scalePoly(isl.poly, isl.cx, isl.cy, 0.95, -3)); ctx.fill();
-    ctx.fillStyle = pal.grass; tracePoly(ctx, grassPoly); ctx.fill();
+    ctx.fillStyle = gpal.grassDark; tracePoly(ctx, scalePoly(isl.poly, isl.cx, isl.cy, 0.95, -3)); ctx.fill();
+    ctx.fillStyle = gpal.grass; tracePoly(ctx, grassPoly); ctx.fill();
     // grass texture
     ctx.save(); tracePoly(ctx, grassPoly); ctx.clip();
     const area = polyArea(grassPoly);
@@ -186,8 +221,15 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
     const blobs = Math.floor(area / 6000);
     for (let i = 0; i < blobs; i++) {
       const x = bx + irng() * bw, y = by + irng() * bh;
-      ctx.fillStyle = hexA(i % 3 === 0 ? pal.grassLight : pal.grassDark, 0.35);
+      ctx.fillStyle = hexA(i % 3 === 0 ? gpal.grassLight : gpal.grassDark, 0.35);
       ctx.beginPath(); ctx.ellipse(x, y, 20 + irng() * 40, 10 + irng() * 22, irng() * Math.PI, 0, TAU); ctx.fill();
+    }
+    // polder ditches: straight parallel drainage lines
+    if (isl.def.style === 'polder') {
+      ctx.strokeStyle = hexA(pal.seaMid, 0.3); ctx.lineWidth = 2;
+      for (let x = bx; x < bx + bw; x += 74) { ctx.beginPath(); ctx.moveTo(x, by); ctx.lineTo(x, by + bh); ctx.stroke(); }
+      ctx.strokeStyle = hexA(pal.seaMid, 0.18); ctx.lineWidth = 1.6;
+      for (let y = by; y < by + bh; y += 180) { ctx.beginPath(); ctx.moveTo(bx, y); ctx.lineTo(bx + bw, y); ctx.stroke(); }
     }
     ctx.restore();
 
@@ -230,7 +272,15 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
       if (!pointInPoly(p, scalePoly(isl.poly, isl.cx, isl.cy, 0.9, -4))) return true;
       for (const rw of islandRunways) { if (runwayRectContains(rw, p, margin + 26)) return true; if (rw.airport && inFootprint(rw.airport.footprint, p, margin + 10)) return true; }
       if (apron && dist(p, apron) < 40 + margin) return true;
-      for (const d of decorPts) if (dist(p, { x: d.wx, y: d.wy }) < (d.kind === 'village' ? 78 : d.kind === 'terminal' ? 60 : 44) + margin) return true;
+      for (const d of decorPts) {
+        if (d.kind === 'ridge' || d.kind === 'city' || d.kind === 'beach' || d.kind === 'forest') {
+          const hw = (d.w ?? 0.2) * W / 2 + margin, hh = (d.h ?? 0.1) * H / 2 + margin;
+          if (Math.abs(p.x - d.wx) < hw && Math.abs(p.y - d.wy) < hh) return true;
+          continue;
+        }
+        if (d.kind === 'mountain') { if (dist(p, { x: d.wx, y: d.wy }) < (d.w ?? 0.07) * W + margin) return true; continue; }
+        if (dist(p, { x: d.wx, y: d.wy }) < (d.kind === 'village' ? 78 : d.kind === 'terminal' ? 60 : 44) + margin) return true;
+      }
       return false;
     };
     for (let i = 0, tries = 0; i < treeCount && tries < treeCount * 12; tries++) {
@@ -283,7 +333,34 @@ export function buildTerrain(level: LevelDef, runways: Runway[], W: number, H: n
         case 'hangar': drawables.push({ y, fn: () => drawHangar(ctx, x, y, pal, lights) }); break;
         case 'windmill': drawables.push({ y, fn: () => { windmills.push(drawWindmillBase(ctx, x, y, pal)); } }); break;
         case 'castle': drawables.push({ y, fn: () => drawCastle(ctx, x, y, pal, lights) }); break;
+        case 'city': drawables.push({ y, fn: () => drawCity(ctx, x, y, (d.w ?? 0.2) * W, (d.h ?? 0.1) * H, (d.rot ?? 0) * Math.PI / 180, pal, lights, makeRng(Math.round(x * 7 + y))) }); break;
+        case 'ridge': drawables.push({ y: y - (d.h ?? 0.1) * H, fn: () => drawRidge(ctx, x, y, (d.w ?? 0.4) * W, (d.h ?? 0.12) * H, (d.rot ?? 0) * Math.PI / 180, pal, makeRng(Math.round(x * 11 + y))) }); break;
+        case 'mountain': drawables.push({ y, fn: () => drawMountain(ctx, x, y, (d.w ?? 0.07) * W, pal) }); break;
+        case 'beach': drawables.push({ y, fn: () => drawBeach(ctx, x, y, (d.w ?? 0.3) * W, (d.h ?? 0.02) * H, (d.rot ?? 0) * Math.PI / 180, pal) }); break;
+        case 'forest': drawables.push({ y, fn: () => {
+          const frng = makeRng(Math.round(x * 13 + y));
+          const fw = (d.w ?? 0.2) * W, fh = (d.h ?? 0.1) * H;
+          for (let i = 0; i < 60; i++) {
+            const px = x + (frng() - 0.5) * fw, py = y + (frng() - 0.5) * fh;
+            if (isl.def.style === 'tropic') drawPalm(ctx, px, py, 8 + frng() * 5, pal, Math.floor(frng() * 3));
+            else if (frng() < 0.6) drawPine(ctx, px, py, 9 + frng() * 6, pal, Math.floor(frng() * 3));
+            else drawTree(ctx, px, py, 9 + frng() * 6, pal, Math.floor(frng() * 3));
+          }
+        } }); break;
       }
+    }
+  }
+
+  // lakes, canals and bays cut out of the land
+  if (level.water) {
+    for (const wpoly of level.water) {
+      const poly = wpoly.map(([nx, ny]) => ({ x: nx * W, y: ny * H }));
+      const cx = poly.reduce((a, p) => a + p.x, 0) / poly.length, cy = poly.reduce((a, p) => a + p.y, 0) / poly.length;
+      ctx.fillStyle = hexA(pal.seaShallow, 0.55); tracePoly(ctx, scalePoly(poly, cx, cy, 1.06)); ctx.fill();
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, pal.seaMid); g.addColorStop(1, pal.seaDeep);
+      ctx.fillStyle = g; tracePoly(ctx, poly); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 2; tracePoly(ctx, poly); ctx.stroke();
     }
   }
 

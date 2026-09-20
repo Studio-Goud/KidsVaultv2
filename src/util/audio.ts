@@ -418,6 +418,12 @@ export class Radio {
   }
 }
 
+export const runwayIdCallout = (id: string): string => {
+  const digits = id.slice(0, 2).split('').map(d => ['zero', 'one', 'two', 'tree', 'four', 'five', 'six', 'seven', 'eight', 'niner'][+d] ?? d).join(' ');
+  const side = id.slice(2);
+  return `${digits}${side === 'L' ? ' left' : side === 'R' ? ' right' : side === 'C' ? ' centre' : ''}`;
+};
+
 export const runwayCallout = (headingRad: number): string => {
   const num = Math.round((((headingRad * 180 / Math.PI) + 90 + 360) % 360) / 10) || 36;
   return String(num).padStart(2, '0').split('').map(d => ['zero', 'one', 'two', 'tree', 'four', 'five', 'six', 'seven', 'eight', 'niner'][+d]).join(' ');

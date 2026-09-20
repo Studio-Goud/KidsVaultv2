@@ -6,7 +6,8 @@ import { PLANE_TYPES, runwayAccepts } from './planes';
 import type { GameEvent, LevelDef, Plane, PlaneType, RunwayKind, Snapshot } from './types';
 import { effects as upgradeEffects } from './upgrades';
 import { Weather, makeScript } from './weather';
-import { initAirports, isGroundState, startArrivalTaxi, updateGround, type Airport } from './ground';
+import { addParallelRunway, initAirports, isGroundState, startArrivalTaxi, updateGround } from './ground';
+import type { Airport } from './airport';
 
 export const SEP_GAP = 60;      // metres of clear air required between hulls
 export const CRASH_GAP = 10;    // metres: closer than this is a collision
@@ -116,18 +117,23 @@ export class World {
     const script = level.weather ?? makeScript(level.wind ? 'breezy' : 'clear', 0, level.wind, level.time === 'night');
     this.weather = new Weather(script, this.W, this.H, level.seed);
     initAirports(this);
-    if (level.twinRunway) {
-      const main = this.runways.find(r => r.kind === 'long' && r.airport);
+    if (level.twinRunway && !level.port) {
+      const main = this.runways.find(r => r.kind === 'long' && r.airport && !r.parallelOf);
       if (main && main.airport) {
         const ap = main.airport;
-        const off = -(main.width / 2 + 92 + main.width / 2);
-        const threshold = add(main.threshold, mul(ap.uy, off));
+        const dirN = { x: -main.dir.y, y: main.dir.x };
+        // put the second runway on the opposite side of the terminal
+        const termSide = Math.sign((ap.footprint.x - main.center.x) * dirN.x + (ap.footprint.y - main.center.y) * dirN.y) || 1;
+        const off = -termSide * (main.width + 150);
+        const threshold = add(main.threshold, mul(dirN, off));
         const end = add(threshold, mul(main.dir, main.length));
-        this.runways.push({
+        const twin: Runway = {
           id: main.id + 'B', kind: 'long', threshold, heading: main.heading, dir: main.dir, length: main.length, end,
           gate: sub(threshold, mul(main.dir, GATE_DIST)), occupiedBy: null, center: add(threshold, mul(main.dir, main.length / 2)), width: main.width,
           airport: ap, parallelOf: main.id,
-        });
+        };
+        this.runways.push(twin);
+        addParallelRunway(ap, twin, main);
       }
     }
     this.updateWind(0);
@@ -286,6 +292,7 @@ export class World {
   }
 
   runwayName(rw: Runway): string {
+    if (/^\d{2}[LCR]?$/.test(rw.id)) return `${lang() === 'nl' ? 'baan' : 'runway'} ${rw.id}`;
     const base = rw.kind === 'short' ? t('rwShort') : rw.kind === 'long' ? t('rwLong') : rw.kind === 'water' ? t('rwWater') : t('rwHeli');
     const twin = rw.parallelOf ? rw : this.runways.find(r => r.parallelOf === rw.id);
     if (!twin) return base;
@@ -296,7 +303,12 @@ export class World {
     return `${base} ${right ? (lang() === 'nl' ? 'rechts' : 'right') : (lang() === 'nl' ? 'links' : 'left')}`;
   }
 
-  runwayById(id: string | null): Runway | undefined { return id ? this.runways.find(r => r.id === id) : undefined; }
+  runwayById(id: string | null | undefined): Runway | undefined { return id ? this.runways.find(r => r.id === id) : undefined; }
+  airportById(id: string | null | undefined): Airport | undefined {
+    if (!id) return undefined;
+    for (const r of this.runways) if (r.airport && r.airport.id === id) return r.airport;
+    return undefined;
+  }
 
   maxConcurrent(): number {
     const s = this.level.spawn;

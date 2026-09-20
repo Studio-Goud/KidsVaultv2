@@ -53,8 +53,10 @@ export interface IslandDef {
   cx: number; cy: number;     // normalized center
   rx: number; ry: number;     // normalized radii
   seed: number;
-  style: 'meadow' | 'pine' | 'tropic';
-  decor: Array<{ kind: 'lighthouse' | 'windmill' | 'village' | 'tower' | 'castle' | 'hangar' | 'terminal'; x: number; y: number; rot?: number }>;
+  style: 'meadow' | 'pine' | 'tropic' | 'polder' | 'rock' | 'desert' | 'urban';
+  /** explicit outline (normalised) instead of a noisy ellipse */
+  poly?: Array<[number, number]>;
+  decor: Array<{ kind: 'lighthouse' | 'windmill' | 'village' | 'tower' | 'castle' | 'hangar' | 'terminal' | 'city' | 'mountain' | 'ridge' | 'beach' | 'forest'; x: number; y: number; rot?: number; w?: number; h?: number }>;
 }
 
 export interface WindDef {
@@ -80,6 +82,13 @@ export interface LevelDef {
   clouds: number;
   weather?: import('./weather').WeatherScript;
   twinRunway?: boolean;
+  /** real-world airport level */
+  port?: import('./realports').RealPort;
+  step?: number;
+  /** lakes / bays drawn on top of the land (normalised polygons) */
+  water?: Array<Array<[number, number]>>;
+  /** ground colour family for real-world fields */
+  ground?: 'polder' | 'grass' | 'rock' | 'desert' | 'tropic' | 'urban';
 }
 
 export type PlaneState = 'flying' | 'landing' | 'landed' | 'crashed' | 'taxi' | 'parked' | 'pushback' | 'holding' | 'takeoff' | 'departing';
@@ -120,6 +129,7 @@ export interface Plane {
   parkUntil: number;
   airportId: string | null;
   landedOn?: string;
+  departRunway?: string;
   takeoffAlong: number;  // metres rolled during the take-off run
   outbound: boolean;     // taxiing out for departure
 }

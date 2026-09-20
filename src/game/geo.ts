@@ -40,6 +40,12 @@ export function rectSamples(r: Rect, step = 24): Vec[] {
  * named decor) lies comfortably inside.
  */
 export function islandPolygon(def: IslandDef, W: number, H: number, mustContain: Vec[]): IslandShape {
+  if (def.poly) {
+    const poly = def.poly.map(([x, y]) => ({ x: x * W, y: y * H }));
+    const cx = poly.reduce((s, p) => s + p.x, 0) / poly.length;
+    const cy = poly.reduce((s, p) => s + p.y, 0) / poly.length;
+    return { poly: resamplePoly(poly, 110), def, cx, cy };
+  }
   const n = 120;
   const noise = new ValueNoise(def.seed);
   const cx = def.cx * W, cy = def.cy * H, rx = def.rx * W, ry = def.ry * H;
@@ -70,4 +76,27 @@ export function islandPolygon(def: IslandDef, W: number, H: number, mustContain:
   }
   const poly = sm.map((rn, i) => { const th = (i / n) * TAU; return { x: cx + Math.cos(th) * rx * rn, y: cy + Math.sin(th) * ry * rn }; });
   return { poly, def, cx, cy };
+}
+
+
+/** Even out a hand-drawn polygon so the coast effects have enough points to work with. */
+export function resamplePoly(poly: Vec[], n: number): Vec[] {
+  const per: number[] = [];
+  let total = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const l = Math.hypot(b.x - a.x, b.y - a.y);
+    per.push(l); total += l;
+  }
+  const out: Vec[] = [];
+  const stepLen = total / n;
+  let seg = 0, along = 0;
+  for (let i = 0; i < n; i++) {
+    const want = i * stepLen;
+    while (seg < per.length - 1 && along + per[seg] < want) { along += per[seg]; seg++; }
+    const t = per[seg] > 0 ? (want - along) / per[seg] : 0;
+    const a = poly[seg], b = poly[(seg + 1) % poly.length];
+    out.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+  }
+  return out;
 }

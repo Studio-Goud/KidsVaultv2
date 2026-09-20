@@ -51,5 +51,7 @@ export function recordLevelResult(id: string, landed: number, stars: number, com
   return next;
 }
 
+export const realId = (portId: string, step: number): string => `real:${portId}:${step}`;
+
 export function addCoins(n: number): void { save.coins = Math.max(0, Math.round(save.coins + n)); persist(); }
 export function upgradeLevel(id: string): number { return save.upgrades[id] ?? 0; }

@@ -3,6 +3,8 @@ import './style.css';
 import { shouldShowInterstitial, showInterstitial, showRewarded } from './game/ads';
 import { Input } from './game/input';
 import { buildMission, coinsForRun, missionId, nextMission, starsForRun, WORLDS } from './game/progress';
+import { realLevel, realPortById, REAL_PORTS } from './game/realports';
+import { lang } from './i18n';
 import { buildReport } from './game/postmortem';
 import { World } from './game/world';
 import type { GameEvent } from './game/types';
@@ -11,9 +13,9 @@ import { Renderer } from './render/renderer';
 import { ReplayView } from './ui/replay';
 import { UI, type UIActions } from './ui/screens';
 import { addCoins, levelProgress, persist, recordLevelResult, save } from './util/storage';
-import { Ambience, EngineMixer, Radio, runwayCallout, sfx, unlockAudio } from './util/audio';
+import { Ambience, EngineMixer, Radio, runwayCallout, runwayIdCallout, sfx, unlockAudio } from './util/audio';
 
-type Mode = 'title' | 'worlds' | 'missions' | 'shop' | 'fleet' | 'tutorial' | 'playing' | 'paused' | 'complete' | 'failed' | 'settings' | 'ad';
+type Mode = 'title' | 'worlds' | 'missions' | 'shop' | 'fleet' | 'ports' | 'tutorial' | 'playing' | 'paused' | 'complete' | 'failed' | 'settings' | 'ad';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const renderer = new Renderer(canvas);
@@ -28,6 +30,7 @@ let current = { worldIndex: 0, index: 0 };
 let last = performance.now();
 let clock = 0;
 let runCoins = 0;
+let currentPort: { id: string; step: number } | null = null;
 let revivedThisRun = false;
 let lastThunder = -1;
 
@@ -55,7 +58,7 @@ function onWorldEvent(e: GameEvent): void {
       break;
     case 'lock': {
       const rw = world.runwayById(String(e.meta?.runway ?? ''));
-      if (rw) radio.say(rw.kind === 'helipad' ? `${cs}, cleared to land helipad, wind ${Math.round(world.wind.kmh)} kilometers.` : `${cs}, cleared to land runway ${runwayCallout(rw.heading)}, wind ${Math.round(world.wind.kmh)} kilometers.`);
+      if (rw) radio.say(rw.kind === 'helipad' ? `${cs}, cleared to land helipad, wind ${Math.round(world.wind.kmh)} kilometers.` : `${cs}, cleared to land runway ${/^\d{2}[LCR]?$/.test(rw.id) ? runwayIdCallout(rw.id) : runwayCallout(rw.heading)}, wind ${Math.round(world.wind.kmh)} kilometers.`);
       break;
     }
     case 'touchdown': sfx.touchdown(type.cls === 'heavy' || type.cls === 'medium' || type.cls === 'fast'); break;
@@ -65,7 +68,7 @@ function onWorldEvent(e: GameEvent): void {
     case 'ditch': radio.say(`${cs} is going down, ditching, ditching.`, { who: 'pilot', urgent: true }); break;
     case 'taxi': { const g = Number(e.meta?.gate ?? -1); radio.say(g > 0 && g < 100 ? `${cs}, taxi to gate ${g} via alpha.` : `${cs}, taxi to the apron via alpha.`); break; }
     case 'pushback': radio.say(`${cs}, pushback approved.`); break;
-    case 'takeoff': radio.say(`${cs}, wind ${Math.round(world.wind.kmh)} kilometers, runway ${runwayCallout(world.runwayById(p?.airportId ?? '')?.heading ?? 0)}, cleared for take-off.`); break;
+    case 'takeoff': { const dr = world.runwayById(p?.departRunway ?? p?.airportId ?? ''); radio.say(`${cs}, wind ${Math.round(world.wind.kmh)} kilometers, runway ${dr && /^\d{2}[LCR]?$/.test(dr.id) ? runwayIdCallout(dr.id) : runwayCallout(dr?.heading ?? 0)}, cleared for take-off.`); break; }
     case 'command': {
       const c = String(e.meta?.cmd);
       if (c === 'faster') { radio.say(`${cs}, increase speed, expedite.`); radio.say(`Increasing speed, ${cs}.`, { who: 'pilot' }); }
@@ -81,6 +84,7 @@ function onWorldEvent(e: GameEvent): void {
 function startMission(worldIndex: number, index: number): void {
   const lv = buildMission(worldIndex, index);
   current = { worldIndex, index };
+  currentPort = null;
   world = new World(lv, renderer.suggestWorldWidth());
   world.onEvent = onWorldEvent;
   renderer.setWorld(world);
@@ -92,6 +96,25 @@ function startMission(worldIndex: number, index: number): void {
   mode = 'playing';
   last = performance.now();
 }
+
+function startRealMission(portId: string, step: number): void {
+  const port = realPortById(portId);
+  if (!port) return;
+  const lv = realLevel(port, Math.max(0, Math.min(3, step)), lang() === 'nl', renderer.suggestWorldWidth(), 1600);
+  currentPort = { id: portId, step: Math.max(0, Math.min(3, step)) };
+  world = new World(lv, renderer.suggestWorldWidth());
+  world.onEvent = onWorldEvent;
+  renderer.setWorld(world);
+  input.cancelAll();
+  ui.clear();
+  runCoins = 0; revivedThisRun = false;
+  radio.stop();
+  ambience.setMode('game', lv.time !== 'night');
+  mode = 'playing';
+  last = performance.now();
+}
+
+function gotoPorts(): void { world = makeDemoWorld(); mode = 'ports'; ui.ports(() => { mode = 'title'; ui.title(); }); }
 
 function gotoWorlds(): void { world = makeDemoWorld(); mode = 'worlds'; ui.worlds(); }
 
@@ -110,14 +133,24 @@ const actions: UIActions = {
     if (!save.tutorialSeen) { current = { worldIndex: w, index: i }; mode = 'tutorial'; ui.tutorial(); return; }
     startMission(w, i);
   },
-  tutorialDone() { save.tutorialSeen = true; persist(); startMission(current.worldIndex, current.index); },
+  tutorialDone() { save.tutorialSeen = true; persist(); if (currentPort) startRealMission(currentPort.id, currentPort.step); else startMission(current.worldIndex, current.index); },
   resume() { ui.clear(); mode = 'playing'; last = performance.now(); },
-  retry() { void afterLevelAd(() => startMission(current.worldIndex, current.index)); },
+  retry() { const cp = currentPort; void afterLevelAd(() => (cp ? startRealMission(cp.id, cp.step) : startMission(current.worldIndex, current.index))); },
   next() {
+    if (currentPort) {
+      const cp = currentPort;
+      if (cp.step < 3) void afterLevelAd(() => startRealMission(cp.id, cp.step + 1));
+      else {
+        const i = REAL_PORTS.findIndex(p => p.id === cp.id);
+        const nx = REAL_PORTS[(i + 1) % REAL_PORTS.length];
+        void afterLevelAd(() => startRealMission(nx.id, 0));
+      }
+      return;
+    }
     const n = nextMission(current.worldIndex, current.index);
     if (n) void afterLevelAd(() => startMission(n.worldIndex, n.index)); else void afterLevelAd(() => gotoWorlds());
   },
-  toWorlds() { void afterLevelAd(() => gotoWorlds()); },
+  toWorlds() { const cp = currentPort; void afterLevelAd(() => (cp ? gotoPorts() : gotoWorlds())); },
   toMissions(w) { if (!world.demo) world = makeDemoWorld(); current.worldIndex = w; mode = 'missions'; ui.missions(w); },
   toTitle() { world = makeDemoWorld(); mode = 'title'; ui.title(); },
   continueEndless() { world.continueEndless(); ui.clear(); mode = 'playing'; last = performance.now(); ambience.setMode('game', world.level.time !== 'night'); },
@@ -128,6 +161,18 @@ const actions: UIActions = {
   },
   openShop() { prevMode = mode; mode = 'shop'; ui.shop(() => actions.closeShop()); },
   openFleet() { prevMode = mode; mode = 'fleet'; ui.fleet(() => actions.closeFleet()); },
+  openPorts() { gotoPorts(); },
+  startReal(portId, step) {
+    if (!save.tutorialSeen) { currentPort = { id: portId, step }; mode = 'tutorial'; ui.tutorial(); return; }
+    startRealMission(portId, step);
+  },
+  makePortThumb(portId, c) {
+    const port = realPortById(portId);
+    if (!port) return;
+    const lv = realLevel(port, 0, lang() === 'nl', 800, 1600);
+    const w = new World(lv, 800, { demo: true });
+    Renderer.drawThumbnail(c, w, PALETTES[lv.time]);
+  },
   closeFleet() { mode = prevMode === 'fleet' || prevMode === 'shop' || prevMode === 'settings' ? 'title' : prevMode; if (mode === 'worlds') ui.worlds(); else if (mode === 'missions') ui.missions(current.worldIndex); else { mode = 'title'; ui.title(); } },
   closeShop() {
     mode = prevMode === 'shop' || prevMode === 'settings' ? 'title' : prevMode;
@@ -194,7 +239,7 @@ function onComplete(): void {
   const r = finishRunBookkeeping(true);
   runCoins = r.coins;
   ambience.setMode('menu', world.level.time !== 'night');
-  const n = nextMission(current.worldIndex, current.index);
+  const n = currentPort ? true : nextMission(current.worldIndex, current.index);
   ui.complete({ levelName: world.level.name, landed: world.landed, stars: r.stars, newBest: r.newBest, hasNext: !!n, goal: world.level.goal, coins: r.coins, canDouble: true });
 }
 
@@ -247,7 +292,7 @@ window.addEventListener('keydown', e => {
 document.addEventListener('pointerdown', () => { unlockAudio(); ambience.setMode(mode === 'playing' ? 'game' : 'menu', world.level.time !== 'night'); }, { once: true });
 
 // debug handle (harmless in production)
-(window as unknown as { __wh: unknown }).__wh = { renderer, getWorld: () => world, getMode: () => mode, step: () => frame(performance.now()), start: (w: number, i: number) => startMission(w, i) };
+(window as unknown as { __wh: unknown }).__wh = { renderer, getWorld: () => world, getMode: () => mode, step: () => frame(performance.now()), start: (w: number, i: number) => startMission(w, i), startReal: (id: string, st: number) => startRealMission(id, st) };
 
 world = makeDemoWorld();
 ui.title();

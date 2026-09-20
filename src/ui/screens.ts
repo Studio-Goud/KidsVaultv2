@@ -3,8 +3,9 @@ import { drawPlane } from '../render/planes';
 import type { Report } from '../game/postmortem';
 import { LEVELS_PER_WORLD, WORLDS, buildMission, firstAppearance, missionId, missionUnlocked, totalStars, worldStars, worldUnlocked } from '../game/progress';
 import { UPGRADES, buyUpgrade, nextCost, upgradeDesc, upgradeName } from '../game/upgrades';
+import { REAL_PORTS } from '../game/realports';
 import { lang, t } from '../i18n';
-import { levelProgress, persist, save, upgradeLevel } from '../util/storage';
+import { levelProgress, persist, realId, save, upgradeLevel } from '../util/storage';
 import { sfx } from '../util/audio';
 
 export interface UIActions {
@@ -22,6 +23,9 @@ export interface UIActions {
   closeShop(): void;
   openFleet(): void;
   closeFleet(): void;
+  openPorts(): void;
+  startReal(portId: string, step: number): void;
+  makePortThumb(portId: string, canvas: HTMLCanvasElement): void;
   tutorialDone(): void;
   makeThumb(worldIndex: number, canvas: HTMLCanvasElement): void;
   doubleCoins(): void;
@@ -103,14 +107,45 @@ export class UI {
       <div class="card" style="text-align:center">
         <div class="statrow"><span>${svgStar(true, 18)}<b>${stars}</b> / ${WORLDS.length * LEVELS_PER_WORLD * 3}</span>${coinBadge()}</div>
         <div class="stack" style="margin-top:12px">
-          <button class="btn" data-a="play">${t('play')}</button>
+          <button class="btn" data-a="play">${t('islandsMode')}</button>
+          <button class="btn mint" data-a="ports">${t('world')}</button>
           <div class="row" style="margin-top:0"><button class="btn secondary" data-a="shop">${t('airport')}</button><button class="btn secondary" data-a="fleet">${t('fleet')}</button><button class="btn secondary" data-a="settings">${t('settings')}</button></div>
         </div>
       </div>`;
     s.querySelector('[data-a=play]')!.addEventListener('click', () => this.actions.toWorlds());
+    s.querySelector('[data-a=ports]')!.addEventListener('click', () => this.actions.openPorts());
     s.querySelector('[data-a=shop]')!.addEventListener('click', () => this.actions.openShop());
     s.querySelector('[data-a=fleet]')!.addEventListener('click', () => this.actions.openFleet());
     s.querySelector('[data-a=settings]')!.addEventListener('click', () => this.actions.openSettings());
+    this.mount(s);
+  }
+
+  /** Real-world airports: one card per field, four difficulty steps each. */
+  ports(back: () => void): void {
+    const s = this.screen('dim top');
+    s.appendChild(this.topbar(t('realPorts'), back));
+    const grid = document.createElement('div'); grid.className = 'grid'; grid.style.maxWidth = '560px';
+    for (const p of REAL_PORTS) {
+      const done = [0, 1, 2, 3].map(k => levelProgress(realId(p.id, k)));
+      const stars = done.reduce((a, d) => a + d.stars, 0);
+      const firstOpen = done.findIndex(d => !d.completed);
+      const nextStep = firstOpen === -1 ? 3 : firstOpen;
+      const b = document.createElement('button'); b.className = 'level port';
+      const c = document.createElement('canvas'); c.width = 300; c.height = 384;
+      b.appendChild(c);
+      this.actions.makePortThumb(p.id, c);
+      const meta = document.createElement('div'); meta.className = 'meta';
+      meta.innerHTML = `<div class="name">${p.name}</div><div class="info"><span>${p.city} · ${p.country}</span></div>` +
+        `<div class="info"><span>${svgStar(true, 12)} ${stars} / 12</span><span>${p.runways.length} ${lang() === 'nl' ? (p.runways.length === 1 ? 'baan' : 'banen') : (p.runways.length === 1 ? 'runway' : 'runways')}</span></div>`;
+      b.appendChild(meta);
+      const code = document.createElement('div'); code.className = 'icao'; code.textContent = p.iata; b.appendChild(code);
+      const dots = document.createElement('div'); dots.className = 'steps';
+      dots.innerHTML = [0, 1, 2, 3].map(k => `<i class="${done[k].completed ? 'on' : ''}"></i>`).join('');
+      b.appendChild(dots);
+      b.addEventListener('click', () => this.actions.startReal(p.id, nextStep));
+      grid.appendChild(b);
+    }
+    s.appendChild(grid);
     this.mount(s);
   }
 
