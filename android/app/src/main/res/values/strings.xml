@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Wolkenhaven</string>
-    <string name="title_activity_main">Wolkenhaven</string>
-    <string name="package_name">nl.studiogoud.wolkenhaven</string>
-    <string name="custom_url_scheme">nl.studiogoud.wolkenhaven</string>
+    <string name="app_name">Cloudhopper</string>
+    <string name="title_activity_main">Cloudhopper</string>
+    <string name="package_name">com.bramblewood.cloudhopper</string>
+    <string name="custom_url_scheme">com.bramblewood.cloudhopper</string>
 </resources>

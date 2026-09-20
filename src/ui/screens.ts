@@ -28,8 +28,9 @@ export interface UIActions {
   makePortThumb(portId: string, canvas: HTMLCanvasElement): void;
   tutorialDone(): void;
   makeThumb(worldIndex: number, canvas: HTMLCanvasElement): void;
-  doubleCoins(): void;
   revive(): void;
+  openParents(): void;
+  closeParents(): void;
 }
 
 const svgStar = (on: boolean, size = 16): string =>
@@ -103,13 +104,14 @@ export class UI {
     const s = this.screen('');
     const stars = grandTotalStars();
     s.innerHTML = `
-      <div class="logo">${svgLogo}<div class="word">Wolkenhaven</div><div class="tag">${lang() === 'nl' ? 'Luchtverkeersleider van de archipel' : 'Air traffic controller of the archipelago'}</div></div>
+      <div class="logo">${svgLogo}<div class="word">Cloudhopper</div><div class="tag">${lang() === 'nl' ? 'Breng elk toestel veilig thuis' : 'Bring every plane safely home'}</div></div>
       <div class="card" style="text-align:center">
         <div class="statrow"><span>${svgStar(true, 18)}<b>${stars}</b> / ${MAX_STARS}</span>${coinBadge()}</div>
         <div class="stack" style="margin-top:12px">
           <button class="btn" data-a="play">${t('islandsMode')}</button>
           <button class="btn mint" data-a="ports">${t('world')}</button>
           <div class="row" style="margin-top:0"><button class="btn secondary" data-a="shop">${t('airport')}</button><button class="btn secondary" data-a="fleet">${t('fleet')}</button><button class="btn secondary" data-a="settings">${t('settings')}</button></div>
+          <button class="btn quiet" data-a="parents">${t('parents')}</button>
         </div>
       </div>`;
     s.querySelector('[data-a=play]')!.addEventListener('click', () => this.actions.toWorlds());
@@ -117,6 +119,7 @@ export class UI {
     s.querySelector('[data-a=shop]')!.addEventListener('click', () => this.actions.openShop());
     s.querySelector('[data-a=fleet]')!.addEventListener('click', () => this.actions.openFleet());
     s.querySelector('[data-a=settings]')!.addEventListener('click', () => this.actions.openSettings());
+    s.querySelector('[data-a=parents]')!.addEventListener('click', () => this.actions.openParents());
     this.mount(s);
   }
 
@@ -326,14 +329,12 @@ export class UI {
       <div class="big">${opts.landed}</div><p>${t('landed').toLowerCase()} · ${t('goal').toLowerCase()} ${opts.goal}</p>
       <div class="coinsline">${svgCoin(22)} <b data-coins>+${opts.coins}</b> ${t('coins')}${opts.newBest ? ` <span class="pill gold">${t('newBest')}</span>` : ''}</div>
       <div class="stack">
-        ${opts.canDouble ? `<button class="btn secondary" data-a="double">${t('doubleCoins')}</button>` : ''}
         ${opts.hasNext ? `<button class="btn mint" data-a="next">${t('nextMission')}</button>` : ''}
         <div class="row" style="margin-top:0"><button class="btn secondary" data-a="continue">${t('continue')}</button><button class="btn secondary" data-a="levels">${t('missions')}</button></div>
       </div></div>`;
     s.querySelector('[data-a=continue]')!.addEventListener('click', () => this.actions.continueEndless());
     s.querySelector('[data-a=next]')?.addEventListener('click', () => this.actions.next());
     s.querySelector('[data-a=levels]')!.addEventListener('click', () => this.actions.toWorlds());
-    s.querySelector('[data-a=double]')?.addEventListener('click', () => this.actions.doubleCoins());
     this.mount(s);
   }
 
@@ -375,6 +376,33 @@ export class UI {
     card.querySelector('[data-a=revive]')?.addEventListener('click', () => this.actions.revive());
     s.appendChild(card);
     this.mount(s, destroyReplay);
+  }
+
+  /**
+   * The parent corner. Every game in Bramblewood gets one: what it practises, how a session is
+   * shaped, and what we do not claim. This is the page that earns a subscription, so it stays honest.
+   */
+  parents(): void {
+    const s = this.screen();
+    s.appendChild(this.topbar(t('parents'), () => this.actions.closeParents()));
+    const card = document.createElement('div'); card.className = 'card wide';
+    const skill = (n: 1 | 2 | 3 | 4): string =>
+      `<li><b>${t(`pSkill${n}`)}</b><span>${t(`pSkill${n}d`)}</span></li>`;
+    const block = (head: string, body: string): string =>
+      `<div class="pblock"><div class="sub">${head}</div><p>${body}</p></div>`;
+    card.innerHTML = `
+      <p class="headline">${t('parentsIntro')}</p>
+      <div class="pblock"><div class="sub">${t('pWhat')}</div>
+        <ul class="skills">${skill(1)}${skill(2)}${skill(3)}${skill(4)}</ul></div>
+      ${block(t('pAge'), t('pAgeVal'))}
+      ${block(t('pSession'), t('pSessionVal'))}
+      ${block(t('pPrivacy'), t('pPrivacyVal'))}
+      ${block(t('pHonest'), t('pHonestVal'))}
+      <div class="stack"><button class="btn secondary" data-a="back">${t('back')}</button></div>`;
+    card.querySelector('[data-a=back]')!.addEventListener('click', () => this.actions.closeParents());
+    card.querySelectorAll('button').forEach(b => b.addEventListener('pointerdown', () => sfx.tap()));
+    s.appendChild(card);
+    this.mount(s);
   }
 
   settings(): void {

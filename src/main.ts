@@ -1,6 +1,5 @@
 import './style.css';
 
-import { shouldShowInterstitial, showInterstitial, showRewarded } from './game/ads';
 import { toggleWeatherDetail } from './render/hud';
 import { Input } from './game/input';
 import { buildMission, coinsForRun, missionId, nextMission, starsForRun, WORLDS } from './game/progress';
@@ -16,7 +15,7 @@ import { UI, type UIActions } from './ui/screens';
 import { addCoins, levelProgress, persist, recordLevelResult, save } from './util/storage';
 import { Ambience, EngineMixer, Radio, runwayCallout, runwayIdCallout, sfx, unlockAudio } from './util/audio';
 
-type Mode = 'title' | 'worlds' | 'missions' | 'shop' | 'fleet' | 'ports' | 'tutorial' | 'playing' | 'paused' | 'complete' | 'failed' | 'settings' | 'ad';
+type Mode = 'title' | 'worlds' | 'missions' | 'shop' | 'fleet' | 'ports' | 'tutorial' | 'playing' | 'paused' | 'complete' | 'failed' | 'settings' | 'parents';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const renderer = new Renderer(canvas);
@@ -30,6 +29,8 @@ let world: World;
 let current = { worldIndex: 0, index: 0 };
 let last = performance.now();
 let clock = 0;
+/** An extra life is bought with coins you earned, never with an advertisement. */
+const REVIVE_COST = 75;
 let runCoins = 0;
 let currentPort: { id: string; step: number } | null = null;
 let revivedThisRun = false;
@@ -45,6 +46,11 @@ function makeDemoWorld(): World {
   return w;
 }
 
+/** The tower takes the name of the field: a real airport uses its own, the archipelago uses Bramblewood. */
+function towerName(): string {
+  return world.level.port ? world.level.port.name : 'Bramblewood';
+}
+
 function onWorldEvent(e: GameEvent): void {
   const p = world.planeById(e.planes[0]);
   const type = p?.type;
@@ -52,10 +58,10 @@ function onWorldEvent(e: GameEvent): void {
   const cs = radio.callsign(type, e.planes[0]);
   switch (e.kind) {
     case 'spawn':
-      if (!p?.urgent) radio.say(`Wolkenhaven Tower, ${cs}, inbound for landing.`, { who: 'pilot' });
+      if (!p?.urgent) radio.say(`${towerName()} Tower, ${cs}, inbound for landing.`, { who: 'pilot' });
       break;
     case 'mayday':
-      radio.say(`Mayday, mayday, Wolkenhaven Tower, ${cs}, ${type.family === 'fighter' ? 'bingo fuel' : 'minimum fuel'}, request priority landing.`, { who: 'pilot', urgent: true });
+      radio.say(`Mayday, mayday, ${towerName()} Tower, ${cs}, ${type.family === 'fighter' ? 'bingo fuel' : 'minimum fuel'}, request priority landing.`, { who: 'pilot', urgent: true });
       break;
     case 'lock': {
       const rw = world.runwayById(String(e.meta?.runway ?? ''));
@@ -63,7 +69,7 @@ function onWorldEvent(e: GameEvent): void {
       break;
     }
     case 'touchdown': sfx.touchdown(type.cls === 'heavy' || type.cls === 'medium' || type.cls === 'fast'); break;
-    case 'landed': radio.say(p?.urgent ? `${cs}, welcome home, emergency services are standing by.` : `${cs}, welcome to Wolkenhaven, taxi to the apron.`); break;
+    case 'landed': radio.say(p?.urgent ? `${cs}, welcome home, emergency services are standing by.` : `${cs}, welcome to ${towerName()}, taxi to the apron.`); break;
     case 'goaround': radio.say(`${cs}, go around, I say again, go around.`, { urgent: true }); break;
     case 'nearmiss': radio.say(`Traffic alert, ${cs}, traffic, turn immediately.`, { urgent: true }); break;
     case 'ditch': radio.say(`${cs} is going down, ditching, ditching.`, { who: 'pilot', urgent: true }); break;
@@ -119,15 +125,12 @@ function gotoPorts(): void { world = makeDemoWorld(); mode = 'ports'; ui.ports((
 
 function gotoWorlds(): void { world = makeDemoWorld(); mode = 'worlds'; ui.worlds(); }
 
-/** Show an interstitial between levels when due, then continue. */
-async function afterLevelAd(next: () => void): Promise<void> {
-  if ((mode === 'complete' || mode === 'failed') && shouldShowInterstitial()) {
-    const m = mode; mode = 'ad';
-    try { await showInterstitial(); } catch { /* ignore */ }
-    mode = m;
-  }
-  next();
-}
+/**
+ * Cloudhopper carries no advertising. Nothing interrupts a level, nothing tracks a child, and the
+ * app stays inside Apple's Kids category rules. This hook exists so the flow between levels has one
+ * place to hang on to.
+ */
+async function afterLevelAd(next: () => void): Promise<void> { next(); }
 
 const actions: UIActions = {
   startMission(w, i) {
@@ -184,16 +187,12 @@ const actions: UIActions = {
     const w = new World(lv, 800, { demo: true });
     Renderer.drawThumbnail(c, w, PALETTES[lv.time]);
   },
-  doubleCoins() {
-    void (async () => {
-      const ok = await showRewarded();
-      if (ok) { addCoins(runCoins); runCoins *= 2; ui.setCoinsLine(runCoins); sfx.coin(0); sfx.coin(1); sfx.coin(2); sfx.coin(3); }
-    })();
-  },
+  openParents() { prevMode = mode; mode = 'parents'; ui.parents(); },
+  closeParents() { mode = 'title'; ui.title(); },
   revive() {
     void (async () => {
-      const ok = await showRewarded();
-      if (!ok) return;
+      if (save.coins < REVIVE_COST) return;
+      addCoins(-REVIVE_COST);
       revivedThisRun = true;
       world.revive();
       ui.clear(); mode = 'playing'; last = performance.now();
@@ -242,7 +241,7 @@ function onComplete(): void {
   runCoins = r.coins;
   ambience.setMode('menu', world.level.time !== 'night');
   const n = currentPort ? true : nextMission(current.worldIndex, current.index);
-  ui.complete({ levelName: world.level.name, landed: world.landed, stars: r.stars, newBest: r.newBest, hasNext: !!n, goal: world.level.goal, coins: r.coins, canDouble: true });
+  ui.complete({ levelName: world.level.name, landed: world.landed, stars: r.stars, newBest: r.newBest, hasNext: !!n, goal: world.level.goal, coins: r.coins, canDouble: false });
 }
 
 function onFailed(): void {
@@ -254,7 +253,7 @@ function onFailed(): void {
   ambience.setMode('menu', world.level.time !== 'night');
   const report = buildReport(world);
   const replay = new ReplayView(world, renderer.terrain!, renderer.pal, report);
-  ui.failed(report, replay.el, () => replay.destroy(), world.landed, !revivedThisRun);
+  ui.failed(report, replay.el, () => replay.destroy(), world.landed, !revivedThisRun && save.coins >= REVIVE_COST);
 }
 
 function frame(now: number): void {
@@ -265,7 +264,7 @@ function frame(now: number): void {
     world.update(dt);
     if (world.status === 'complete') onComplete();
     else if (world.status === 'failed') onFailed();
-  } else if (world.demo && mode !== 'ad') {
+  } else if (world.demo) {
     world.update(dt);
   }
   // audio follow-up

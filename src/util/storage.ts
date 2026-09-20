@@ -16,7 +16,8 @@ export interface SaveData {
   wxOpen: boolean;
 }
 
-const KEY = 'wolkenhaven.save.v2';
+const KEY = 'cloudhopper.save.v1';
+const LEGACY_KEY = 'wolkenhaven.save.v2';
 
 const defaults = (): SaveData => ({
   levels: {}, sound: true, radio: true, music: true, haptics: true, lang: 'auto', tutorialSeen: false,
@@ -25,7 +26,7 @@ const defaults = (): SaveData => ({
 
 export function loadSave(): SaveData {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
     if (!raw) return defaults();
     return { ...defaults(), ...JSON.parse(raw) };
   } catch { return defaults(); }

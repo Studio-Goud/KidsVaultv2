@@ -1,17 +1,31 @@
-# Wolkenhaven
+# Bramblewood
 
-Sprookjesachtige luchtverkeersleider-game voor iOS en Android: teken met je vinger een route van elk
-binnenkomend vliegtuig naar de landingsbaan. Toestellen mogen elkaar niet raken (binnen 60 m is een
-bijna-botsing, binnen 10 m een botsing). Zes eilanden, oplopend in moeilijkheid, met wind, meerdere
-banen, watervliegtuigen en helikopters. Na een mislukte missie krijg je een herhaling en een analyse
-van wat er precies misging.
+Bramblewood is a small world of games for children, built as one codebase. No advertising, no
+third-party tracking, no account. Every game practises something real and ends properly: a session
+has a beginning and an end, with no endless loop and no daily reward pulling anyone back.
+
+English is the first language; Dutch is included.
+
+## The games
+
+### Cloudhopper (`index.html`)
+Draw a route with your finger from every incoming aircraft to the runway. Aircraft must not touch:
+within 60 m is a near miss, within 10 m a collision. Six islands rising in difficulty, plus twelve
+real-world airports, with weather, multiple runways, seaplanes and helicopters. After a failed
+mission you get a replay and an analysis of what went wrong.
+Practises dividing attention, planning ahead, holding back and spatial reasoning. Age 6 and up.
+
+### Night Watch (`nightwatch.html`)
+The sky shows a figure in the stars, the lines fade, and you draw it back from memory. Six figures a
+session, each with more lines, more look-alike stars and less time to look.
+Practises visual working memory. Age 5 and up.
 
 ## Stack
-- Vite + TypeScript, Canvas 2D (alle graphics procedureel getekend, geen assets)
-- Capacitor 7 voor de native iOS/Android-shell
-- PWA-manifest, dus ook direct installeerbaar vanuit de browser
+- Vite + TypeScript, Canvas 2D (every graphic drawn procedurally, no image assets)
+- Capacitor 7 for the native iOS and Android shell
+- PWA manifest, so it installs straight from the browser too
 
-## Ontwikkelen
+## Developing
 ```bash
 npm install
 npm run dev        # http://localhost:5173

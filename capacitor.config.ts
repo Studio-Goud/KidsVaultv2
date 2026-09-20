@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'nl.studiogoud.wolkenhaven',
-  appName: 'Wolkenhaven',
+  appId: 'com.bramblewood.cloudhopper',
+  appName: 'Cloudhopper',
   webDir: 'dist',
   backgroundColor: '#0f2a4a',
   android: {

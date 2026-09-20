@@ -68,8 +68,26 @@ const nl: Dict = {
   maxed: 'Maximaal',
   notEnough: 'Niet genoeg munten',
   earned: 'Verdiend',
-  doubleCoins: 'Verdubbel munten (advertentie)',
-  revive: 'Extra leven (advertentie)',
+  revive: 'Extra leven (75 munten)',
+  parents: 'Voor ouders',
+  parentsIntro: 'Cloudhopper hoort bij Bramblewood, een wereld met spellen die iets oefenen en netjes eindigen.',
+  pWhat: 'Wat je kind oefent',
+  pAge: 'Leeftijd',
+  pAgeVal: '6 jaar en ouder',
+  pSession: 'Hoe een sessie verloopt',
+  pSessionVal: 'Elke missie heeft een begin en een eind. Geen oneindige lus, geen dagelijkse beloning die je terugtrekt, geen timer die doortikt als je stopt.',
+  pPrivacy: 'Reclame en gegevens',
+  pPrivacyVal: 'Geen advertenties, geen volgsoftware van derden, geen account. De voortgang blijft op het toestel zelf staan.',
+  pHonest: 'Eerlijk gezegd',
+  pHonestVal: 'Dit spel oefent aandacht en plannen binnen het spel zelf. Of dat doorwerkt op school is niet bewezen, en dat beloven we dus niet.',
+  pSkill1: 'Aandacht verdelen',
+  pSkill1d: 'Meerdere toestellen tegelijk volgen zonder er een te vergeten.',
+  pSkill2: 'Vooruit plannen',
+  pSkill2d: 'De volgorde van landingen bepalen voordat het te druk wordt.',
+  pSkill3: 'Impuls remmen',
+  pSkill3d: 'Wachten met een toestel dat nog even kan, in plaats van meteen ingrijpen.',
+  pSkill4: 'Ruimtelijk inzicht',
+  pSkill4d: 'Afstand, hoek en snelheid inschatten bij het tekenen van een route.',
   worldLocked: 'Verzamel 12 sterren op het vorige eiland',
   radio: 'Radio (luchtverkeersleiding)',
   music: 'Muziek',
@@ -80,7 +98,7 @@ const nl: Dict = {
   nextMission: 'Volgende missie',
   mission: 'Missie',
   total: 'Totaal',
-  mapTitle: 'Wolkenhaven',
+  mapTitle: 'Cloudhopper',
   weatherNav: 'Weernavigatie',
   fleet: 'Vloot',
   world: 'Wereldreis',
@@ -164,8 +182,26 @@ const en: Dict = {
   maxed: 'Maxed',
   notEnough: 'Not enough coins',
   earned: 'Earned',
-  doubleCoins: 'Double coins (ad)',
-  revive: 'Extra life (ad)',
+  revive: 'Extra life (75 coins)',
+  parents: 'For parents',
+  parentsIntro: 'Cloudhopper is part of Bramblewood, a world of games that practise something real and end properly.',
+  pWhat: 'What your child practises',
+  pAge: 'Age',
+  pAgeVal: '6 and up',
+  pSession: 'How a session goes',
+  pSessionVal: 'Every mission has a beginning and an end. No endless loop, no daily reward that pulls you back, no timer running while you are away.',
+  pPrivacy: 'Ads and data',
+  pPrivacyVal: 'No advertising, no third-party tracking, no account. Progress stays on the device.',
+  pHonest: 'Being straight with you',
+  pHonestVal: 'This game practises attention and planning inside the game. Whether that carries over to school is not established, so we do not claim it.',
+  pSkill1: 'Dividing attention',
+  pSkill1d: 'Tracking several aircraft at once without losing one.',
+  pSkill2: 'Planning ahead',
+  pSkill2d: 'Deciding the landing order before the sky gets busy.',
+  pSkill3: 'Holding back',
+  pSkill3d: 'Leaving a plane that can wait, instead of reacting to whatever moves.',
+  pSkill4: 'Spatial reasoning',
+  pSkill4d: 'Judging distance, angle and speed while drawing a route.',
   worldLocked: 'Collect 12 stars on the previous island',
   radio: 'Radio (air traffic control)',
   music: 'Music',
@@ -176,7 +212,7 @@ const en: Dict = {
   nextMission: 'Next mission',
   mission: 'Mission',
   total: 'Total',
-  mapTitle: 'Wolkenhaven',
+  mapTitle: 'Cloudhopper',
   weatherNav: 'Weather navigation',
   fleet: 'Fleet',
   world: 'World tour',
@@ -196,10 +232,10 @@ const en: Dict = {
 
 export function lang(): 'nl' | 'en' {
   if (save.lang !== 'auto') return save.lang;
-  return (navigator.language || 'nl').toLowerCase().startsWith('nl') ? 'nl' : 'en';
+  return (navigator.language || 'en').toLowerCase().startsWith('nl') ? 'nl' : 'en';
 }
 
 export function t(key: string): string {
   const d = lang() === 'nl' ? nl : en;
-  return d[key] ?? nl[key] ?? key;
+  return d[key] ?? en[key] ?? key;
 }
