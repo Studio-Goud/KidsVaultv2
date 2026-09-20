@@ -138,16 +138,34 @@ export class DinoDig {
    * which on a short wide screen made the slab taller than the screen and pushed the fossil out
    * under the tool belt; now the height leads and the width follows it.
    */
+  /**
+   * On a narrow screen the Museum button sits at the top left and the way back to Bramblewood at
+   * the top right, and a heading centred between them runs straight through both. So there it
+   * gets a row of its own and everything under it moves down; on a wide screen it fits beside
+   * them as before.
+   */
+  private stacked(): boolean { return this.w < 520 * this.u(); }
+  /**
+   * On a short wide screen there is no room for the rock and three choices one above the other -
+   * the choices ended up over the photograph the child is supposed to be looking at. So there
+   * they stand side by side: the rock on the left, the three names beside it.
+   */
+  private asking(): boolean { return this.phase === 'ask' || this.phase === 'wrong'; }
+  private beside(): boolean { return this.asking() && this.w > this.h * 1.15; }
+  private headY(): number { return this.stacked() ? 76 * this.u() : 34 * this.u(); }
+  private dialY(): number { return this.stacked() ? 112 * this.u() : 74 * this.u(); }
+
   private slab(): { x: number; y: number; w: number; h: number } {
     const u = this.u();
-    const top = 140 * u;
-    const bottom = this.h - (this.phase === 'dig' ? 96 * u : 212 * u);
+    const top = (this.stacked() ? 172 : 140) * u;
+    const bottom = this.h - (this.beside() ? 16 * u : this.phase === 'dig' ? 96 * u : 212 * u);
     const band = Math.max(120, bottom - top);
-    let w = this.w - 20 * u;
+    let w = (this.beside() ? this.w * 0.56 : this.w) - 20 * u;
     let h = Math.min(band, w * 1.3);
     // never wider than it is tall by more than a slab should be
     if (h < w / 2.4) w = h * 2.4;
-    return { x: (this.w - w) / 2, y: top + Math.max(0, (band - h) / 2), w, h };
+    const x = this.beside() ? 12 * u : (this.w - w) / 2;
+    return { x, y: top + Math.max(0, (band - h) / 2), w, h };
   }
 
   private cell(): number { return this.slab().w / (this.site?.cols ?? 30); }
@@ -431,7 +449,7 @@ export class DinoDig {
       this.phase === 'wrong' ? T('Look again', 'Kijk nog eens') :
       this.phase === 'failed' ? T('The light went', 'Het licht was op') :
       nameOf(this.dino);
-    heading(ctx, head, this.w / 2, 34 * u, this.font('900', 19), '#4a3823');
+    heading(ctx, head, this.w / 2, this.headY(), this.font('900', 19), '#4a3823');
 
     if (this.phase === 'dig') this.drawMeters(p.exposed, p.chipped);
     if (this.phase === 'reveal') this.drawCard();
@@ -439,7 +457,7 @@ export class DinoDig {
       ctx.fillStyle = 'rgba(74,56,35,0.7)'; ctx.font = this.font('700', 12.5);
       ctx.fillText(T('Too much is still buried. Spend the brush where the rock is soft.',
         'Er zit nog te veel onder. Gebruik de kwast waar het gesteente zacht is.'),
-        this.w / 2, 88 * u, this.w - 36 * u);
+        this.w / 2, this.headY() + 14 * u, this.w - 36 * u);
       this.button('retry', T('Dig again', 'Opnieuw graven'), this.w / 2, slab.y + slab.h + 46 * u, 210 * u, 48 * u, true);
     }
 
@@ -448,7 +466,7 @@ export class DinoDig {
       ctx.globalAlpha = clamp(this.noteT, 0, 1);
       ctx.font = this.font('800', 11.5);
       const tw = Math.min(this.w - 32 * u, ctx.measureText(this.note).width + 30 * u);
-      const ny = 104 * u;
+      const ny = this.dialY() + 30 * u;
       glassPanel(ctx, this.w / 2 - tw / 2, ny, tw, 28 * u, 14 * u, 0.94);
       ctx.fillStyle = '#4a3823';
       ctx.textAlign = 'center';
@@ -457,11 +475,22 @@ export class DinoDig {
     }
 
     if (this.phase === 'ask' || this.phase === 'wrong') {
-      const bw = Math.min(360 * u, this.w - 40 * u), bh = 46 * u;
-      const y0 = slab.y + slab.h + 14 * u;
+      // Each choice carries the animal's own outline beside its name. A child who cannot read the
+      // three names can still match the shape they have just dug out against three shapes.
+      const side = this.beside();
+      const bw = side ? Math.min(340 * u, this.w - slab.x - slab.w - 28 * u) : Math.min(360 * u, this.w - 40 * u);
+      const bh = 52 * u;
+      const gap = 7 * u;
+      const stackH = this.options.length * bh + (this.options.length - 1) * gap;
+      const cx = side ? slab.x + slab.w + 14 * u + bw / 2 : this.w / 2;
+      // the last one has to be on the screen either way
+      const y0 = side
+        ? Math.max(this.headY() + 16 * u, (this.h - stackH) / 2)
+        : Math.min(slab.y + slab.h + 12 * u, this.h - stackH - 12 * u);
       this.options.forEach((o, i) => {
         const bad = this.wrongId === o.id;
-        this.button(o.id, nameOf(o), this.w / 2, y0 + i * (bh + 8 * u) + bh / 2, bw, bh, !bad, bad);
+        const cy = y0 + i * (bh + gap) + bh / 2;
+        this.button(o.id, nameOf(o), cx, cy, bw, bh, !bad, bad, o);
       });
     }
     if (this.phase === 'reveal') {
@@ -475,24 +504,42 @@ export class DinoDig {
     ctx.textAlign = 'left';
   }
 
-  private button(id: string, label: string, cx: number, cy: number, w: number, h: number, strong: boolean, bad = false): void {
+  private button(id: string, label: string, cx: number, cy: number, w: number, h: number, strong: boolean, bad = false, shape?: Dino): void {
     const ctx = this.ctx;
     const x = cx - w / 2, y = cy - h / 2;
     const face = chunkyButton(ctx, x, y, w, h, {
       tone: bad ? '#d06a58' : strong ? '#fdf6e6' : '#efe3cc',
       pressed: this.held0 === id,
     });
+    let textCx = cx;
+    if (shape) {
+      const sw = Math.min(w * 0.34, h * 2.2), sh = h * 0.82;
+      const sx = x + w * 0.035, sy = face.y + (h - sh) / 2;
+      ctx.save();
+      const ink = bad ? 'rgba(255,255,255,0.88)' : 'rgba(74, 56, 35, 0.8)';
+      ctx.fillStyle = ink;
+      // the outline is built from overlapping limbs; at this size they leave seams, so the same
+      // colour is stroked over the fill to close them into one silhouette
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = Math.max(1.4, sw * 0.055);
+      ctx.lineJoin = 'round';
+      bodyPath(ctx, shape, { x: sx, y: sy, w: sw, h: sh });
+      ctx.fill('nonzero');
+      ctx.stroke();
+      ctx.restore();
+      textCx = cx + sw * 0.5;
+    }
     ctx.fillStyle = bad ? '#ffffff' : '#4a3823';
     ctx.font = this.font('900', h > 40 * this.u() ? 15 : 12);
     ctx.textAlign = 'center';
-    ctx.fillText(label, cx, face.y + h * 0.63, w - 20);
+    ctx.fillText(label, textCx, face.y + h * 0.63, w - (shape ? w * 0.42 : 20));
     this.hits.push({ id, x, y, w, h });
   }
 
   /** How much is out, how much is broken, and how much daylight is left - as dials, not numbers. */
   private drawMeters(exposed: number, chipped: number): void {
     const ctx = this.ctx, u = this.u();
-    const r = 21 * u, y = 74 * u;
+    const r = 21 * u, y = this.dialY();
     paintExposedDial(ctx, this.w / 2 - 32 * u, y, r, exposed, u);
     paintSunDial(ctx, this.w / 2 + 32 * u, y, r, clamp(this.stamina, 0, 1), u);
     if (chipped > 0) {

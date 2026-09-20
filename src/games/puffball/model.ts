@@ -122,8 +122,12 @@ export const at = (b: Board, x: number, y: number): Tile =>
 
 export const setTile = (b: Board, x: number, y: number, t: Tile): void => { b.tiles[y * b.cols + x] = t; };
 
-/** Where the player starts, and where the moles start: opposite corners, kept clear. */
+/**
+ * Where the player starts, and where the moles start: opposite corners, kept clear. Three corners
+ * are all there are, so a level asking for more than three moles would silently get three.
+ */
 export const START = { x: 1, y: 1 };
+export const MAX_MOLES = 3;
 export const moleStarts = (b: Board): Array<{ x: number; y: number }> => [
   { x: b.cols - 2, y: b.rows - 2 },
   { x: b.cols - 2, y: 1 },
@@ -166,8 +170,14 @@ export function buildBoard(level: Level): Board {
       potCells.push(y * cols + x);
     }
   }
-  // the pick-ups go under pots spread across the board rather than clustered in one corner
-  const order = potCells.slice().sort(() => rng() - 0.5);
+  // The pick-ups go under pots spread across the board rather than clustered in one corner.
+  // A shuffle by sort comparator is not a shuffle - it leans on whatever order the sort happens
+  // to visit - so this swaps properly, and then takes evenly spaced pots out of the result.
+  const order = potCells.slice();
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
   level.hidden.forEach((kind, i) => {
     const cell = order[Math.floor((i / Math.max(1, level.hidden.length)) * order.length)];
     if (cell !== undefined && b.under[cell] === null) b.under[cell] = kind;
