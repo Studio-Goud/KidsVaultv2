@@ -21,6 +21,7 @@ import {
 import {
   airAt, canLift, gravityAt, isFlyable, kmLabel, LADDER, liftThrust, MAX_PARTS, nextRung, padWeight,
   PARTS, partById, rungFor, stagesOf, totalMass, coastHeight,
+  densityAt, shapeOf, shapeHint, slipperiness,
   type Part, type Stack, type Stage,
 } from './model';
 import {
@@ -218,7 +219,7 @@ export class Moonshot {
       wide,
       scaleX: wide ? Math.max(this.w * 0.2, 118 * u) : this.w / 2,
       scaleY,
-      rocketTop: wide ? 20 * u : scaleY + 88 * u,
+      rocketTop: wide ? 20 * u : scaleY + 142 * u,
       rocketBase: trayY - (wide ? 10 : 26) * u,
       trayY, trayH, launchY,
     };
@@ -387,10 +388,13 @@ export class Moonshot {
       this.fuel -= used;
       if (this.alt < 400) this.shake.add(dt * 1.2);
     }
-    // the air pushes back, hard and low down
+    // the air pushes back, hard and low down, and how hard depends on what the rocket looks like:
+    // how wide it is, how long it is for that width, and whether there are boosters and fins out in
+    // the airflow. Dropping a stage of boosters makes the rocket slipperier the moment they go.
     const speed = Math.hypot(this.vUp, this.vSide);
     if (speed > 1) {
-      const drag = 0.5 * 1.225 * air * 0.35 * 3.5 * speed * speed / m;
+      const shape = shapeOf(this.stack, this.dropped);
+      const drag = 0.5 * densityAt(this.alt) * shape.drag * speed * speed / m;
       a -= drag * (this.vUp / speed);
       ax -= drag * (this.vSide / speed);
     }
@@ -629,11 +633,43 @@ export class Moonshot {
     ctx.fillText(ok
       ? T('The push wins. It will fly.', 'De duw wint. Hij gaat vliegen.')
       : T('Too heavy to lift.', 'Te zwaar om op te tillen.'), cx, y + 76 * u, arm * 2 + 60 * u);
+    this.drawShapeGauge(cx, y + 96 * u, arm);
     ctx.textAlign = 'left';
   }
 
+  /**
+   * How slippery the thing you have built is, and the one sentence that says what to do about it.
+   *
+   * The balance above answers "will it go up". This answers "how hard will the air fight it",
+   * which is the other half of the job and the half a child can see in the drawing: a long thin
+   * rocket slides through, a short fat one with boosters hanging off it shoves the air aside.
+   */
+  private drawShapeGauge(cx: number, y: number, arm: number): void {
+    const ctx = this.ctx, u = this.u();
+    const sh = shapeOf(this.stack);
+    const slip = slipperiness(sh);
+    const w = Math.min(arm * 2, this.w - 44 * u), h = 9 * u, x = cx - w / 2;
+
+    ctx.fillStyle = 'rgba(8, 16, 30, 0.5)';
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill();
+    const fill = ctx.createLinearGradient(x, 0, x + w, 0);
+    fill.addColorStop(0, '#f0b27a');
+    fill.addColorStop(0.55, '#ffd86b');
+    fill.addColorStop(1, '#8ee8ad');
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(x, y, Math.max(h, w * slip), h, h / 2); ctx.clip();
+    ctx.fillStyle = fill;
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(226,238,252,0.68)';
+    ctx.font = this.font('700', 10.5);
+    ctx.textAlign = 'center';
+    ctx.fillText(shapeHint(sh, NL()), cx, y + 26 * u, this.w - 32 * u);
+  }
+
   /** The parts you may use, along the bottom, with the locked ones still visible but shut. */
-  private drawTray(b: { trayY: number; trayH: number; launchY: number }): void {
+  private drawTray(b: { trayY: number; trayH: number; launchY: number; wide: boolean; scaleX: number }): void {
     const ctx = this.ctx, u = this.u();
     const trayH = b.trayH, y0 = b.trayY;
     ctx.fillStyle = 'rgba(8, 14, 26, 0.78)';
@@ -694,7 +730,9 @@ export class Moonshot {
     if (nxt && this.noteT <= 0) {
       ctx.fillStyle = 'rgba(226,238,252,0.55)';
       ctx.font = this.font('700', 11);
-      ctx.fillText(T(`Next up: ${nxt.name}`, `Hierna: ${nxt.nameNl}`), this.w / 2, y0 - 10 * u, this.w - 30 * u);
+      // in landscape the rocket comes right down to the tray, so this keeps to the balance's column
+      ctx.fillText(T(`Next up: ${nxt.name}`, `Hierna: ${nxt.nameNl}`),
+        b.wide ? b.scaleX : this.w / 2, y0 - 10 * u, (b.wide ? this.w * 0.42 : this.w) - 30 * u);
     }
     ctx.textAlign = 'left';
   }
@@ -759,6 +797,40 @@ export class Moonshot {
       });
     }
     paintRocket(ctx, this.stack, 0, 0, unit, this.t, { dropped: this.dropped });
+
+    // The air, when it is pushing hard. This is the same dynamic pressure the drag term above uses,
+    // so the streaks and the hot nose are not decoration: they are what is slowing the rocket down,
+    // and they thin out on their own as the air does. A wide rocket makes wider streaks.
+    const spd = Math.hypot(this.vUp, this.vSide);
+    // These rockets run hot: max-Q lands between about 0.2 and 1.2 MPa rather than the 35 kPa a
+    // real launcher sees, because the clock is compressed. The square root spreads the effect out
+    // so it builds through the climb instead of pinning at full from the third second.
+    const qk = Math.sqrt(clamp(0.5 * densityAt(this.alt) * spd * spd / 300000, 0, 1));
+    if (qk > 0.08) {
+      const sh = shapeOf(this.stack, this.dropped);
+      const half = sh.width * unit * 0.5;
+      const nose = -sh.length * unit;
+      ctx.save();
+      ctx.globalAlpha = qk * 0.5;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.2 * u;
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 10; i++) {
+        const side = i % 2 ? 1 : -1;
+        const off = half * (1.1 + ((i * 37) % 10) / 22);
+        const phase = (this.t * (1.3 + qk * 2.4) + i * 0.317) % 1;
+        const sy = nose + (-nose + unit) * phase;
+        const len = unit * (0.7 + qk * 1.5);
+        ctx.beginPath(); ctx.moveTo(side * off, sy); ctx.lineTo(side * off, sy + len); ctx.stroke();
+      }
+      ctx.restore();
+      const glow = ctx.createRadialGradient(0, nose, 0, 0, nose, half * 2.6);
+      glow.addColorStop(0, `rgba(255, 222, 164, ${0.55 * qk})`);
+      glow.addColorStop(0.5, `rgba(255, 158, 88, ${0.22 * qk})`);
+      glow.addColorStop(1, 'rgba(255, 130, 60, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(0, nose, half * 2.6, 0, TAU); ctx.fill();
+    }
     ctx.restore();
 
     // spent stages tumbling away

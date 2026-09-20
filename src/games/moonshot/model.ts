@@ -233,3 +233,109 @@ export const airAt = (altM: number): number => Math.exp(-Math.max(0, altM) / 850
 /** Gravity at a height, weaker as you climb. */
 export const gravityAt = (altM: number): number =>
   G0 * Math.pow(EARTH_R / (EARTH_R + Math.max(0, altM)), 2);
+
+// ---------------------------------------------------------------- the shape of it
+
+/**
+ * How wide one rocket unit is, in metres.
+ *
+ * It is set by the tanks: a small tank is one unit across and 1.7 tall, and it has to hold four and
+ * a half tonnes of fuel. At 1.8 m that works out to about seven cubic metres, which is right for
+ * four and a half tonnes of kerosene and oxygen with room left over at the top. So the drawing and
+ * the numbers are the same rocket.
+ */
+export const UNIT_M = 1.8;
+
+const circle = (widthUnits: number): number => Math.PI / 4 * Math.pow(widthUnits * UNIT_M, 2);
+
+/**
+ * How much of a strapped-on booster's own frontal area the air actually feels.
+ *
+ * Less than all of it: a booster tucks in behind the core's shockwave and has its own nose cone, so
+ * it is not a flat disc out in the open. But more than none, which is why a rocket wearing four of
+ * them is noticeably harder work than the same rocket wearing two.
+ */
+const BOOSTER_EXPOSURE = 0.6;
+
+export interface Shape {
+  /** how wide the body is, in rocket units */
+  width: number;
+  /** how long the rocket is, in rocket units */
+  length: number;
+  /** length over width: what aerodynamicists call the fineness ratio */
+  fineness: number;
+  /** the hole it punches through the air, in square metres */
+  area: number;
+  /** how badly that hole is shaped */
+  cd: number;
+  /** cd times area - the one number the air actually cares about, in square metres */
+  drag: number;
+  boosters: number;
+  fins: number;
+}
+
+/**
+ * What the air sees.
+ *
+ * Two things decide it, and a child can see both of them on the screen. The first is how wide the
+ * rocket is, because a wide rocket has to shove more air out of the way - and boosters strapped to
+ * the sides count, which is why a rocket gets noticeably slipperier the moment they fall off. The
+ * second is how long it is for its width. A long thin rocket lets the air close up gently behind
+ * it; a short fat one leaves a hole that the air falls into, and that hole is most of the drag.
+ * Real rockets are built long and thin for exactly this reason.
+ *
+ * The curve below is fitted to the shape of the real one: about 0.75 for a stubby thing, falling
+ * towards 0.25 for something as slender as an actual launcher. Fins and boosters add their own bit
+ * on top, because every corner in the airflow costs something.
+ */
+export function shapeOf(stack: Stack, dropped?: ReadonlySet<number>): Shape {
+  const live = (i: number): boolean => !dropped?.has(i);
+  let width = partById('capsule').w;
+  let length = partById('capsule').h;
+  let boosters = 0, fins = 0;
+  stack.forEach((id, i) => {
+    if (!live(i)) return;
+    const p = partById(id);
+    if (p.kind === 'booster') { boosters++; return; }
+    if (p.kind === 'fin') { fins++; return; }
+    width = Math.max(width, p.w);
+    length += p.h;
+  });
+  const fineness = length / Math.max(0.4, width);
+  // the body, plus each booster's own nose - a booster in the lee of another one counts for less
+  const area = circle(width) + boosters * circle(partById('booster').w) * BOOSTER_EXPOSURE;
+  const cd = 0.9 * Math.exp(-fineness / 4) + 0.22 + boosters * 0.03 + fins * 0.04;
+  return { width, length, fineness, area, cd, drag: cd * area, boosters, fins };
+}
+
+/** Air density at a height, in kilograms per cubic metre. */
+export const densityAt = (altM: number): number => 1.225 * airAt(altM);
+
+/**
+ * How the shape reads, from nought (a brick) to one (a needle).
+ *
+ * The scale is set by what the parts can actually build: a long clean two-stager sits
+ * around 1 m2 of drag and a short one wearing four boosters and a set of fins near 3, with the
+ * very worst you can stack - a wide cluster, stubby, boosters and fins - off the bottom of it.
+ */
+export const slipperiness = (s: Shape): number =>
+  Math.max(0, Math.min(1, (3.4 - s.drag) / 2.5));
+
+/** The one sentence that says what is costing the most, so there is something to do about it. */
+export function shapeHint(s: Shape, nl: boolean): string {
+  if (s.boosters >= 2 && s.boosters * circle(partById('booster').w) * BOOSTER_EXPOSURE > circle(s.width) * 0.45) {
+    return nl ? 'Die boosters vangen veel wind.' : 'Those boosters catch a lot of air.';
+  }
+  if (s.fineness < 4.5) {
+    return nl ? 'Kort en dik duwt veel lucht weg. Maak hem langer.'
+      : 'Short and fat shoves a lot of air. Make it longer.';
+  }
+  if (s.fins > 0) {
+    return nl ? 'Vinnen houden hem recht, maar kosten snelheid.'
+      : 'Fins keep it straight, but they cost speed.';
+  }
+  if (slipperiness(s) > 0.9) {
+    return nl ? 'Lang en dun. Daar glijdt de lucht langs.' : 'Long and thin. The air slides right past.';
+  }
+  return nl ? 'Redelijk glad. Langer en smaller is beter.' : 'Reasonably sleek. Longer and narrower is better.';
+}

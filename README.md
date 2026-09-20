@@ -42,14 +42,24 @@ you were left with carries you: up with the birds, through the clouds, past the 
 as the Moon, away from the Earth, as far as Mars. Each rung reached hands over the next part, so the
 rocket that got you there is the reason you can build a better one.
 
-The physics is honest. Mass falls as fuel burns, gravity weakens by the inverse square, the air
-thins out exponentially and stops both pushing back and holding you straight, a spent stage is dead
-weight until it is dropped, and exhaust speed decides how far you end up going - which is why the
-quiet vacuum engine beats the loud one, and why the last part is a nuclear engine NASA really did
-build and fire in the sixties. The only thing bent for a child is the clock: tanks empty in seconds
-rather than minutes.
-Practises weighing one thing against another, cause and effect, and reading a number that grows.
-Age 6 and up.
+Shape matters as much as power. The air only cares about two things and both of them are visible
+in the drawing: how wide the rocket is across, and how long it is for that width. A short fat
+rocket leaves a hole behind it that the air falls into, and that hole is most of the drag; a long
+thin one lets the air close up gently. Boosters strapped to the sides make the rocket wider and
+cost more than they look, which is why a fourth pair buys almost nothing - and why the rocket
+visibly picks up speed the moment they drop off. Fins keep it pointing straight in the thick air
+and cost a slice of the top speed for it. A gauge under the balance says how slippery the thing you
+have built is and what is costing the most, and in flight the air itself shows up: streaks past the
+body and a nose that glows hotter the harder the air is pushing.
+
+The rest of the physics is honest too. Mass falls as fuel burns, gravity weakens by the inverse
+square, the air thins out exponentially and stops both pushing back and holding you straight, a
+spent stage is dead weight until it is dropped, and exhaust speed decides how far you end up going
+- which is why the quiet vacuum engine beats the loud one, and why the last part is a nuclear
+engine NASA really did build and fire in the sixties. The only thing bent for a child is the clock:
+tanks empty in seconds rather than minutes.
+Practises weighing one thing against another, cause and effect, shape against speed, and
+reading a number that grows. Age 6 and up.
 
 ### Dino Dig (`dig.html`)
 Excavate real fossils (Smithsonian, NASA and Wikimedia public domain photographs) with brush, chisel,
