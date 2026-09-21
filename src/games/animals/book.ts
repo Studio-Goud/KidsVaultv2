@@ -24,7 +24,7 @@ import { SIZES, drawCover, onPhoto, photo, photoCount, photoUrl } from './photo'
 import { worldMap } from './worldmap';
 import {
   CONTINENT_EN, CONTINENT_NL, GROUPS, STATUS_EN, STATUS_NL, STATUS_TONE,
-  compareToChild, facts, groupById, joinNames, scaleBar, search, shapeOf, shelf, sizeLabel,
+  clipBox, compareToChild, facts, groupById, joinNames, scaleBar, search, shapeOf, shelf, sizeLabel,
   type Animal, type GroupId,
 } from './rules';
 
@@ -652,7 +652,7 @@ export class AnimalBook {
       const col = i % cols, row = Math.floor(i / cols);
       const x = pad + col * (cw + pad);
       const cy = y0 + row * (ch + pad);
-      this.animalCard(a, i, x, cy, cw, ph, ch);
+      this.animalCard(a, i, x, cy, cw, ph, ch, top);
     }
     ctx.restore();
 
@@ -661,7 +661,7 @@ export class AnimalBook {
     this.scrollHint(top);
   }
 
-  private animalCard(a: Animal, i: number, x: number, y: number, w: number, ph: number, ch: number): void {
+  private animalCard(a: Animal, i: number, x: number, y: number, w: number, ph: number, ch: number, top: number): void {
     const ctx = this.ctx;
     const u = this.u();
     const pressed = this.downId === `card:${i}`;
@@ -702,7 +702,7 @@ export class AnimalBook {
       ctx.stroke();
     }
     ctx.restore();
-    this.hits.push({ id: `card:${i}`, x, y, w, h: ch });
+    this.hitIn(`card:${i}`, x, y, w, ch, top, this.h);
   }
 
   /** A thin bar down the right edge saying how far into a long list you are. */
@@ -1038,10 +1038,22 @@ export class AnimalBook {
     for (let i = 0; i < this.list.length; i++) {
       const ry = y0 + i * (rowH + 6 * u);
       if (ry > listTop + listH || ry + rowH < listTop) continue;
-      this.resultRow(this.list[i], i, pad, ry, this.w - pad * 2, rowH);
+      this.resultRow(this.list[i], i, pad, ry, this.w - pad * 2, rowH, listTop, listTop + listH);
     }
     ctx.restore();
     this.scrollMax = Math.max(0, this.list.length * (rowH + 6 * u) - Math.max(0, listH));
+  }
+
+  /**
+   * A tappable box, clipped to the strip it is drawn in.
+   *
+   * The canvas clips the drawing but nothing clips the hit boxes, so a row half-hidden under the
+   * keyboard still took the tap meant for the letter A, and a card scrolled up behind the header
+   * took the tap meant for the title. Everything that scrolls inside a band registers through here.
+   */
+  private hitIn(id: string, x: number, y: number, w: number, h: number, top: number, bottom: number): void {
+    const box = clipBox(y, h, top, bottom);
+    if (box) this.hits.push({ id, x, y: box.y, w, h: box.h });
   }
 
   private key(id: string, x: number, y: number, w: number, h: number, label: string, tone: string, ink: string): void {
@@ -1057,7 +1069,7 @@ export class AnimalBook {
     this.hits.push({ id, x, y, w, h: h * 1.12 });
   }
 
-  private resultRow(a: Animal, i: number, x: number, y: number, w: number, h: number): void {
+  private resultRow(a: Animal, i: number, x: number, y: number, w: number, h: number, top: number, bottom: number): void {
     const ctx = this.ctx;
     const u = this.u();
     const pressed = this.downId === `card:${i}`;
@@ -1073,7 +1085,7 @@ export class AnimalBook {
     ctx.fillStyle = SOFT;
     ctx.font = this.font('700', 11.5);
     ctx.fillText(this.wrap(`${otherName(a)} · ${a.s}`, this.font('700', 11.5), w - h - 20 * u, 1)[0] ?? '', tx, y + h * 0.75);
-    this.hits.push({ id: `card:${i}`, x, y, w, h });
+    this.hitIn(`card:${i}`, x, y, w, h, top, bottom);
   }
 }
 

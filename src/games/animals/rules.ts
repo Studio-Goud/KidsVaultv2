@@ -304,3 +304,17 @@ export function facts(a: Animal, nl: boolean, childCm: number): string[] {
   if (a.z) out.push(compareToChild(a.z, childCm, nl));
   return out;
 }
+
+/**
+ * The visible part of a box that scrolls inside a band, or nothing if it has scrolled out.
+ *
+ * The canvas clips what is drawn, but it does not clip where a tap lands, so a search result half
+ * hidden behind the keyboard still took the tap meant for the letter A, and a card scrolled up
+ * behind the header took the tap meant for the title. Every box that scrolls inside a band is
+ * registered through this, and a sliver too thin to mean anything is dropped.
+ */
+export function clipBox(y: number, h: number, top: number, bottom: number): { y: number; h: number } | null {
+  const y0 = Math.max(y, top);
+  const y1 = Math.min(y + h, bottom);
+  return y1 - y0 < 6 ? null : { y: y0, h: y1 - y0 };
+}

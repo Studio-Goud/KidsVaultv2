@@ -528,7 +528,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- Dierenboek: finding it, and how big it is
 
 {
-  const { fold, search, scaleBar, sizeLabel, compareToChild, facts, shelf, shapeOf, joinNames, GROUPS } =
+  const { fold, search, scaleBar, sizeLabel, compareToChild, facts, shelf, shapeOf, joinNames, clipBox, GROUPS } =
     await bundle('src/games/animals/rules.ts', 'animalrules.mjs');
 
   const animal = (over) => ({
@@ -541,6 +541,19 @@ const group = name => console.log(`\n${name}`);
   const lieveheer = animal({ i: 4, n: 'Lieveheersbeestje', e: 'Seven-spot ladybird', s: 'Coccinella septempunctata', g: 'ins', z: 0.7, o: 600 });
   const blauwevinvis = animal({ i: 5, n: 'Blauwe vinvis', e: 'Blue whale', s: 'Balaenoptera musculus', g: 'mam', h: 'sea', z: 2500, o: 100 });
   const book = [leeuw, zeehond, zeester, lieveheer, blauwevinvis];
+
+  group('Dierenboek — what a tap can reach');
+  // a search result half hidden behind the keyboard still took the tap meant for the letter A,
+  // because the canvas clips the drawing and nothing clipped the hit boxes
+  is('test_cliptap_a_box_well_inside_the_band_is_whole', clipBox(100, 54, 80, 400), { y: 100, h: 54 });
+  is('test_cliptap_a_box_hanging_below_the_band_is_cut',
+    clipBox(380, 54, 80, 400), { y: 380, h: 20 });
+  is('test_cliptap_a_box_scrolled_above_the_band_is_cut',
+    clipBox(60, 54, 80, 400), { y: 80, h: 34 });
+  is('test_cliptap_a_box_entirely_below_the_band_is_gone', clipBox(420, 54, 80, 400), null);
+  is('test_cliptap_a_box_entirely_above_the_band_is_gone', clipBox(10, 40, 80, 400), null);
+  is('test_cliptap_a_sliver_too_thin_to_mean_anything_is_gone', clipBox(396, 54, 80, 400), null);
+  is('test_cliptap_a_band_taller_than_the_box_keeps_it_all', clipBox(100, 54, 0, 1000), { y: 100, h: 54 });
 
   group('Dierenboek — a child typing');
   is('test_fold_drops_accents_and_capitals', fold('Amfibieën'), 'amfibieen');
