@@ -14,6 +14,8 @@ export interface SaveData {
   totalLanded: number;
   /** weather detail in the aircraft panel is folded out */
   wxOpen: boolean;
+  /** the tower has pointed out the build button once */
+  buildHintSeen: boolean;
   /** Millstream's village: what you have earned, what you have built, what each valley has paid */
   mill: { grain: number; built: string[]; paid: Record<string, number> };
   /** Moonshot: how far the best flight got, on the ladder, and the rocket on the pad */
@@ -25,7 +27,7 @@ const LEGACY_KEY = 'wolkenhaven.save.v2';
 
 const defaults = (): SaveData => ({
   levels: {}, sound: true, radio: true, music: true, haptics: true, lang: 'auto', tutorialSeen: false,
-  coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false,
+  coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false, buildHintSeen: false,
   mill: { grain: 0, built: [], paid: {} },
   moon: { best: 0, target: 7, design: [] },
 });

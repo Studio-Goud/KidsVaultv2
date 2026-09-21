@@ -13,9 +13,13 @@ one practises. Each game has its own page beside it.
 
 ### Cloudhopper (`cloudhopper.html`)
 Draw a route with your finger from every incoming aircraft to the runway. Aircraft must not touch:
-within 60 m is a near miss, within 10 m a collision. Six islands rising in difficulty, plus twelve
-real-world airports, with weather, multiple runways, seaplanes and helicopters. After a failed
-mission you get a replay and an analysis of what went wrong.
+within 60 m is a near miss, within 10 m a collision. One journey, not two menus: six islands and
+twelve real-world airports on a single numbered road, in the order the stars open them, with the
+stop you are up to marked. Weather, multiple runways, seaplanes and helicopters. The airport is
+upgraded from the tower during a shift - a button beside the pause button, which lights up the
+moment the coins will buy something - and again on the card at the end of a mission, so the
+upgrades are never a tab of their own. After a failed mission you get a replay and an analysis of
+what went wrong.
 Practises dividing attention, planning ahead, holding back and spatial reasoning. Age 6 and up.
 
 ### Night Watch (`nightwatch.html`)

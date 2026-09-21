@@ -122,6 +122,7 @@ export class Renderer {
   hudHit = (sx: number, sy: number): string | null => {
     const inside = (h?: { x: number; y: number; w: number; h: number }): boolean => !!h && sx >= h.x && sx <= h.x + h.w && sy >= h.y && sy <= h.y + h.h;
     if (inside(this.hudHits?.pause)) return 'pause';
+    if (inside(this.hudHits?.build)) return 'build';
     if (inside(this.hudHits?.slowmo)) return 'slowmo';
     for (const c of this.hudHits?.commands ?? []) if (inside(c.rect)) return `cmd:${c.id}`;
     if (inside(this.hudHits?.wxToggle)) return 'wxtoggle';

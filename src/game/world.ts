@@ -5,7 +5,8 @@ import { sfx, haptic } from '../util/audio';
 import { lang, t } from '../i18n';
 import { PLANE_TYPES, runwayAccepts } from './planes';
 import type { GameEvent, LevelDef, Plane, PlaneType, RunwayKind, Snapshot } from './types';
-import { effects as upgradeEffects } from './upgrades';
+import { effects as upgradeEffects, UPGRADES, nextCost } from './upgrades';
+import { save, persist } from '../util/storage';
 import { Weather, makeScript } from './weather';
 import { addParallelRunway, initAirports, isGroundState, startArrivalTaxi, updateGround } from './ground';
 import { translateAirport, type Airport } from './airport';
@@ -351,6 +352,24 @@ export class World {
   }
   private evadeHeading = new Map<number, number>();
 
+  /**
+   * The tower was rebuilt while the aircraft were in the air.
+   *
+   * Upgrades are bought during a shift now, not on a menu screen between shifts, so what was
+   * bought has to start working this second: a wider radar, a gentler wind, a runway that clears
+   * sooner. A heart bought mid-shift is added to the row as a full one - it was paid for - and a
+   * fresh slow-motion button arrives charged.
+   */
+  applyUpgrades(): void {
+    if (this.demo) return;
+    const was = this.fx;
+    this.fx = upgradeEffects();
+    const moreHearts = this.fx.hearts - was.hearts;
+    if (moreHearts > 0) { this.maxHearts = this.fx.hearts; this.hearts += moreHearts; }
+    const moreSlowmo = this.fx.slowmoCharges - was.slowmoCharges;
+    if (moreSlowmo > 0) { this.slowmoMax = this.fx.slowmoCharges; this.slowmoCharges += moreSlowmo; }
+  }
+
   activateSlowmo(): boolean {
     if (this.status !== 'running' || this.slowmoCharges <= 0 || this.slowmoUntil > this.time) return false;
     this.slowmoCharges--;
@@ -385,6 +404,19 @@ export class World {
     return Math.round(lerp(s.maxConcurrent, s.maxConcurrentEnd, p)) + (this.endless ? Math.floor((this.landed - this.level.goal) / 6) : 0);
   }
 
+  /**
+   * Say it once, the first time there is enough in the purse to build something.
+   *
+   * A green ring around the button is easy to miss when you are busy landing an aeroplane, and a
+   * child who has never opened the build screen has no reason to guess what the button is for.
+   */
+  private buildHint(): void {
+    if (this.demo || save.buildHintSeen) return;
+    if (!UPGRADES.some(up => { const c = nextCost(up.id); return c !== null && save.coins >= c; })) return;
+    save.buildHintSeen = true; persist();
+    this.toast(t('buildHint'), 'good', 4.5);
+  }
+
   toast(text: string, kind: Toast['kind'] = 'info', dur = 2.2): void {
     const last = this.toasts[this.toasts.length - 1];
     if (last && last.text === text) { last.until = this.time + dur; return; }
@@ -410,6 +442,7 @@ export class World {
     // cleanup
     this.planes = this.planes.filter(p => !(p.state === 'landed' && this.time - p.landingT > 0.6) && !(p.state === 'crashed' && this.time - p.landingT > 6));
     this.toasts = this.toasts.filter(tt => tt.until > this.time);
+    this.buildHint();
     this.puffs = this.puffs.filter(pf => this.time - pf.t0 < 3);
 
     // recording for the post-mortem

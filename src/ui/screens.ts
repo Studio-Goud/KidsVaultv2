@@ -1,7 +1,7 @@
 import { PLANE_TYPES, displayKmh } from '../game/planes';
 import { drawPlane } from '../render/planes';
 import type { Report } from '../game/postmortem';
-import { LEVELS_PER_WORLD, MAX_STARS, WORLDS, buildMission, firstAppearance, grandTotalStars, missionId, missionUnlocked, portMissionUnlocked, portStars, portUnlocked, worldStars, worldUnlocked } from '../game/progress';
+import { LEVELS_PER_WORLD, MAX_STARS, WORLDS, buildMission, firstAppearance, grandTotalStars, missionId, missionUnlocked, portMissionUnlocked, portStars, portUnlocked, route, routeNow, stopOpen, stopShort, worldStars, worldUnlocked } from '../game/progress';
 import { UPGRADES, buyUpgrade, nextCost, upgradeDesc, upgradeName } from '../game/upgrades';
 import { PORTS_IN_ORDER } from '../game/realports';
 import { lang, t } from '../i18n';
@@ -22,8 +22,6 @@ export interface UIActions {
   continueEndless(): void;
   openSettings(): void;
   closeSettings(): void;
-  openShop(): void;
-  closeShop(): void;
   openFleet(): void;
   closeFleet(): void;
   openPorts(): void;
@@ -111,15 +109,12 @@ export class UI {
       <div class="card" style="text-align:center">
         <div class="statrow"><span>${svgStar(true, 18)}<b>${stars}</b> / ${MAX_STARS}</span>${coinBadge()}</div>
         <div class="stack" style="margin-top:12px">
-          <button class="btn" data-a="play">${t('islandsMode')}</button>
-          <button class="btn mint" data-a="ports">${t('world')}</button>
-          <div class="row" style="margin-top:0"><button class="btn secondary" data-a="shop">${t('airport')}</button><button class="btn secondary" data-a="fleet">${t('fleet')}</button><button class="btn secondary" data-a="settings">${t('settings')}</button></div>
+          <button class="btn" data-a="play">${t('journey')}</button>
+          <div class="row" style="margin-top:0"><button class="btn secondary" data-a="fleet">${t('fleet')}</button><button class="btn secondary" data-a="settings">${t('settings')}</button></div>
           <div class="row" style="margin-top:0"><button class="btn quiet" data-a="parents">${t('parents')}</button><a class="btn quiet" href="./">Bramblewood</a></div>
         </div>
       </div>`;
     s.querySelector('[data-a=play]')!.addEventListener('click', () => this.actions.toWorlds());
-    s.querySelector('[data-a=ports]')!.addEventListener('click', () => this.actions.openPorts());
-    s.querySelector('[data-a=shop]')!.addEventListener('click', () => this.actions.openShop());
     s.querySelector('[data-a=fleet]')!.addEventListener('click', () => this.actions.openFleet());
     s.querySelector('[data-a=settings]')!.addEventListener('click', () => this.actions.openSettings());
     s.querySelector('[data-a=parents]')!.addEventListener('click', () => this.actions.openParents());
@@ -222,24 +217,66 @@ export class UI {
     draw();
   }
 
+  /**
+   * The whole journey in one list: every island and every real airport, in the order they open.
+   *
+   * There used to be two buttons on the title screen - islands, or a world tour - which asked a
+   * child to choose between two things before knowing what either one was. There is one road now,
+   * and the next place on it is marked.
+   */
   worlds(): void {
     const s = this.screen('dim top');
-    s.appendChild(this.topbar(t('worlds'), () => this.actions.toTitle(), { icon: svgShop, onClick: () => this.actions.openShop() }));
+    s.appendChild(this.topbar(t('journey'), () => this.actions.toTitle()));
+    const have = grandTotalStars();
+    const head = document.createElement('div'); head.className = 'statrow light';
+    head.innerHTML = `<span>${svgStar(true, 18)}<b>${have}</b> / ${MAX_STARS}</span>${coinBadge()}`;
+    s.appendChild(head);
     const grid = document.createElement('div'); grid.className = 'grid';
-    WORLDS.forEach((lv, i) => {
-      const unlocked = worldUnlocked(i);
-      const stars = worldStars(i);
-      const b = document.createElement('button'); b.className = `level${unlocked ? '' : ' locked'}`;
+    const stops = route();
+    const now = routeNow();
+    stops.forEach((stop, idx) => {
+      const open = stopOpen(stop);
+      const b = document.createElement('button');
+      b.className = `level${open ? '' : ' locked'}${idx === now ? ' here' : ''}`;
       const c = document.createElement('canvas'); c.width = 300; c.height = 384;
       b.appendChild(c);
-      this.actions.makeThumb(i, c);
       const meta = document.createElement('div'); meta.className = 'meta';
-      meta.innerHTML = `<div class="name">${worldName(lv)}</div><div class="info"><span>${lang() === 'nl' ? lv.subtitle : lv.subtitleEn}</span></div><div class="info"><span>${svgStar(true, 12)} ${stars} / ${LEVELS_PER_WORLD * 3}</span><span>${LEVELS_PER_WORLD} ${t('missions').toLowerCase()}</span></div>`
-        + (unlocked ? '' : `<div class="lockline">12 ${t('starsToUnlock')}</div>`);
-      b.appendChild(meta);
-      const num = document.createElement('div'); num.className = 'num'; num.textContent = String(i + 1); b.appendChild(num);
-      if (!unlocked) { const lock = document.createElement('div'); lock.className = 'lock'; lock.innerHTML = svgLock; b.appendChild(lock); }
-      b.addEventListener('click', () => { if (unlocked) this.actions.toMissions(i); else this.toast(t('worldLocked')); });
+
+      if (stop.kind === 'island') {
+        const lv = WORLDS[stop.world];
+        this.actions.makeThumb(stop.world, c);
+        const stars = worldStars(stop.world);
+        meta.innerHTML = `<div class="name">${worldName(lv)}</div>`
+          + `<div class="info"><span>${lang() === 'nl' ? lv.subtitle : lv.subtitleEn}</span></div>`
+          + `<div class="info"><span>${svgStar(true, 12)} ${stars} / ${LEVELS_PER_WORLD * 3}</span><span>${LEVELS_PER_WORLD} ${t('missions').toLowerCase()}</span></div>`
+          + (open ? '' : `<div class="lockline">${stopShort(stop)} ${t('starsToUnlock')}</div>`);
+        b.appendChild(meta);
+        b.addEventListener('click', () => { if (open) this.actions.toMissions(stop.world); else this.toast(t('worldLocked')); });
+      } else {
+        const p = stop.port;
+        this.actions.makePortThumb(p.id, c);
+        const done = [0, 1, 2, 3].map(k => levelProgress(realId(p.id, k)));
+        const firstOpen = done.findIndex(d => !d.completed);
+        const nextStep = firstOpen === -1 ? 3 : firstOpen;
+        meta.innerHTML = `<div class="name">${p.name}</div>`
+          + `<div class="info"><span>${p.city} · ${p.country}</span></div>`
+          + `<div class="info"><span>${svgStar(true, 12)} ${portStars(p.id)} / 12</span><span>${p.runways.length} ${lang() === 'nl' ? (p.runways.length === 1 ? 'baan' : 'banen') : (p.runways.length === 1 ? 'runway' : 'runways')}</span></div>`
+          + (open ? '' : `<div class="lockline">${stopShort(stop)} ${t('starsToUnlock')}</div>`);
+        b.appendChild(meta);
+        const code = document.createElement('div'); code.className = 'icao'; code.textContent = p.iata; b.appendChild(code);
+        const dots = document.createElement('div'); dots.className = 'steps';
+        dots.innerHTML = [0, 1, 2, 3].map(k => `<i class="${done[k].completed ? 'on' : ''}"></i>`).join('');
+        b.appendChild(dots);
+        b.addEventListener('click', () => {
+          if (!open) { this.toast(t('lockedPort')); return; }
+          if (!portMissionUnlocked(p, nextStep)) { this.toast(t('finishPrevious')); return; }
+          this.actions.startReal(p.id, nextStep);
+        });
+      }
+      // every stop is numbered, islands and real fields alike, so the road reads as one road
+      const num = document.createElement('div'); num.className = 'num'; num.textContent = String(idx + 1); b.appendChild(num);
+      if (idx === now) { const tag = document.createElement('div'); tag.className = 'here-tag'; tag.textContent = t('youAreHere'); b.appendChild(tag); }
+      if (!open) { const lock = document.createElement('div'); lock.className = 'lock'; lock.innerHTML = svgLock; b.appendChild(lock); }
       grid.appendChild(b);
     });
     s.appendChild(grid);
@@ -249,7 +286,7 @@ export class UI {
   missions(worldIndex: number): void {
     const world = WORLDS[worldIndex];
     const s = this.screen('dim top');
-    s.appendChild(this.topbar(worldName(world), () => this.actions.toWorlds(), { icon: svgShop, onClick: () => this.actions.openShop() }));
+    s.appendChild(this.topbar(worldName(world), () => this.actions.toWorlds()));
     const head = document.createElement('div'); head.className = 'statrow light';
     head.innerHTML = `<span>${svgStar(true, 18)}<b>${worldStars(worldIndex)}</b> / ${LEVELS_PER_WORLD * 3}</span>${coinBadge()}`;
     s.appendChild(head);
@@ -271,7 +308,7 @@ export class UI {
 
   shop(back: () => void): void {
     const s = this.screen('dim top');
-    s.appendChild(this.topbar(t('airport'), back));
+    s.appendChild(this.topbar(t('buildTitle'), back));
     const card = document.createElement('div'); card.className = 'card wide';
     const render = (): void => {
       card.innerHTML = `<div class="statrow"><span class="sub">${t('upgrades')}</span>${coinBadge()}</div>
@@ -338,8 +375,11 @@ export class UI {
       <div class="coinsline">${svgCoin(22)} <b data-coins>+${opts.coins}</b> ${t('coins')}${opts.newBest ? ` <span class="pill gold">${t('newBest')}</span>` : ''}</div>
       <div class="stack">
         ${opts.hasNext ? `<button class="btn mint" data-a="next">${t('nextMission')}</button>` : ''}
+        <button class="btn gold" data-a="build">${svgShop}<span>${t('upgrades')}</span>${svgCoin(18)}<b>${save.coins}</b></button>
         <div class="row" style="margin-top:0"><button class="btn secondary" data-a="continue">${t('continue')}</button><button class="btn secondary" data-a="levels">${t('missions')}</button></div>
       </div></div>`;
+    // the coins land here, so this is where they can be spent - the same list the tower shows in-game
+    s.querySelector('[data-a=build]')!.addEventListener('click', () => this.shop(() => this.complete(opts)));
     s.querySelector('[data-a=continue]')!.addEventListener('click', () => this.actions.continueEndless());
     s.querySelector('[data-a=next]')?.addEventListener('click', () => this.actions.next());
     s.querySelector('[data-a=levels]')!.addEventListener('click', () => this.actions.toWorlds());

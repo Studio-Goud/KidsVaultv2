@@ -15,7 +15,7 @@ import { UI, type UIActions } from './ui/screens';
 import { addCoins, levelProgress, persist, recordLevelResult, save } from './util/storage';
 import { Ambience, EngineMixer, Radio, runwayCallout, runwayIdCallout, sfx, unlockAudio } from './util/audio';
 
-type Mode = 'title' | 'worlds' | 'missions' | 'shop' | 'fleet' | 'ports' | 'tutorial' | 'playing' | 'paused' | 'complete' | 'failed' | 'settings' | 'parents';
+type Mode = 'title' | 'worlds' | 'missions' | 'building' | 'fleet' | 'ports' | 'tutorial' | 'playing' | 'paused' | 'complete' | 'failed' | 'settings' | 'parents';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const renderer = new Renderer(canvas);
@@ -160,10 +160,9 @@ const actions: UIActions = {
   continueEndless() { world.continueEndless(); ui.clear(); mode = 'playing'; last = performance.now(); ambience.setMode('game', world.level.time !== 'night'); },
   openSettings() { prevMode = mode; mode = 'settings'; ui.settings(); },
   closeSettings() {
-    mode = prevMode === 'settings' || prevMode === 'shop' ? 'title' : prevMode;
+    mode = prevMode === 'settings' ? 'title' : prevMode;
     if (mode === 'title') ui.title(); else if (mode === 'worlds') ui.worlds(); else if (mode === 'missions') ui.missions(current.worldIndex); else if (mode === 'paused') ui.pause(world.level.name); else { mode = 'title'; ui.title(); }
   },
-  openShop() { prevMode = mode; mode = 'shop'; ui.shop(() => actions.closeShop()); },
   openFleet() { prevMode = mode; mode = 'fleet'; ui.fleet(() => actions.closeFleet()); },
   openPorts() { gotoPorts(); },
   startReal(portId, step) {
@@ -177,11 +176,7 @@ const actions: UIActions = {
     const w = new World(lv, 800, { demo: true });
     Renderer.drawThumbnail(c, w, PALETTES[lv.time]);
   },
-  closeFleet() { mode = prevMode === 'fleet' || prevMode === 'shop' || prevMode === 'settings' ? 'title' : prevMode; if (mode === 'worlds') ui.worlds(); else if (mode === 'missions') ui.missions(current.worldIndex); else { mode = 'title'; ui.title(); } },
-  closeShop() {
-    mode = prevMode === 'shop' || prevMode === 'settings' ? 'title' : prevMode;
-    if (mode === 'worlds') ui.worlds(); else if (mode === 'missions') ui.missions(current.worldIndex); else { mode = 'title'; ui.title(); }
-  },
+  closeFleet() { mode = prevMode === 'fleet' || prevMode === 'settings' ? 'title' : prevMode; if (mode === 'worlds') ui.worlds(); else if (mode === 'missions') ui.missions(current.worldIndex); else { mode = 'title'; ui.title(); } },
   makeThumb(worldIndex, c) {
     const lv = WORLDS[worldIndex];
     const w = new World(lv, 800, { demo: true });
@@ -206,6 +201,7 @@ const input = new Input(canvas, () => (mode === 'playing' ? world : null), rende
   if (mode !== 'playing') return false;
   const hit = renderer.hudHit(sx, sy);
   if (hit === 'pause') { pause(); return true; }
+  if (hit === 'build') { openBuild(); return true; }
   if (hit === 'slowmo') { world.activateSlowmo(); return true; }
   if (hit && hit.startsWith('cmd:')) {
     const p = world.selected !== null ? world.planeById(world.selected) : undefined;
@@ -216,6 +212,25 @@ const input = new Input(canvas, () => (mode === 'playing' ? world : null), rende
   if (hit === 'panel') return true;
   return false;
 });
+
+/**
+ * The build screen, opened from the tower during a shift.
+ *
+ * The upgrades used to live on their own tab, reached from the title screen, which meant a child
+ * had to leave the game to spend what the game had just paid them. The shift holds still while the
+ * screen is open and what is bought is working before the next aircraft calls in.
+ */
+function openBuild(): void {
+  if (mode !== 'playing') return;
+  mode = 'building';
+  input.cancelAll();
+  ui.shop(() => {
+    world.applyUpgrades();
+    ui.clear();
+    mode = 'playing';
+    last = performance.now();
+  });
+}
 
 function pause(): void {
   if (mode !== 'playing') return;
@@ -268,7 +283,7 @@ function frame(now: number): void {
     world.update(dt);
   }
   // audio follow-up
-  const audible = mode === 'playing' || (world.demo && mode !== 'shop' && mode !== 'settings' && mode !== 'fleet');
+  const audible = mode === 'playing' || (world.demo && mode !== 'building' && mode !== 'settings' && mode !== 'fleet');
   engines.setMuted(!audible);
   engines.update(world.planes.filter(p => p.state === 'flying' || p.state === 'landing').map(p => ({ id: p.id, kind: p.type.engines, x: p.pos.x, y: p.pos.y, speed: p.speed, maxSpeed: p.type.speed, altitude: p.altitude, state: p.state })), world.timeScale);
   ambience.update(dt, mode === 'playing' || world.demo ? world.wind.kmh : 0, world.timeScale);
@@ -278,7 +293,7 @@ function frame(now: number): void {
     lastThunder = fl.t;
     ambience.thunder(Math.min(1, Math.hypot(fl.x - world.W / 2, fl.y - world.H / 2) / world.H));
   }
-  renderer.frame(world, clock, mode === 'playing' || world.demo ? dt * world.timeScale : 0, mode === 'playing' || mode === 'paused');
+  renderer.frame(world, clock, mode === 'playing' || world.demo ? dt * world.timeScale : 0, mode === 'playing' || mode === 'paused' || mode === 'building');
   requestAnimationFrame(frame);
 }
 

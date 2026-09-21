@@ -27,6 +27,16 @@ const bundle = async (src, name) => {
   return import(file);
 };
 
+// `src/game/progress.ts` reaches the saved game and the language through the browser, so the two
+// globals it touches are stubbed here. Nothing else in this file needs them.
+const fakeStore = {};
+globalThis.localStorage = {
+  getItem: k => fakeStore[k] ?? null,
+  setItem: (k, v) => { fakeStore[k] = String(v); },
+  removeItem: k => { delete fakeStore[k]; },
+};
+Object.defineProperty(globalThis, 'navigator', { value: { language: 'nl' }, configurable: true });
+
 let failed = 0;
 let ran = 0;
 const is = (name, got, want) => {
@@ -213,6 +223,32 @@ const group = name => console.log(`\n${name}`);
   is('test_rung_for_speed_below_the_first_is_the_pad', rungFor(10).rung.name, 'The pad');
   is('test_rung_for_speed_above_the_last_is_the_last',
     rungFor(99999).rung.name, LADDER[LADDER.length - 1].name);
+}
+
+// ---------------------------------------------------------------- Cloudhopper: one road, not two menus
+
+{
+  const { route, routeNow, stopOpen, stopShort, WORLDS } = await bundle('src/game/progress.ts', 'progress.mjs');
+  const { REAL_PORTS } = await bundle('src/game/realports.ts', 'realports.mjs');
+  group('Cloudhopper — the journey');
+  const stops = route();
+  const needs = stops.map(s => s.needs);
+  is('test_route_holds_every_island_and_every_field',
+    stops.length, WORLDS.length + REAL_PORTS.length);
+  is('test_route_lists_each_island_once',
+    stops.filter(s => s.kind === 'island').map(s => s.world), WORLDS.map((_, i) => i));
+  is('test_route_lists_each_field_once',
+    new Set(stops.filter(s => s.kind === 'port').map(s => s.port.id)).size, REAL_PORTS.length);
+  is('test_route_never_asks_for_fewer_stars_than_the_stop_before',
+    needs.every((n, i) => i === 0 || n >= needs[i - 1]), true);
+  const tie = stops[0].needs === undefined ? -1 : needs.findIndex((n, i) => i > 0 && n === needs[i - 1]);
+  is('test_route_puts_the_island_first_when_two_stops_ask_the_same',
+    tie < 0 || stops[tie - 1].kind === 'island', true);
+  is('test_route_opens_with_the_first_island', stops[0].kind === 'island' && stops[0].world === 0, true);
+  is('test_route_first_stop_is_open_on_a_fresh_save', stopOpen(stops[0]), true);
+  is('test_route_first_stop_asks_for_no_stars', stopShort(stops[0]), 0);
+  is('test_route_second_stop_is_shut_on_a_fresh_save', stopOpen(stops[1]), false);
+  is('test_route_now_is_the_first_island_on_a_fresh_save', routeNow(), 0);
 }
 
 rmSync(out, { recursive: true, force: true });

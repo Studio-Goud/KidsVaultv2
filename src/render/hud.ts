@@ -8,12 +8,13 @@ import { advise } from '../game/advisory';
 import { kindLabel } from '../game/weather';
 import { drawWeatherIcon } from './weatherfx';
 import { shade } from './palette';
+import { UPGRADES, nextCost } from '../game/upgrades';
 
 type Ctx = CanvasRenderingContext2D;
 
 export interface HudLayout { sw: number; sh: number; safeTop: number; safeBottom: number; safeLeft: number; safeRight: number; ui: number }
 export interface Rect { x: number; y: number; w: number; h: number }
-export interface HudHits { pause: Rect; slowmo?: Rect; commands?: Array<{ id: string; rect: Rect }>; panel?: Rect; wxToggle?: Rect }
+export interface HudHits { pause: Rect; build?: Rect; slowmo?: Rect; commands?: Array<{ id: string; rect: Rect }>; panel?: Rect; wxToggle?: Rect }
 
 /** Fold the weather detail in or out; the choice is remembered between sessions. */
 export function toggleWeatherDetail(): void { save.wxOpen = !save.wxOpen; persist(); }
@@ -110,6 +111,39 @@ export function drawHud(ctx: Ctx, world: World, L: HudLayout, time: number, pal:
   ctx.beginPath(); ctx.roundRect(px - 7 * u, py - 8 * u, 5 * u, 16 * u, 2 * u); ctx.fill();
   ctx.beginPath(); ctx.roundRect(px + 2 * u, py - 8 * u, 5 * u, 16 * u, 2 * u); ctx.fill();
   const hits: HudHits = { pause: { x: px - pr - 8, y: py - pr - 8, w: pr * 2 + 16, h: pr * 2 + 16 } };
+
+  // --- build button ---
+  // The airport is upgraded here, in the middle of the shift, not on a menu tab somewhere else:
+  // the coins are on the button, and it glows the moment one of them will buy something.
+  if (!world.demo) {
+    const br = 22 * u;
+    const bx = px, by = py + pr + br + 12 * u;
+    const affordable = UPGRADES.some(up => { const c = nextCost(up.id); return c !== null && save.coins >= c; });
+    chunkyDisc(ctx, bx, by, br, affordable ? '#2f7a4a' : pal.hud);
+    if (affordable) {
+      ctx.strokeStyle = 'rgba(124,247,160,0.9)'; ctx.lineWidth = 2 * u;
+      ctx.beginPath(); ctx.arc(bx, by, br + 3 * u, 0, Math.PI * 2); ctx.stroke();
+    }
+    // a terminal with a plus over it: build something here
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.roundRect(bx - 11 * u, by + 1 * u, 22 * u, 10 * u, 2 * u); ctx.fill();
+    ctx.fillStyle = affordable ? '#2f7a4a' : shade(pal.hud, -0.25);
+    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.rect(bx - 7 * u + i * 6 * u, by + 4 * u, 3 * u, 4 * u); ctx.fill(); }
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.roundRect(bx - 2 * u, by - 12 * u, 4 * u, 11 * u, 2 * u); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(bx - 7.5 * u, by - 8.5 * u, 15 * u, 4 * u, 2 * u); ctx.fill();
+    // the purse, centred under the button so four digits still fit on a narrow phone
+    const label = String(save.coins);
+    ctx.font = font('900', 12); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const lw = ctx.measureText(label).width, cw2 = 12 * u + 4 * u + lw;
+    const cx0 = bx - cw2 / 2;
+    ctx.shadowColor = 'rgba(0,20,50,0.6)'; ctx.shadowBlur = 6 * u;
+    drawCoin(ctx, cx0 + 6 * u, by + br + 9 * u, 6 * u);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(label, cx0 + 16 * u, by + br + 9 * u);
+    ctx.shadowBlur = 0; ctx.textBaseline = 'alphabetic';
+    hits.build = { x: bx - br - 8, y: by - br - 8, w: br * 2 + 16, h: br * 2 + 16 };
+  }
 
   // --- weather pill ---
   {

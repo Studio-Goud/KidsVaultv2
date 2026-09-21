@@ -152,6 +152,50 @@ export function realStars(): number {
 export function grandTotalStars(): number { return totalStars() + realStars(); }
 export const MAX_STARS = WORLDS.length * LEVELS_PER_WORLD * 3 + REAL_PORTS.length * 4 * 3;
 
+/**
+ * One journey, not two menus.
+ *
+ * The islands and the real airports used to be separate modes on the title screen, which made a
+ * child choose between two things before knowing what either was. They are one route now: every
+ * island and every real field in a single order, sorted by the stars they ask for, so there is
+ * always exactly one next place to go.
+ */
+export type Stop =
+  | { kind: 'island'; world: number; needs: number }
+  | { kind: 'port'; port: RealPort; needs: number };
+
+export function route(): Stop[] {
+  const stops: Stop[] = [];
+  // an island asks for half the stars of the one before it, which is what worldUnlocked checks
+  WORLDS.forEach((_, i) => stops.push({ kind: 'island', world: i, needs: i * 12 }));
+  for (const p of REAL_PORTS) stops.push({ kind: 'port', port: p, needs: p.unlockAt });
+  return stops.sort((a, b) => a.needs - b.needs || (a.kind === 'island' ? -1 : 1));
+}
+
+/** Is this stop open? Islands go by the island before them, fields by the stars in hand. */
+export function stopOpen(s: Stop): boolean {
+  return s.kind === 'island' ? worldUnlocked(s.world) : portUnlocked(s.port);
+}
+
+/** How many stars a locked stop is still short, for the line on its card. */
+export function stopShort(s: Stop): number {
+  if (s.kind === 'port') return Math.max(0, s.port.unlockAt - grandTotalStars());
+  if (s.world === 0) return 0; // the first island is where the journey starts; it is never shut
+  return Math.max(0, 12 - worldStars(s.world - 1));
+}
+
+/** The first stop that is open and not finished: where the journey is up to. */
+export function routeNow(): number {
+  const r = route();
+  for (let i = 0; i < r.length; i++) {
+    const s = r[i];
+    if (!stopOpen(s)) continue;
+    if (s.kind === 'island' && worldStars(s.world) < LEVELS_PER_WORLD * 3) return i;
+    if (s.kind === 'port' && portStars(s.port.id) < 12) return i;
+  }
+  return 0;
+}
+
 export function portUnlocked(port: RealPort): boolean { return grandTotalStars() >= port.unlockAt; }
 export function portMissionUnlocked(port: RealPort, step: number): boolean {
   if (!portUnlocked(port)) return false;
