@@ -837,30 +837,112 @@ export function buildProblem(design: Design, nl: boolean): string | null {
 // ---------------------------------------------------------------- the ladder
 
 export interface Milestone {
+  /** how fast you must be going when the fuel runs out, in metres per second */
   speed: number;
+  /** how far away it is, in kilometres */
   km: number;
   name: string;
   nameNl: string;
+  /** stars this is worth */
   stars: number;
+  /** the body whose photograph stands for this place, where a camera has been there */
+  photo?: string;
+  /** which folder that photograph lives in */
+  photoIn?: 'planets' | 'moons';
+  /** one true thing about it */
+  fact?: string;
+  factNl?: string;
 }
 
 /**
- * The ladder. Nothing is locked behind it - it is a set of names for how far you got, the way a
- * tape measure on a doorframe is a set of names for how tall you are.
+ * Where a rocket can get to, and how fast it has to be going when the fuel runs out to get there.
+ *
+ * The low rungs are heights, worked out from the speed by the same sum the game runs. The high
+ * ones are real places at their real distances, and their speeds are real too: everything past the
+ * Moon costs escape velocity - 11.19 km/s - with the speed you want to be left with once you are
+ * clear of the Earth added in quadrature on top. Which is why Venus and Mars sit a hundred metres
+ * a second apart: once you are off the Earth at all, the inner planets cost about the same, and
+ * the expensive ones are the ones further out. That is not a game balance decision, it is the
+ * solar system.
+ *
+ * Nothing here is locked or handed out. It is a set of names for how far you got, and a
+ * photograph of the place when the place is somewhere a camera has been.
  */
 export const LADDER: Milestone[] = [
   { speed: 0, km: 0, name: 'The pad', nameNl: 'Het platform', stars: 0 },
   { speed: 140, km: 1, name: 'Up with the birds', nameNl: 'Bij de vogels', stars: 1 },
   { speed: 340, km: 6, name: 'Through the clouds', nameNl: 'Door de wolken', stars: 1 },
-  { speed: 620, km: 20, name: 'Above the aeroplanes', nameNl: 'Boven de vliegtuigen', stars: 2 },
-  { speed: 1390, km: 100, name: 'The edge of the air', nameNl: 'De rand van de lucht', stars: 2 },
-  { speed: 2720, km: 400, name: 'Round the Earth', nameNl: 'Een rondje om de Aarde', stars: 3 },
-  { speed: 6800, km: 8000, name: 'Past the satellites', nameNl: 'Voorbij de satellieten', stars: 3 },
-  { speed: 10874, km: 384400, name: 'As far as the Moon', nameNl: 'Zo ver als de Maan', stars: 4 },
-  { speed: 11200, km: 3.4e6, name: 'Away from the Earth', nameNl: 'Los van de Aarde', stars: 4 },
-  { speed: 13000, km: 7.8e7, name: 'As far as Mars', nameNl: 'Zo ver als Mars', stars: 5 },
-  { speed: 16600, km: 6.3e8, name: 'As far as Jupiter', nameNl: 'Zo ver als Jupiter', stars: 5 },
-  { speed: 20000, km: 5e9, name: 'Out past the planets', nameNl: 'Voorbij de planeten', stars: 5 },
+  { speed: 620, km: 20, name: 'Above the aeroplanes', nameNl: 'Boven de vliegtuigen', stars: 1 },
+  {
+    speed: 1390, km: 100, name: 'The edge of the air', nameNl: 'De rand van de lucht', stars: 2,
+    fact: 'A hundred kilometres up. Above this line there is no sky left to fly in.',
+    factNl: 'Honderd kilometer hoog. Hierboven is er geen lucht meer om in te vliegen.',
+  },
+  {
+    speed: 2720, km: 400, name: 'Round the Earth', nameNl: 'Een rondje om de Aarde', stars: 2,
+    photo: 'earth',
+    fact: 'The height the space station flies at. It goes round the whole Earth in 90 minutes.',
+    factNl: 'De hoogte waarop het ruimtestation vliegt. Het gaat in 90 minuten om de hele Aarde.',
+  },
+  {
+    speed: 6800, km: 8000, name: 'Past the satellites', nameNl: 'Voorbij de satellieten', stars: 3,
+    photo: 'earth',
+    fact: 'Higher than almost everything people have put up there.',
+    factNl: 'Hoger dan bijna alles wat mensen daarboven hebben gezet.',
+  },
+  {
+    speed: 11090, km: 384400, name: 'The Moon', nameNl: 'De Maan', stars: 3,
+    photo: 'moon', photoIn: 'moons',
+    fact: 'A hundred metres a second short of never coming back. Twelve people have stood on it.',
+    factNl: 'Honderd meter per seconde onder nooit-meer-terug. Twaalf mensen hebben erop gestaan.',
+  },
+  {
+    speed: 11190, km: 1.5e6, name: 'Away from the Earth', nameNl: 'Los van de Aarde', stars: 4,
+    fact: 'Escape velocity: 11.19 km/s. Go this fast and the Earth never pulls you back.',
+    factNl: 'Ontsnappingssnelheid: 11,19 km/s. Zo snel, en de Aarde trekt je nooit meer terug.',
+  },
+  {
+    speed: 11470, km: 41e6, name: 'Venus', nameNl: 'Venus', stars: 4,
+    photo: 'venus',
+    fact: 'The hottest planet: 464 degrees, hot enough to melt lead, under clouds of acid.',
+    factNl: 'De heetste planeet: 464 graden, heet genoeg om lood te smelten, onder zuurwolken.',
+  },
+  {
+    speed: 11570, km: 78e6, name: 'Mars', nameNl: 'Mars', stars: 4,
+    photo: 'mars',
+    fact: 'Rusty, cold and half our size, with the biggest volcano in the solar system.',
+    factNl: 'Roestig, koud en half zo groot als wij, met de grootste vulkaan van het zonnestelsel.',
+  },
+  {
+    speed: 14200, km: 630e6, name: 'Jupiter', nameNl: 'Jupiter', stars: 5,
+    photo: 'jupiter',
+    fact: 'You could pour all the other planets into it and still have room. Its storm is older than your grandparents.',
+    factNl: 'Alle andere planeten passen erin en er blijft ruimte over. Zijn storm is ouder dan je opa en oma.',
+  },
+  {
+    speed: 15300, km: 1.3e9, name: 'Saturn', nameNl: 'Saturnus', stars: 5,
+    photo: 'saturn',
+    fact: 'The rings are billions of lumps of ice, and most of them are no thicker than a house.',
+    factNl: 'De ringen zijn miljarden brokken ijs, en de meeste zijn niet dikker dan een huis.',
+  },
+  {
+    speed: 15900, km: 2.7e9, name: 'Uranus', nameNl: 'Uranus', stars: 5,
+    photo: 'uranus',
+    fact: 'It lies on its side, so each pole gets 42 years of daylight and then 42 years of night.',
+    factNl: 'Hij ligt op zijn zij, dus elke pool heeft 42 jaar dag en dan 42 jaar nacht.',
+  },
+  {
+    speed: 16200, km: 4.3e9, name: 'Neptune', nameNl: 'Neptunus', stars: 5,
+    photo: 'neptune',
+    fact: 'The windiest place we know: 2,000 km an hour, in the dark, at 200 below.',
+    factNl: 'De winderigste plek die we kennen: 2.000 km per uur, in het donker, bij 200 onder nul.',
+  },
+  {
+    speed: 19900, km: 2.4e10, name: 'Out past the planets', nameNl: 'Voorbij de planeten', stars: 5,
+    photo: 'pluto',
+    fact: 'Voyager 1 left this way in 1977 and is still going. Nothing has ever gone further.',
+    factNl: 'Voyager 1 vertrok zo in 1977 en gaat nog steeds door. Niets is ooit verder gekomen.',
+  },
 ];
 
 export function rungFor(speed: number): { rung: Milestone; index: number } {

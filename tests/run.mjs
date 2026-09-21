@@ -163,6 +163,29 @@ const group = name => console.log(`\n${name}`);
   is('test_walk_mole_given_a_direction_prefers_it', stepDirections(false, left, right), [left, right]);
 }
 
+// ---------------------------------------------------------------- Moonshot: where it can get to
+
+{
+  const { LADDER, rungFor, coastHeight, G0, EARTH_R } = await bundle('src/games/moonshot/design.ts', 'ladder.mjs');
+  group('Moonshot — the ladder of places');
+  is('test_ladder_speeds_only_ever_rise',
+    LADDER.every((m, i) => i === 0 || m.speed > LADDER[i - 1].speed), true);
+  const escape = Math.sqrt(2 * G0 * EARTH_R);
+  const away = LADDER.find(m => m.name === 'Away from the Earth');
+  is('test_ladder_escape_rung_is_real_escape_velocity', Math.abs(away.speed - escape) < 40, true);
+  // near escape velocity the height runs away with you - a metre a second is thousands of
+  // kilometres - so what matters is that the rung reaches the Moon and does not wildly overshoot
+  const moonReach = coastHeight(LADDER.find(m => m.name === 'The Moon').speed, 0);
+  is('test_ladder_moon_rung_coasts_at_least_to_the_moon', moonReach >= 384400, true);
+  is('test_ladder_moon_rung_does_not_wildly_overshoot', moonReach < 384400 * 1.05, true);
+  is('test_ladder_every_world_has_a_photo_and_a_fact',
+    LADDER.filter(m => m.photo).every(m => m.fact && m.factNl), true);
+  is('test_rung_for_speed_takes_the_highest_reached', rungFor(11600).rung.name, 'Mars');
+  is('test_rung_for_speed_below_the_first_is_the_pad', rungFor(10).rung.name, 'The pad');
+  is('test_rung_for_speed_above_the_last_is_the_last',
+    rungFor(99999).rung.name, LADDER[LADDER.length - 1].name);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);

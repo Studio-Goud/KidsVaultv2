@@ -77,10 +77,19 @@ is dead weight until it goes, and exhaust speed - not thrust - decides how far y
 column is 1.8 m, which is what makes a two-row tank hold exactly the four and a half tonnes it says
 it holds. The only thing bent for a child is the clock: tanks empty in seconds rather than minutes.
 
-At the end, a name for how far you got: up with the birds, through the clouds, above the
-aeroplanes, the edge of the air, round the Earth, past the satellites, as far as the Moon, away
-from the Earth, as far as Mars, as far as Jupiter, out past the planets. Reaching one hands over
-nothing at all. It is a pencil mark on a doorframe.
+Before you launch you say where you are going. Tapping the chip in the corner opens the whole list
+- up with the birds, through the clouds, above the aeroplanes, the edge of the air, round the
+Earth, past the satellites, the Moon, away from the Earth, Venus, Mars, Jupiter, Saturn, Uranus,
+Neptune, and out past the planets - each with the photograph Orbit uses and the speed it really
+takes. Those speeds are not invented. Everything past the Moon costs escape velocity, 11.19 km/s,
+with however fast you want to still be going once you are clear of the Earth added on top, which
+is why Venus and Mars sit a hundred metres a second apart and Jupiter is nearly three thousand
+further. Once you are off the Earth at all, the inner planets cost about the same; the expensive
+ones are the ones further out. That is not a balance decision, it is the solar system.
+
+At the end the card shows where you actually got to, with its photograph and one true thing about
+it, and how much more speed the place you were aiming at would have wanted. Reaching a rung hands
+over nothing at all. It is a pencil mark on a doorframe.
 Practises weighing one thing against another, cause and effect, shape against speed, and reading a
 number that grows. Age 6 and up.
 

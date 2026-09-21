@@ -28,12 +28,13 @@ import {
   gravityAt, GROUPS, isFlyable, kmLabel, LADDER, MAX_PARTS, nextRung, padThrust,
   padWeight, partById, partsIn, ROWS, rungFor, shapeHint, shapeOf, slipperiness, stagesByColumn,
   STARTER, stillAttached, topRow, totalMass,
-  type Design, type Group, type Part, type Placed, type Stage,
+  type Design, type Group, type Milestone, type Part, type Placed, type Stage,
 } from './design';
 import {
   designBounds, paintCloud, paintDesign, paintEarthBelow, paintFlame, paintGrain, paintPad,
   paintPart, paintStars, paintTower, skyTone,
 } from './paint';
+import { drawPhoto, loadPhoto, planetPhoto, moonPhoto, type PlanetPhoto } from '../orbit/photo';
 import { engineSound, rocket } from './rocketsfx';
 
 type Ctx = CanvasRenderingContext2D;
@@ -101,6 +102,10 @@ export class Moonshot {
   // the workshop
   private design: Design = [];
   private tab: Group = 'tank';
+  /** where this rocket is meant to go: an index into the ladder */
+  private target = 7;
+  /** the destination list, open over the workshop */
+  private picking = false;
   private drag: Drag | null = null;
   private history: Design[] = [];
   /** where the grid was last drawn, so a finger can be turned back into a cell */
@@ -144,6 +149,9 @@ export class Moonshot {
     window.addEventListener('keydown', e => this.onKey(e, true));
     window.addEventListener('keyup', e => this.onKey(e, false));
     this.design = cleanDesign(save.moon?.design) ?? STARTER.map(p => ({ ...p }));
+    this.target = clamp(save.moon?.target ?? 7, 1, LADDER.length - 1);
+    // the same NASA frames Orbit uses, prepared the same way
+    for (const m of LADDER) if (m.photo) void loadPhoto(m.photo, m.photoIn ?? 'planets');
     (window as unknown as { __moon?: Moonshot }).__moon = this;
     const loop = (ms: number): void => {
       const now = ms / 1000;
@@ -174,6 +182,8 @@ export class Moonshot {
       stages: [...stagesByColumn(this.design)].map(([c, l]) => `${c}:${l.length}`),
       dead: deadWeight(this.design).length,
       tab: this.tab,
+      target: this.target,
+      picking: this.picking,
       best: this.best(),
       altKm: Math.round(this.alt / 100) / 10,
       vUp: Math.round(this.vUp),
@@ -192,8 +202,14 @@ export class Moonshot {
   private best(): number { return save.moon?.best ?? 0; }
 
   private remember(): void {
-    save.moon = { best: this.best(), design: this.design.map(p => ({ ...p })) };
+    save.moon = { best: this.best(), target: this.target, design: this.design.map(p => ({ ...p })) };
     persist();
+  }
+
+  /** The prepared photograph for a place, once it has finished loading. */
+  private photoOf(m: Milestone): PlanetPhoto | undefined {
+    if (!m.photo) return undefined;
+    return m.photoIn === 'moons' ? moonPhoto(m.photo) : planetPhoto(m.photo);
   }
 
   private push(): void {
@@ -723,7 +739,7 @@ export class Moonshot {
     const r = rungFor(this.result);
     this.earnedRung = r.index;
     if (r.index > this.best()) {
-      save.moon = { best: r.index, design: this.design.map(p => ({ ...p })) };
+      save.moon = { best: r.index, target: this.target, design: this.design.map(p => ({ ...p })) };
       persist();
       this.fresh = true;
       rocket.record();
@@ -756,6 +772,17 @@ export class Moonshot {
     const hit = this.hitAt(p);
     if (!hit) { this.drag = null; return; }
     this.held = hit;
+    if (hit === 'target') { this.picking = true; rocket.tap(); return; }
+    if (hit === 'closepick') { this.picking = false; rocket.tap(); return; }
+    if (hit.startsWith('pick:')) {
+      this.target = clamp(Number(hit.slice(5)), 1, LADDER.length - 1);
+      this.picking = false;
+      this.remember();
+      rocket.tap();
+      const m = LADDER[this.target];
+      this.say(`${NL() ? m.nameNl : m.name} - ${m.speed} m/s ${T('when the fuel runs out', 'als de brandstof op is')}`);
+      return;
+    }
     if (hit.startsWith('tray:')) { this.startDrag(hit.slice(5), -1, p); return; }
     if (hit.startsWith('part:')) {
       const i = Number(hit.slice(5));
@@ -763,7 +790,7 @@ export class Moonshot {
       return;
     }
     if (hit.startsWith('tab:')) { this.tab = hit.slice(4) as Group; rocket.tap(); return; }
-    if (hit === 'launch') { this.launch(); return; }
+    if (hit === 'launch') { this.picking = false; this.launch(); return; }
     if (hit === 'undo') { this.undo(); return; }
     if (hit === 'clear') {
       if (!this.design.length) { rocket.blocked(); return; }
@@ -881,11 +908,13 @@ export class Moonshot {
     ctx.fillRect(0, 0, this.w, this.h);
 
     this.drawGrid(b);
+    this.drawTargetChip(b);
     this.drawReadouts(b);
     this.drawTabs(b);
     this.drawTray(b);
     this.drawBottom(b);
     this.drawGhost();
+    if (this.picking) { this.hits = []; this.drawPicker(); }
 
     if (this.noteT > 0) {
       ctx.save();
@@ -900,6 +929,104 @@ export class Moonshot {
       lines.forEach((ln, i) => ctx.fillText(ln, this.w / 2, ny + 19 * u + i * 17 * u, this.w - 72 * u));
       ctx.restore();
     }
+    ctx.textAlign = 'left';
+  }
+
+  /**
+   * Where this rocket is meant to go, and how fast it has to be going when the fuel runs out.
+   *
+   * Choosing the place first is what turns "as far as it will go" into a question with an answer:
+   * a child building for Mars is building for 11570 m/s and can see on the launch button whether
+   * the thing on the pad is going to manage it.
+   */
+  private drawTargetChip(b: Bands): void {
+    const ctx = this.ctx, u = this.u();
+    const m = LADDER[this.target];
+    const h = 46 * u;
+    ctx.font = this.font('900', 12.5);
+    const name = NL() ? m.nameNl : m.name;
+    const wTxt = Math.max(ctx.measureText(name).width, ctx.measureText(`${m.speed} m/s`).width);
+    const w = Math.min(this.w * 0.52, wTxt + 58 * u);
+    const x = 10 * u, y = b.gridTop + 2 * u;
+    glassPanel(ctx, x, y, w, h, 14 * u, 0.9);
+    const r = 15 * u, cx = x + 10 * u + r, cy = y + h / 2;
+    const photo = this.photoOf(m);
+    if (photo) {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.clip();
+      drawPhoto(ctx, photo, cx, cy, r);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#9fc4e8';
+      ctx.beginPath(); ctx.arc(cx, cy, r * 0.8, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(18,35,59,0.6)';
+      ctx.font = this.font('900', 13);
+      ctx.textAlign = 'center';
+      ctx.fillText('↑', cx, cy + 5 * u);
+    }
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#12233b';
+    ctx.font = this.font('900', 12.5);
+    ctx.fillText(name, cx + r + 8 * u, cy - u, w - (r * 2 + 30 * u));
+    ctx.fillStyle = 'rgba(18,35,59,0.6)';
+    ctx.font = this.font('800', 10.5);
+    ctx.fillText(`${m.speed} m/s`, cx + r + 8 * u, cy + 13 * u, w - (r * 2 + 30 * u));
+    this.hits.push({ id: 'target', x, y, w, h });
+  }
+
+  /** The whole list of places, with the photographs, to pick one from. */
+  private drawPicker(): void {
+    const ctx = this.ctx, u = this.u();
+    ctx.fillStyle = 'rgba(6, 12, 24, 0.78)';
+    ctx.fillRect(0, 0, this.w, this.h);
+    this.hits.push({ id: 'closepick', x: 0, y: 0, w: this.w, h: this.h });
+
+    // under the chip and clear of the way back to Bramblewood, which owns the top right
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#e2ecf8';
+    ctx.font = this.font('900', 16);
+    ctx.fillText(T('Where are you going?', 'Waar ga je heen?'), 14 * u, 76 * u, this.w - 28 * u);
+
+    const list = LADDER.slice(1);
+    const cols = this.w > this.h ? 5 : 3;
+    const rows = Math.ceil(list.length / cols);
+    const cw = (this.w - 16 * u) / cols;
+    const top = 90 * u;
+    const ch = Math.min(116 * u, (this.h - top - 14 * u) / rows);
+    const r = Math.min(cw * 0.3, ch * 0.3);
+    list.forEach((m, k) => {
+      const i = k + 1;
+      const cx = 8 * u + (k % cols) * cw + cw / 2;
+      const cy = top + Math.floor(k / cols) * ch;
+      const on = i === this.target;
+      if (on) {
+        ctx.fillStyle = 'rgba(142, 232, 173, 0.18)';
+        ctx.beginPath(); ctx.roundRect(cx - cw / 2 + 3 * u, cy, cw - 6 * u, ch - 4 * u, 14 * u); ctx.fill();
+      }
+      const photo = this.photoOf(m);
+      const py = cy + r + 6 * u;
+      if (photo) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, py, r, 0, TAU); ctx.clip();
+        drawPhoto(ctx, photo, cx, py, r);
+        ctx.restore();
+      } else {
+        // the rungs that are heights rather than places: a rocket climbing a line
+        ctx.strokeStyle = 'rgba(180, 210, 255, 0.5)';
+        ctx.lineWidth = Math.max(1.4, 2 * u);
+        ctx.beginPath(); ctx.arc(cx, py, r * 0.82, 0, TAU); ctx.stroke();
+        ctx.fillStyle = 'rgba(210, 228, 250, 0.85)';
+        ctx.font = this.font('900', 15);
+        ctx.fillText('↑', cx, py + 6 * u);
+      }
+      ctx.fillStyle = on ? '#8ee8ad' : '#e2ecf8';
+      ctx.font = this.font('900', 10.5);
+      ctx.fillText(NL() ? m.nameNl : m.name, cx, py + r + 15 * u, cw - 8 * u);
+      ctx.fillStyle = on ? 'rgba(142,232,173,0.75)' : 'rgba(226,238,252,0.5)';
+      ctx.font = this.font('800', 9.5);
+      ctx.fillText(`${m.speed} m/s`, cx, py + r + 28 * u, cw - 8 * u);
+      this.hits.push({ id: `pick:${i}`, x: cx - cw / 2, y: cy, w: cw, h: ch });
+    });
     ctx.textAlign = 'left';
   }
 
@@ -1415,15 +1542,21 @@ export class Moonshot {
     this.hits.push({ id: 'warp', x, y, w, h });
   }
 
-  /** The card at the end: how far, what it is called, and whether it beat the last one. */
+  /** The card at the end: where you got to, what it is like there, and whether you aimed there. */
   private drawResult(): void {
     const ctx = this.ctx, u = this.u();
     const r = LADDER[this.earnedRung];
+    const aim = LADDER[this.target];
+    const made = this.earnedRung >= this.target;
+    const photo = this.photoOf(r);
     ctx.fillStyle = 'rgba(6, 12, 24, 0.55)';
     ctx.fillRect(0, 0, this.w, this.h);
     const pop = easeOutBack(clamp(this.phaseT * 2.2, 0, 1));
     const cw = Math.min(340 * u, this.w - 32 * u);
-    const ch = 262 * u;
+    const fact = NL() ? r.factNl : r.fact;
+    ctx.font = this.font('700', 11);
+    const factLines = fact ? wrap(ctx, fact, cw - 44 * u) : [];
+    const ch = (photo ? 300 : 250) * u + factLines.length * 15 * u;
     const x = this.w / 2 - cw / 2, y = this.h / 2 - ch / 2;
     ctx.save();
     ctx.translate(this.w / 2, this.h / 2);
@@ -1431,35 +1564,57 @@ export class Moonshot {
     ctx.translate(-this.w / 2, -this.h / 2);
     glassPanel(ctx, x, y, cw, ch, 26 * u, 0.97);
     ctx.textAlign = 'center';
-    heading(ctx, NL() ? r.nameNl : r.name, this.w / 2, y + 46 * u, this.font('900', 20), '#12233b');
+
+    let cy = y + 36 * u;
+    if (photo) {
+      // the real thing, the same NASA frame Orbit shows
+      const pr = 36 * u;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(this.w / 2, cy + pr, pr, 0, TAU); ctx.clip();
+      drawPhoto(ctx, photo, this.w / 2, cy + pr, pr);
+      ctx.restore();
+      cy += pr * 2 + 14 * u;
+    }
+    heading(ctx, NL() ? r.nameNl : r.name, this.w / 2, cy + 6 * u, this.font('900', 20), '#12233b');
+    cy += 30 * u;
     ctx.fillStyle = 'rgba(18,35,59,0.72)';
     ctx.font = this.font('800', 13);
-    ctx.fillText(kmLabel(this.topKm, NL()), this.w / 2, y + 72 * u, cw - 40 * u);
+    ctx.fillText(kmLabel(this.topKm, NL()), this.w / 2, cy, cw - 40 * u);
+    cy += 20 * u;
     ctx.fillStyle = 'rgba(18,35,59,0.55)';
     ctx.font = this.font('700', 11.5);
     ctx.fillText(T(`${Math.round(this.result)} m/s when the fuel ran out`, `${Math.round(this.result)} m/s toen de brandstof op was`),
-      this.w / 2, y + 92 * u, cw - 40 * u);
+      this.w / 2, cy, cw - 40 * u);
+    cy += 14 * u;
+
+    if (factLines.length) {
+      ctx.fillStyle = 'rgba(18,35,59,0.6)';
+      ctx.font = this.font('700', 11);
+      factLines.forEach((ln, i) => ctx.fillText(ln, this.w / 2, cy + 16 * u + i * 15 * u, cw - 44 * u));
+      cy += factLines.length * 15 * u + 8 * u;
+    }
+
     for (let i = 0; i < 5; i++) {
       const shown = clamp(this.phaseT * 2.4 - i * 0.2, 0, 1);
-      drawStar(ctx, this.w / 2 + (i - 2) * 30 * u, y + 126 * u, 13 * u, i < r.stars, i < r.stars ? easeOutBack(shown) : 1);
+      drawStar(ctx, this.w / 2 + (i - 2) * 30 * u, cy + 22 * u, 13 * u, i < r.stars, i < r.stars ? easeOutBack(shown) : 1);
     }
+    cy += 46 * u;
+
+    // did it go where it was aimed?
     ctx.font = this.font('900', 12);
-    if (this.fresh) {
+    if (made) {
       ctx.fillStyle = '#2f6d46';
-      ctx.fillText(T('Your best yet', 'Je beste tot nu toe'), this.w / 2, y + 162 * u, cw - 40 * u);
+      ctx.fillText(this.fresh
+        ? T('Your best yet', 'Je beste tot nu toe')
+        : T(`You aimed for ${NL() ? aim.nameNl : aim.name} and got there`, `Je mikte op ${NL() ? aim.nameNl : aim.name} en kwam er`),
+        this.w / 2, cy, cw - 36 * u);
     } else {
-      ctx.fillStyle = 'rgba(18,35,59,0.5)';
-      const b = LADDER[this.best()];
-      ctx.fillText(T(`Best so far: ${b.name}`, `Beste tot nu toe: ${b.nameNl}`), this.w / 2, y + 162 * u, cw - 40 * u);
+      const short = aim.speed - Math.round(this.result);
+      ctx.fillStyle = 'rgba(18,35,59,0.62)';
+      ctx.fillText(T(`${NL() ? aim.nameNl : aim.name} needs ${short} m/s more`, `${NL() ? aim.nameNl : aim.name} vraagt nog ${short} m/s`),
+        this.w / 2, cy, cw - 36 * u);
     }
-    const nxt = nextRung(this.earnedRung);
-    if (nxt) {
-      ctx.fillStyle = 'rgba(18,35,59,0.55)';
-      ctx.font = this.font('700', 11);
-      ctx.fillText(T(`Next up: ${nxt.name}, at ${nxt.speed} m/s`, `Hierna: ${nxt.nameNl}, bij ${nxt.speed} m/s`),
-        this.w / 2, y + 182 * u, cw - 36 * u);
-    }
-    // the button grows with the card, so it is drawn inside the same transform
+
     const bw = Math.min(240 * u, cw - 28 * u), bh = 48 * u;
     const by = y + ch - 62 * u;
     const face = chunkyButton(ctx, this.w / 2 - bw / 2, by, bw, bh, { tone: '#65d48c', pressed: this.held === 'again' });
