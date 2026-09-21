@@ -107,6 +107,22 @@ is why Venus and Mars sit a hundred metres a second apart and Jupiter is nearly 
 further. Once you are off the Earth at all, the inner planets cost about the same; the expensive
 ones are the ones further out. That is not a balance decision, it is the solar system.
 
+On the way up there is something to see out of the window at every height, and each thing is at
+roughly the height it really flies: a flock of birds in the first kilometre, a weather balloon at
+thirty, satellites from four hundred, and the Earth curving away and going dark behind them. Down
+the right-hand edge runs a doorframe - birds, aeroplanes, the edge of the air, the space station,
+the satellites, the Moon - on a logarithmic scale, because that is the only way a kilometre and the
+Moon fit on one phone. The marks you have passed turn gold as you pass them. Across it is a dashed
+gold line at the highest any rocket of yours has ever been, and going over it jolts the frame and
+says so. The rocket also calls Max Q, the moment the air is pushing hardest - which is neither the
+fastest moment nor the highest, and is why it is worth naming - and every separation now comes with
+a flash, a ring of smoke and a scatter of sparks rather than happening silently. When the engines
+stop the window keeps climbing with the number, so the coast is a view rather than a wait.
+
+Your best height is kept, and the build screen says it under the destination chip along with the
+next place along the ladder. Opening the list shows a flag planted on every place you have already
+reached and a count at the top - six of fifteen - which turns a menu into a collection.
+
 At the end the card shows where you actually got to, with its photograph and one true thing about
 it, and how much more speed the place you were aiming at would have wanted. Reaching a rung hands
 over nothing at all. It is a pencil mark on a doorframe.

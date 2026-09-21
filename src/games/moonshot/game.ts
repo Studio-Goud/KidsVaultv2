@@ -32,8 +32,8 @@ import {
   type Design, type Group, type Milestone, type Part, type Placed, type Stage,
 } from './design';
 import {
-  designBounds, paintCloud, paintDesign, paintEarthBelow, paintFlame, paintGrain, paintPad,
-  paintPart, paintStars, paintTower, skyTone,
+  designBounds, paintBalloon, paintBirds, paintCloud, paintDesign, paintEarthBelow, paintFlame,
+  paintGrain, paintPad, paintPart, paintSatellite, paintStars, paintTower, skyTone,
 } from './paint';
 import { drawPhoto, loadPhoto, planetPhoto, moonPhoto, type PlanetPhoto } from '../orbit/photo';
 import { engineSound, rocket } from './rocketsfx';
@@ -144,6 +144,11 @@ export class Moonshot {
   private earnedRung = 0;
   private fresh = false;
 
+  private flash = 0;
+  private maxQ = 0;
+  private qCalled = false;
+  private recordCalled = false;
+
   private ps = new Particles();
   private shake = new Shake();
 
@@ -204,6 +209,8 @@ export class Moonshot {
       tilt: Math.round(this.tilt * 100) / 100,
       vSide: Math.round(this.vSide),
       topKm: this.topKm,
+      bestKm: this.bestKm(),
+      note: this.noteT > 0 ? this.note : '',
       result: this.result,
       buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
     };
@@ -212,9 +219,23 @@ export class Moonshot {
   // ---------- what is kept ----------
 
   private best(): number { return save.moon?.best ?? 0; }
+  /** The highest a rocket of yours has ever got, in kilometres. Zero until one has flown. */
+  private bestKm(): number { return save.moon?.topKm ?? 0; }
+
+  /**
+   * The height the view is drawn at.
+   *
+   * While the engines are burning this is simply where the rocket is. Once they stop, the flight
+   * is no longer simulated - the number climbs to wherever that last speed was good for - and the
+   * window has to climb with it, or the Earth stays the same size and a weather balloon hangs
+   * outside at three hundred kilometres.
+   */
+  private viewAlt(): number {
+    return this.phase === 'coast' || this.phase === 'done' ? this.shownKm * 1000 : this.alt;
+  }
 
   private remember(): void {
-    save.moon = { best: this.best(), target: this.target, design: this.design.map(p => ({ ...p })) };
+    save.moon = { best: this.best(), target: this.target, topKm: this.bestKm(), design: this.design.map(p => ({ ...p })) };
     persist();
   }
 
@@ -502,6 +523,7 @@ export class Moonshot {
     this.camRow = bd0.r0; this.camCol = (bd0.c0 + bd0.c1 + 1) / 2;
     this.countdown = 3.2; this.lastTick = 9;
     this.result = 0; this.fresh = false;
+    this.flash = 0; this.maxQ = 0; this.qCalled = false; this.recordCalled = false;
     this.phase = 'count'; this.phaseT = 0;
     this.drag = null;
     this.ps.clear();
@@ -595,6 +617,7 @@ export class Moonshot {
     b.idx++;
     b.fuel = this.live(b)?.fuel ?? 0;
     if (this.live(b)) { rocket.stage(); this.shake.add(0.55); }
+    if (parts.length) this.separationPuff();
     this.shed();
   }
 
@@ -629,6 +652,24 @@ export class Moonshot {
     this.debris.push({
       y: 0, vy: -this.vUp * 0.1 - 6, spin: (Math.random() - 0.5) * 1.8, a: 0, parts: loose, age: 0,
     });
+  }
+
+  /**
+   * The bang when something lets go.
+   *
+   * Separation is the one moment in a flight where the rocket visibly changes, and until now it
+   * happened silently in the middle of the frame. A white flash, a ring of smoke and a scatter of
+   * sparks make it an event, which is also what tells a child that the thing they built a
+   * decoupler for has just worked.
+   */
+  private separationPuff(): void {
+    const cx = this.w * 0.5 - this.vSide * 0.0004 * this.w;
+    const ry = this.h * 0.64;
+    const u = this.u();
+    this.flash = 1;
+    this.ps.spawn('ring', cx, ry, 1, { size: 26 * u, max: 0.75, speed: 0, colour: 'rgba(255,255,255,0.75)' });
+    this.ps.spawn('dust', cx, ry, 14, { size: 9 * u, max: 0.9, speed: 120 * u, spread: TAU, colour: '#d8dee8' });
+    this.ps.spawn('spark', cx, ry, 8, { size: 4 * u, max: 0.5, speed: 190 * u, spread: TAU, colour: '#ffd27a' });
   }
 
   /** Still something to come: burning now, or waiting for its moment. */
@@ -686,6 +727,7 @@ export class Moonshot {
     this.noteT = Math.max(0, this.noteT - dt);
     this.ps.update(dt);
     this.shake.update(dt);
+    this.flash = Math.max(0, this.flash - dt * 3.5);
     this.idle += dt;
 
     if (this.phase === 'count') {
@@ -798,6 +840,7 @@ export class Moonshot {
     this.vSide += ax * dt;
     this.alt = Math.max(0, this.alt + this.vUp * dt);
     if (this.alt <= 0 && this.vUp < 0) this.vUp = 0;
+    this.callouts(speed);
 
     for (const d of this.debris) { d.age += dt; d.vy -= 9 * dt; d.y += d.vy * dt; d.a += d.spin * dt; }
     this.debris = this.debris.filter(d => d.age < 6);
@@ -820,13 +863,44 @@ export class Moonshot {
     }
   }
 
+  /**
+   * The two moments in a climb worth naming out loud.
+   *
+   * Max Q is where the air is pushing hardest - it is not the fastest moment, and it is not the
+   * highest, which is exactly why it is worth pointing at - and it passes on its own as the air
+   * thins. The other is the line where your own best flight stopped: going over it is the whole
+   * point of flying again, so the rocket says so and the frame jolts.
+   */
+  private callouts(speed: number): void {
+    const q = 0.5 * densityAt(this.alt) * speed * speed;
+    if (q > this.maxQ) this.maxQ = q;
+    if (!this.qCalled && this.maxQ > 8000 && q < this.maxQ * 0.72 && this.alt > 2000) {
+      this.qCalled = true;
+      this.say(T('Max Q — that was the hardest the air will push.',
+        'Max Q: harder dan dit gaat de lucht niet duwen.'), 3);
+    }
+    const mark = this.bestKm() * 1000;
+    if (!this.recordCalled && mark > 500 && this.alt > mark) {
+      this.recordCalled = true;
+      this.shake.add(0.8);
+      rocket.record();
+      this.say(T('Higher than you have ever been.', 'Hoger dan je ooit geweest bent.'), 3.5);
+    }
+  }
+
   private finish(): void {
     const r = rungFor(this.result);
     this.earnedRung = r.index;
-    if (r.index > this.best()) {
-      save.moon = { best: r.index, target: this.target, design: this.design.map(p => ({ ...p })) };
+    // the rung is the name for the flight; the height is the pencil mark on the doorframe, and a
+    // flight can beat the mark without reaching the next name
+    const km = Math.max(this.bestKm(), isFinite(this.topKm) ? this.topKm : 0);
+    if (r.index > this.best() || km > this.bestKm()) {
+      save.moon = {
+        best: Math.max(r.index, this.best()), target: this.target, topKm: km,
+        design: this.design.map(p => ({ ...p })),
+      };
       persist();
-      this.fresh = true;
+      this.fresh = r.index > this.best();
       rocket.record();
     } else {
       rocket.land();
@@ -1084,6 +1158,34 @@ export class Moonshot {
     ctx.font = this.font('800', 10.5);
     ctx.fillText(`${m.speed} m/s`, cx + r + 8 * u, cy + 13 * u, w - (r * 2 + 30 * u));
     this.hits.push({ id: 'target', x, y, w, h });
+    this.drawRecordPill(x, y + h + 5 * u, w);
+  }
+
+  /**
+   * The doorframe again, this time on the pad.
+   *
+   * Without it the build screen has nothing to say about the flights already flown, and "go
+   * higher" is an instruction with no number attached. With it there is a mark to beat before the
+   * rocket has even left the ground, and the next place along the ladder is named with the speed
+   * it is still short of.
+   */
+  private drawRecordPill(x: number, y: number, w: number): void {
+    const km = this.bestKm();
+    if (km <= 0) return;
+    const ctx = this.ctx, u = this.u();
+    const h = 22 * u;
+    glassPanel(ctx, x, y, w, h, h / 2, 0.72);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#12233b';
+    ctx.font = this.font('900', 9.5);
+    const next = LADDER[Math.min(this.best() + 1, LADDER.length - 1)];
+    const been = this.best() >= LADDER.length - 1;
+    const line = been
+      ? T(`best ${kmLabel(km, false)}`, `record ${kmLabel(km, true)}`)
+      : T(`best ${kmLabel(km, false)} · next: ${next.name}`,
+        `record ${kmLabel(km, true)} · hierna: ${next.nameNl}`);
+    ctx.fillText(line, x + 11 * u, y + h * 0.63, w - 22 * u);
+    ctx.textAlign = 'left';
   }
 
   /** The whole list of places, with the photographs, to pick one from. */
@@ -1098,6 +1200,15 @@ export class Moonshot {
     ctx.fillStyle = '#e2ecf8';
     ctx.font = this.font('900', 16);
     ctx.fillText(T('Where are you going?', 'Waar ga je heen?'), 14 * u, 76 * u, this.w - 28 * u);
+    // A list of sixteen places with nothing said about them is a menu. With a flag on the ones you
+    // have already reached it is a collection, and the next unflagged one is a reason to build.
+    const been = this.best();
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(255, 216, 107, 0.9)';
+    ctx.font = this.font('900', 11.5);
+    ctx.fillText(NL() ? `${been} van de ${LADDER.length - 1} bereikt`
+      : `${been} of ${LADDER.length - 1} reached`, this.w - 14 * u, 76 * u, this.w * 0.45);
+    ctx.textAlign = 'left';
 
     const list = LADDER.slice(1);
     const cols = this.w > this.h ? 5 : 3;
@@ -1106,6 +1217,7 @@ export class Moonshot {
     const top = 90 * u;
     const ch = Math.min(116 * u, (this.h - top - 14 * u) / rows);
     const r = Math.min(cw * 0.3, ch * 0.3);
+    ctx.textAlign = 'center'; // every label is drawn about the middle of its cell
     list.forEach((m, k) => {
       const i = k + 1;
       const cx = 8 * u + (k % cols) * cw + cw / 2;
@@ -1130,6 +1242,18 @@ export class Moonshot {
         ctx.fillStyle = 'rgba(210, 228, 250, 0.85)';
         ctx.font = this.font('900', 15);
         ctx.fillText('↑', cx, py + 6 * u);
+      }
+      if (i <= been) {
+        // a little flag planted on the ones you have stood on
+        ctx.save();
+        ctx.translate(cx + r * 0.72, py - r * 0.72);
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(1.2, 1.6 * u); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(0, -r * 0.1); ctx.lineTo(0, r * 0.5); ctx.stroke();
+        ctx.fillStyle = '#ffd86b';
+        ctx.beginPath();
+        ctx.moveTo(0, -r * 0.1); ctx.lineTo(r * 0.5, r * 0.06); ctx.lineTo(0, r * 0.22);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
       }
       ctx.fillStyle = on ? '#8ee8ad' : '#e2ecf8';
       ctx.font = this.font('900', 10.5);
@@ -1515,14 +1639,15 @@ export class Moonshot {
 
   private drawFlight(): void {
     const ctx = this.ctx, u = this.u();
-    const tone = skyTone(this.alt);
+    const va = this.viewAlt();
+    const tone = skyTone(va);
     const g = ctx.createLinearGradient(0, 0, 0, this.h);
     g.addColorStop(0, tone.top);
     g.addColorStop(1, tone.bottom);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, this.w, this.h);
-    paintStars(ctx, this.w, this.h, tone.stars, this.alt * 0.02);
-    paintEarthBelow(ctx, this.w, this.h, this.alt, u);
+    paintStars(ctx, this.w, this.h, tone.stars, va * 0.02);
+    paintEarthBelow(ctx, this.w, this.h, va, u);
 
     ctx.save();
     this.shake.apply(ctx, 7 * u);
@@ -1536,7 +1661,7 @@ export class Moonshot {
     // climbing looks like from a camera that is following you.
     const cx = this.w * 0.5 - this.vSide * 0.0004 * this.w;
     const ry = this.h * 0.64;
-    const gy = ry + unit * 0.2 + this.alt * (this.h / 2200);
+    const gy = ry + unit * 0.2 + va * (this.h / 2200);
     if (gy < this.h + 60 * u) {
       paintPad(ctx, this.w, gy, unit);
       paintTower(ctx, this.w * 0.5 - unit * 5.4, gy, unit, unit * 12);
@@ -1545,13 +1670,14 @@ export class Moonshot {
     // clouds going past: a handful of layers at real heights, gone by ten kilometres
     for (let k = 0; k < 5; k++) {
       const band = 900 + k * 1600;
-      const d = this.alt - band;
+      const d = va - band;
       const yy = this.h * 0.5 + d * 0.1;
       if (yy > -150 && yy < this.h + 150) {
         const fade = clamp(1 - Math.abs(d) / 2600, 0, 1);
         paintCloud(ctx, ((k * 173) % 100) / 100 * this.w, yy, this.w * (0.12 + (k % 3) * 0.035), fade * 0.8, k * 7);
       }
     }
+    this.drawFlybys(unit);
 
     ctx.save();
     ctx.translate(cx, ry);
@@ -1617,9 +1743,50 @@ export class Moonshot {
     ctx.restore();
 
     this.ps.draw(ctx);
+    if (this.flash > 0.01) {
+      ctx.save();
+      ctx.globalAlpha = this.flash * 0.5;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, this.w, this.h);
+      ctx.restore();
+    }
     vignette(ctx, this.w, this.h, 0.22);
     paintGrain(ctx, this.w, this.h);
     this.drawFlightChrome();
+  }
+
+  /**
+   * What goes past the window, and at roughly the height it really is.
+   *
+   * Each of these sits at a band and slides by at a rate of its own, so that a flock of birds is
+   * gone in the first few seconds and a satellite takes a while, which is what those distances
+   * actually feel like. Nothing here touches the flight; it is the view out of the window.
+   */
+  private drawFlybys(unit: number): void {
+    const ctx = this.ctx, u = this.u();
+    const va = this.viewAlt();
+    const pass = (band: number, rate: number, span: number): number | null => {
+      const d = va - band;
+      const y = this.h * 0.5 + d * rate;
+      if (y < -120 * u || y > this.h + 120 * u) return null;
+      return clamp(1 - Math.abs(d) / span, 0, 1) > 0.01 ? y : null;
+    };
+    const fade = (band: number, span: number): number => clamp(1 - Math.abs(va - band) / span, 0, 1);
+
+    const birds = pass(320, 0.3, 900);
+    if (birds !== null) paintBirds(ctx, this.w * 0.24, birds, unit * 0.7, fade(320, 900) * 0.85, this.t);
+
+    const balloon = pass(31000, 0.02, 26000);
+    if (balloon !== null) paintBalloon(ctx, this.w * 0.74, balloon, unit * 0.8, fade(31000, 26000) * 0.9);
+
+    for (let k = 0; k < 3; k++) {
+      const band = 420000 + k * 320000;
+      const sat = pass(band, 0.00042, 260000);
+      if (sat !== null) {
+        paintSatellite(ctx, this.w * (0.2 + k * 0.3), sat, unit * 0.5,
+          fade(band, 260000) * 0.9, this.t * 0.3 + k);
+      }
+    }
   }
 
   private drawFlightChrome(): void {
@@ -1676,6 +1843,7 @@ export class Moonshot {
       ctx.textAlign = 'left';
     }
 
+    if (this.phase === 'fly' || this.phase === 'coast') this.drawTape();
     if (this.phase === 'fly') this.drawSteering();
     if (this.phase === 'coast') {
       ctx.textAlign = 'center';
@@ -1686,6 +1854,77 @@ export class Moonshot {
     }
     if (this.phase === 'done') this.drawResult();
     ctx.textAlign = 'left';
+  }
+
+  /**
+   * The doorframe, down the right-hand edge.
+   *
+   * "Thirty kilometres" means nothing at six; a mark called "aeroplanes" that you have just gone
+   * past means a great deal. The rail runs from a hundred metres to the Moon on a logarithmic
+   * scale, because that is the only way those two fit on one phone, and the gold line across it is
+   * the highest you have ever been - which is the whole reason to go again.
+   */
+  private drawTape(): void {
+    const ctx = this.ctx, u = this.u();
+    // Upright there is a clear strip down the right-hand edge. Turned sideways there is not - the
+    // right side belongs to the stage button and the steering - so the rail moves in beside the
+    // fuel column, between the readouts and the thumb pads, and its labels read the other way.
+    const wide = this.w > this.h;
+    const x = wide ? 50 * u : this.w - 16 * u;
+    const y0 = wide ? this.h * 0.7 : this.h * 0.82;
+    const y1 = wide ? Math.max(this.h * 0.06, 120 * u) : this.h * 0.2;
+    const TOP = 384400000; // the Moon, in metres
+    const at = (m: number): number =>
+      y0 + (y1 - y0) * clamp(Math.log10(Math.max(m, 100) / 100) / Math.log10(TOP / 100), 0, 1);
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.lineWidth = 2 * u;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+
+    const marks: Array<[number, string, string]> = [
+      [1000, 'birds', 'vogels'],
+      [10000, 'aeroplanes', 'vliegtuigen'],
+      [100000, 'edge of the air', 'rand van de lucht'],
+      [420000, 'space station', 'ruimtestation'],
+      [35786000, 'satellites', 'satellieten'],
+      [384400000, 'the Moon', 'de Maan'],
+    ];
+    ctx.textAlign = wide ? 'left' : 'right';
+    ctx.textBaseline = 'middle';
+    ctx.font = this.font('800', 8.5);
+    for (const [m, en, nl] of marks) {
+      const y = at(m);
+      const passed = this.viewAlt() >= m;
+      ctx.strokeStyle = passed ? 'rgba(255, 216, 107, 0.85)' : 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 1.6 * u;
+      ctx.beginPath(); ctx.moveTo(x - 5 * u, y); ctx.lineTo(x + 5 * u, y); ctx.stroke();
+      ctx.fillStyle = passed ? 'rgba(255, 216, 107, 0.95)' : 'rgba(255,255,255,0.55)';
+      ctx.fillText(T(en, nl), x + (wide ? 8 * u : -8 * u), y, this.w * 0.34);
+    }
+
+    // your own best, and where you are now
+    const mark = this.bestKm() * 1000;
+    if (mark > 500) {
+      const y = at(mark);
+      ctx.strokeStyle = '#ffd86b';
+      ctx.lineWidth = 2 * u;
+      ctx.setLineDash([4 * u, 4 * u]);
+      ctx.beginPath(); ctx.moveTo(x - 9 * u, y); ctx.lineTo(x + 9 * u, y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    const yn = at(this.viewAlt());
+    const dir = wide ? -1 : 1; // the pointer sits on the side the labels are not
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(x + dir * 11 * u, yn);
+    ctx.lineTo(x + dir * 4 * u, yn - 5 * u);
+    ctx.lineTo(x + dir * 4 * u, yn + 5 * u);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
   }
 
   /** Two thumbs and a bubble level, which is all the steering a rocket needs. */

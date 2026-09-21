@@ -1546,7 +1546,14 @@ export function kmLabel(km: number, nl: boolean): string {
   if (!isFinite(km)) return nl ? 'verder dan we kunnen tellen' : 'further than we can count';
   if (km < 1) return `${Math.round(km * 1000)} m`;
   if (km < 1000) return `${km < 10 ? km.toFixed(1) : Math.round(km)} km`;
-  if (km < 1e6) return `${Math.round(km / 1000)}.000 km`;
+  // a thousand and up gets a grouped number - 1.400 km in Dutch, 1,400 km in English. It used to
+  // round to whole thousands, which turned 1400 km into "1.000 km" and lost the flight's last
+  // four hundred kilometres.
+  if (km < 1e6) {
+    const n = String(Math.round(km));
+    const sep = nl ? '.' : ',';
+    return `${n.replace(/\B(?=(\d{3})+$)/g, sep)} km`;
+  }
   const mln = km / 1e6;
   return `${mln < 10 ? mln.toFixed(1) : Math.round(mln)} ${nl ? 'miljoen km' : 'million km'}`;
 }

@@ -976,6 +976,72 @@ export function paintCloud(ctx: Ctx, x: number, y: number, r: number, alpha: num
   ctx.restore();
 }
 
+/**
+ * The things you go past on the way up.
+ *
+ * A number on the left saying 30 km means very little at six. Going past a flock of birds, then a
+ * weather balloon, then a satellite, in that order, means a great deal, and each one is at roughly
+ * the height it really flies.
+ */
+export function paintBirds(ctx: Ctx, x: number, y: number, u: number, alpha: number, t: number): void {
+  if (alpha <= 0.01) return;
+  ctx.save();
+  ctx.globalAlpha = clamp(alpha, 0, 1);
+  ctx.strokeStyle = '#33465f';
+  ctx.lineWidth = Math.max(1.4, u * 0.1);
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 5; i++) {
+    const bx = x + ((i % 3) - 1) * u * 2.4 + (i > 2 ? u * 1.2 : 0);
+    const by = y + Math.floor(i / 3) * u * 1.6 + Math.sin(t * 3 + i) * u * 0.22;
+    const flap = Math.sin(t * 6 + i * 1.7) * 0.45;
+    const wing = u * 0.9;
+    ctx.beginPath();
+    ctx.moveTo(bx - wing, by + flap * wing);
+    ctx.quadraticCurveTo(bx - wing * 0.35, by - wing * 0.35, bx, by);
+    ctx.quadraticCurveTo(bx + wing * 0.35, by - wing * 0.35, bx + wing, by + flap * wing);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** A weather balloon, which really does hang about at thirty kilometres. */
+export function paintBalloon(ctx: Ctx, x: number, y: number, u: number, alpha: number): void {
+  if (alpha <= 0.01) return;
+  ctx.save();
+  ctx.globalAlpha = clamp(alpha, 0, 1);
+  const r = u * 1.7;
+  const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r);
+  g.addColorStop(0, 'rgba(255,255,255,0.95)');
+  g.addColorStop(1, 'rgba(212, 228, 244, 0.85)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(x, y, r * 0.86, r, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+  ctx.lineWidth = Math.max(1, u * 0.07);
+  ctx.beginPath(); ctx.moveTo(x, y + r); ctx.lineTo(x, y + r * 2.1); ctx.stroke();
+  ctx.fillStyle = '#f0a33c';
+  ctx.beginPath(); ctx.roundRect(x - r * 0.3, y + r * 2.1, r * 0.6, r * 0.5, r * 0.15); ctx.fill();
+  ctx.restore();
+}
+
+/** A satellite going the other way, out where they actually orbit. */
+export function paintSatellite(ctx: Ctx, x: number, y: number, u: number, alpha: number, spin: number): void {
+  if (alpha <= 0.01) return;
+  ctx.save();
+  ctx.globalAlpha = clamp(alpha, 0, 1);
+  ctx.translate(x, y);
+  ctx.rotate(spin);
+  ctx.fillStyle = '#cfd9e6';
+  ctx.beginPath(); ctx.roundRect(-u * 0.5, -u * 0.7, u, u * 1.4, u * 0.2); ctx.fill();
+  ctx.fillStyle = '#3f6fb5';
+  for (const side of [-1, 1]) {
+    ctx.beginPath(); ctx.roundRect(side * u * 0.7 - (side < 0 ? u * 1.5 : 0), -u * 0.45, u * 1.5, u * 0.9, u * 0.1); ctx.fill();
+  }
+  ctx.strokeStyle = '#8fa4bd';
+  ctx.lineWidth = Math.max(1, u * 0.08);
+  ctx.beginPath(); ctx.moveTo(0, -u * 0.7); ctx.lineTo(0, -u * 1.4); ctx.stroke();
+  ctx.restore();
+}
+
 /** The Earth falling away below, once there is enough height to see it curve. */
 export function paintEarthBelow(ctx: Ctx, w: number, h: number, altM: number, u: number): void {
   const k = clamp((altM - 60000) / 400000, 0, 1);

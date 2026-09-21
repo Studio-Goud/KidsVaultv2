@@ -205,7 +205,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- Moonshot: where it can get to
 
 {
-  const { LADDER, rungFor, coastHeight, G0, EARTH_R } = await bundle('src/games/moonshot/design.ts', 'ladder.mjs');
+  const { LADDER, rungFor, coastHeight, kmLabel, G0, EARTH_R } = await bundle('src/games/moonshot/design.ts', 'ladder.mjs');
   group('Moonshot — the ladder of places');
   is('test_ladder_speeds_only_ever_rise',
     LADDER.every((m, i) => i === 0 || m.speed > LADDER[i - 1].speed), true);
@@ -223,6 +223,16 @@ const group = name => console.log(`\n${name}`);
   is('test_rung_for_speed_below_the_first_is_the_pad', rungFor(10).rung.name, 'The pad');
   is('test_rung_for_speed_above_the_last_is_the_last',
     rungFor(99999).rung.name, LADDER[LADDER.length - 1].name);
+  // a height of 1400 km used to print as "1.000 km": rounded to whole thousands, and the Dutch
+  // separator was used in English too
+  is('test_km_label_metres_below_a_kilometre', kmLabel(0.4, false), '400 m');
+  is('test_km_label_one_decimal_below_ten_kilometres', kmLabel(5.25, false), '5.3 km');
+  is('test_km_label_whole_kilometres_below_a_thousand', kmLabel(120.4, false), '120 km');
+  is('test_km_label_groups_thousands_in_english', kmLabel(1400, false), '1,400 km');
+  is('test_km_label_groups_thousands_in_dutch', kmLabel(1400, true), '1.400 km');
+  is('test_km_label_keeps_the_moon_exact', kmLabel(384400, false), '384,400 km');
+  is('test_km_label_millions_above_a_million', kmLabel(1234567, false), '1.2 million km');
+  is('test_km_label_infinity_says_so', kmLabel(Infinity, false), 'further than we can count');
 }
 
 // ---------------------------------------------------------------- Cloudhopper: one road, not two menus
