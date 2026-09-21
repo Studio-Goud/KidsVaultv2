@@ -80,6 +80,32 @@ interface Bands {
   launchY: number; launchH: number;
 }
 
+/** What each part with a job is for, in two words, for the line under it in the shelf. */
+const JOB_TAGS: Record<string, [string, string]> = {
+  cargo: ['holds 2', 'ruim voor 2'],
+  camera: ['photo', 'foto'],
+  antenna: ['sends it home', 'stuurt het thuis'],
+  solar: ['power', 'stroom'], 'solar-l': ['power', 'stroom'],
+  chute: ['lands 2.5t', 'landt 2,5t'], 'chute-l': ['lands 9t', 'landt 9t'],
+  leg: ['stands up', 'staat rechtop'], 'leg-l': ['stands up', 'staat rechtop'],
+  flag: ['plant it', 'planten'],
+  light: ['light', 'licht'],
+  ladder: ['to climb down', 'om af te klimmen'],
+  strut: ['steadies', 'stabiliseert'],
+  truss: ['steadies', 'stabiliseert'], 'truss-l': ['steadies', 'stabiliseert'],
+  airbrake: ['brakes', 'remt'],
+  decoupler: ['let go', 'loskoppelen'], 'decoupler-l': ['let go', 'loskoppelen'],
+  probe: ['science', 'onderzoek'], 'probe-l': ['science', 'onderzoek'],
+  sat: ['leave it up there', 'laat je achter'],
+  telescope: ['science', 'onderzoek'],
+  rover: ['drives about', 'rijdt rond'],
+  lander: ['lands on legs', 'landt op poten'],
+  capsule: ['1 aboard', '1 aan boord'], 'capsule-l': ['3 aboard', '3 aan boord'],
+  cabin: ['4 aboard', '4 aan boord'],
+  station: ['6 aboard', '6 aan boord'],
+  shuttle: ['5 aboard', '5 aan boord'], 'shuttle-s': ['2 aboard', '2 aan boord'],
+};
+
 export class Moonshot {
   private ctx: Ctx;
   private dpr = 1;
@@ -1613,11 +1639,19 @@ export class Moonshot {
   }
 
   /** The one number that matters about a part, on its shelf label. */
+  /**
+   * The line under a part in the shelf: the number that matters for that kind of part.
+   *
+   * For a tank that is its fuel and for an engine its push. For everything else it used to be the
+   * empty mass, which told a child what it costs and never what it is for - so the ones with a job
+   * say the job instead, and the mass moves along beside it.
+   */
   private tagFor(p: Part): string {
     if (p.fuel > 0 && p.burn > 0) return `${Math.round(p.burn * p.exhaust)} · ${p.fuel}t`;
     if (p.kind === 'tank') return `${p.fuel} t`;
     if (p.kind === 'engine') return `${Math.round(p.burn * p.exhaust)}`;
-    return `${p.dry} t`;
+    const job = JOB_TAGS[p.id];
+    return job ? `${T(job[0], job[1])} · ${p.dry}t` : `${p.dry} t`;
   }
 
   private drawBottom(b: Bands): void {

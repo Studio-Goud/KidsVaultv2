@@ -119,6 +119,17 @@ fastest moment nor the highest, and is why it is worth naming - and every separa
 a flash, a ring of smoke and a scatter of sparks rather than happening silently. When the engines
 stop the window keeps climbing with the number, so the coast is a view rather than a wait.
 
+Everything on the shelf has a job, and the shelf says what it is. The jobs chain, the way they do
+on a real rocket: a camera takes a picture, a battery or a solar panel powers it, an aerial sends
+it home, and if one of the three is missing nothing comes back. A parachute brings the payload
+down and says how many tonnes it can hold; landing legs let it stand up when it gets there; a flag
+has to have something to stand on. Struts and girders damp the wobble, an air brake really brakes.
+The cargo bay is a hold with doors: tap it on the rocket and two things go inside - a rover, a
+satellite, a camera, a flag - where they are carried but the air never touches them, which is what
+a fairing is for and why the empty weight is worth paying. The build screen lists what the rocket
+can do before it goes, and the card at the end lists what it actually managed, line by line,
+including the ones it did not: "no aerial, so no picture came home".
+
 Your best height is kept, and the build screen says it under the destination chip along with the
 next place along the ladder. Opening the list shows a flag planted on every place you have already
 reached and a count at the top - six of fifteen - which turns a menu into a collection.
