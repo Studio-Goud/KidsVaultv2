@@ -83,6 +83,8 @@ export class AnimalBook {
 
   private view: View = 'loading';
   private group: GroupId | null = null;
+  /** a continent the book has been opened at, from a link like `animals.html#af` */
+  private place: string | null = null;
   private list: Animal[] = [];
   private at = 0;
   private query = '';
@@ -142,6 +144,7 @@ export class AnimalBook {
       this.loadState = 'ready';
       this.view = 'shelves';
       this.enter = 0;
+      this.openHash();
     } catch (e) {
       this.loadState = 'failed';
       this.loadMsg = String((e as Error).message ?? e);
@@ -201,7 +204,7 @@ export class AnimalBook {
       this.scroll = this.gridScroll;
       return;
     }
-    if (this.view === 'grid' || this.view === 'search') { this.query = ''; this.go('shelves'); }
+    if (this.view === 'grid' || this.view === 'search') { this.query = ''; this.place = null; this.go('shelves'); }
   }
 
   // ---------------------------------------------------------------- moving about
@@ -213,7 +216,26 @@ export class AnimalBook {
     this.enter = 0;
   }
 
+  /**
+   * A link that names a part of the world: `animals.html#af` opens the book on Africa.
+   *
+   * Wereldatlas offers "welke dieren wonen hier?" on a continent and on a country, and this is
+   * where that lands. Anything that is not one of the seven continent codes is ignored, so the
+   * book opens on its shelves exactly as it always has.
+   */
+  private openHash(): void {
+    const code = (location.hash || '').replace('#', '').toLowerCase();
+    if (!code || !CONTINENT_NL[code]) return;
+    this.place = code;
+    this.group = null;
+    this.list = this.all.filter(a => a.w.includes(code));
+    this.query = '';
+    this.gridScroll = 0;
+    this.go('grid');
+  }
+
   private openGroup(id: GroupId): void {
+    this.place = null;
     this.group = id;
     this.list = shelf(this.all, id);
     this.query = '';
@@ -239,6 +261,7 @@ export class AnimalBook {
     const fresh = this.all.filter(a => !this.seen.has(a.i));
     const from = fresh.length ? fresh : this.all;
     const pick = from[Math.floor(Math.random() * from.length)];
+    this.place = null;
     this.group = pick.g;
     this.list = shelf(this.all, pick.g);
     this.query = '';
@@ -648,7 +671,8 @@ export class AnimalBook {
     const u = this.u();
     const pad = 12 * u;
     const g = this.group ? groupById(this.group) : null;
-    const title = g ? (NL() ? g.nl : g.en) : T('All animals', 'Alle dieren');
+    const here = this.place ? (NL() ? CONTINENT_NL : CONTINENT_EN)[this.place] : null;
+    const title = here ?? (g ? (NL() ? g.nl : g.en) : T('All animals', 'Alle dieren'));
     const seenHere = this.list.reduce((k, a) => k + (this.seen.has(a.i) ? 1 : 0), 0);
     const top = this.header(title, T(
       `${seenHere} of ${this.list.length} looked at`,

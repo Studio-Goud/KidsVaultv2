@@ -110,9 +110,10 @@ export function chimeBar(ctx: Ctx, x: number, y: number, w: number, h: number, l
   ctx.save();
   if (look.dim) ctx.globalAlpha = 0.34;
 
-  // the hollow under the bar
+  // the hollow under the bar. It stops just short of the bar's own foot, so a row of bars slung
+  // in a frame never pokes out through the bottom rail of it.
   ctx.fillStyle = 'rgba(28, 18, 10, 0.4)';
-  roundRectPath(ctx, x + w * 0.1, y + h * 0.06, w * 0.8, h, r);
+  roundRectPath(ctx, x + w * 0.1, y + h * 0.04, w * 0.8, h * 0.95, r);
   ctx.fill();
 
   const top = y + down;

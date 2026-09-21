@@ -61,6 +61,16 @@ const LAND: Record<string, Ring[]> = {
 
 export const CONTINENTS = Object.keys(LAND);
 
+/**
+ * The same outlines, for anything else that needs a world map.
+ *
+ * Wereldatlas puts the continents on a board and has children drag them into place, and the last
+ * thing Bramblewood needs is two different Africas in it. Nothing above changes: this hands out
+ * the rings the animal book has always drawn, keyed by the same continent codes.
+ */
+export type LonLat = readonly [number, number];
+export const CONTINENT_RINGS: Readonly<Record<string, ReadonlyArray<ReadonlyArray<LonLat>>>> = LAND;
+
 const path = (ctx: Ctx, ring: Ring, x: number, y: number, w: number, h: number): void => {
   ctx.beginPath();
   ring.forEach(([lon, lat], i) => {

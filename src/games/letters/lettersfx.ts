@@ -1,0 +1,68 @@
+/**
+ * The sounds of the letter wood, and none of them are words.
+ *
+ * The voice says the letters; these say what is happening to them. A wooden knock when a tile
+ * lands in its slot, a small bounce when one does not fit, a rising chime when a word is finished
+ * and a fuller one when a level is. All synthesised on the shared WebAudio context, like every
+ * other game here, so there is nothing to download and nothing to wait for.
+ */
+
+import { audioContext } from '../../util/audio';
+import { save } from '../../util/storage';
+
+const on = (): boolean => save.sound !== false;
+
+function tone(freq: number, dur: number, gain: number, type: OscillatorType = 'sine', to?: number, when = 0): void {
+  const ctx = audioContext();
+  if (!ctx || !on()) return;
+  const t = ctx.currentTime + when;
+  const o = ctx.createOscillator();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t);
+  if (to) o.frequency.exponentialRampToValueAtTime(Math.max(20, to), t + dur);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(gain, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+
+/** A knock: a band of noise that dies away at once, which is what wood on wood sounds like. */
+function knock(freq: number, gain: number, dur = 0.05): void {
+  const ctx = audioContext();
+  if (!ctx || !on()) return;
+  const t = ctx.currentTime;
+  const n = Math.floor(ctx.sampleRate * dur);
+  const buf = ctx.createBuffer(1, n, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.2);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const f = ctx.createBiquadFilter();
+  f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 2.2;
+  const g = ctx.createGain();
+  g.gain.value = gain;
+  src.connect(f); f.connect(g); g.connect(ctx.destination);
+  src.start(t); src.stop(t + dur + 0.02);
+}
+
+export const lettersfx = {
+  /** a tile has been picked up off the rack */
+  lift(): void { tone(520, 0.07, 0.035, 'sine', 700); },
+  /** a tile has landed in its slot */
+  land(): void { knock(900, 0.09); tone(660, 0.08, 0.03, 'triangle'); },
+  /** a tile that did not fit, bouncing back to the rack */
+  bounce(): void { tone(300, 0.14, 0.05, 'triangle', 220); knock(480, 0.05, 0.07); },
+  /** a plain press on a button */
+  tap(): void { tone(700, 0.06, 0.04, 'sine'); },
+  /** the word is complete: three notes up, a little higher each time you get one right */
+  word(streak: number): void {
+    const base = 523 * Math.pow(1.04, Math.min(8, streak));
+    [base, base * 1.26, base * 1.5].forEach((f, i) => tone(f, 0.3, 0.05, 'triangle', undefined, i * 0.08));
+  },
+  /** the cut in the chopping level */
+  chop(): void { knock(1500, 0.08, 0.04); tone(880, 0.05, 0.025, 'square'); },
+  /** the whole level is done */
+  complete(): void { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.55, 0.045, 'triangle', undefined, i * 0.12)); },
+};

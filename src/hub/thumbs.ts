@@ -1034,7 +1034,10 @@ export function drawLettersThumb(c: HTMLCanvasElement): void {
   const units = ['m', 'aa', 'n'];
   const widths = units.map(u => th * (u.length === 1 ? 0.8 : 1.06));
   const gap = w * 0.018;
-  let x = w * 0.52;
+  // the three tiles are hung off the right edge rather than a fixed point, so `n` cannot walk off
+  // the end of a narrow card
+  const wide = widths.reduce((a, b) => a + b, 0) + gap * (units.length - 1);
+  let x = Math.max(w * 0.46, w - wide - w * 0.04);
   units.forEach((u, i) => {
     const tw = widths[i];
     ctx.fillStyle = u === 'aa' ? '#d69a3e' : '#7fa8c0';
