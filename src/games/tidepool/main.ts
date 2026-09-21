@@ -1,6 +1,7 @@
 import './../../style.css';
-import { addHomeButton } from '../../hub/homebtn';
+import { addBackButton, addHomeButton } from '../../hub/homebtn';
 import { Tidepool } from './game';
 
-new Tidepool(document.getElementById('pool') as HTMLCanvasElement);
+const game = new Tidepool(document.getElementById('pool') as HTMLCanvasElement);
 addHomeButton();
+addBackButton({ back: () => game.back(), canBack: () => game.canBack() });

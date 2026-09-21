@@ -106,6 +106,15 @@ export class MarketDay {
 
   destroy(): void { cancelAnimationFrame(this.raf); this.square.stop(); }
 
+  /**
+   * One step back, for the button every game shares.
+   *
+   * What "back" means is the game's business; that there is a back at all, in the same corner and
+   * the same shape everywhere, is not.
+   */
+  canBack(): boolean { return this.phase !== 'levels'; }
+  back(): void { this.phase = 'levels'; this.square.stop(); }
+
   debugState(): Record<string, unknown> {
     return {
       phase: this.phase, level: this.level.id, index: this.index, order: this.order, baskets: this.baskets, active: this.active,

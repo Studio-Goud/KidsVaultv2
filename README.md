@@ -9,6 +9,11 @@ English is the first language; Dutch is included.
 `index.html` is Bramblewood itself: the page that holds every game and says in a line what each
 one practises. Each game has its own page beside it.
 
+Every game carries the same two round buttons in the same corner, with no words in them: a house
+that goes back to Bramblewood, and, beside it, a chevron that goes back exactly one screen - out
+of a level to the level list, out of a flight to the workshop, out of the museum to the dig. The
+chevron hides itself when there is nothing to go back to.
+
 ## The games
 
 ### Cloudhopper (`cloudhopper.html`)

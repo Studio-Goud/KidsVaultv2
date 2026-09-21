@@ -206,6 +206,15 @@ export class Moonshot {
     requestAnimationFrame(loop);
   }
 
+  /**
+   * One step back, for the button every game shares.
+   *
+   * What "back" means is the game's business; that there is a back at all, in the same corner and
+   * the same shape everywhere, is not.
+   */
+  canBack(): boolean { return this.phase !== 'build'; }
+  back(): void { this.picking = false; this.tuning = -1; engineSound.stop(); this.ps.clear(); this.phase = 'build'; this.phaseT = 0; }
+
   debugState(): Record<string, unknown> {
     const sh = shapeOf(this.design);
     return {

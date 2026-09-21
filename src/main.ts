@@ -1,7 +1,7 @@
 import './style.css';
 
 import { toggleWeatherDetail } from './render/hud';
-import { addHomeButton } from './hub/homebtn';
+import { addBackButton, addHomeButton } from './hub/homebtn';
 import { Input } from './game/input';
 import { buildMission, coinsForRun, missionId, nextMission, starsForRun, WORLDS } from './game/progress';
 import { realLevel, realPortById, REAL_PORTS } from './game/realports';
@@ -313,5 +313,8 @@ document.addEventListener('pointerdown', () => { unlockAudio(); ambience.setMode
 
 world = makeDemoWorld();
 addHomeButton();
+// the same one-step-back button the other games have; on a menu screen the topbar arrow is the
+// way back, so it only shows itself during a shift, where it holds the aircraft and opens the pause
+addBackButton({ back: () => pause(), canBack: () => mode === 'playing' });
 ui.title();
 requestAnimationFrame(frame);

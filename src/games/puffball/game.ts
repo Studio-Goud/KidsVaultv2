@@ -163,6 +163,15 @@ export class Puffball {
 
   destroy(): void { cancelAnimationFrame(this.raf); }
 
+  /**
+   * One step back, for the button every game shares.
+   *
+   * What "back" means is the game's business; that there is a back at all, in the same corner and
+   * the same shape everywhere, is not.
+   */
+  canBack(): boolean { return this.phase !== 'levels'; }
+  back(): void { this.phase = 'levels'; this.cardPop = 0; }
+
   debugState(): Record<string, unknown> {
     return {
       phase: this.phase, level: this.level.id, reach: this.reach, puffs: this.puffs.length,

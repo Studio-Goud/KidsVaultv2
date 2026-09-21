@@ -378,4 +378,6 @@ html.page canvas { touch-action: auto; }
   transition: transform 0.12s ease;
 }
 .homebtn:active { transform: scale(0.94); }
+/* one step back sits beside the way home, same size, same corner */
+.backbtn { right: calc(var(--sar) + 64px); padding: 0; font-family: inherit; }
 .homebtn svg { display: block; width: 24px; height: 24px; }

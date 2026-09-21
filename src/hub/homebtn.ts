@@ -19,3 +19,29 @@ export function addHomeButton(): void {
     '<path d="M9.8 19.2v-5h4.4v5"/></svg>';
   document.body.appendChild(a);
 }
+
+/**
+ * One step back, and it is the same button in every game.
+ *
+ * Every game had its own way of getting out of a level, or none at all: a word drawn on the canvas,
+ * a corner you had to know about, or nothing, so the only way back was to leave the game entirely.
+ * This is the same round button as the way home, beside it, in every game, and it goes back exactly
+ * one screen. It hides itself when there is nothing to go back to.
+ */
+export function addBackButton(opts: { back: () => void; canBack: () => boolean }): void {
+  const nl = (navigator.language || 'en').toLowerCase().startsWith('nl');
+  const b = document.createElement('button');
+  b.className = 'homebtn backbtn';
+  b.type = 'button';
+  b.setAttribute('aria-label', nl ? 'Terug' : 'Back');
+  b.title = nl ? 'Terug' : 'Back';
+  b.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M15 5 8 12l7 7"/></svg>';
+  b.addEventListener('click', e => { e.preventDefault(); opts.back(); });
+  document.body.appendChild(b);
+  const sync = (): void => { b.style.display = opts.canBack() ? 'grid' : 'none'; };
+  sync();
+  setInterval(sync, 200);
+}

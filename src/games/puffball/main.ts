@@ -1,6 +1,7 @@
 import '../../style.css';
-import { addHomeButton } from '../../hub/homebtn';
+import { addBackButton, addHomeButton } from '../../hub/homebtn';
 import { Puffball } from './game';
 
 addHomeButton();
-new Puffball(document.getElementById('wood') as HTMLCanvasElement);
+const game = new Puffball(document.getElementById('wood') as HTMLCanvasElement);
+addBackButton({ back: () => game.back(), canBack: () => game.canBack() });

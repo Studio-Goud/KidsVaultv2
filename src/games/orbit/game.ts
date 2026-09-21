@@ -105,6 +105,15 @@ export class Orbit {
 
   missionState(): Record<string, unknown> { return this.missions.debugState(); }
 
+  /**
+   * One step back, for the button every game shares.
+   *
+   * What "back" means is the game's business; that there is a back at all, in the same corner and
+   * the same shape everywhere, is not.
+   */
+  canBack(): boolean { return this.openMoon !== null; }
+  back(): void { this.openMoon = null; }
+
   debugState(): { phase: Phase; round: number; placed: number; next: string | null; choices: Array<{ id: string; x: number; y: number; placed: boolean }> } {
     return {
       phase: this.phase, round: this.round, placed: this.placedCount,

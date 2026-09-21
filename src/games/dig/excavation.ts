@@ -110,6 +110,15 @@ export class DinoDig {
 
   destroy(): void { cancelAnimationFrame(this.raf); }
 
+  /**
+   * One step back, for the button every game shares.
+   *
+   * What "back" means is the game's business; that there is a back at all, in the same corner and
+   * the same shape everywhere, is not.
+   */
+  canBack(): boolean { return this.phase === 'museum'; }
+  back(): void { this.phase = 'dig'; this.phaseT = 0; }
+
   debugState(): Record<string, unknown> {
     const p = this.site ? progress(this.site) : { exposed: 0, chipped: 0 };
     return {

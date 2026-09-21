@@ -1,6 +1,7 @@
 import '../../style.css';
-import { addHomeButton } from '../../hub/homebtn';
+import { addBackButton, addHomeButton } from '../../hub/homebtn';
 import { Moonshot } from './game';
 
 addHomeButton();
-new Moonshot(document.getElementById('pad') as HTMLCanvasElement);
+const game = new Moonshot(document.getElementById('pad') as HTMLCanvasElement);
+addBackButton({ back: () => game.back(), canBack: () => game.canBack() });

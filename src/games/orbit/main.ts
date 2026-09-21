@@ -1,6 +1,7 @@
 import './../../style.css';
-import { addHomeButton } from '../../hub/homebtn';
+import { addBackButton, addHomeButton } from '../../hub/homebtn';
 import { Orbit } from './game';
 
-new Orbit(document.getElementById('space') as HTMLCanvasElement);
+const game = new Orbit(document.getElementById('space') as HTMLCanvasElement);
 addHomeButton();
+addBackButton({ back: () => game.back(), canBack: () => game.canBack() });

@@ -1,6 +1,7 @@
 import './../../style.css';
-import { addHomeButton } from '../../hub/homebtn';
+import { addBackButton, addHomeButton } from '../../hub/homebtn';
 import { Millstream } from './game';
 
-new Millstream(document.getElementById('valley') as HTMLCanvasElement);
+const game = new Millstream(document.getElementById('valley') as HTMLCanvasElement);
 addHomeButton();
+addBackButton({ back: () => game.back(), canBack: () => game.canBack() });

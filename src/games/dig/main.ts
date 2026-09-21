@@ -1,6 +1,7 @@
 import './../../style.css';
-import { addHomeButton } from '../../hub/homebtn';
+import { addBackButton, addHomeButton } from '../../hub/homebtn';
 import { DinoDig } from './excavation';
 
-new DinoDig(document.getElementById('dig') as HTMLCanvasElement);
+const game = new DinoDig(document.getElementById('dig') as HTMLCanvasElement);
 addHomeButton();
+addBackButton({ back: () => game.back(), canBack: () => game.canBack() });

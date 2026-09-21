@@ -48,6 +48,10 @@ someone actually runs them.
 | **Tidepool** (`tidepool.html`) | Open the game, pick tide 1. Sort three or four creatures by the shown rule, then let the rule change once and sort one more correctly. | `window.__tide.debugState()`: `phase` is `play`, `rule` changes value partway through the level, `correct` increments on right sorts, `wrong`/`missed` should not climb on the ones you got right, and `resolved` tracks total handled. |
 | **Market Day** (`market.html`) | Open the game, pick market day 1. Fill a customer's basket to match their pictured/numeral order and serve them; repeat for a second customer. | `window.__market.debugState()`: `phase` is `play`, `served` increments per correct order, `baskets` reflects what's currently in the stall, `patience` counts down for the active customer and resets/advances on serve, `wrong` should not climb on correct fills. |
 
+**Every game, every time:** the top right corner must show the same round house button, and, once you are inside a level, the same
+round chevron beside it. No words in either. The chevron must be absent on a level list and present during play, and one tap must
+come back out of the level without leaving the game.
+
 For every game with a `hits`-bearing `debugState()` (mill, tidepool, market, dig, puffball, and
 Orbit's mission screen), `buttons` gives the on-screen centre of every tappable control — useful for
 confirming a button that looks fine is actually where the game thinks it is, if a bug report says a

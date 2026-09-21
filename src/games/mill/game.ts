@@ -133,6 +133,15 @@ export class Millstream {
 
   destroy(): void { cancelAnimationFrame(this.raf); this.stream.stop(); }
 
+  /**
+   * One step back, for the button every game shares.
+   *
+   * What "back" means is the game's business; that there is a back at all, in the same corner and
+   * the same shape everywhere, is not.
+   */
+  canBack(): boolean { return this.phase !== 'levels'; }
+  back(): void { this.phase = 'levels'; }
+
   debugState(): Record<string, unknown> {
     return {
       phase: this.phase, level: this.level.id, prep: Math.round(this.prep), spade: Math.round(this.spade), springLeft: Math.round(this.springLeft),

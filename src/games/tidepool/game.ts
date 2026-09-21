@@ -111,6 +111,15 @@ export class Tidepool {
 
   destroy(): void { cancelAnimationFrame(this.raf); this.sea.stop(); }
 
+  /**
+   * One step back, for the button every game shares.
+   *
+   * What "back" means is the game's business; that there is a back at all, in the same corner and
+   * the same shape everywhere, is not.
+   */
+  canBack(): boolean { return this.phase !== 'levels'; }
+  back(): void { this.phase = 'levels'; this.sea.stop(); }
+
   debugState(): Record<string, unknown> {
     return {
       phase: this.phase, level: this.level.id, rule: this.rule, spawned: this.spawned, resolved: this.resolved,
