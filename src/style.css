@@ -369,11 +369,13 @@ html.page canvas { touch-action: auto; }
 @media (min-width: 760px) { .promise { max-width: 880px; } }
 
 /* back to the world, from inside a game */
+/* the same round house button in the same corner of every game, no words to read */
 .homebtn {
   position: fixed; right: calc(var(--sar) + 10px); top: calc(var(--sat) + 10px); z-index: 30;
-  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px 8px 10px;
-  border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
-  font-family: inherit; font-size: 12.5px; font-weight: 800;
-  background: rgba(255,255,255,0.82); color: #14324f; box-shadow: 0 6px 16px rgba(10,30,60,0.22);
+  display: grid; place-items: center; width: 46px; height: 46px;
+  border-radius: 50%; border: 0; cursor: pointer; text-decoration: none;
+  background: rgba(255,255,255,0.9); color: #14324f; box-shadow: 0 6px 16px rgba(10,30,60,0.22);
+  transition: transform 0.12s ease;
 }
-.homebtn svg { display: block; }
+.homebtn:active { transform: scale(0.94); }
+.homebtn svg { display: block; width: 24px; height: 24px; }

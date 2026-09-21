@@ -111,7 +111,7 @@ export class UI {
         <div class="stack" style="margin-top:12px">
           <button class="btn" data-a="play">${t('journey')}</button>
           <div class="row" style="margin-top:0"><button class="btn secondary" data-a="fleet">${t('fleet')}</button><button class="btn secondary" data-a="settings">${t('settings')}</button></div>
-          <div class="row" style="margin-top:0"><button class="btn quiet" data-a="parents">${t('parents')}</button><a class="btn quiet" href="./">Bramblewood</a></div>
+          <div class="row" style="margin-top:0"><button class="btn quiet" data-a="parents">${t('parents')}</button></div>
         </div>
       </div>`;
     s.querySelector('[data-a=play]')!.addEventListener('click', () => this.actions.toWorlds());
@@ -359,7 +359,6 @@ export class UI {
         <button class="btn mint" data-a="resume">${t('resume')}</button>
         <button class="btn secondary" data-a="retry">${t('retry')}</button>
         <button class="btn secondary" data-a="levels">${t('missions')}</button>
-        <a class="btn quiet" href="./">Bramblewood</a>
       </div></div>`;
     s.querySelector('[data-a=resume]')!.addEventListener('click', () => this.actions.resume());
     s.querySelector('[data-a=retry]')!.addEventListener('click', () => this.actions.retry());

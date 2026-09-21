@@ -19,7 +19,9 @@ export interface SaveData {
   /** Millstream's village: what you have earned, what you have built, what each valley has paid */
   mill: { grain: number; built: string[]; paid: Record<string, number> };
   /** Moonshot: how far the best flight got, on the ladder and in kilometres, and the rocket on the pad */
-  moon: { best: number; target: number; topKm: number; design: Array<{ id: string; col: number; row: number }> };
+  moon: { best: number; target: number; topKm: number; design: Array<{ id: string; col: number; row: number; delay?: number; hold?: string[] }> };
+  /** Klokkijken: the 5, 10, 15 ring on the dial is switched on, for a child still counting in fives */
+  clock: { minuteNumbers: boolean };
 }
 
 const KEY = 'cloudhopper.save.v1';
@@ -30,6 +32,7 @@ const defaults = (): SaveData => ({
   coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false, buildHintSeen: false,
   mill: { grain: 0, built: [], paid: {} },
   moon: { best: 0, target: 7, topKm: 0, design: [] },
+  clock: { minuteNumbers: false },
 });
 
 export function loadSave(): SaveData {
@@ -40,7 +43,12 @@ export function loadSave(): SaveData {
     const got = JSON.parse(raw) as Partial<SaveData>;
     // a save written before the village existed has no mill slice, and a half-written one may be
     // missing a field inside it, so it is filled in rather than trusted whole
-    return { ...d, ...got, mill: { ...d.mill, ...(got.mill ?? {}) }, moon: { ...d.moon, ...(got.moon ?? {}) } };
+    return {
+      ...d, ...got,
+      mill: { ...d.mill, ...(got.mill ?? {}) },
+      moon: { ...d.moon, ...(got.moon ?? {}) },
+      clock: { ...d.clock, ...(got.clock ?? {}) },
+    };
   } catch { return defaults(); }
 }
 

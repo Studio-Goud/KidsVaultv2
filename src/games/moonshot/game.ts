@@ -26,10 +26,10 @@ import {
 import {
   airAt, buildProblem, canLift, canPlace, clash, cleanDesign, clampDelay, coastHeight, collapse, COLS,
   deadWeight, DELAYS, densityAt,
-  gravityAt, GROUPS, isFlyable, kmLabel, LADDER, MAX_PARTS, nextRung, padThrust,
+  gravityAt, GROUPS, holdFree, isFlyable, kitOf, kmLabel, LADDER, MAX_PARTS, missionOf, nextRung, padThrust,
   padWeight, partById, partsIn, ROWS, rungFor, shapeHint, shapeOf, slipperiness, stagesByColumn,
-  STARTER, stillAttached, topRow, totalMass, totalThrust,
-  type Design, type Group, type Milestone, type Part, type Placed, type Stage,
+  STARTER, STOWABLE, stillAttached, stowedMass, topRow, totalMass, totalThrust,
+  type Design, type Group, type Milestone, type Mission, type Part, type Placed, type Stage,
 } from './design';
 import {
   designBounds, paintBalloon, paintBirds, paintCloud, paintDesign, paintEarthBelow, paintFlame,
@@ -144,6 +144,7 @@ export class Moonshot {
   private earnedRung = 0;
   private fresh = false;
 
+  private mission: Mission | null = null;
   private flash = 0;
   private maxQ = 0;
   private qCalled = false;
@@ -184,7 +185,7 @@ export class Moonshot {
     return {
       phase: this.phase,
       parts: this.design.length,
-      design: this.design.map(p => `${p.id}@${p.col},${p.row}${p.delay ? '+' + p.delay + 's' : ''}`),
+      design: this.design.map(p => `${p.id}@${p.col},${p.row}${p.delay ? '+' + p.delay + 's' : ''}${p.hold?.length ? '[' + p.hold.join('|') + ']' : ''}`),
       tuning: this.tuning,
       mass: Math.round(totalMass(this.design) * 10) / 10,
       thrust: Math.round(padThrust(this.design)),
@@ -524,6 +525,7 @@ export class Moonshot {
     this.countdown = 3.2; this.lastTick = 9;
     this.result = 0; this.fresh = false;
     this.flash = 0; this.maxQ = 0; this.qCalled = false; this.recordCalled = false;
+    this.mission = null;
     this.phase = 'count'; this.phaseT = 0;
     this.drag = null;
     this.ps.clear();
@@ -804,7 +806,9 @@ export class Moonshot {
     // wind and a rocket's own wobble push it off; fins and thick air damp it
     this.wind += (Math.sin(this.t * 0.7) * 0.5 + Math.sin(this.t * 1.9 + 1.3) * 0.5) * dt * 0.35 * air;
     this.wind *= 1 - dt * 0.6;
-    const damp = air * (fins ? 2.4 : 0.9);
+    // fins grip the air; struts and girders stop the thing shaking itself about
+    const kit = kitOf(this.design, this.dropped);
+    const damp = air * (fins ? 2.4 : 0.9) * (1 + Math.min(kit.struts, 4) * 0.12);
     this.wobble += (this.wind - this.wobble) * dt * 2;
     this.tilt += this.wobble * dt;
     this.tilt -= this.tilt * damp * dt * 0.55;
@@ -832,7 +836,8 @@ export class Moonshot {
     const speed = Math.hypot(this.vUp, this.vSide);
     if (speed > 1) {
       const shape = shapeOf(this.design, this.dropped);
-      const drag = 0.5 * densityAt(this.alt) * shape.drag * speed * speed / m;
+      // an air brake is a plate held out into the wind: it is meant to cost you, and it does
+      const drag = 0.5 * densityAt(this.alt) * shape.drag * (1 + kit.brake * 0.35) * speed * speed / m;
       a -= drag * (this.vUp / speed);
       ax -= drag * (this.vSide / speed);
     }
@@ -893,6 +898,11 @@ export class Moonshot {
     this.earnedRung = r.index;
     // the rung is the name for the flight; the height is the pencil mark on the doorframe, and a
     // flight can beat the mark without reaching the next name
+    // what the rocket was carrying, and what it managed with it
+    const payload = this.design
+      .filter((_, i) => !this.dropped.has(i))
+      .reduce((m, p) => m + partById(p.id).dry + stowedMass(p), 0);
+    this.mission = missionOf(kitOf(this.design, this.dropped), r.index, payload);
     const km = Math.max(this.bestKm(), isFinite(this.topKm) ? this.topKm : 0);
     if (r.index > this.best() || km > this.bestKm()) {
       save.moon = {
@@ -966,6 +976,29 @@ export class Moonshot {
       }
       return;
     }
+    if (hit.startsWith('stow:')) {
+      const p = this.design[this.tuning];
+      const id = hit.slice(5);
+      if (p && partById(p.id).id === 'cargo') {
+        const hold = p.hold ?? [];
+        const slots = kitOf([{ ...p, hold: [] }]).holdSlots;
+        if (hold.includes(id)) {
+          this.push();
+          p.hold = hold.filter(h => h !== id);
+          if (!p.hold.length) delete p.hold;
+          rocket.clunk();
+        } else if (hold.length < slots) {
+          this.push();
+          p.hold = [...hold, id];
+          rocket.clunk();
+        } else {
+          rocket.blocked();
+          this.say(T('The hold is full. Take something out first.', 'Het ruim is vol. Haal er eerst iets uit.'));
+        }
+        this.remember();
+      }
+      return;
+    }
     if (hit === 'launch') { this.picking = false; this.tuning = -1; this.launch(); return; }
     if (hit === 'undo') { this.undo(); return; }
     if (hit === 'clear') {
@@ -1026,7 +1059,7 @@ export class Moonshot {
     if (d.moved < 9) {
       if (d.from < 0) { this.autoPlace(d.id); return; }
       const part = partById(d.id);
-      if (part.kind === 'engine' || part.kind === 'solid') {
+      if (part.kind === 'engine' || part.kind === 'solid' || part.id === 'cargo') {
         this.tuning = this.tuning === d.from ? -1 : d.from;
         rocket.tap();
         return;
@@ -1102,7 +1135,9 @@ export class Moonshot {
     this.drawGhost();
     if (this.picking) { this.hits = []; this.drawPicker(); }
 
-    if (this.noteT > 0) {
+    // a panel owns the bottom of the grid while it is open; a leftover speech bubble on top of it
+    // hid the very buttons it was explaining
+    if (this.noteT > 0 && this.tuning < 0) {
       ctx.save();
       ctx.globalAlpha = clamp(this.noteT, 0, 1);
       ctx.font = this.font('800', 11.5);
@@ -1158,7 +1193,36 @@ export class Moonshot {
     ctx.font = this.font('800', 10.5);
     ctx.fillText(`${m.speed} m/s`, cx + r + 8 * u, cy + 13 * u, w - (r * 2 + 30 * u));
     this.hits.push({ id: 'target', x, y, w, h });
-    this.drawRecordPill(x, y + h + 5 * u, w);
+    const pillY = this.drawRecordPill(x, y + h + 5 * u, w);
+    this.drawKitPill(x, pillY, w);
+  }
+
+  /**
+   * What this rocket can do besides go up, before it goes up.
+   *
+   * Everything in the shelf has a job now, and a job you cannot see until after the flight is a
+   * job a child will not go looking for. This says it on the pad: a camera and power and an aerial
+   * make a picture, a parachute brings it down, legs make it stand, a flag gets planted.
+   */
+  private drawKitPill(x: number, y: number, w: number): void {
+    const k = kitOf(this.design);
+    const can: string[] = [];
+    if (k.cameras > 0 && k.power > 0 && k.radio > 0) can.push(T('photo', 'foto'));
+    else if (k.cameras > 0) can.push(T('camera (no power)', 'camera (geen stroom)'));
+    if (k.chute > 0) can.push(T('parachute', 'parachute'));
+    if (k.legs > 0) can.push(T('legs', 'poten'));
+    if (k.flag) can.push(T('flag', 'vlag'));
+    if (k.crew > 0) can.push(T(`${k.crew} aboard`, `${k.crew} aan boord`));
+    if (k.science > 0) can.push(T('science', 'onderzoek'));
+    if (k.holdSlots > 0) can.push(`${T('hold', 'ruim')} ${k.stowed.length}/${k.holdSlots}`);
+    if (!can.length) return;
+    const ctx = this.ctx, u = this.u();
+    const h = 22 * u;
+    glassPanel(ctx, x, y, w, h, h / 2, 0.72);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#12233b';
+    ctx.font = this.font('900', 9.5);
+    ctx.fillText(can.join(' · '), x + 11 * u, y + h * 0.63, w - 22 * u);
   }
 
   /**
@@ -1169,9 +1233,9 @@ export class Moonshot {
    * rocket has even left the ground, and the next place along the ladder is named with the speed
    * it is still short of.
    */
-  private drawRecordPill(x: number, y: number, w: number): void {
+  private drawRecordPill(x: number, y: number, w: number): number {
     const km = this.bestKm();
-    if (km <= 0) return;
+    if (km <= 0) return y;
     const ctx = this.ctx, u = this.u();
     const h = 22 * u;
     glassPanel(ctx, x, y, w, h, h / 2, 0.72);
@@ -1186,6 +1250,7 @@ export class Moonshot {
         `record ${kmLabel(km, true)} · hierna: ${next.nameNl}`);
     ctx.fillText(line, x + 11 * u, y + h * 0.63, w - 22 * u);
     ctx.textAlign = 'left';
+    return y + h + 5 * u;
   }
 
   /** The whole list of places, with the photographs, to pick one from. */
@@ -1329,6 +1394,19 @@ export class Moonshot {
       ctx.textAlign = 'center';
       ctx.fillText(`${d}s`, bx + 13 * u, by + 3.5 * u, 24 * u);
       ctx.textAlign = 'left';
+    }
+
+    // a loaded hold shows what is in it, so the rocket looks like what it is carrying
+    for (const box of boxes) {
+      const hold = this.design[box.i].hold ?? [];
+      if (!hold.length) continue;
+      const bx = box.x + box.w * 0.5, by = box.y + box.h - 7 * u;
+      for (let i = 0; i < hold.length; i++) {
+        ctx.fillStyle = '#ffd86b';
+        ctx.beginPath();
+        ctx.arc(bx + (i - (hold.length - 1) / 2) * 8 * u, by, 3 * u, 0, TAU);
+        ctx.fill();
+      }
     }
 
     // the one being tuned is ringed, so it is clear which engine the panel belongs to
@@ -1580,6 +1658,7 @@ export class Moonshot {
   private drawDelayPanel(b: Bands): void {
     const p = this.design[this.tuning];
     if (!p) return;
+    if (p.id === 'cargo') { this.drawHoldPanel(b); return; }
     const ctx = this.ctx, u = this.u();
     const part = partById(p.id);
     const h = 74 * u;
@@ -1612,6 +1691,53 @@ export class Moonshot {
   }
 
   /** The part under the finger, drawn where the finger is rather than where it came from. */
+  /**
+   * The hold, open.
+   *
+   * A cargo bay used to say of itself that it was "mass and nothing else", which was true and is
+   * the sort of thing that makes a child stop trying parts. Tapping one now opens it: two slots,
+   * and a row of things small enough to go in. What is inside is carried but never meets the air,
+   * which is exactly what a real fairing is for and exactly why the empty weight is worth paying.
+   */
+  private drawHoldPanel(b: Bands): void {
+    const p = this.design[this.tuning];
+    if (!p) return;
+    const ctx = this.ctx, u = this.u();
+    const hold = p.hold ?? [];
+    const slots = 2;
+    const h = 96 * u;
+    const w = Math.min(this.w - 20 * u, 420 * u);
+    const x = this.w / 2 - w / 2, y = b.gridBottom - h - 2 * u;
+    glassPanel(ctx, x, y, w, h, 14 * u, 0.95);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#12233b';
+    ctx.font = this.font('900', 12);
+    ctx.fillText(`${nameOf(partById(p.id))}  ${hold.length}/${slots}`, x + 14 * u, y + 19 * u, w - 28 * u);
+    ctx.fillStyle = 'rgba(18,35,59,0.6)';
+    ctx.font = this.font('800', 10.5);
+    ctx.fillText(T('Inside the hold the air never touches it.', 'In het ruim komt de lucht er niet bij.'),
+      x + 14 * u, y + 34 * u, w - 28 * u);
+
+    const list = STOWABLE;
+    const cols = Math.min(list.length, Math.max(4, Math.floor((w - 20 * u) / (46 * u))));
+    const cw = (w - 20 * u) / cols;
+    const ch = 26 * u;
+    ctx.textAlign = 'center';
+    list.forEach((id, i) => {
+      const bx = x + 10 * u + (i % cols) * cw;
+      const by = y + 42 * u + Math.floor(i / cols) * (ch + 3 * u);
+      const on = hold.includes(id);
+      const room = on || hold.length < slots;
+      ctx.fillStyle = on ? '#65d48c' : room ? 'rgba(18,35,59,0.1)' : 'rgba(18,35,59,0.05)';
+      ctx.beginPath(); ctx.roundRect(bx + 2 * u, by, cw - 4 * u, ch, 8 * u); ctx.fill();
+      ctx.fillStyle = on ? '#0b2a1c' : room ? 'rgba(18,35,59,0.75)' : 'rgba(18,35,59,0.3)';
+      ctx.font = this.font('900', 9);
+      ctx.fillText(nameOf(partById(id)), bx + cw / 2, by + ch * 0.64, cw - 8 * u);
+      this.hits.push({ id: `stow:${id}`, x: bx, y: by, w: cw, h: ch });
+    });
+    ctx.textAlign = 'left';
+  }
+
   private drawGhost(): void {
     const d = this.drag;
     if (!d || d.moved < 9) return;
@@ -1998,6 +2124,30 @@ export class Moonshot {
   }
 
   /** The card at the end: where you got to, what it is like there, and whether you aimed there. */
+  /**
+   * The flight log: what each thing on the rocket did, or did not do because something was missing.
+   *
+   * A part that never appears anywhere after the launch is a part that may as well not exist. A
+   * camera with no aerial says so in as many words, which is a rule a child can act on next time.
+   */
+  private missionLines(): Array<{ text: string; good: boolean }> {
+    const m = this.mission;
+    if (!m) return [];
+    const out: Array<{ text: string; good: boolean }> = [];
+    if (m.photo) out.push({ text: T('A picture came home', 'Er kwam een foto thuis'), good: true });
+    else if (m.photoMiss === 'power') out.push({ text: T('The camera had no power', 'De camera had geen stroom'), good: false });
+    else if (m.photoMiss === 'radio') out.push({ text: T('No aerial, so no picture came home', 'Geen antenne, dus geen foto thuis'), good: false });
+    if (m.upright) out.push({ text: T('Down under the parachute, standing up', 'Aan de parachute geland, rechtop'), good: true });
+    else if (m.landed) out.push({ text: T('Down under the parachute, on its side', 'Aan de parachute geland, op zijn kant'), good: true });
+    if (m.flag) out.push({ text: T('You planted the flag', 'Je hebt de vlag geplant'), good: true });
+    for (const id of m.deployed) {
+      out.push({ text: T(`${nameOf(partById(id))} left behind`, `${nameOf(partById(id))} achtergelaten`), good: true });
+    }
+    if (m.crew > 0) out.push({ text: T(`${m.crew} aboard`, `${m.crew} aan boord`), good: true });
+    if (m.science > 0) out.push({ text: T(`${m.science} science`, `${m.science} onderzoek`), good: true });
+    return out.slice(0, 5);
+  }
+
   private drawResult(): void {
     const ctx = this.ctx, u = this.u();
     const r = LADDER[this.earnedRung];
@@ -2011,7 +2161,8 @@ export class Moonshot {
     const fact = NL() ? r.factNl : r.fact;
     ctx.font = this.font('700', 11);
     const factLines = fact ? wrap(ctx, fact, cw - 44 * u) : [];
-    const ch = (photo ? 300 : 250) * u + factLines.length * 15 * u;
+    const log = this.missionLines();
+    const ch = (photo ? 300 : 250) * u + factLines.length * 15 * u + log.length * 15 * u;
     const x = this.w / 2 - cw / 2, y = this.h / 2 - ch / 2;
     ctx.save();
     ctx.translate(this.w / 2, this.h / 2);
@@ -2047,6 +2198,16 @@ export class Moonshot {
       ctx.font = this.font('700', 11);
       factLines.forEach((ln, i) => ctx.fillText(ln, this.w / 2, cy + 16 * u + i * 15 * u, cw - 44 * u));
       cy += factLines.length * 15 * u + 8 * u;
+    }
+
+    // what the rocket did, over and above going up: one line per thing it was carrying
+    if (log.length) {
+      ctx.font = this.font('800', 11);
+      log.forEach((ln, i) => {
+        ctx.fillStyle = ln.good ? '#2f6d46' : 'rgba(18,35,59,0.5)';
+        ctx.fillText(`${ln.good ? '\u2713' : '\u00b7'}  ${ln.text}`, this.w / 2, cy + 14 * u + i * 15 * u, cw - 44 * u);
+      });
+      cy += log.length * 15 * u + 8 * u;
     }
 
     for (let i = 0; i < 5; i++) {

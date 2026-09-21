@@ -253,8 +253,8 @@ export const PARTS: Part[] = [
   P({
     id: 'cargo', kind: 'pod', group: 'top', name: 'Cargo bay', nameNl: 'Laadruim',
     rows: 2, w: 1.2, dry: 1.1, sharp: 0.4,
-    note: 'An empty hold. Honest about it: it is mass and nothing else.',
-    noteNl: 'Een leeg ruim. Eerlijk gezegd: het is massa en verder niets.',
+    note: 'A hold with doors. Tap it on the rocket and put two things inside, out of the air.',
+    noteNl: 'Een ruim met deuren. Tik erop en stop er twee dingen in, uit de wind.',
     art: 'cargo',
   }),
   P({
@@ -843,6 +843,15 @@ export interface Placed {
    * keeps pushing.
    */
   delay?: number;
+  /**
+   * What is riding inside this one, for a cargo bay.
+   *
+   * A hold used to be, in its own words, "mass and nothing else". Now things go in it: a rover, a
+   * satellite, a telescope, a flag. What is inside is carried - its mass counts - but it is inside,
+   * so the air never meets it and it is not part of the shape. That is the whole point of a fairing
+   * in real life, and the reason a hold is worth its empty weight.
+   */
+  hold?: string[];
 }
 
 export type Design = Placed[];
@@ -1062,6 +1071,11 @@ export function stagesByColumn(design: Design): Map<number, Stage[]> {
         stages.push(cur);
         continue;
       }
+      // Equipment is not part of the empty tank it happens to be bolted to. A parachute, landing
+      // legs, a camera, an aerial, a flag: these came down with the spent stage, which is why they
+      // appeared to do nothing - they were in the sea before the flight was over. They ride with
+      // the payload now, the way they really do.
+      if (isGear(design[i].id)) continue;
       if (!cur) { orphans.push(i); continue; }           // below the first engine, or no engine yet
       cur.parts.push(i);
       if (p.kind === 'tank') cur.fuel += p.fuel;
@@ -1175,6 +1189,17 @@ export function stillAttached(design: Design, dropped: ReadonlySet<number>): Set
 }
 
 /** Parts that will never fall away and never burn: a tank with no engine under it, say. */
+/**
+ * Kit rather than structure: it works for the payload, so it stays with the payload.
+ *
+ * Everything in here has a job in `kitOf`, which is the point - a part that only ever rode along
+ * and then fell in the sea was a part with no reason to exist.
+ */
+export const GEAR = new Set([
+  'chute', 'chute-l', 'leg', 'leg-l', 'solar', 'solar-l', 'antenna', 'camera', 'light', 'ladder', 'flag',
+]);
+const isGear = (id: string): boolean => GEAR.has(id);
+
 export function deadWeight(design: Design): number[] {
   const staged = new Set<number>();
   for (const list of stagesByColumn(design).values()) for (const s of list) for (const i of s.parts) staged.add(i);
@@ -1182,14 +1207,19 @@ export function deadWeight(design: Design): number[] {
   design.forEach((p, i) => {
     if (staged.has(i)) return;
     if (partById(p.id).kind === 'pod') return;
+    if (isGear(p.id)) return;   // kit rides with the payload; it is not a tank with no engine
     out.push(i);
   });
   return out;
 }
 
-/** Everything on the pad, fuel and all, in tonnes. */
+/** Everything on the pad, fuel and all, in tonnes - including whatever is stowed in the holds. */
 export const totalMass = (design: Design): number =>
-  design.reduce((m, p) => m + partById(p.id).dry + partById(p.id).fuel, 0);
+  design.reduce((m, p) => m + partById(p.id).dry + partById(p.id).fuel + stowedMass(p), 0);
+
+/** The mass riding inside one part's hold. */
+export const stowedMass = (p: Placed): number =>
+  (p.hold ?? []).reduce((m, id) => m + partById(id).dry + partById(id).fuel, 0);
 
 /** What fires at lift-off: the bottom stage of every column that has one. */
 export function padThrust(design: Design): number {
@@ -1346,6 +1376,157 @@ export const gravityAt = (altM: number): number =>
   G0 * Math.pow(EARTH_R / (EARTH_R + Math.max(0, altM)), 2);
 
 /** Nought for a brick, one for a needle. */
+/**
+ * What a rocket can actually do, beyond going up.
+ *
+ * A part that is only mass is a part a child put on once and never again. Every one of these has
+ * a job now, and the jobs chain: a camera takes a picture, a battery or a solar panel powers it,
+ * an antenna sends it home, and without all three nothing comes back. A parachute brings the
+ * payload down, legs let it stand up when it gets there, and a flag needs something to stand on.
+ * A hold carries things inside it where the air cannot reach them.
+ */
+export interface Kit {
+  /** places to stow things: each cargo bay is worth two */
+  holdSlots: number;
+  /** what is stowed in them */
+  stowed: string[];
+  /** batteries and solar panels: nothing electrical works without one */
+  power: number;
+  /** antennas: what sends the pictures home */
+  radio: number;
+  cameras: number;
+  /** telescopes and probes: what there is to find out */
+  science: number;
+  /** tonnes a parachute can bring down gently */
+  chute: number;
+  legs: number;
+  flag: boolean;
+  /** things meant to be left behind somewhere */
+  payloads: string[];
+  /** people aboard */
+  crew: number;
+  /** air brakes, which really do brake */
+  brake: number;
+  /** struts, which stop the thing shaking itself apart */
+  struts: number;
+  lights: number;
+  ladders: number;
+}
+
+/** Slots, crew and chute capacity per part. The table is the rule. */
+const JOBS: Record<string, Partial<Kit> & { chutePer?: number }> = {
+  cargo: { holdSlots: 2 },
+  solar: { power: 1 }, 'solar-l': { power: 3 },
+  antenna: { radio: 1 },
+  camera: { cameras: 1 },
+  light: { lights: 1 },
+  ladder: { ladders: 1 },
+  flag: { flag: true },
+  leg: { legs: 1 }, 'leg-l': { legs: 2 },
+  chute: { chutePer: 2.5 }, 'chute-l': { chutePer: 9 },
+  airbrake: { brake: 1 },
+  strut: { struts: 1 },
+  truss: { struts: 1 }, 'truss-l': { struts: 2 },
+  probe: { science: 1, power: 1, radio: 1 }, 'probe-l': { science: 2, power: 1, radio: 1 },
+  sat: { science: 1, power: 1, radio: 1 },
+  telescope: { science: 3, cameras: 1, power: 1, radio: 1 },
+  capsule: { crew: 1, power: 1, radio: 1 }, 'capsule-l': { crew: 3, power: 1, radio: 1 },
+  cabin: { crew: 4, power: 1, radio: 1 },
+  station: { crew: 6, power: 2, radio: 1, science: 2 },
+  lander: { legs: 2, power: 1, radio: 1 },
+  rover: { power: 1, cameras: 1 },
+  shuttle: { crew: 5, power: 2, radio: 1, legs: 2 },
+  'shuttle-s': { crew: 2, power: 1, radio: 1, legs: 2 },
+};
+
+/** Things that are meant to be left somewhere rather than brought home. */
+const LEAVE_BEHIND = new Set(['sat', 'telescope', 'rover', 'lander', 'probe', 'probe-l', 'station']);
+
+const EMPTY_KIT = (): Kit => ({
+  holdSlots: 0, stowed: [], power: 0, radio: 0, cameras: 0, science: 0, chute: 0, legs: 0,
+  flag: false, payloads: [], crew: 0, brake: 0, struts: 0, lights: 0, ladders: 0,
+});
+
+/** Add one part's jobs to a kit, whether it is bolted on or riding in a hold. */
+function addJob(k: Kit, id: string): void {
+  const j = JOBS[id];
+  if (!j) return;
+  k.holdSlots += j.holdSlots ?? 0;
+  k.power += j.power ?? 0;
+  k.radio += j.radio ?? 0;
+  k.cameras += j.cameras ?? 0;
+  k.science += j.science ?? 0;
+  k.legs += j.legs ?? 0;
+  k.brake += j.brake ?? 0;
+  k.struts += j.struts ?? 0;
+  k.lights += j.lights ?? 0;
+  k.ladders += j.ladders ?? 0;
+  k.crew += j.crew ?? 0;
+  k.chute += j.chutePer ?? 0;
+  if (j.flag) k.flag = true;
+  if (LEAVE_BEHIND.has(id)) k.payloads.push(id);
+}
+
+export function kitOf(design: Design, dropped?: ReadonlySet<number>): Kit {
+  const k = EMPTY_KIT();
+  design.forEach((p, i) => {
+    if (dropped?.has(i)) return;
+    addJob(k, p.id);
+    for (const id of p.hold ?? []) { k.stowed.push(id); addJob(k, id); }
+  });
+  return k;
+}
+
+/** How many more things this rocket could stow, which is what the hold panel offers. */
+export const holdFree = (design: Design): number => {
+  const k = kitOf(design);
+  return Math.max(0, k.holdSlots - k.stowed.length);
+};
+
+/** Anything a hold will take: something small enough to fit inside one. */
+export const STOWABLE = ['probe', 'probe-l', 'sat', 'telescope', 'rover', 'lander', 'flag', 'camera', 'antenna', 'solar', 'light', 'ladder'];
+
+/** What actually came of a flight, once it is over. */
+export interface Mission {
+  /** a picture came home: something to take it with, power to run it, an aerial to send it */
+  photo: boolean;
+  /** why there is no picture, when there is not one */
+  photoMiss: 'camera' | 'power' | 'radio' | null;
+  /** the payload came down under a parachute, gently enough */
+  landed: boolean;
+  /** and stood up when it got there */
+  upright: boolean;
+  flag: boolean;
+  /** what was left behind somewhere */
+  deployed: string[];
+  crew: number;
+  science: number;
+}
+
+/**
+ * What the rocket managed, given what it was carrying and how far it got.
+ *
+ * `rung` is how far up the ladder the flight reached; `payloadT` is what is left at the top when
+ * everything spent has gone. Nothing here is luck: every line is a part that was or was not on the
+ * rocket, which is what makes it worth putting one on.
+ */
+export function missionOf(kit: Kit, rung: number, payloadT: number): Mission {
+  const photoMiss: Mission['photoMiss'] =
+    kit.cameras <= 0 ? 'camera' : kit.power <= 0 ? 'power' : kit.radio <= 0 ? 'radio' : null;
+  const landed = kit.chute > 0 && payloadT <= kit.chute;
+  return {
+    photo: photoMiss === null && rung >= 1,
+    photoMiss,
+    landed,
+    upright: landed && kit.legs > 0,
+    // a flag has to be planted on something, by someone or something that got there
+    flag: kit.flag && rung >= 1 && (kit.legs > 0 || kit.payloads.includes('rover') || kit.payloads.includes('lander')),
+    deployed: rung >= 5 ? [...new Set(kit.payloads)] : [],
+    crew: kit.crew,
+    science: kit.science * Math.max(1, rung),
+  };
+}
+
 export const slipperiness = (s: Shape): number =>
   Math.max(0, Math.min(1, (4.2 - s.drag) / 3.2));
 
@@ -1579,6 +1760,11 @@ export function cleanDesign(raw: unknown): Design | null {
     const delay = (item as Record<string, unknown>).delay;
     const p: Placed = { id, col: Math.round(col), row: Math.round(row) };
     if (typeof delay === 'number' && isFinite(delay) && delay > 0) p.delay = clampDelay(delay);
+    const hold = (item as Record<string, unknown>).hold;
+    if (Array.isArray(hold)) {
+      const kept = hold.filter(h => typeof h === 'string' && STOWABLE.includes(h)) as string[];
+      if (kept.length) p.hold = kept.slice(0, JOBS[id]?.holdSlots ?? 0);
+    }
     if (!inGrid(p)) return null;
     if (out.some(q => clash(p, q))) return null;
     out.push(p);

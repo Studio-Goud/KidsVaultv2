@@ -1,6 +1,7 @@
 import './style.css';
 
 import { toggleWeatherDetail } from './render/hud';
+import { addHomeButton } from './hub/homebtn';
 import { Input } from './game/input';
 import { buildMission, coinsForRun, missionId, nextMission, starsForRun, WORLDS } from './game/progress';
 import { realLevel, realPortById, REAL_PORTS } from './game/realports';
@@ -311,5 +312,6 @@ document.addEventListener('pointerdown', () => { unlockAudio(); ambience.setMode
 (window as unknown as { __wh: unknown }).__wh = { renderer, getWorld: () => world, getMode: () => mode, step: () => frame(performance.now()), start: (w: number, i: number) => startMission(w, i), startReal: (id: string, st: number) => startRealMission(id, st) };
 
 world = makeDemoWorld();
+addHomeButton();
 ui.title();
 requestAnimationFrame(frame);
