@@ -249,8 +249,11 @@ English and the scientific name at once. Forgetting the space is forgiven too - 
 finds the blauwe vinvis. And there is a button marked "Verras me" that opens an animal nobody
 chose - one you have not seen yet, for as long as there are any left.
 
-The book remembers which animals have been looked at and says so on the way in: *je hebt 37 van de
-3744 dieren bekeken*. That is the only thing it keeps. No score, no streak, nothing to lose by
+The book remembers which animals have been looked at and shows it where you are looking. A card you
+have opened turns green - the card, its edge, its name - with a filled green tick in the corner, so
+a shelf you have worked through reads as green at a glance and the ones you have not seen stand out
+white. The shelf tiles count it too (*2 van de 439 bekeken*, with a bar along the foot), and so
+does the line on the way in: *je hebt 37 van de 3744 dieren bekeken*. That is the only thing it keeps. No score, no streak, nothing to lose by
 staying away, and the count only ever goes up.
 
 None of it is typed by hand. `npm run animals` builds `public/animals/animals.json` out of four

@@ -50,6 +50,16 @@ const otherName = (a: Animal): string => (NL() ? a.e : a.n);
 const INK = '#173a4f';
 const SOFT = '#4c6f85';
 const PAPER = '#f4f0e4';
+/**
+ * The colour of "I have had that one".
+ *
+ * A white card with a small tick in the corner meant a child had to hunt for the tick on every
+ * card. A seen animal now takes a green card with a green edge, so a shelf you have worked through
+ * reads as green at a glance and the ones you have not seen stand out white.
+ */
+const SEEN_CARD = '#dff0dc';
+const SEEN_EDGE = '#7bbf7e';
+const SEEN_TICK = '#3f8f47';
 
 const KEYS = 'abcdefghijklmnopqrstuvwxyz';
 
@@ -614,8 +624,19 @@ export class AnimalBook {
     ctx.fillText(label, w / 2, h - 20 * u);
     ctx.fillStyle = 'rgba(255,255,255,0.82)';
     ctx.font = this.font('800', 11.5);
-    const n = this.all.reduce((k, a) => k + (a.g === id ? 1 : 0), 0);
-    ctx.fillText(T(`${n} animals`, `${n} dieren`), w / 2, h - 7 * u);
+    let n = 0, done = 0;
+    for (const a of this.all) if (a.g === id) { n++; if (this.seen.has(a.i)) done++; }
+    // how far into this shelf you are, not just how big it is
+    ctx.fillText(done > 0 ? T(`${done} of ${n} seen`, `${done} van de ${n} bekeken`) : T(`${n} animals`, `${n} dieren`),
+      w / 2, h - 7 * u);
+    if (done > 0) {
+      // and a bar along the foot of the tile, so a shelf you have worked through shows it
+      const bw = w - 28 * u, bx = 14 * u, by = h - 3.5 * u;
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, 3 * u, 1.5 * u); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath(); ctx.roundRect(bx, by, Math.max(3 * u, bw * (done / n)), 3 * u, 1.5 * u); ctx.fill();
+    }
     ctx.restore();
     this.hits.push({ id: `shelf:${id}`, x, y, w, h });
   }
@@ -671,7 +692,8 @@ export class AnimalBook {
       ctx.scale(0.97, 0.97);
       ctx.translate(-(x + w / 2), -(y + ch / 2));
     }
-    ctx.fillStyle = '#ffffff';
+    const seen = this.seen.has(a.i);
+    ctx.fillStyle = seen ? SEEN_CARD : '#ffffff';
     ctx.save();
     ctx.shadowColor = 'rgba(16, 44, 62, 0.16)';
     ctx.shadowBlur = 10 * u;
@@ -679,21 +701,28 @@ export class AnimalBook {
     roundRectPath(ctx, x, y, w, ch, 14 * u);
     ctx.fill();
     ctx.restore();
+    if (seen) {
+      ctx.strokeStyle = SEEN_EDGE;
+      ctx.lineWidth = 2.2 * Math.min(u, 1.5);
+      roundRectPath(ctx, x + 1, y + 1, w - 2, ch - 2, 13 * u);
+      ctx.stroke();
+    }
     this.picture(a, x, y, w, ph, 14 * u);
 
     ctx.textAlign = 'left';
-    ctx.fillStyle = INK;
+    ctx.fillStyle = seen ? SEEN_TICK : INK;
     const f = this.font('900', 13.5);
-    const line = this.wrap(nameOf(a), f, w - 16 * u, 1)[0] ?? '';
+    const line = this.wrap(nameOf(a), f, w - 16 * u - (seen ? 18 * u : 0), 1)[0] ?? '';
     ctx.font = f;
     ctx.fillText(line, x + 8 * u, y + ph + 20 * u);
-    if (this.seen.has(a.i)) {
-      const r = 9 * u;
+    if (seen) {
+      // a filled disc, not an outline on white: it has to be findable from across the room
+      const r = 11 * u;
       const cx = x + w - r - 7 * u, cy = y + r + 7 * u;
-      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.fillStyle = SEEN_TICK;
       ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#5da65f';
-      ctx.lineWidth = 2.4 * Math.min(u, 1.5);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.6 * Math.min(u, 1.5);
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       ctx.beginPath();
       ctx.moveTo(cx - r * 0.42, cy);
@@ -1073,9 +1102,16 @@ export class AnimalBook {
     const ctx = this.ctx;
     const u = this.u();
     const pressed = this.downId === `card:${i}`;
-    ctx.fillStyle = pressed ? '#e6eef3' : '#ffffff';
+    const seen = this.seen.has(a.i);
+    ctx.fillStyle = pressed ? '#e6eef3' : seen ? SEEN_CARD : '#ffffff';
     roundRectPath(ctx, x, y, w, h, 12 * u);
     ctx.fill();
+    if (seen) {
+      ctx.strokeStyle = SEEN_EDGE;
+      ctx.lineWidth = 2 * Math.min(u, 1.5);
+      roundRectPath(ctx, x + 1, y + 1, w - 2, h - 2, 11 * u);
+      ctx.stroke();
+    }
     this.picture(a, x + 5 * u, y + 5 * u, h - 10 * u, h - 10 * u, 9 * u, SIZES.row);
     ctx.textAlign = 'left';
     ctx.fillStyle = INK;
