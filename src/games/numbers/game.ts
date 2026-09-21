@@ -274,8 +274,8 @@ export class Numbers {
     const rows = Math.ceil(n / 2);
     const free = Math.max(0, h - (top + cardH + 8 * u + capH + 8 * u + 16 * u)
       - this.want() - (54 * u * rows + gap * (rows - 1)) - 10 * u);
-    const btnH = 54 * u + Math.min((free * 0.5) / rows, 30 * u);
-    const cardTall = cardH + Math.min(free * 0.3, 40 * u);
+    const btnH = 54 * u + Math.min((free * 0.5) / rows, 46 * u);
+    const cardTall = cardH + Math.min(free * 0.45, 84 * u);
     const card: Rect = { x: pad, y: top, w: w - pad * 2, h: cardTall };
     const stackH = btnH * rows + gap * (rows - 1);
     const bottom = h - 26 * u;
@@ -304,7 +304,9 @@ export class Numbers {
 
   private box(s: Rect): Rect {
     const h = Math.min(s.h, this.want());
-    return { x: s.x, y: s.y + (s.h - h) / 2, w: s.w, h };
+    // what is left over sits under the objects rather than around them: a rack hanging in the
+    // middle of a tall empty field reads as a mistake, a rack sitting up near its sum does not
+    return { x: s.x, y: s.y + (s.h - h) * 0.32, w: s.w, h };
   }
 
   private rackG(s: Rect): RackGeo {
