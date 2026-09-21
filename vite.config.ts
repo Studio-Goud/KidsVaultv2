@@ -22,6 +22,7 @@ export default defineConfig({
         puffball: resolve(__dirname, 'puffball.html'),
         moonshot: resolve(__dirname, 'moonshot.html'),
         clock: resolve(__dirname, 'clock.html'),
+        animals: resolve(__dirname, 'animals.html'),
       },
     },
   },

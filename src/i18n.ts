@@ -131,6 +131,18 @@ const nl: Dict = {
   clockMinuteNumbers: 'Minuutgetallen',
   clockHowMuchLater: 'Hoe laat is dat?',
   clockFirstTime: 'in één keer goed',
+  // Dierenboek
+  animalsTitle: 'Dierenboek',
+  animalsTag: 'Duizenden echte dieren, met echte foto\'s.',
+  animalsSearch: 'Zoeken',
+  animalsSurprise: 'Verras me',
+  animalsHowBig: 'Hoe groot',
+  animalsWhereLives: 'Waar het leeft',
+  animalsGoodToKnow: 'Dit is er te weten',
+  animalsEats: 'Eet',
+  animalsOpening: 'Het boek gaat open…',
+  animalsNotFound: 'Niets met die letters.',
+  animalsTypeLetters: 'typ een paar letters',
 };
 
 const en: Dict = {
@@ -262,6 +274,18 @@ const en: Dict = {
   clockMinuteNumbers: 'Minute numbers',
   clockHowMuchLater: 'What time is that?',
   clockFirstTime: 'right first time',
+  // The animal book
+  animalsTitle: 'The animal book',
+  animalsTag: 'Thousands of real animals, in real photographs.',
+  animalsSearch: 'Search',
+  animalsSurprise: 'Surprise me',
+  animalsHowBig: 'How big',
+  animalsWhereLives: 'Where it lives',
+  animalsGoodToKnow: 'Good to know',
+  animalsEats: 'Eats',
+  animalsOpening: 'Opening the book…',
+  animalsNotFound: 'Nothing with those letters.',
+  animalsTypeLetters: 'type a few letters',
 };
 
 export function lang(): 'nl' | 'en' {

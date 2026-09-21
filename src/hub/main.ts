@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawClockThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawPuffThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
+import { drawAnimalsThumb, drawClockThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawPuffThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -128,6 +128,16 @@ const GAMES: Game[] = [
     practisesNl: 'De analoge en digitale klok lezen, de tijd in het Nederlands zeggen, minuten doortellen',
     age: '6+',
     paint: drawClockThumb,
+  },
+  {
+    href: './animals.html',
+    title: 'Dierenboek',
+    line: 'Thousands of real animals in real photographs. How big it is next to you, where it lives, what it eats.',
+    lineNl: 'Duizenden echte dieren op echte foto\'s. Hoe groot het is naast jou, waar het leeft, wat het eet.',
+    practises: 'Looking closely, comparing sizes, sorting into groups, finding your way around a long list',
+    practisesNl: 'Goed kijken, groottes vergelijken, in groepen indelen, iets opzoeken',
+    age: '4+',
+    paint: drawAnimalsThumb,
   },
 ];
 

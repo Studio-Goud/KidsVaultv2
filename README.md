@@ -228,10 +228,50 @@ over half vier" for 3:35, midnight and midday both called twelve. It is tested c
 Practises reading the analogue and the digital clock, saying the time in Dutch, and counting on in
 minutes. Age 6 and up.
 
+### Dierenboek (`animals.html`)
+Nine shelves - mammals, birds, fish and sharks, reptiles, amphibians, butterflies, insects, spiders
+and sea creatures - and a couple of thousand real animals behind them, every one with a real
+photograph. Pick a shelf, scroll the grid, tap one.
+
+The page that opens is the point. It says the animal's name in Dutch, in English and in Latin. It
+draws the animal beside a child, both on one ruler, so the length stops being a number: a red deer
+comes up past your head, a ladybird is a dot that has to be blown up sixty times to be visible at
+all and says so, a blue whale squashes the child to a sliver. The child on that ruler can be made
+taller or shorter, because every child is a different size and the comparison is only worth
+anything if it is yours. Then a drawn world map with the continents the animal has really been
+recorded on lit up, what it eats, how it is doing, and two or three sentences the book writes
+itself out of the data - which family it belongs to, where it lives, what it eats, how it measures
+up against you - followed by a paragraph from Wikipedia in whichever language is set.
+
+There is a keyboard a child can hunt and peck at: three or four letters is enough, accents and
+capitals do not matter, and it searches the Dutch, the English and the scientific name at once.
+And there is a button marked "Verras me" that opens an animal nobody chose - one you have not seen
+yet, for as long as there are any left.
+
+The book remembers which animals have been looked at and says so on the way in: *je hebt 37 van de
+2000 dieren bekeken*. That is the only thing it keeps. No score, no streak, nothing to lose by
+staying away, and the count only ever goes up.
+
+None of it is typed by hand. `npm run animals` builds `public/animals/animals.json` out of four
+open sources: iNaturalist for which species are worth having and what they are called in Dutch and
+in English, Wikipedia for the paragraph and the lead photograph, Wikimedia Commons for who took
+that photograph and under which licence, and GBIF for the continents. Body length, diet and habitat
+are in none of them in a form you can read to a five year old, so those come from a table in
+`scripts/animal-traits.mjs`, looked up species first and then up the family tree - and the page
+says when a length is the family's typical one rather than this species' own. The data is cached in
+the repository, so the book needs no network to know anything; only the photographs are fetched as
+you go, with a drawn silhouette in their place while they come and instead of them if they do not.
+Practises looking closely, comparing sizes, sorting into groups and looking something up. Age 4 and up.
+
 ## Stack
 - Vite + TypeScript, Canvas 2D, multi-page build (one entry per game)
-- Photographs only where they are real: NASA planets and moons, public domain fossils; everything
-  else is drawn procedurally. Credits are shown in-game. Licence rule: public domain, CC0 or CC BY only.
+- Photographs only where they are real: NASA planets and moons, public domain fossils, and the
+  animals in Dierenboek from Wikimedia Commons; everything else is drawn procedurally. Credits are
+  shown in-game, beside the photograph. Licence rule: public domain, CC0, CC BY or CC BY-SA -
+  never NC and never ND, and `scripts/animals.mjs` drops any photograph whose licence does not
+  pass that test rather than shipping it. (CC BY-SA was let in when the animal book arrived: it
+  is a free licence and a displayed, unaltered, credited photograph honours it, and holding to
+  CC BY alone would have left three animals in four with no picture.)
 - WebAudio, all sound synthesised in `src/util/audio.ts` and per-game `*sfx.ts`
 - Capacitor 7 for the native iOS and Android shell
 - PWA manifest, so it installs straight from the browser too

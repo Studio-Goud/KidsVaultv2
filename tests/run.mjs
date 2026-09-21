@@ -525,6 +525,94 @@ const group = name => console.log(`\n${name}`);
   is('test_stars_no_rounds_is_none', starsFor(0, 0), 0);
 }
 
+// ---------------------------------------------------------------- Dierenboek: finding it, and how big it is
+
+{
+  const { fold, search, scaleBar, sizeLabel, compareToChild, facts, shelf, joinNames, GROUPS } =
+    await bundle('src/games/animals/rules.ts', 'animalrules.mjs');
+
+  const animal = (over) => ({
+    i: 1, n: '', e: '', s: '', g: 'mam', f: '', fe: '', fs: '', p: '', c: '', l: '',
+    w: [], h: '', t: '', z: 0, x: 0, r: '', o: 0, ...over,
+  });
+  const leeuw = animal({ i: 1, n: 'Leeuw', e: 'Lion', s: 'Panthera leo', f: 'Katachtigen', fe: 'Cats', g: 'mam', z: 200, x: 1, t: 'meat', h: 'grass', w: ['af'], o: 900 });
+  const zeehond = animal({ i: 2, n: 'Gewone zeehond', e: 'Harbour seal', s: 'Phoca vitulina', g: 'mam', z: 160, o: 800 });
+  const zeester = animal({ i: 3, n: 'Zeester', e: 'Common starfish', s: 'Asterias rubens', g: 'sea', z: 25, o: 700 });
+  const lieveheer = animal({ i: 4, n: 'Lieveheersbeestje', e: 'Seven-spot ladybird', s: 'Coccinella septempunctata', g: 'ins', z: 0.7, o: 600 });
+  const blauwevinvis = animal({ i: 5, n: 'Blauwe vinvis', e: 'Blue whale', s: 'Balaenoptera musculus', g: 'mam', z: 2500, o: 100 });
+  const book = [leeuw, zeehond, zeester, lieveheer, blauwevinvis];
+
+  group('Dierenboek — a child typing');
+  is('test_fold_drops_accents_and_capitals', fold('Amfibieën'), 'amfibieen');
+  is('test_fold_drops_punctuation_and_double_spaces', fold("Sint-Jacobs  vlinder"), 'sint jacobs vlinder');
+  is('test_search_empty_query_finds_nothing', search(book, '').length, 0);
+  is('test_search_three_letters_find_the_dutch_name', search(book, 'leeu').map(a => a.s), ['Panthera leo']);
+  is('test_search_finds_the_english_name_too', search(book, 'lion').map(a => a.s), ['Panthera leo']);
+  is('test_search_finds_the_scientific_name_too', search(book, 'panthera').map(a => a.s), ['Panthera leo']);
+  is('test_search_ignores_case_and_accents', search(book, 'LEEUW').map(a => a.s), ['Panthera leo']);
+  is('test_search_a_prefix_beats_a_hit_inside_a_word', search(book, 'zee').map(a => a.n), ['Zeester', 'Gewone zeehond']);
+  is('test_search_unknown_letters_find_nothing', search(book, 'qqq').length, 0);
+  is('test_search_stops_at_the_limit', search(book, 'e', 2).length, 2);
+
+  group('Dierenboek — the animal beside a child');
+  const lion = scaleBar(200, 120, 100);
+  is('test_scale_the_larger_one_fills_the_box', Math.round(lion.animalPx), 100);
+  is('test_scale_both_share_one_ruler', Math.round(lion.childPx), 60);
+  is('test_scale_a_big_animal_is_not_magnified', lion.magnified, false);
+  const kid = scaleBar(60, 120, 100);
+  is('test_scale_a_small_animal_leaves_the_child_filling_the_box', Math.round(kid.childPx), 100);
+  is('test_scale_a_small_animal_is_drawn_half_the_child', Math.round(kid.animalPx), 50);
+  const bug = scaleBar(0.7, 120, 100);
+  is('test_scale_a_tiny_animal_is_magnified_to_stay_visible', bug.magnified, true);
+  is('test_scale_a_magnified_animal_says_how_much_bigger', bug.times > 1, true);
+  is('test_scale_a_magnified_animal_is_never_smaller_than_the_floor', bug.animalPx >= 6, true);
+  const whale = scaleBar(2500, 120, 200);
+  is('test_scale_a_whale_squeezes_the_child_to_a_sliver', Math.round(whale.childPx), 10);
+  // the animal is measured along its length and the child up her height, and a phone has far more
+  // width than height to spare, so each gets its own limit
+  const wide = scaleBar(300, 120, 240, 90);
+  is('test_scale_a_wide_box_lets_a_long_animal_use_it', Math.round(wide.animalPx), 225);
+  is('test_scale_the_child_still_fits_her_own_limit', Math.round(wide.childPx), 90);
+  const tall = scaleBar(60, 120, 240, 90);
+  is('test_scale_a_small_animal_never_pushes_the_child_past_her_limit', Math.round(tall.childPx), 90);
+  is('test_scale_one_ruler_holds_across_both_limits', Math.round(tall.animalPx), 45);
+
+  group('Dierenboek — saying how long something is');
+  is('test_size_label_under_a_centimetre_is_millimetres', sizeLabel(0.7, true), '7 mm');
+  is('test_size_label_a_few_centimetres_keeps_one_decimal', sizeLabel(4.5, false), '4.5 cm');
+  is('test_size_label_dutch_uses_a_comma', sizeLabel(4.5, true), '4,5 cm');
+  is('test_size_label_tens_of_centimetres_are_whole', sizeLabel(25.4, true), '25 cm');
+  is('test_size_label_a_metre_or_more_is_metres', sizeLabel(200, false), '2 m');
+  is('test_size_label_a_whale_is_whole_metres', sizeLabel(2500, true), '25 m');
+  is('test_size_label_no_number_says_so', sizeLabel(0, true), 'onbekend');
+
+  group('Dierenboek — how big is that, really');
+  is('test_compare_the_same_size_says_so', compareToChild(125, 120, true), 'Ongeveer even groot als jij.');
+  is('test_compare_twice_as_long_counts_in_children', compareToChild(240, 120, true), 'Ongeveer 2 keer zo lang als jij groot bent.');
+  is('test_compare_half_again_as_long_keeps_the_half', compareToChild(200, 120, true), 'Ongeveer 1,7 keer zo lang als jij groot bent.');
+  is('test_compare_a_whale_rounds_to_whole_children', compareToChild(2500, 120, false), 'About 21 times as long as you are tall.');
+  is('test_compare_much_smaller_counts_the_other_way', compareToChild(24, 120, true), 'Er passen er ongeveer 5 naast elkaar over jouw lengte.');
+  is('test_compare_no_size_admits_it', compareToChild(0, 120, true), 'We weten niet hoe groot hij wordt.');
+
+  group('Dierenboek — the sentences the book writes itself');
+  const said = facts(leeuw, true, 120);
+  is('test_facts_name_the_family', said[0], 'Hoort bij de familie van de katachtigen.');
+  is('test_facts_say_where_and_on_which_continent', said[1], 'Leeft in grasland en open veld, in Afrika.');
+  is('test_facts_say_what_it_eats', said[2], 'Eet vooral vlees.');
+  is('test_facts_end_with_the_size', said[3], 'Ongeveer 1,7 keer zo lang als jij groot bent.');
+  is('test_facts_leave_out_what_is_not_known', facts(zeehond, true, 120).length, 1);
+  is('test_facts_are_english_in_english', facts(leeuw, false, 120)[2], 'Eats mostly meat.');
+  is('test_join_names_two_are_joined_with_and', joinNames(['Europa', 'Azië'], true), 'Europa en Azië');
+  is('test_join_names_three_take_commas_then_and', joinNames(['a', 'b', 'c'], false), 'a, b and c');
+
+  group('Dierenboek — the shelves');
+  is('test_shelf_holds_only_its_own_group', shelf(book, 'mam').map(a => a.i), [1, 2, 5]);
+  is('test_shelf_of_an_empty_group_is_empty', shelf(book, 'amp').length, 0);
+  is('test_shelves_cover_every_group_in_the_book',
+    book.every(a => GROUPS.some(g => g.id === a.g)), true);
+  is('test_shelves_have_no_duplicate_ids', new Set(GROUPS.map(g => g.id)).size, GROUPS.length);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);

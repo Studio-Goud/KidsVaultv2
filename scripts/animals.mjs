@@ -36,13 +36,23 @@ mkdirSync(CACHE, { recursive: true });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const key = s => createHash('sha1').update(s).digest('hex').slice(0, 24);
 
+/** True when the last ask() was answered out of the cache, so there is nobody to be polite to. */
+let cached = false;
+/** Wait between calls - but not when the answer came off the disk. */
+const pace = ms => (cached ? Promise.resolve() : sleep(ms));
+
 /** Every request goes through here: cached on disk, retried with a growing wait. */
 async function ask(url, init, label) {
   const k = join(CACHE, `${key(url + (init?.body ?? ''))}.json`);
   if (!FRESH && existsSync(k)) {
-    try { return JSON.parse(readFileSync(k, 'utf8')); } catch { /* rewrite it */ }
+    try {
+      const hit = JSON.parse(readFileSync(k, 'utf8'));
+      cached = true;
+      return hit;
+    } catch { /* rewrite it */ }
   }
-  for (let i = 0; i < 6; i++) {
+  cached = false;
+  for (let i = 0; i < 8; i++) {
     try {
       const res = await fetch(url, { ...init, headers: { 'User-Agent': UA, Accept: 'application/json', ...(init?.headers ?? {}) } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -50,8 +60,9 @@ async function ask(url, init, label) {
       writeFileSync(k, JSON.stringify(j));
       return j;
     } catch (e) {
-      if (i === 5) { console.warn(`  ! gave up on ${label ?? url}: ${e.message}`); return null; }
-      await sleep(900 * (i + 1));
+      if (i === 7) { console.warn(`  ! gave up on ${label ?? url}: ${e.message}`); return null; }
+      // a 429 is not a hiccup, it is a request to slow down, so it waits appreciably longer
+      await sleep((/429/.test(String(e.message)) ? 2600 : 800) * (i + 1));
     }
   }
   return null;
@@ -170,7 +181,7 @@ async function harvest() {
         if (t.extinct) continue;
         if (!byName.has(t.name)) { byName.set(t.name, { ...t, group: shelf.group }); taken++; }
       }
-      await sleep(250);
+      await pace(250);
     }
     console.log(`  ${shelf.label}: ${taken} species (${byName.size} in total)`);
   }
@@ -182,7 +193,7 @@ async function harvest() {
     const d = await ask(url, undefined, batch[0]);
     const hit = d?.results?.find(r => r.name === batch[0]);
     if (hit && !hit.extinct) byName.set(hit.name, { ...hit, group: null });
-    await sleep(180);
+    await pace(180);
   }
   console.log(`  the famous ones: ${MUST_HAVE.length - missing.length} were already in, ${missing.length} looked up`);
   return [...byName.values()];
@@ -203,7 +214,7 @@ async function ancestors(taxa) {
       table.set(r.id, { name: r.name, rank: r.rank, nl: r.preferred_common_name ?? null, en: r.english_common_name ?? null });
     }
     if (i % 10 === 0) process.stdout.write(`\r  family tree ${i + 1}/${batches.length}   `);
-    await sleep(200);
+    await pace(200);
   }
   console.log(`\r  family tree: ${table.size} groups named        `);
   return table;
@@ -211,16 +222,16 @@ async function ancestors(taxa) {
 
 // ---------------------------------------------------------------- step 3: Wikipedia
 
-async function wikiMeta(titles) {
+async function wikiMeta(titles, site = 'en.wikipedia.org', wantNl = true, label = 'wikipedia pages') {
   const out = new Map();
   const batches = chunks(titles, 50);
   for (let i = 0; i < batches.length; i++) {
-    const d = await ask('https://en.wikipedia.org/w/api.php', form({
+    const d = await ask(`https://${site}/w/api.php`, form({
       action: 'query', format: 'json', formatversion: '2', redirects: '1',
-      prop: 'langlinks|pageimages', lllang: 'nl', lllimit: '500',
+      prop: wantNl ? 'langlinks|pageimages' : 'pageimages', lllang: 'nl', lllimit: '500',
       piprop: 'thumbnail|name', pithumbsize: '800', pilimit: '50',
       titles: batches[i].join('|'),
-    }), `wiki meta ${i}`);
+    }), `${label} ${i}`);
     const norm = new Map();
     for (const n of d?.query?.normalized ?? []) norm.set(n.to, n.from);
     for (const r of d?.query?.redirects ?? []) norm.set(r.to, norm.get(r.from) ?? r.from);
@@ -231,13 +242,14 @@ async function wikiMeta(titles) {
         title: p.title,
         nlTitle: p.langlinks?.[0]?.title ?? null,
         thumb: p.thumbnail?.source ?? null,
-        file: p.pageimage ? `File:${p.pageimage}` : null,
+        // the Commons reply titles these with spaces, so they are keyed that way here too
+        file: p.pageimage ? `File:${String(p.pageimage).replace(/_/g, ' ')}` : null,
       });
     }
-    if (i % 5 === 0) process.stdout.write(`\r  wikipedia pages ${i + 1}/${batches.length}   `);
-    await sleep(350);
+    if (i % 5 === 0) process.stdout.write(`\r  ${label} ${i + 1}/${batches.length}   `);
+    await pace(350);
   }
-  console.log(`\r  wikipedia pages: ${out.size} found              `);
+  console.log(`\r  ${label}: ${out.size} found              `);
   return out;
 }
 
@@ -258,7 +270,7 @@ async function extracts(site, titles, label) {
       out.set(norm.get(p.title) ?? p.title, p.extract);
     }
     if (i % 10 === 0) process.stdout.write(`\r  ${label} ${i + 1}/${batches.length}   `);
-    await sleep(320);
+    await pace(320);
   }
   console.log(`\r  ${label}: ${out.size} paragraphs            `);
   return out;
@@ -287,7 +299,7 @@ async function licences(files) {
       out.set(p.title, { lic, who });
     }
     if (i % 5 === 0) process.stdout.write(`\r  photograph licences ${i + 1}/${batches.length}   `);
-    await sleep(350);
+    await pace(350);
   }
   console.log(`\r  photograph licences: ${out.size} checked          `);
   return out;
@@ -301,8 +313,14 @@ const CONTINENT = {
 };
 
 async function where(names) {
+  // GBIF is the slowest step by a long way; `--no-map` builds everything else in a few seconds,
+  // which is what you want while you are working on the screens rather than on the data
+  if (process.argv.includes('--no-map')) {
+    console.log('  world map: skipped (--no-map)');
+    return names.map(() => []);
+  }
   let done = 0;
-  const got = await pool(names, 10, async name => {
+  const got = await pool(names, 4, async name => {
     const url = 'https://api.gbif.org/v1/occurrence/search?' + new URLSearchParams({
       scientificName: name, facet: 'continent', limit: '0', facetLimit: '10',
     });
@@ -338,6 +356,39 @@ const tidyName = s => {
 
 const STATUS = { LC: 'lc', NT: 'nt', VU: 'vu', EN: 'en', CR: 'cr', EW: 'ew', EX: 'ex' };
 
+/**
+ * Wikimedia's thumbnailer takes the width straight out of the address, so the width is left as a
+ * hole in the stored path and the app fills it in: small ones for a grid of forty cards, a large
+ * one for the page of the animal you actually opened. One record, any size, one cache.
+ */
+/**
+ * Almost every thumbnail is named after its own file - `.../Eekhoorn.jpg/{w}px-Eekhoorn.jpg` - so
+ * the second half is thrown away where it can be worked out again, which is most of the time and
+ * about a fifth of the whole file.
+ */
+function shortPath(tpl) {
+  const f = tpl.split('/');
+  return f.length === 4 && f[3] === `{w}px-${f[2]}` ? f.slice(0, 3).join('/') : tpl;
+}
+
+/** The licences, interned: there are a dozen of them across thousands of photographs. */
+const LICENCES = [];
+function licenceCode(name) {
+  let at = LICENCES.indexOf(name);
+  if (at < 0) { LICENCES.push(name); at = LICENCES.length - 1; }
+  return at;
+}
+
+function photoTemplate(url) {
+  const raw = url.split('?')[0].split('/wikipedia/commons/thumb/')[1];
+  if (!raw) return null;
+  const parts = raw.split('/');
+  const last = parts.length - 1;
+  if (!/\d+px-/.test(parts[last])) return null;
+  parts[last] = parts[last].replace(/\d+px-/, '{w}px-');
+  return parts.join('/');
+}
+
 async function main() {
   console.log('Harvesting from iNaturalist…');
   const taxa = await harvest();
@@ -369,9 +420,15 @@ async function main() {
   const enText = await extracts('en.wikipedia.org', [...new Set([...meta.values()].map(m => m.title))], 'english text');
   const nlTitles = [...new Set([...meta.values()].map(m => m.nlTitle).filter(Boolean))];
   const nlText = await extracts('nl.wikipedia.org', nlTitles, 'dutch text');
+  // the Dutch article often leads with a different photograph, which is the second chance for a
+  // species whose English one is under a licence this project will not ship
+  const nlMeta = await wikiMeta(nlTitles, 'nl.wikipedia.org', false, 'dutch pages');
 
   console.log('Checking the photographs…');
-  const files = [...new Set([...meta.values()].map(m => m.file).filter(Boolean))];
+  const files = [...new Set([
+    ...[...meta.values()].map(m => m.file),
+    ...[...nlMeta.values()].map(m => m.file),
+  ].filter(Boolean))];
   const lic = await licences(files);
 
   console.log('Asking GBIF where they live…');
@@ -384,9 +441,22 @@ async function main() {
   usable.forEach((t, i) => {
     const title = decodeURIComponent(t.wikipedia_url.split('/wiki/')[1] ?? '').replace(/_/g, ' ');
     const m = meta.get(title);
-    if (!m?.thumb || !m.thumb.includes('/wikipedia/commons/thumb/')) { dropped.photo++; return; }
-    const l = m.file ? lic.get(m.file) : null;
-    if (!l || !FREE.test(l.lic)) { dropped.licence++; return; }
+    if (!m) { dropped.photo++; return; }
+    // the English article's photograph first, then the Dutch one; whichever has a licence we may
+    // actually ship, and nothing at all if neither does
+    const pick = [m, m.nlTitle ? nlMeta.get(m.nlTitle) : null]
+      .map(c => {
+        if (!c?.thumb || !c.thumb.includes('/wikipedia/commons/thumb/')) return null;
+        const tpl = photoTemplate(c.thumb);
+        const l = c.file ? lic.get(c.file) : null;
+        return tpl && l && FREE.test(l.lic) ? { tpl, l } : null;
+      })
+      .find(Boolean);
+    if (!pick) {
+      if (!m.thumb) dropped.photo++; else dropped.licence++;
+      return;
+    }
+    const { tpl, l } = pick;
 
     const nl = tidyName(t.preferred_common_name) || tidyName(m.nlTitle);
     const en = tidyName(t.english_common_name) || tidyName(m.title);
@@ -406,10 +476,9 @@ async function main() {
       g: t.group,
       f: t.family ? tidyName(t.family.nl) || t.family.name : '',
       fe: t.family ? tidyName(t.family.en) || t.family.name : '',
-      fs: t.family?.name ?? '',
-      p: m.thumb.split('/wikipedia/commons/thumb/')[1],
+      p: shortPath(tpl),
       c: l.who || 'Wikimedia Commons',
-      l: l.lic,
+      l: licenceCode(l.lic),
       d: trimTo(nlText.get(m.nlTitle ?? '') ?? '', 300),
       D: trimTo(enText.get(m.title) ?? '', 300),
       w: continents[i] ?? [],
@@ -423,6 +492,23 @@ async function main() {
   });
 
   species.sort((a, b) => b.o - a.o);
+
+  // Each shelf keeps its own most-photographed, which is also its most-recognisable - plus every
+  // famous animal, however rarely anyone meets one. A book a child can carry beats a longer one
+  // they have to wait for.
+  const CAP = { mam: 430, bir: 470, fis: 420, rep: 310, amp: 230, but: 470, ins: 650, spi: 200, sea: 560 };
+  const famous = new Set(MUST_HAVE);
+  const kept = [];
+  const room = { ...CAP };
+  for (const sp of species) {
+    if (famous.has(sp.s)) { kept.push(sp); room[sp.g] = (room[sp.g] ?? 0) - 1; continue; }
+    if ((room[sp.g] ?? 0) <= 0) continue;
+    room[sp.g]--;
+    kept.push(sp);
+  }
+  species.length = 0;
+  species.push(...kept);
+
   const counts = {};
   for (const s of species) counts[s.g] = (counts[s.g] ?? 0) + 1;
 
@@ -440,6 +526,7 @@ async function main() {
     v: 1,
     built: new Date().toISOString().slice(0, 10),
     base: 'https://upload.wikimedia.org/wikipedia/commons/thumb/',
+    licences: LICENCES,
     sources: ['iNaturalist', 'Wikipedia', 'Wikimedia Commons', 'GBIF'],
     species,
   }));

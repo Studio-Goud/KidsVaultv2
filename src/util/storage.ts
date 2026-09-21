@@ -22,6 +22,8 @@ export interface SaveData {
   moon: { best: number; target: number; topKm: number; design: Array<{ id: string; col: number; row: number; delay?: number; hold?: string[] }> };
   /** Klokkijken: the 5, 10, 15 ring on the dial is switched on, for a child still counting in fives */
   clock: { minuteNumbers: boolean };
+  /** The animal book: which animals have been looked at, and how tall the child is on the size bar */
+  animals: { seen: number[]; childCm: number };
 }
 
 const KEY = 'cloudhopper.save.v1';
@@ -33,6 +35,7 @@ const defaults = (): SaveData => ({
   mill: { grain: 0, built: [], paid: {} },
   moon: { best: 0, target: 7, topKm: 0, design: [] },
   clock: { minuteNumbers: false },
+  animals: { seen: [], childCm: 120 },
 });
 
 export function loadSave(): SaveData {
@@ -48,6 +51,7 @@ export function loadSave(): SaveData {
       mill: { ...d.mill, ...(got.mill ?? {}) },
       moon: { ...d.moon, ...(got.moon ?? {}) },
       clock: { ...d.clock, ...(got.clock ?? {}) },
+      animals: { ...d.animals, ...(got.animals ?? {}) },
     };
   } catch { return defaults(); }
 }

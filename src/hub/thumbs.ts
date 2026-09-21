@@ -709,3 +709,40 @@ export function drawClockThumb(c: HTMLCanvasElement): void {
   ctx.fillText('3:20', bx, by + bh * 0.02);
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
 }
+
+/** A page of the animal book: three photographs' worth of animals on a warm paper ground. */
+export function drawAnimalsThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const paper = ctx.createLinearGradient(0, 0, 0, h);
+  paper.addColorStop(0, '#f7f2e4'); paper.addColorStop(1, '#e7ddc6');
+  ctx.fillStyle = paper; ctx.fillRect(0, 0, w, h);
+
+  // the fold down the middle of an open book
+  ctx.fillStyle = 'rgba(120, 100, 70, 0.10)';
+  ctx.fillRect(w * 0.495, 0, w * 0.014, h);
+
+  // four cards, the way the grid lays them out
+  const pad = w * 0.055, cw = (w - pad * 3) / 2, ch = (h - pad * 3) / 2;
+  const tones = ['#c98a50', '#4fa8dd', '#e08bb4', '#3b8fa8'];
+  for (let i = 0; i < 4; i++) {
+    const x = pad + (i % 2) * (cw + pad), y = pad + Math.floor(i / 2) * (ch + pad);
+    ctx.save();
+    ctx.shadowColor = 'rgba(70, 55, 30, 0.22)'; ctx.shadowBlur = w * 0.03; ctx.shadowOffsetY = w * 0.012;
+    ctx.fillStyle = '#fffdf7';
+    ctx.beginPath(); ctx.roundRect(x, y, cw, ch, w * 0.035); ctx.fill();
+    ctx.restore();
+    const g = ctx.createLinearGradient(0, y, 0, y + ch * 0.74);
+    g.addColorStop(0, tones[i]); g.addColorStop(1, `${tones[i]}cc`);
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(x, y, cw, ch * 0.74, w * 0.035); ctx.clip();
+    ctx.fillStyle = g; ctx.fillRect(x, y, cw, ch * 0.74);
+    // a shape in the middle of each card: a body and a head, enough to read as an animal
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.ellipse(x + cw * 0.46, y + ch * 0.46, cw * 0.22, ch * 0.16, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + cw * 0.70, y + ch * 0.30, cw * 0.11, 0, TAU); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(60, 46, 26, 0.35)';
+    ctx.beginPath(); ctx.roundRect(x + cw * 0.09, y + ch * 0.84, cw * 0.6, ch * 0.075, ch * 0.04); ctx.fill();
+  }
+}
