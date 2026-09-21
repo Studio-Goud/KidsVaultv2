@@ -34,10 +34,11 @@ line that gets shorter in the harder missions.
 Practises ordering, comparing, predicting motion and the solar system. Age 5 and up.
 
 ### Moonshot (`moonshot.html`)
-A workshop, a grid, and a launch button. Twenty-four parts - nose cones, probes, capsules, a crew
-cabin, a fairing, six tanks from two tonnes to sixteen, eight engines from a toy to a nuclear one,
-two solid boosters, two sets of fins, a collar and a girder - and every one of them is on the shelf
-from the first second. Nothing is locked, nothing is earned, nothing costs anything.
+A workshop, a grid, and a launch button. Twenty-eight parts - nose cones, probes, capsules, a crew
+cabin, a fairing, a space shuttle, six tanks from two tonnes to sixteen, eight engines from a toy
+to a nuclear one, four solid boosters in single, double and triple, two sets of fins, a taper and a
+girder - and every one of them is on the shelf from the first second. Nothing is locked, nothing is
+earned, nothing costs anything.
 
 You put parts where you want them. Drag one out of the tray and the grid lights up every cell it
 could legally go in; drop it and it bolts on. Drag one that is already on the rocket to move it, or
@@ -53,6 +54,15 @@ the core keeps going, exactly as they do. A tank with no engine under it is dead
 whole flight, an engine with no tank above it never lights, and a rocket whose push is not under
 its weight leans over on its own. The build screen says which of those is wrong, one line at a
 time, in the order a builder would notice them.
+
+A rocket can be made to taper. The taper piece takes the width of whatever it is standing on and
+runs up to the width of whatever is standing on it, so a wide first stage can narrow into a
+standard one and then into a slim upper stage without stepping down in ledges - and a nose cone on
+top adopts the width it is capping. The boosters come as one, two or three tubes strapped together
+in a single piece, and the air treats three tubes as three tubes rather than as one enormous
+cylinder. The space shuttle is an orbiter that rides on the side of the tank the way the real one
+did: it is payload rather than a stage, so it never falls away, and its engines go under the tank.
+It is heavy and the wings catch a great deal of air, which is the trade.
 
 Shape counts as much as power. The air feels how wide the rocket is across, how long it is for that
 width, and what is capping each column - so a flat-topped stack is noticeably draggier than the

@@ -61,7 +61,7 @@ const group = name => console.log(`\n${name}`);
 {
   const d = await bundle('src/games/moonshot/design.ts', 'design.mjs');
   const { partById, stagesByColumn, deadWeight, dudEngines, buildProblem, isOnePiece, canPlace,
-    collapse, stillAttached, shapeOf, slipperiness, widthOf, canLift, isFlyable } = d;
+    collapse, stillAttached, shapeOf, slipperiness, widthOf, taperSpan, canLift, isFlyable } = d;
 
   /** a column of parts stacked bottom-first, the way a child builds one */
   const col = (c, ids) => {
@@ -126,6 +126,22 @@ const group = name => console.log(`\n${name}`);
   is('test_shape_fat_rocket_is_less_slippery', slipperiness(shapeOf(fat)) < slipperiness(shapeOf(slim)), true);
   const onBooster = [...col(4, ['engine-s', 'tank-s', 'capsule']), ...col(3, ['srb-s', 'nose'])];
   is('test_shape_nose_cone_adopts_width_below', widthOf(onBooster, 4), partById('srb-s').w);
+  const triple = [...col(4, ['engine-l', 'tank-l', 'capsule']), ...col(3, ['srb-t'])];
+  const singles = [...col(4, ['engine-l', 'tank-l', 'capsule']), ...col(3, ['srb-s'])];
+  is('test_shape_triple_booster_is_three_tubes_not_one_disc',
+    shapeOf(triple).area < shapeOf(singles).area * 4, true);
+  is('test_shape_triple_booster_still_costs_more_than_one',
+    shapeOf(triple).area > shapeOf(singles).area, true);
+  const tapered = col(4, ['engine-w', 'tank-w', 'adapter', 'tank-thin', 'capsule']);
+  const stepped = col(4, ['engine-w', 'tank-w', 'tank-thin', 'capsule']);
+  is('test_taper_takes_the_width_below_and_above', taperSpan(tapered, 2),
+    { bottom: partById('tank-w').w, top: partById('tank-thin').w });
+  is('test_shape_taper_lowers_drag_against_a_step', shapeOf(tapered).drag < shapeOf(stepped).drag, true);
+  const orbiter = [...col(4, ['engine-x', 'tank-w', 'tank-w', 'nose']), ...col(5, ['shuttle'])];
+  is('test_stages_shuttle_is_payload_and_never_drops',
+    [...stagesByColumn(orbiter).values()].flat().every(st => !st.parts.includes(4)), true);
+  is('test_deadweight_shuttle_is_not_dead_weight', deadWeight(orbiter).length, 0);
+  is('test_flyable_shuttle_stack_flies', isFlyable(orbiter), true);
   is('test_shape_side_boosters_widen_frontal_area',
     shapeOf([...col(4, ['engine-l', 'tank-l', 'capsule']), ...col(3, ['srb-l']), ...col(5, ['srb-l'])]).area
     > shapeOf(col(4, ['engine-l', 'tank-l', 'capsule'])).area, true);

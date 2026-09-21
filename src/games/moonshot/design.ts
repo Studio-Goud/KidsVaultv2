@@ -50,13 +50,21 @@ export interface Part {
   exhaust: number;
   /** how pointed the top of it is, 0 for a flat lid and 1 for a needle */
   sharp: number;
+  /**
+   * How much of the circle its width implies the air actually meets.
+   *
+   * A part as wide as three tubes side by side is not a disc three tubes across - it is three
+   * discs, which is a third of the area. A shuttle is mostly flat wing. Everything that really is
+   * a cylinder leaves this at one.
+   */
+  bulk: number;
   /** one line about what it is for */
   note: string;
   noteNl: string;
 }
 
 const P = (p: Partial<Part> & Pick<Part, 'id' | 'kind' | 'group' | 'name' | 'nameNl' | 'note' | 'noteNl'>): Part => ({
-  rows: 1, w: 1, dry: 0, fuel: 0, burn: 0, exhaust: 3000, sharp: 0, ...p,
+  rows: 1, w: 1, dry: 0, fuel: 0, burn: 0, exhaust: 3000, sharp: 0, bulk: 1, ...p,
 });
 
 /**
@@ -169,13 +177,13 @@ export const PARTS: Part[] = [
   }),
   P({
     id: 'engine-x', kind: 'engine', group: 'engine', name: 'Three engines', nameNl: 'Drie motoren',
-    rows: 2, w: 1.3, dry: 2.8, burn: 0.93, exhaust: 2950,
+    rows: 2, w: 1.3, dry: 2.8, burn: 0.93, exhaust: 2950, bulk: 0.9,
     note: 'Brute force off the pad. Drinks the tank in seconds.',
     noteNl: 'Botte kracht bij het opstijgen. Drinkt de tank in seconden leeg.',
   }),
   P({
     id: 'engine-w', kind: 'engine', group: 'engine', name: 'Nine engines', nameNl: 'Negen motoren',
-    rows: 2, w: 1.45, dry: 7, burn: 2.58, exhaust: 2980,
+    rows: 2, w: 1.45, dry: 7, burn: 2.58, exhaust: 2980, bulk: 0.85,
     note: 'A whole first stage in one piece. It will lift anything you can build.',
     noteNl: 'Een hele eerste trap in een stuk. Tilt alles op wat je kunt bouwen.',
   }),
@@ -200,7 +208,7 @@ export const PARTS: Part[] = [
 
   // ---- strap-on boosters: an engine and its fuel in one piece
   P({
-    id: 'srb-s', kind: 'solid', group: 'booster', name: 'Small booster', nameNl: 'Kleine booster',
+    id: 'srb-s', kind: 'solid', group: 'booster', name: 'Single booster', nameNl: 'Enkele booster',
     rows: 2, w: 0.64, dry: 0.35, fuel: 5, burn: 0.279, exhaust: 2500, sharp: 0.7,
     note: 'Fuel and engine in one. Lights once, burns hard, cannot be turned off.',
     noteNl: 'Brandstof en motor in een. Gaat een keer aan, brandt hard, kan niet uit.',
@@ -210,6 +218,19 @@ export const PARTS: Part[] = [
     rows: 4, w: 0.74, dry: 0.75, fuel: 12, burn: 0.585, exhaust: 2550, sharp: 0.7,
     note: 'Twelve tonnes of solid fuel. Two of these will shift almost anything.',
     noteNl: 'Twaalf ton vaste brandstof. Twee hiervan krijgen bijna alles in beweging.',
+  }),
+
+  P({
+    id: 'srb-d', kind: 'solid', group: 'booster', name: 'Double booster', nameNl: 'Dubbele booster',
+    rows: 3, w: 1.34, dry: 0.75, fuel: 11, burn: 0.585, exhaust: 2500, sharp: 0.7, bulk: 0.5,
+    note: 'Two strapped together. Twice the push and twice the air to push through.',
+    noteNl: 'Twee aan elkaar. Twee keer zoveel duw en twee keer zoveel lucht om doorheen te duwen.',
+  }),
+  P({
+    id: 'srb-t', kind: 'solid', group: 'booster', name: 'Triple booster', nameNl: 'Drievoudige booster',
+    rows: 4, w: 1.96, dry: 1.5, fuel: 22, burn: 1.1, exhaust: 2500, sharp: 0.7, bulk: 0.34,
+    note: 'Three in a row. Enormous off the pad, and enormously wide.',
+    noteNl: 'Drie op een rij. Enorm bij het opstijgen, en enorm breed.',
   }),
 
   // ---- fins and odds and ends
@@ -226,10 +247,16 @@ export const PARTS: Part[] = [
     noteNl: 'Houdt een wiebelige raket kaarsrecht, en de lucht laat je ervoor betalen.',
   }),
   P({
-    id: 'adapter', kind: 'truss', group: 'extra', name: 'Adapter', nameNl: 'Tussenstuk',
-    rows: 1, w: 1, dry: 0.12,
-    note: 'A collar to set something narrow on something wide.',
-    noteNl: 'Een kraag om iets smals op iets breeds te zetten.',
+    id: 'adapter', kind: 'truss', group: 'extra', name: 'Taper', nameNl: 'Verloopstuk',
+    rows: 1, w: 1.1, dry: 0.12,
+    note: 'Takes the width of whatever is under it and narrows to whatever is on top.',
+    noteNl: 'Neemt de breedte van wat eronder staat en loopt af naar wat erop staat.',
+  }),
+  P({
+    id: 'shuttle', kind: 'pod', group: 'top', name: 'Space shuttle', nameNl: 'Spaceshuttle',
+    rows: 4, w: 1.5, dry: 6, sharp: 0.55, bulk: 0.56,
+    note: 'Rides on the side of the tank, the way the real one did. Heavy, and the wings catch air. Its engines go under the tank.',
+    noteNl: 'Gaat aan de zijkant van de tank mee, zoals de echte. Zwaar, en de vleugels vangen lucht. De motoren zet je onder de tank.',
   }),
   P({
     id: 'truss', kind: 'truss', group: 'extra', name: 'Girder', nameNl: 'Vakwerk',
@@ -327,17 +354,43 @@ export function isOnePiece(design: Design): boolean {
 export function widthOf(design: Design, i: number): number {
   const p = design[i];
   const part = partById(p.id);
-  if (part.id !== 'nose') return part.w;
-  let below: Part | null = null;
-  let bestTop = -1;
+  if (part.id === 'nose') return neighbourWidth(design, i, -1) ?? part.w;
+  if (part.id === 'adapter') {
+    // the air feels the average of the two ends of a taper
+    const span = taperSpan(design, i);
+    return (span.bottom + span.top) / 2;
+  }
+  return part.w;
+}
+
+/** The width of the part directly below (`-1`) or directly above (`+1`) this one, if there is one. */
+function neighbourWidth(design: Design, i: number, dir: -1 | 1): number | null {
+  const p = design[i];
+  let found: number | null = null;
+  let best = -1;
   design.forEach((q, k) => {
     if (k === i || q.col !== p.col) return;
-    const t = topRow(q);
-    if (t + 1 !== p.row || t <= bestTop) return;
-    bestTop = t;
-    below = partById(q.id);
+    const meets = dir === -1 ? topRow(q) + 1 === p.row : q.row === topRow(p) + 1;
+    if (!meets || q.row <= best) return;
+    best = q.row;
+    found = partById(q.id).id === 'adapter' ? null : partById(q.id).w;
   });
-  return below ? (below as Part).w : part.w;
+  return found;
+}
+
+/**
+ * How wide a taper is at its foot and at its shoulder.
+ *
+ * This is the piece that lets a rocket actually narrow towards the top instead of stepping down
+ * in ledges: it takes the width of whatever it is standing on and runs up to the width of
+ * whatever is standing on it. Put one between a wide tank and a narrow one and the join
+ * disappears.
+ */
+export function taperSpan(design: Design, i: number): { bottom: number; top: number } {
+  const own = partById(design[i].id).w;
+  const bottom = neighbourWidth(design, i, -1) ?? own;
+  const top = neighbourWidth(design, i, 1) ?? Math.min(own, bottom);
+  return { bottom, top };
 }
 
 /**
@@ -672,6 +725,7 @@ export function shapeOf(design: Design, dropped?: ReadonlySet<number>): Shape {
     return { width: 1, height: 1, fineness: 1, area: circle(1), cd: 1, drag: circle(1), sharp: 0, cols: 0, fins: 0 };
   }
   let left = Infinity, right = -Infinity, bottom = Infinity, top = -Infinity, fins = 0;
+  const colArea = new Map<number, number>();
   const colWidth = new Map<number, number>();
   const colTop = new Map<number, { row: number; sharp: number }>();
   design.forEach((p, i) => {
@@ -685,6 +739,7 @@ export function shapeOf(design: Design, dropped?: ReadonlySet<number>): Shape {
     if (part.kind === 'fin') { fins++; return; }
     left = Math.min(left, p.col + 0.5 - w / 2);
     right = Math.max(right, p.col + 0.5 + w / 2);
+    colArea.set(p.col, Math.max(colArea.get(p.col) ?? 0, circle(w) * part.bulk));
     colWidth.set(p.col, Math.max(colWidth.get(p.col) ?? 0, w));
     const best = colTop.get(p.col);
     if (!best || topRow(p) > best.row) colTop.set(p.col, { row: topRow(p), sharp: part.sharp });
@@ -693,14 +748,15 @@ export function shapeOf(design: Design, dropped?: ReadonlySet<number>): Shape {
   const height = Math.max(1, top - bottom);
   const fineness = height / width;
 
-  const widest = Math.max(...colWidth.values(), 0.5);
+  // the column that meets the most air is the core; everything else is partly in its lee
+  const biggest = Math.max(...colArea.values(), circle(0.5));
   let area = 0, sharpSum = 0;
-  for (const [col, w] of colWidth) {
-    const a = circle(w) * (w === widest ? 1 : SIDE_EXPOSURE);
+  for (const [col, a0] of colArea) {
+    const a = a0 * (a0 === biggest ? 1 : SIDE_EXPOSURE);
     area += a;
     sharpSum += a * (colTop.get(col)?.sharp ?? 0);
   }
-  if (area <= 0) area = circle(widest);
+  if (area <= 0) area = biggest;
   const sharp = sharpSum / area;
 
   // a flat lid costs a third more than a clean cone, which is about what it really costs
@@ -718,7 +774,7 @@ export const gravityAt = (altM: number): number =>
 
 /** Nought for a brick, one for a needle. */
 export const slipperiness = (s: Shape): number =>
-  Math.max(0, Math.min(1, (3.4 - s.drag) / 2.5));
+  Math.max(0, Math.min(1, (4.2 - s.drag) / 3.2));
 
 /** The one sentence that says what is costing the most, so there is something to do about it. */
 export function shapeHint(s: Shape, nl: boolean): string {

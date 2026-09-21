@@ -16,7 +16,7 @@ import { makeRng } from '../../util/rng';
 import {
   blobPath, breathe, CachedLayer, contactShadow, Ctx, grainOver, roundRectPath, shade, vGrad,
 } from '../../render/look';
-import { airAt, finAnchor, partById, topRow, widthOf, type Design, type Part } from './design';
+import { airAt, finAnchor, partById, taperSpan, topRow, widthOf, type Design, type Part } from './design';
 
 // ---------------------------------------------------------------- the sky
 
@@ -103,7 +103,8 @@ function seams(ctx: Ctx, x: number, y: number, w: number, h: number, rows: numbe
  * below decides where the thing above starts.
  */
 export function paintPart(
-  ctx: Ctx, part: Part, cx: number, bottomY: number, u: number, t: number, side = 0, wu = part.w,
+  ctx: Ctx, part: Part, cx: number, bottomY: number, u: number, t: number,
+  side = 0, wu = part.w, wTop = wu,
 ): void {
   const w = wu * u, h = part.rows * u;
   const x = cx - w / 2, y = bottomY - h;
@@ -141,6 +142,63 @@ export function paintPart(
     ctx.quadraticCurveTo(x + w * 0.58, y + h * 0.16, cx, y);
     ctx.closePath();
     ctx.fill();
+    return;
+  }
+
+  if (part.id === 'shuttle') {
+    // an orbiter seen from the side: a fat white body, a black belly, a swept wing and a fin
+    const s = side || 1;
+    ctx.save();
+    ctx.translate(cx, 0);
+    ctx.scale(s, 1);
+    ctx.translate(-cx, 0);
+    const bx = cx - w * 0.28;
+    ctx.fillStyle = tube(ctx, bx, w * 0.72, WHITE);
+    ctx.beginPath();
+    ctx.moveTo(bx + w * 0.36, y);
+    ctx.quadraticCurveTo(bx + w * 0.72, y + h * 0.2, bx + w * 0.7, y + h * 0.5);
+    ctx.lineTo(bx + w * 0.66, bottomY);
+    ctx.lineTo(bx + w * 0.06, bottomY);
+    ctx.quadraticCurveTo(bx - w * 0.02, y + h * 0.3, bx + w * 0.36, y);
+    ctx.closePath();
+    ctx.fill();
+    // the swept wing
+    ctx.fillStyle = shade(WHITE, -0.22);
+    ctx.beginPath();
+    ctx.moveTo(bx + w * 0.62, y + h * 0.5);
+    ctx.lineTo(bx + w * 1.0, bottomY - h * 0.06);
+    ctx.lineTo(bx + w * 0.62, bottomY - h * 0.06);
+    ctx.closePath();
+    ctx.fill();
+    // the tail fin
+    ctx.fillStyle = shade(WHITE, -0.08);
+    ctx.beginPath();
+    ctx.moveTo(bx + w * 0.38, y + h * 0.12);
+    ctx.lineTo(bx + w * 0.12, y + h * 0.42);
+    ctx.lineTo(bx + w * 0.4, y + h * 0.42);
+    ctx.closePath();
+    ctx.fill();
+    // the black belly and the three bells
+    ctx.fillStyle = 'rgba(38, 42, 50, 0.9)';
+    ctx.beginPath();
+    ctx.moveTo(bx + w * 0.36, y + h * 0.02);
+    ctx.quadraticCurveTo(bx + w * 0.68, y + h * 0.22, bx + w * 0.66, y + h * 0.5);
+    ctx.lineTo(bx + w * 0.62, bottomY);
+    ctx.lineTo(bx + w * 0.5, bottomY);
+    ctx.quadraticCurveTo(bx + w * 0.54, y + h * 0.3, bx + w * 0.36, y + h * 0.02);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = DARK;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.ellipse(bx + w * (0.2 + i * 0.16), bottomY - h * 0.02, w * 0.07, h * 0.05, 0, 0, TAU);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#7fd2f2';
+    ctx.beginPath();
+    ctx.ellipse(bx + w * 0.34, y + h * 0.12, w * 0.07, h * 0.04, -0.5, 0, TAU);
+    ctx.fill();
+    ctx.restore();
     return;
   }
 
@@ -191,28 +249,34 @@ export function paintPart(
   }
 
   if (part.kind === 'solid') {
-    // fuel and engine in one casing: a pointed cap, a long body and a small nozzle
-    ctx.fillStyle = tube(ctx, x, w, WHITE);
-    roundRectPath(ctx, x, y + h * 0.12, w, h * 0.78, w * 0.16);
-    ctx.fill();
-    ctx.fillStyle = tube(ctx, x, w, '#d9dee6');
-    ctx.beginPath();
-    ctx.moveTo(cx, y);
-    ctx.quadraticCurveTo(x + w * 0.04, y + h * 0.1, x, y + h * 0.17);
-    ctx.lineTo(x + w, y + h * 0.17);
-    ctx.quadraticCurveTo(x + w * 0.96, y + h * 0.1, cx, y);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = 'rgba(190, 62, 48, 0.75)';
-    ctx.fillRect(x, y + h * 0.22, w, Math.max(1.2, h * 0.028));
-    ctx.fillStyle = tube(ctx, x + w * 0.12, w * 0.76, DARK);
-    ctx.beginPath();
-    ctx.moveTo(x + w * 0.28, bottomY - h * 0.1);
-    ctx.lineTo(x + w * 0.72, bottomY - h * 0.1);
-    ctx.lineTo(x + w * 0.88, bottomY);
-    ctx.lineTo(x + w * 0.12, bottomY);
-    ctx.closePath();
-    ctx.fill();
+    // Fuel and engine in one casing: a pointed cap, a long body and a small nozzle. A double or a
+    // triple is drawn as the two or three tubes it actually is, strapped side by side.
+    const n = part.id === 'srb-t' ? 3 : part.id === 'srb-d' ? 2 : 1;
+    const tw = w / n;
+    for (let i = 0; i < n; i++) {
+      const tx = x + i * tw, tcx = tx + tw / 2;
+      ctx.fillStyle = tube(ctx, tx, tw, WHITE);
+      roundRectPath(ctx, tx, y + h * 0.12, tw, h * 0.78, tw * 0.16);
+      ctx.fill();
+      ctx.fillStyle = tube(ctx, tx, tw, '#d9dee6');
+      ctx.beginPath();
+      ctx.moveTo(tcx, y);
+      ctx.quadraticCurveTo(tx + tw * 0.04, y + h * 0.1, tx, y + h * 0.17);
+      ctx.lineTo(tx + tw, y + h * 0.17);
+      ctx.quadraticCurveTo(tx + tw * 0.96, y + h * 0.1, tcx, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(190, 62, 48, 0.75)';
+      ctx.fillRect(tx, y + h * 0.22, tw, Math.max(1.2, h * 0.028));
+      ctx.fillStyle = tube(ctx, tx + tw * 0.12, tw * 0.76, DARK);
+      ctx.beginPath();
+      ctx.moveTo(tx + tw * 0.28, bottomY - h * 0.1);
+      ctx.lineTo(tx + tw * 0.72, bottomY - h * 0.1);
+      ctx.lineTo(tx + tw * 0.88, bottomY);
+      ctx.lineTo(tx + tw * 0.12, bottomY);
+      ctx.closePath();
+      ctx.fill();
+    }
     return;
   }
 
@@ -237,17 +301,28 @@ export function paintPart(
 
   if (part.kind === 'truss') {
     if (part.id === 'adapter') {
-      // a collar: wide at the bottom, narrow at the top, for setting something small on something big
-      ctx.fillStyle = tube(ctx, x, w, '#aeb6c2');
+      // A taper: exactly as wide at the foot as the thing under it and as wide at the shoulder as
+      // the thing on top, so a rocket narrows instead of stepping down in ledges.
+      // on the shelf there is nothing above or below it, so it shows what it is for
+      const tw = (wTop === wu ? wu * 0.6 : wTop) * u;
+      ctx.fillStyle = tube(ctx, x, w, '#c3cad4');
       ctx.beginPath();
-      ctx.moveTo(x + w * 0.22, y);
-      ctx.lineTo(x + w * 0.78, y);
-      ctx.lineTo(x + w, bottomY);
-      ctx.lineTo(x, bottomY);
+      ctx.moveTo(cx - tw / 2, y);
+      ctx.lineTo(cx + tw / 2, y);
+      ctx.lineTo(cx + w / 2, bottomY);
+      ctx.lineTo(cx - w / 2, bottomY);
       ctx.closePath();
       ctx.fill();
-      ctx.fillStyle = 'rgba(40,48,60,0.22)';
-      ctx.fillRect(x + w * 0.1, bottomY - h * 0.12, w * 0.8, Math.max(1, h * 0.06));
+      ctx.fillStyle = 'rgba(40,48,60,0.18)';
+      ctx.fillRect(cx - tw / 2, y, tw, Math.max(1, h * 0.08));
+      ctx.fillStyle = 'rgba(255,255,255,0.14)';
+      ctx.beginPath();
+      ctx.moveTo(cx - tw * 0.2, y);
+      ctx.lineTo(cx - tw * 0.08, y);
+      ctx.lineTo(cx - w * 0.06, bottomY);
+      ctx.lineTo(cx - w * 0.2, bottomY);
+      ctx.closePath();
+      ctx.fill();
       return;
     }
     // open framework: four uprights and a row of crosses, which is what makes it read as weightless
@@ -351,10 +426,12 @@ export function paintDesign(
     const part = partById(p.id);
     const cx = ox + (part.kind === 'fin' ? finAnchor(design, i, centre) : p.col + 0.5) * u;
     const bottom = oy - p.row * u;
-    const side = part.kind === 'fin' ? Math.sign(p.col - centre) : 0;
+    const side = part.kind === 'fin' || part.id === 'shuttle' ? (Math.sign(p.col - centre) || 1) : 0;
     const wu = widthOf(design, i);
+    const wTop = part.id === 'adapter' ? taperSpan(design, i).top : wu;
+    const wBottom = part.id === 'adapter' ? taperSpan(design, i).bottom : wu;
     if (opts.fade !== undefined) { ctx.save(); ctx.globalAlpha = opts.fade; }
-    paintPart(ctx, part, cx, bottom, u, t, side, wu);
+    paintPart(ctx, part, cx, bottom, u, t, side, wBottom, wTop);
     if (opts.fade !== undefined) ctx.restore();
     boxes.push({ i, x: cx - (wu * u) / 2, y: bottom - part.rows * u, w: wu * u, h: part.rows * u });
   }
