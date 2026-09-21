@@ -1436,6 +1436,17 @@ export class Rhythm {
     const gy = top + (availH - gh) / 2;
     const head = this.seqOn ? this.seqPos() : -1;
 
+    // One board under the whole grid. The room behind it goes from wall to table halfway down, and
+    // an empty square that sits on the wall does not look like an empty square that sits on the
+    // table - so the same square read as two different things depending on where it was.
+    ctx.fillStyle = 'rgba(16, 32, 50, 0.78)';
+    roundRectPath(ctx, gx - gutter - 6 * u, gy - 8 * u, gutter + gw + 12 * u, gh + 16 * u, 14 * u);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 246, 214, 0.18)';
+    ctx.lineWidth = Math.max(1, 1.4 * u);
+    roundRectPath(ctx, gx - gutter - 6 * u, gy - 8 * u, gutter + gw + 12 * u, gh + 16 * u, 14 * u);
+    ctx.stroke();
+
     // the ladder of colours down the left: low at the bottom, the way the chimes are laid out
     for (let p = 0; p < SEQ_PITCHES; p++) {
       const row = SEQ_PITCHES - 1 - p;
