@@ -26,11 +26,34 @@ const DRY = '#bcc274';
 const FLOWERS = ['#ffd6e8', '#fff3b0', '#e8d5ff', '#ffffff'];
 
 /** Everything about a valley's looks that only has to be worked out once. */
+/**
+ * How many pixels the ground is drawn at per valley cell.
+ *
+ * One was the old answer, and a 62-row height field blown up to eight hundred pixels of screen is
+ * why the valley used to look like a soft green blur: the relief, the banks and the bare soil were
+ * all smeared across thirteen pixels of bilinear upscale. Three is nine times the detail for the
+ * same money, because the ground only changes when somebody digs - it is built once and kept.
+ */
+const GROUND_SS = 3;
+/** The same for water, which does change every frame, so it gets less. */
+const WATER_SS = 2;
+
 export class ValleyArt {
   private groundCv: HTMLCanvasElement;
+  /** the ground already blown up to the size it is shown at, so each frame is a plain copy */
+  private groundScaled = document.createElement('canvas');
+  private scaledFor = '';
   private waterCv: HTMLCanvasElement;
   private groundImg: ImageData;
   private waterImg: ImageData;
+  /** rebuilt only when the land itself has been changed */
+  private groundDirty = true;
+  /** per-cell surface normal and hollowness, interpolated across the fine grid */
+  private slopeX = new Float32Array(1);
+  private slopeY = new Float32Array(1);
+  private dip = new Float32Array(1);
+  /** fine-grained speckle, so soil reads as soil and grass as grass */
+  private speck = new Float32Array(1);
   private tufts: Tuft[] = [];
   private rocks: RockCluster[] = [];
   /** slow colour variation across the valley, so the grass is never one flat green */
@@ -49,12 +72,18 @@ export class ValleyArt {
   /** Fit the buffers to a valley and scatter the things that grow on it. */
   rebuild(v: Valley, seed: number): void {
     this.cols = v.cols; this.rows = v.rows;
-    this.groundCv.width = this.waterCv.width = v.cols;
-    this.groundCv.height = this.waterCv.height = v.rows;
+    this.groundCv.width = v.cols * GROUND_SS;
+    this.groundCv.height = v.rows * GROUND_SS;
+    this.waterCv.width = v.cols * WATER_SS;
+    this.waterCv.height = v.rows * WATER_SS;
     const gc = this.groundCv.getContext('2d');
     const wc = this.waterCv.getContext('2d');
-    if (gc) this.groundImg = gc.createImageData(v.cols, v.rows);
-    if (wc) this.waterImg = wc.createImageData(v.cols, v.rows);
+    if (gc) this.groundImg = gc.createImageData(this.groundCv.width, this.groundCv.height);
+    if (wc) this.waterImg = wc.createImageData(this.waterCv.width, this.waterCv.height);
+    this.slopeX = new Float32Array(v.cols * v.rows);
+    this.slopeY = new Float32Array(v.cols * v.rows);
+    this.dip = new Float32Array(v.cols * v.rows);
+    this.groundDirty = true;
 
     const noise = new ValueNoise(seed * 13 + 3);
     this.patch = new Float32Array(v.cols * v.rows);
@@ -64,9 +93,21 @@ export class ValleyArt {
       }
     }
 
+    // the fine speckle, at the resolution the ground is actually drawn at
+    const fine = new ValueNoise(seed * 31 + 7);
+    const fw = v.cols * GROUND_SS, fh = v.rows * GROUND_SS;
+    this.speck = new Float32Array(fw * fh);
+    for (let y = 0; y < fh; y++) {
+      for (let x = 0; x < fw; x++) {
+        // two scales: a clump the size of a footprint, and a grain the size of a blade
+        this.speck[y * fw + x] = (fine.fbm2(x * 0.34, y * 0.34, 2) - 0.5) * 0.7
+          + (fine.fbm2(x * 1.15 + 40, y * 1.15 + 40, 1) - 0.5) * 0.5;
+      }
+    }
+
     const rng = makeRng(seed * 7919 + 13);
     this.tufts = [];
-    const n = Math.round(v.cols * v.rows * 0.5);
+    const n = Math.round(v.cols * v.rows * 0.3);
     for (let i = 0; i < n; i++) {
       // tufts come in clumps, the way grass actually grows
       const clump = i % 3 === 0 || this.tufts.length === 0;
@@ -114,83 +155,167 @@ export class ValleyArt {
 
   // ------------------------------------------------------------ ground
 
+  /** The land has been changed, so the ground has to be drawn again. */
+  touch(): void { this.groundDirty = true; }
+
   /**
-   * The land itself. Colour comes from height - lush and dark in the hollows, dry and pale on the
-   * ridges - and brightness from which way the slope faces the sun, which is what makes a height
-   * field read as a landscape instead of a heat map.
+   * The land itself.
+   *
+   * Colour comes from height - lush and dark in the hollows, dry and pale on the ridges - and
+   * brightness from which way the slope faces the sun, which is what makes a height field read as
+   * a landscape instead of a heat map. Earth that has been moved shows as bare soil: dark and damp
+   * where it was cut out, pale and loose where it was piled up.
+   *
+   * The slope and the hollowness are worked out once per valley cell and then carried smoothly
+   * across the fine grid, because a normal computed per fine pixel from a bilinear height field is
+   * constant within each cell and the whole thing comes out quilted.
    */
-  paintGround(ctx: Ctx, g: Grid, v: Valley): void {
+  private buildGround(v: Valley): void {
+    const cols = v.cols, rows = v.rows;
+    const fw = cols * GROUND_SS, fh = rows * GROUND_SS;
     const d = this.groundImg.data;
-    for (let y = 0; y < v.rows; y++) {
-      for (let x = 0; x < v.cols; x++) {
-        const i = y * v.cols + x;
-        const k = kindOf(v, i);
-        const hgt = v.ground[i];
-        const left = x > 0 ? v.ground[i - 1] : hgt;
-        const right = x < v.cols - 1 ? v.ground[i + 1] : hgt;
-        const up = y > 0 ? v.ground[i - v.cols] : hgt;
-        const down = y < v.rows - 1 ? v.ground[i + v.cols] : hgt;
-        // the surface normal, flattened to how much light it catches
-        const nx = (left - right) * 5.2, ny = (up - down) * 4.4;
-        const lightAmt = clamp(0.82 + nx * -LIGHT.x + ny * -LIGHT.y, 0.46, 1.28);
 
-        // how much this cell sits in a dip compared with the ground a little way off, which is
-        // what puts soft shade in the hollows and keeps the ridges bright
-        const around = (v.ground[Math.max(0, i - v.cols * 3)] + v.ground[Math.min(v.ground.length - 1, i + v.cols * 3)]
+    // per cell: which way the ground leans, and how much of a dip it sits in
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const i = y * cols + x;
+        const h = v.ground[i];
+        const l = x > 0 ? v.ground[i - 1] : h;
+        const r = x < cols - 1 ? v.ground[i + 1] : h;
+        const u = y > 0 ? v.ground[i - cols] : h;
+        const dn = y < rows - 1 ? v.ground[i + cols] : h;
+        this.slopeX[i] = (l - r) * 5.2;
+        this.slopeY[i] = (u - dn) * 4.4;
+        const around = (v.ground[Math.max(0, i - cols * 3)] + v.ground[Math.min(v.ground.length - 1, i + cols * 3)]
           + v.ground[Math.max(0, i - 3)] + v.ground[Math.min(v.ground.length - 1, i + 3)]) / 4;
-        const hollow = clamp((around - hgt) * 5.5, -0.25, 0.55);
-        const lightAmt2 = lightAmt * (1 - hollow * 0.42);
+        this.dip[i] = clamp((around - h) * 5.5, -0.25, 0.55);
+      }
+    }
 
-        let r: number, gg: number, b: number;
-        if (k === 'sea') { r = 38; gg = 116; b = 178; }
-        else {
-          const t = clamp((hgt - 0.06) / 0.8, 0, 1) + this.patch[i] * 0.14;
-          const col = t < 0.45 ? mix(HOLLOW, MEADOW, clamp(t / 0.45, 0, 1))
-            : mix(MEADOW, DRY, clamp((t - 0.45) / 0.6, 0, 1));
-          const n2 = parseInt(col.slice(1), 16);
-          r = (n2 >> 16) & 255; gg = (n2 >> 8) & 255; b = n2 & 255;
-          // earth that has been moved shows as bare soil, freshly turned
-          const dug = clamp((v.original[i] - hgt) / 0.085, 0, 1);
-          r = r * (1 - dug) + 122 * dug; gg = gg * (1 - dug) + 88 * dug; b = b * (1 - dug) + 58 * dug;
-          const banked = clamp((hgt - v.original[i]) / 0.1, 0, 1);
-          r = r * (1 - banked) + 156 * banked; gg = gg * (1 - banked) + 132 * banked; b = b * (1 - banked) + 92 * banked;
-          if (k === 'field') { r = r * 0.72 + 128 * 0.28; gg = gg * 0.72 + 92 * 0.28; b = b * 0.72 + 56 * 0.28; }
+    const bilinear = (arr: Float32Array, fx: number, fy: number): number => {
+      const x0 = Math.floor(fx), y0 = Math.floor(fy);
+      const tx = fx - x0, ty = fy - y0;
+      const xa = clamp(x0, 0, cols - 1), xb = clamp(x0 + 1, 0, cols - 1);
+      const ya = clamp(y0, 0, rows - 1), yb = clamp(y0 + 1, 0, rows - 1);
+      const a = arr[ya * cols + xa], b = arr[ya * cols + xb];
+      const c = arr[yb * cols + xa], e = arr[yb * cols + xb];
+      return (a + (b - a) * tx) + ((c + (e - c) * tx) - (a + (b - a) * tx)) * ty;
+    };
+
+    for (let fy = 0; fy < fh; fy++) {
+      const cy = (fy + 0.5) / GROUND_SS - 0.5;
+      const yc = clamp(Math.round(cy), 0, rows - 1);
+      for (let fx = 0; fx < fw; fx++) {
+        const cx = (fx + 0.5) / GROUND_SS - 0.5;
+        const xc = clamp(Math.round(cx), 0, cols - 1);
+        const ci = yc * cols + xc;
+        const k = kindOf(v, ci);
+        const o = (fy * fw + fx) * 4;
+        const grit = this.speck[fy * fw + fx];
+
+        if (k === 'sea') {
+          d[o] = 38; d[o + 1] = 116; d[o + 2] = 178; d[o + 3] = 255;
+          continue;
         }
-        const o = i * 4;
-        d[o] = clamp(r * lightAmt2, 0, 255);
-        d[o + 1] = clamp(gg * lightAmt2, 0, 255);
-        d[o + 2] = clamp(b * lightAmt2, 0, 255);
+
+        const hgt = bilinear(v.ground, cx, cy);
+        const orig = bilinear(v.original, cx, cy);
+        const nx = bilinear(this.slopeX, cx, cy);
+        const ny = bilinear(this.slopeY, cx, cy);
+        const hollow = bilinear(this.dip, cx, cy);
+        const light = clamp(0.82 + nx * -LIGHT.x + ny * -LIGHT.y, 0.46, 1.28) * (1 - hollow * 0.42);
+
+        const t = clamp((hgt - 0.06) / 0.8, 0, 1) + this.patch[ci] * 0.14;
+        const col = t < 0.45 ? mix(HOLLOW, MEADOW, clamp(t / 0.45, 0, 1))
+          : mix(MEADOW, DRY, clamp((t - 0.45) / 0.6, 0, 1));
+        const n2 = parseInt(col.slice(1), 16);
+        let r = (n2 >> 16) & 255, gg = (n2 >> 8) & 255, b = n2 & 255;
+        // grass is never one flat green: a fine mottle over the top of the slow patches
+        const mot = 1 + grit * 0.26;
+        r *= mot; gg *= mot * 1.03; b *= mot * 0.96;
+
+        // earth that has been cut out is dark and damp; earth piled up is pale and loose
+        const dug = clamp((orig - hgt) / 0.085, 0, 1);
+        if (dug > 0) {
+          const speckle = 1 + grit * 0.5;
+          r = r * (1 - dug) + 104 * speckle * dug;
+          gg = gg * (1 - dug) + 74 * speckle * dug;
+          b = b * (1 - dug) + 50 * speckle * dug;
+        }
+        const banked = clamp((hgt - orig) / 0.1, 0, 1);
+        if (banked > 0) {
+          const speckle = 1 + grit * 0.42;
+          r = r * (1 - banked) + 162 * speckle * banked;
+          gg = gg * (1 - banked) + 138 * speckle * banked;
+          b = b * (1 - banked) + 98 * speckle * banked;
+        }
+        if (k === 'field') { r = r * 0.72 + 128 * 0.28; gg = gg * 0.72 + 92 * 0.28; b = b * 0.72 + 56 * 0.28; }
+
+        // Sunlit ground is warmer and shaded ground is cooler, because the shade is lit by the
+        // sky rather than by the sun. It is a small shift and it is most of what makes a rendered
+        // landscape stop looking like a tinted heightmap.
+        const warm = light - 1;
+        d[o] = clamp(r * light * (1 + warm * 0.22), 0, 255);
+        d[o + 1] = clamp(gg * light, 0, 255);
+        d[o + 2] = clamp(b * light * (1 - warm * 0.26), 0, 255);
         d[o + 3] = 255;
       }
     }
     const gc = this.groundCv.getContext('2d');
-    if (!gc) return;
-    gc.putImageData(this.groundImg, 0, 0);
-    ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(this.groundCv, g.x, g.y, g.w, g.h);
-    ctx.restore();
+    if (gc) gc.putImageData(this.groundImg, 0, 0);
+    this.groundDirty = false;
   }
 
-  /** Grass, reeds and flowers, thicker in the damp hollows and thin on the dry tops. */
-  paintGrowth(ctx: Ctx, g: Grid, v: Valley, t: number): void {
+  paintGround(ctx: Ctx, g: Grid, v: Valley): void {
+    if (this.groundDirty) { this.buildGround(v); this.scaledFor = ''; }
+    // A high-quality upscale of the height field is expensive and the answer never changes between
+    // digs, so it is done once into a canvas the size it is shown at and copied from then on.
+    const key = `${Math.round(g.w)}x${Math.round(g.h)}`;
+    if (this.scaledFor !== key) {
+      this.groundScaled.width = Math.max(1, Math.round(g.w));
+      this.groundScaled.height = Math.max(1, Math.round(g.h));
+      const sc = this.groundScaled.getContext('2d');
+      if (sc) {
+        sc.imageSmoothingEnabled = true;
+        sc.imageSmoothingQuality = 'high';
+        sc.drawImage(this.groundCv, 0, 0, this.groundScaled.width, this.groundScaled.height);
+        // The film of grain that stops the land looking like flat paint is baked in here rather
+        // than laid over the whole valley every frame: it is an 'overlay' blend across most of the
+        // screen, which is a per-pixel read and write and was costing a quarter of the frame.
+        grainOver(sc, 0, 0, this.groundScaled.width, this.groundScaled.height, 0.06);
+        // and the grass, which does not move
+        this.paintGrowth(sc, { x: 0, y: 0, cell: g.cell, w: g.w, h: g.h }, v, 0, false);
+      }
+      this.scaledFor = key;
+    }
+    ctx.drawImage(this.groundScaled, g.x, g.y, g.w, g.h);
+  }
+
+  /**
+   * Grass, reeds and flowers, thicker in the damp hollows and thin on the dry tops.
+   *
+   * Six hundred hand-drawn tufts a frame is most of a phone's frame for something that does not
+   * move, so the grass and the flowers are painted once into the ground's cache and only the
+   * reeds - the tall ones by the water, where a sway actually reads - are drawn live.
+   */
+  paintGrowth(ctx: Ctx, g: Grid, v: Valley, t: number, moving = true): void {
     const c = g.cell;
     const step = Math.max(0.6, c);
     ctx.save();
     ctx.lineCap = 'round';
     for (const tuft of this.tufts) {
+      if ((tuft.kind === 'reed') !== moving) continue;
       const cx = Math.min(v.cols - 1, Math.floor(tuft.x)), cy = Math.min(v.rows - 1, Math.floor(tuft.y));
       const i = cy * v.cols + cx;
       const k = kindOf(v, i);
       if (k === 'sea' || k === 'rock' || k === 'house' || k === 'wheel') continue;
-      if (v.water[i] > 0.02) continue;
+      if (moving && v.water[i] > 0.02) continue;
       const dug = v.original[i] - v.ground[i];
       if (dug > 0.02) continue;
       const x = g.x + tuft.x * c, y = g.y + tuft.y * c;
       const hgt = v.ground[i];
       const lush = clamp(1 - (hgt - 0.1) / 0.7, 0.15, 1);
-      const sway = Math.sin(t * 1.6 + tuft.x * 0.7 + tuft.y * 0.3) * step * 0.22 * lush;
+      const sway = moving ? Math.sin(t * 1.6 + tuft.x * 0.7 + tuft.y * 0.3) * step * 0.22 * lush : 0;
       if (tuft.kind === 'flower') {
         const s = step * 0.2 * tuft.s;
         ctx.strokeStyle = 'rgba(70,120,50,0.75)';
@@ -279,35 +404,82 @@ export class ValleyArt {
    * deep blue vein; the same smoothing that softens the ground turns the cells into a stream with
    * banks instead of a staircase.
    */
+  /**
+   * The water.
+   *
+   * Depth does the work: a shallow film is almost clear and picks up the colour of the ground it
+   * is lying on, a channel running full is a solid blue-green, and the very edge is lighter still
+   * because that is where the bed shows through. Drawn at twice the grid so the banks of a channel
+   * are a line rather than a staircase.
+   */
   paintWater(ctx: Ctx, g: Grid, v: Valley, t: number): void {
     const d = this.waterImg.data;
-    for (let i = 0; i < v.water.length; i++) {
-      const w = v.water[i];
-      const o = i * 4;
-      if (w < 0.004 || kindOf(v, i) === 'sea') { d[o + 3] = 0; continue; }
-      const deep = clamp((w - 0.004) / 0.07, 0, 1);
-      d[o] = 122 - deep * 88;
-      d[o + 1] = 214 - deep * 96;
-      d[o + 2] = 244 - deep * 44;
-      d[o + 3] = clamp(120 + deep * 135, 0, 252);
+    const cols = v.cols, rows = v.rows;
+    const fw = cols * WATER_SS, fh = rows * WATER_SS;
+    const depth = (fx: number, fy: number): number => {
+      const x0 = Math.floor(fx), y0 = Math.floor(fy);
+      const tx = fx - x0, ty = fy - y0;
+      const xa = clamp(x0, 0, cols - 1), xb = clamp(x0 + 1, 0, cols - 1);
+      const ya = clamp(y0, 0, rows - 1), yb = clamp(y0 + 1, 0, rows - 1);
+      const a = v.water[ya * cols + xa], b = v.water[ya * cols + xb];
+      const c = v.water[yb * cols + xa], e = v.water[yb * cols + xb];
+      const top = a + (b - a) * tx, bot = c + (e - c) * tx;
+      return top + (bot - top) * ty;
+    };
+    // Only the wet part is worth compositing. A channel is a thin ribbon across a big valley, and
+    // laying the whole rectangle over the land every frame - almost all of it transparent - was
+    // the single most expensive thing on the screen.
+    let x0 = fw, x1 = -1, y0 = fh, y1 = -1;
+    for (let fy = 0; fy < fh; fy++) {
+      const cy = (fy + 0.5) / WATER_SS - 0.5;
+      const yc = clamp(Math.round(cy), 0, rows - 1);
+      for (let fx = 0; fx < fw; fx++) {
+        const cx = (fx + 0.5) / WATER_SS - 0.5;
+        const xc = clamp(Math.round(cx), 0, cols - 1);
+        const o = (fy * fw + fx) * 4;
+        if (kindOf(v, yc * cols + xc) === 'sea') { d[o + 3] = 0; continue; }
+        const w = depth(cx, cy);
+        if (w < 0.004) { d[o + 3] = 0; continue; }
+        if (fx < x0) x0 = fx;
+        if (fx > x1) x1 = fx;
+        if (fy < y0) y0 = fy;
+        if (fy > y1) y1 = fy;
+        const deep = clamp((w - 0.004) / 0.07, 0, 1);
+        // the shallowest film is nearly clear and takes a little green from the bed below it
+        const rim = 1 - clamp(deep * 3.2, 0, 1);
+        d[o] = 122 - deep * 88 + rim * 26;
+        d[o + 1] = 214 - deep * 96 + rim * 18;
+        d[o + 2] = 244 - deep * 44;
+        d[o + 3] = clamp(96 + deep * 156, 0, 252);
+      }
     }
     const wc = this.waterCv.getContext('2d');
     if (!wc) return;
-    wc.putImageData(this.waterImg, 0, 0);
-    ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.globalAlpha = 0.94;
-    // a touch of blur takes the last of the grid out of the stream's banks
-    ctx.filter = `blur(${(g.cell * 0.3).toFixed(2)}px)`;
-    ctx.drawImage(this.waterCv, g.x, g.y, g.w, g.h);
-    ctx.filter = 'none';
-    ctx.restore();
+    if (x1 >= x0) {
+      // a cell of margin, so the smooth upscale has something to fade into
+      x0 = Math.max(0, x0 - WATER_SS); x1 = Math.min(fw - 1, x1 + WATER_SS);
+      y0 = Math.max(0, y0 - WATER_SS); y1 = Math.min(fh - 1, y1 + WATER_SS);
+      const sw = x1 - x0 + 1, sh = y1 - y0 + 1;
+      wc.putImageData(this.waterImg, 0, 0);
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.globalAlpha = 0.94;
+      // No canvas filter: a gaussian blur is applied at screen resolution and costs a sixth of the
+      // frame on a phone. Twice the grid plus a smooth upscale already takes the staircase out.
+      ctx.drawImage(this.waterCv, x0, y0, sw, sh,
+        g.x + (x0 / fw) * g.w, g.y + (y0 / fh) * g.h, (sw / fw) * g.w, (sh / fh) * g.h);
+      ctx.restore();
+    }
 
-    // light running over the surface, travelling the way the water is travelling
+    // Light running over the surface, travelling the way the water is travelling.
+    //
+    // Every streak used to be its own save, translate, rotate, fill and restore - five hundred of
+    // them a frame, which on a phone is most of the frame. `ellipse` takes a rotation of its own,
+    // so they all go into one path instead, bucketed into a few brightnesses.
     const c = g.cell;
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    const bands: Path2D[] = [new Path2D(), new Path2D(), new Path2D()];
+    let any = false;
     for (let y = 1; y < v.rows - 1; y += 2) {
       for (let x = 1; x < v.cols - 1; x += 2) {
         const i = y * v.cols + x;
@@ -320,19 +492,27 @@ export class ValleyArt {
         const ang = Math.atan2(-hy, -hx);
         const phase = (t * 1.7 + x * 0.21 + y * 0.17) % 1;
         const a = Math.sin(phase * Math.PI) * clamp(speed * 26, 0, 1) * 0.28;
-        if (a <= 0.02) continue;
-        ctx.save();
-        ctx.translate(g.x + (x + 0.5) * c + Math.cos(ang) * c * (phase - 0.5) * 2.4,
-          g.y + (y + 0.5) * c + Math.sin(ang) * c * (phase - 0.5) * 2.4);
-        ctx.rotate(ang);
-        ctx.fillStyle = `rgba(255,255,255,${a})`;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, c * 0.6, c * 0.11, 0, 0, TAU);
-        ctx.fill();
-        ctx.restore();
+        if (a <= 0.03) continue;
+        const band = a > 0.2 ? 2 : a > 0.11 ? 1 : 0;
+        const ex = g.x + (x + 0.5) * c + Math.cos(ang) * c * (phase - 0.5) * 2.4;
+        const ey = g.y + (y + 0.5) * c + Math.sin(ang) * c * (phase - 0.5) * 2.4;
+        const rx = c * 0.6;
+        // each streak needs its own sub-path, or the path joins one to the next with a straight
+        // line and fills the polygon between them
+        bands[band].moveTo(ex + Math.cos(ang) * rx, ey + Math.sin(ang) * rx);
+        bands[band].ellipse(ex, ey, rx, c * 0.11, ang, 0, TAU);
+        any = true;
       }
     }
-    ctx.restore();
+    if (any) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      [0.07, 0.15, 0.26].forEach((a, k) => {
+        ctx.fillStyle = `rgba(255,255,255,${a})`;
+        ctx.fill(bands[k]);
+      });
+      ctx.restore();
+    }
   }
 
   // ------------------------------------------------------------ the things in the valley
@@ -767,9 +947,6 @@ export class ValleyArt {
   }
 
   /** A whisper of grain over the whole valley, so no fill is perfectly flat. */
-  paintGrain(ctx: Ctx, g: Grid): void {
-    grainOver(ctx, g.x, g.y, g.w, g.h, 0.045);
-  }
 }
 
 // ---------------------------------------------------------------- level thumbnails

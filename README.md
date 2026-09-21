@@ -116,6 +116,12 @@ Dig channels and raise banks so the spring water reaches the fields and turns th
 valleys with rocks, slopes and multiple targets; the water is a real flow simulation, so a channel
 that is too steep floods and one that is too shallow stalls.
 
+The land is drawn from the height field you are shaping: colour from height, brightness from which
+way each slope faces the sun, warm where the light lands and cool in the shade, with fine grain on
+top so grass reads as grass and freshly cut earth as wet soil. It is rendered at three pixels per
+valley cell rather than one, and kept, because the ground only changes when somebody digs - which
+also took the whole thing from ten frames a second to nearly forty on a machine with no GPU at all.
+
 A valley starts dry. For the first fifteen seconds nothing flows: a card says what this valley
 wants in as many words ("get the water to two fields and a mill wheel"), the pins sit over the
 things that want it, and there is time to look and to dig. The card fades before the end so the

@@ -442,6 +442,7 @@ export class Millstream {
     this.idle = 0;
     if (this.spade <= 0) { mill.blocked(); if (this.noteT <= 0) this.say(T('Your spade is worn out.', 'Je schop is op.')); return; }
     const used = this.tool === 'dig' ? digAt(this.valley, cx, cy, 1.55) : bankAt(this.valley, cx, cy, 1.4);
+    if (used > 0) this.art?.touch();   // the land changed, so the ground has to be drawn again
     if (used <= 0) return;
     this.spade = Math.max(0, this.spade - used);
     // earth flying off the spade, thrown the way the stroke is going
@@ -484,7 +485,7 @@ export class Millstream {
     const art = this.art;
     if (!art) return;
     art.paintGround(ctx, g, v);
-    art.paintGrowth(ctx, g, v, this.t);
+    art.paintGrowth(ctx, g, v, this.t, true);
     art.paintWater(ctx, g, v, this.t);
     art.paintRocks(ctx, g);
     this.level.fields.forEach((f, k) => {
@@ -500,7 +501,6 @@ export class Millstream {
       art.paintSpring(ctx, g, v, sx, sy, this.prep <= 0 && this.springLeft > 0, this.t, this.ps);
     }
     art.paintSea(ctx, g, v, this.t);
-    art.paintGrain(ctx, g);
     if (this.phase === 'play') { this.drawWants(g); this.drawHandHint(g); }
   }
 
