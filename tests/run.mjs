@@ -72,7 +72,8 @@ const group = name => console.log(`\n${name}`);
   const d = await bundle('src/games/moonshot/design.ts', 'design.mjs');
   const { partById, stagesByColumn, deadWeight, dudEngines, buildProblem, isOnePiece, canPlace,
     collapse, stillAttached, shapeOf, slipperiness, widthOf, taperSpan, canLift, isFlyable,
-    PARTS, padThrust, totalThrust, DELAYS, clampDelay } = d;
+    PARTS, padThrust, totalThrust, DELAYS, clampDelay,
+    kitOf, missionOf, holdFree, STOWABLE, totalMass, stowedMass, cleanDesign } = d;
 
   /** a column of parts stacked bottom-first, the way a child builds one */
   const col = (c, ids) => {
@@ -97,6 +98,81 @@ const group = name => console.log(`\n${name}`);
     PARTS.filter(p => p.kind === 'solid').every(p => p.fuel > 0 && p.burn > 0), true);
   is('test_parts_tank_fuel_follows_volume', PARTS.filter(p => p.kind === 'tank' && p.art === undefined)
     .every(p => Math.abs(p.fuel - 2.75 * p.w * p.w * p.rows) < 0.06), true);
+
+  group('Moonshot — every part has a job');
+  // "een ruim, waar je niks in kan stoppen" - the hold takes two things now, and what is inside
+  // is carried but never meets the air
+  const bay = () => [{ id: 'cargo', col: 4, row: 0 }];
+  is('test_hold_empty_bay_offers_two_slots', kitOf(bay()).holdSlots, 2);
+  is('test_hold_empty_bay_carries_nothing', kitOf(bay()).stowed, []);
+  is('test_hold_free_slots_on_an_empty_bay', holdFree(bay()), 2);
+  is('test_hold_free_slots_with_one_thing_inside',
+    holdFree([{ id: 'cargo', col: 4, row: 0, hold: ['rover'] }]), 1);
+  is('test_hold_a_full_bay_has_no_room',
+    holdFree([{ id: 'cargo', col: 4, row: 0, hold: ['rover', 'sat'] }]), 0);
+  is('test_hold_stowed_mass_is_carried',
+    Math.round(totalMass([{ id: 'cargo', col: 4, row: 0, hold: ['rover'] }]) * 100) / 100,
+    Math.round((partById('cargo').dry + partById('rover').dry) * 100) / 100);
+  is('test_hold_stowed_mass_of_an_empty_bay_is_zero', stowedMass({ id: 'cargo', col: 4, row: 0 }), 0);
+  is('test_hold_stowed_parts_stay_out_of_the_shape',
+    shapeOf([{ id: 'cargo', col: 4, row: 0, hold: ['rover'] }]).drag,
+    shapeOf([{ id: 'cargo', col: 4, row: 0 }]).drag);
+  is('test_hold_what_is_inside_still_does_its_job',
+    kitOf([{ id: 'cargo', col: 4, row: 0, hold: ['camera'] }]).cameras, 1);
+  is('test_hold_everything_stowable_is_a_real_part',
+    STOWABLE.every(id => PARTS.some(p => p.id === id)), true);
+  is('test_hold_a_saved_bay_keeps_what_is_in_it',
+    cleanDesign([{ id: 'cargo', col: 4, row: 0, hold: ['rover'] }])?.[0].hold, ['rover']);
+  is('test_hold_a_saved_bay_drops_things_that_do_not_fit_in_one',
+    cleanDesign([{ id: 'cargo', col: 4, row: 0, hold: ['tank-m'] }])?.[0].hold, undefined);
+
+  // the kit used to fall into the sea with the empty tank it was bolted to, which is why a
+  // parachute, a camera and a flag all appeared to do nothing at all
+  const geared = col(4, ['engine-s', 'tank-s', 'chute', 'camera', 'antenna', 'solar', 'flag', 'capsule']);
+  const firstStage = [...stagesByColumn(geared).values()][0][0];
+  is('test_gear_does_not_fall_away_with_the_spent_stage',
+    firstStage.parts.map(i => geared[i].id), ['engine-s', 'tank-s']);
+  is('test_gear_still_works_after_the_stage_has_gone',
+    kitOf(geared, new Set(firstStage.parts)).cameras, 1);
+  is('test_gear_is_not_dead_weight', deadWeight(geared).length, 0);
+  is('test_gear_a_nose_still_rides_with_its_booster',
+    [...stagesByColumn([...col(3, ['srb-s', 'nose'])]).values()][0][0].parts.length, 2);
+
+  group('Moonshot — what a flight managed');
+  const kit = ids => kitOf(ids.map((id, i) => ({ id, col: i, row: 0 })));
+  is('test_mission_a_camera_alone_takes_no_picture', missionOf(kit(['camera']), 6, 1).photo, false);
+  is('test_mission_a_camera_alone_says_it_has_no_power',
+    missionOf(kit(['camera']), 6, 1).photoMiss, 'power');
+  is('test_mission_a_powered_camera_still_needs_an_aerial',
+    missionOf(kit(['camera', 'solar']), 6, 1).photoMiss, 'radio');
+  is('test_mission_camera_power_and_aerial_bring_a_picture_home',
+    missionOf(kit(['camera', 'solar', 'antenna']), 6, 1).photo, true);
+  is('test_mission_no_picture_from_a_flight_that_never_left_the_pad',
+    missionOf(kit(['camera', 'solar', 'antenna']), 0, 1).photo, false);
+  is('test_mission_a_capsule_brings_its_own_power_and_aerial',
+    missionOf(kit(['capsule', 'camera']), 6, 1).photo, true);
+  is('test_mission_a_light_payload_comes_down_under_a_parachute',
+    missionOf(kit(['chute']), 6, 1).landed, true);
+  is('test_mission_too_heavy_for_the_parachute_does_not',
+    missionOf(kit(['chute']), 6, 9).landed, false);
+  is('test_mission_the_big_parachute_carries_more',
+    missionOf(kit(['chute-l']), 6, 9).landed, true);
+  is('test_mission_legs_make_it_land_upright',
+    missionOf(kit(['chute', 'leg']), 6, 1).upright, true);
+  is('test_mission_without_legs_it_lands_on_its_side',
+    missionOf(kit(['chute']), 6, 1).upright, false);
+  is('test_mission_a_flag_needs_something_to_stand_on',
+    missionOf(kit(['flag']), 6, 1).flag, false);
+  is('test_mission_a_flag_with_legs_gets_planted',
+    missionOf(kit(['flag', 'leg']), 6, 1).flag, true);
+  is('test_mission_a_satellite_is_left_behind_once_you_get_round_the_earth',
+    missionOf(kit(['sat']), 5, 1).deployed, ['sat']);
+  is('test_mission_a_satellite_stays_aboard_on_a_short_hop',
+    missionOf(kit(['sat']), 2, 1).deployed, []);
+  is('test_mission_a_cabin_counts_its_crew', missionOf(kit(['cabin']), 6, 1).crew, 4);
+  is('test_mission_a_telescope_does_science', missionOf(kit(['telescope']), 6, 1).science > 0, true);
+  is('test_kit_air_brakes_are_counted', kit(['airbrake']).brake, 1);
+  is('test_kit_girders_steady_the_rocket', kit(['truss-l']).struts, 2);
 
   group('Moonshot — holding an engine back');
   const held = [...col(4, ['engine-s', 'tank-s', 'capsule'])];
@@ -259,6 +335,194 @@ const group = name => console.log(`\n${name}`);
   is('test_route_first_stop_asks_for_no_stars', stopShort(stops[0]), 0);
   is('test_route_second_stop_is_shut_on_a_fresh_save', stopOpen(stops[1]), false);
   is('test_route_now_is_the_first_island_on_a_fresh_save', routeNow(), 0);
+}
+
+// ---------------------------------------------------------------- Klokkijken: how a clock is said out loud
+
+{
+  const { spokenTime, spokenTimeEn, hourNameNl, digitalLabel, handAngles, minuteFromAngle,
+    hourFromAngle, minutesBetween, plusMinutes, dayPartNl, durationLabel } =
+    await bundle('src/games/clock/dutchtime.ts', 'dutchtime.mjs');
+
+  group('Klokkijken — de klok hardop, in het Nederlands');
+  // the hour, and the two ends of the day that are both called twelve
+  is('test_dutchtime_whole_hour_says_uur', spokenTime(3, 0), 'drie uur');
+  is('test_dutchtime_noon_is_twelve_uur', spokenTime(12, 0), 'twaalf uur');
+  is('test_dutchtime_midnight_is_twelve_uur', spokenTime(0, 0), 'twaalf uur');
+  is('test_dutchtime_afternoon_hour_uses_the_face_name', spokenTime(15, 0), 'drie uur');
+  is('test_dutchtime_twentythree_hundred_is_elf_uur', spokenTime(23, 0), 'elf uur');
+
+  // the quarters
+  is('test_dutchtime_quarter_past_counts_from_this_hour', spokenTime(3, 15), 'kwart over drie');
+  is('test_dutchtime_quarter_to_counts_to_the_next_hour', spokenTime(3, 45), 'kwart voor vier');
+  is('test_dutchtime_quarter_past_twelve_is_over_twaalf', spokenTime(12, 15), 'kwart over twaalf');
+  is('test_dutchtime_quarter_to_one_after_midnight', spokenTime(0, 45), 'kwart voor een');
+  is('test_dutchtime_quarter_to_midnight_is_voor_twaalf', spokenTime(23, 45), 'kwart voor twaalf');
+
+  // the half hour, which belongs to the hour that is coming, not the one just gone
+  is('test_dutchtime_half_past_three_is_half_vier', spokenTime(3, 30), 'half vier');
+  is('test_dutchtime_half_past_twelve_is_half_een', spokenTime(12, 30), 'half een');
+  is('test_dutchtime_half_past_midnight_is_half_een', spokenTime(0, 30), 'half een');
+  is('test_dutchtime_half_past_eleven_is_half_twaalf', spokenTime(11, 30), 'half twaalf');
+  is('test_dutchtime_half_past_twentythree_is_half_twaalf', spokenTime(23, 30), 'half twaalf');
+
+  // before the half and after the half, which is where Dutch children come unstuck
+  is('test_dutchtime_twenty_past_is_tien_voor_half', spokenTime(3, 20), 'tien voor half vier');
+  is('test_dutchtime_twentyfive_past_is_vijf_voor_half', spokenTime(3, 25), 'vijf voor half vier');
+  is('test_dutchtime_sixteen_past_is_veertien_voor_half', spokenTime(3, 16), 'veertien voor half vier');
+  is('test_dutchtime_twentynine_past_is_een_voor_half', spokenTime(3, 29), 'een voor half vier');
+  is('test_dutchtime_twentyfive_to_is_vijf_over_half', spokenTime(3, 35), 'vijf over half vier');
+  is('test_dutchtime_twenty_to_is_tien_over_half', spokenTime(3, 40), 'tien over half vier');
+  is('test_dutchtime_thirtyone_past_is_een_over_half', spokenTime(3, 31), 'een over half vier');
+  is('test_dutchtime_fortyfour_past_is_veertien_over_half', spokenTime(3, 44), 'veertien over half vier');
+  is('test_dutchtime_twenty_past_twelve_is_voor_half_een', spokenTime(12, 20), 'tien voor half een');
+  is('test_dutchtime_twentyfive_to_one_is_over_half_een', spokenTime(0, 35), 'vijf over half een');
+
+  // plain over and voor, either side of the hour
+  is('test_dutchtime_five_past_is_vijf_over', spokenTime(3, 5), 'vijf over drie');
+  is('test_dutchtime_one_past_is_een_over', spokenTime(3, 1), 'een over drie');
+  is('test_dutchtime_ten_past_is_tien_over', spokenTime(3, 10), 'tien over drie');
+  is('test_dutchtime_fourteen_past_is_veertien_over', spokenTime(3, 14), 'veertien over drie');
+  is('test_dutchtime_ten_to_is_tien_voor_the_next_hour', spokenTime(3, 50), 'tien voor vier');
+  is('test_dutchtime_one_to_is_een_voor_the_next_hour', spokenTime(3, 59), 'een voor vier');
+  is('test_dutchtime_ten_to_twelve_is_voor_twaalf', spokenTime(11, 50), 'tien voor twaalf');
+  is('test_dutchtime_five_to_one_wraps_to_een', spokenTime(12, 55), 'vijf voor een');
+  is('test_dutchtime_five_past_midnight_is_over_twaalf', spokenTime(0, 5), 'vijf over twaalf');
+  is('test_dutchtime_hour_thirteen_names_the_face_hour', hourNameNl(13), 'een');
+  // a time that ran over the end of the hour is wrapped, not printed as 3:65
+  is('test_dutchtime_minutes_past_sixty_roll_into_the_next_hour', spokenTime(3, 65), 'vijf over vier');
+
+  group('Klokkijken — the same clock in English');
+  is('test_entime_whole_hour_says_oclock', spokenTimeEn(3, 0), "three o'clock");
+  is('test_entime_half_past_stays_on_this_hour', spokenTimeEn(3, 30), 'half past three');
+  is('test_entime_quarter_past', spokenTimeEn(3, 15), 'quarter past three');
+  is('test_entime_quarter_to_counts_to_the_next_hour', spokenTimeEn(3, 45), 'quarter to four');
+  is('test_entime_twenty_past', spokenTimeEn(3, 20), 'twenty past three');
+  is('test_entime_twenty_to', spokenTimeEn(3, 40), 'twenty to four');
+  is('test_entime_odd_minute_says_minutes', spokenTimeEn(3, 7), 'seven minutes past three');
+  is('test_entime_one_minute_is_singular', spokenTimeEn(3, 1), 'one minute past three');
+  is('test_entime_odd_minute_to_says_minutes', spokenTimeEn(3, 52), 'eight minutes to four');
+  is('test_entime_noon_is_twelve_oclock', spokenTimeEn(12, 0), "twelve o'clock");
+  is('test_entime_afternoon_uses_the_face_hour', spokenTimeEn(15, 20), 'twenty past three');
+
+  group('Klokkijken — figures, hands and arithmetic');
+  is('test_digital_twentyfour_hour_pads_both_halves', digitalLabel(9, 5, true), '09:05');
+  is('test_digital_twelve_hour_drops_the_leading_zero', digitalLabel(9, 5, false), '9:05');
+  is('test_digital_afternoon_on_a_twelve_hour_clock', digitalLabel(15, 40, false), '3:40');
+  is('test_digital_midnight_on_a_twelve_hour_clock_is_twelve', digitalLabel(0, 30, false), '12:30');
+  // the whole point of the face: the hour hand is between the numbers as the minutes pass
+  is('test_hands_hour_hand_sits_on_the_numeral_on_the_hour',
+    handAngles(3, 0).hour, Math.PI / 2);
+  is('test_hands_hour_hand_is_halfway_to_the_next_numeral_at_half_past',
+    Math.round(handAngles(3, 30).hour * 1e6) / 1e6, Math.round((Math.PI / 2 + Math.PI / 12) * 1e6) / 1e6);
+  is('test_hands_minute_hand_points_straight_up_on_the_hour', handAngles(3, 0).minute, 0);
+  is('test_hands_minute_hand_points_straight_down_at_half_past',
+    Math.round(handAngles(3, 30).minute * 1e6) / 1e6, Math.round(Math.PI * 1e6) / 1e6);
+  is('test_hands_afternoon_hour_lands_on_the_same_angle_as_the_morning',
+    handAngles(15, 20).hour, handAngles(3, 20).hour);
+  is('test_angle_to_minute_snaps_to_five', minuteFromAngle(Math.PI / 2 + 0.05, 5), 15);
+  is('test_angle_to_minute_snaps_to_one', minuteFromAngle((Math.PI * 2 * 17) / 60, 1), 17);
+  is('test_angle_to_minute_wraps_at_the_top', minuteFromAngle(Math.PI * 2 - 0.001, 5), 0);
+  is('test_angle_to_hour_between_two_numerals_reads_the_lower',
+    hourFromAngle(handAngles(3, 30).hour), 3);
+  is('test_minutes_between_counts_forwards_over_the_hour', minutesBetween(14, 20, 14, 45), 25);
+  is('test_minutes_between_counts_forwards_over_midnight', minutesBetween(23, 50, 0, 10), 20);
+  is('test_plus_minutes_crosses_the_hour', plusMinutes(14, 50, 25), { h: 15, m: 15 });
+  is('test_plus_minutes_crosses_midnight', plusMinutes(23, 45, 30), { h: 0, m: 15 });
+  is('test_daypart_after_midday_is_smiddags', dayPartNl(13), "'s middags");
+  is('test_daypart_before_six_is_snachts', dayPartNl(5), "'s nachts");
+  is('test_duration_label_an_hour_is_said_as_an_hour', durationLabel(60, true), 'een uur');
+  is('test_duration_label_minutes_stay_minutes', durationLabel(25, true), '25 minuten');
+}
+
+// ---------------------------------------------------------------- Klokkijken: the ladder and its traps
+
+{
+  const { LEVELS, distractors, makeQuestion, isRight, starsFor, rngFor } =
+    await bundle('src/games/clock/model.ts', 'clockmodel.mjs');
+  const level = id => LEVELS.find(l => l.id === id);
+
+  group('Klokkijken — the ladder of levels');
+  is('test_ladder_opens_on_whole_hours_only', level('hours').steps, [0]);
+  is('test_ladder_second_level_adds_the_half_hour', level('half').steps, [0, 30]);
+  is('test_ladder_snap_gets_finer_only_at_single_minutes',
+    LEVELS.map(l => l.snap), [5, 5, 5, 5, 5, 1, 5, 5, 5]);
+  is('test_ladder_every_level_has_both_languages',
+    LEVELS.every(l => l.name && l.nameNl && l.hint && l.hintNl), true);
+  is('test_ladder_covers_all_four_question_kinds',
+    [...new Set(LEVELS.flatMap(l => l.kinds))].sort(), ['elapsed', 'match', 'read', 'set']);
+  is('test_ladder_only_the_last_two_levels_use_the_whole_day',
+    LEVELS.filter(l => l.h24).map(l => l.id), ['day', 'later']);
+
+  group('Klokkijken — the wrong answers are the mistakes children make');
+  const rng = rngFor(level('half'), 1);
+  // half past three is "half vier", so four o'clock-thirty must be on offer
+  is('test_distractors_half_past_offers_the_next_hour',
+    distractors({ h: 3, m: 30 }, level('half'), rng).some(d => d.h === 4 && d.m === 30), true);
+  // a quarter-to question must offer the quarter-past that a child mixes it up with
+  is('test_distractors_quarter_to_offers_quarter_past',
+    distractors({ h: 3, m: 45 }, level('quarters'), rngFor(level('quarters'), 1))
+      .some(d => d.h === 3 && d.m === 15), true);
+  // on a whole-hours level nothing but whole hours may be offered
+  is('test_distractors_whole_hours_level_offers_only_whole_hours',
+    distractors({ h: 3, m: 0 }, level('hours'), rngFor(level('hours'), 1)).every(d => d.m === 0), true);
+  is('test_distractors_twelve_hour_level_never_offers_an_afternoon',
+    distractors({ h: 3, m: 30 }, level('half'), rngFor(level('half'), 2)).every(d => d.h >= 1 && d.h <= 12), true);
+  // the twenty-four hour level must offer the same hands read as the other half of the day
+  is('test_distractors_day_level_offers_the_other_half_of_the_day',
+    distractors({ h: 15, m: 40 }, level('day'), rngFor(level('day'), 1)).some(d => d.h === 3 && d.m === 40), true);
+  is('test_distractors_never_include_the_answer',
+    distractors({ h: 7, m: 15 }, level('fives'), rngFor(level('fives'), 3))
+      .every(d => !(d.h === 7 && d.m === 15)), true);
+  is('test_distractors_are_all_different',
+    (() => { const d = distractors({ h: 7, m: 15 }, level('fives'), rngFor(level('fives'), 3));
+      return new Set(d.map(x => `${x.h}:${x.m}`)).size === d.length; })(), true);
+
+  group('Klokkijken — the questions a level asks');
+  // every level, every round: one right answer, present exactly once, and enough to choose between
+  const wellFormed = LEVELS.every(l => {
+    const r = rngFor(l, 1);
+    for (let i = 0; i < l.rounds; i++) {
+      const q = makeQuestion(l, r, i);
+      if (q.kind === 'set') { if (!q.start || isRight(q, q.start)) return false; continue; }
+      if (q.options.length < 2) return false;
+      if (q.answer < 0) return false;
+      if (q.options.filter(o => o.h === q.t.h && o.m === q.t.m).length !== 1) return false;
+      if (!isRight(q, q.options[q.answer])) return false;
+      if (!l.steps.includes(q.t.m)) return false;
+    }
+    return true;
+  });
+  is('test_questions_every_level_asks_well_formed_questions', wellFormed, true);
+  const elapsed = makeQuestion(level('later'), rngFor(level('later'), 1), 0);
+  is('test_questions_elapsed_answer_is_the_start_plus_the_wait',
+    (elapsed.from.h * 60 + elapsed.from.m + elapsed.plus) % 1440, elapsed.t.h * 60 + elapsed.t.m);
+  is('test_questions_setting_the_clock_only_cares_about_the_face',
+    isRight({ kind: 'set', t: { h: 15, m: 40 }, options: [], answer: 0 }, { h: 3, m: 40 }), true);
+  is('test_questions_setting_the_clock_rejects_the_wrong_minutes',
+    isRight({ kind: 'set', t: { h: 3, m: 40 }, options: [], answer: 0 }, { h: 3, m: 35 }), false);
+  // a level that asks half past nine three times in seven rounds feels broken, even though it is
+  // only chance, so the last few times asked are passed back in and rolled again
+  const noRepeats = LEVELS.every(l => {
+    const r = rngFor(l, 5);
+    const recent = [];
+    for (let i = 0; i < l.rounds; i++) {
+      const q = makeQuestion(l, r, i, recent);
+      const asked = q.kind === 'elapsed' ? q.from : q.t;
+      if (recent.some(a => a.h === asked.h && a.m === asked.m)) return false;
+      recent.push(asked);
+      if (recent.length > 4) recent.shift();
+    }
+    return true;
+  });
+  is('test_questions_a_level_never_asks_the_same_time_twice_running', noRepeats, true);
+
+  group('Klokkijken — stars for what was read first time');
+  is('test_stars_all_read_first_time_is_three', starsFor(8, 8), 3);
+  is('test_stars_three_quarters_first_time_is_two', starsFor(6, 8), 2);
+  is('test_stars_half_first_time_is_one', starsFor(4, 8), 1);
+  is('test_stars_less_than_half_is_none', starsFor(3, 8), 0);
+  is('test_stars_no_rounds_is_none', starsFor(0, 0), 0);
 }
 
 rmSync(out, { recursive: true, force: true });

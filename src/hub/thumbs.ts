@@ -635,3 +635,77 @@ export function drawMoonThumb(c: HTMLCanvasElement): void {
   ctx.beginPath(); ctx.arc(rx, ry - u * 3.1, u * 0.3, 0, TAU); ctx.fill();
   ctx.restore();
 }
+
+/**
+ * A schoolroom clock at twenty past three, with the digital time beside it.
+ *
+ * Twenty past is deliberate: the short hand is a third of the way from the three to the four, so
+ * the card shows at a glance the thing the game is about - the hour hand does not sit on a number.
+ */
+export function drawClockThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+
+  // the wall: warm above, panelling below, the same room the game is played in
+  const wall = ctx.createLinearGradient(0, 0, 0, h);
+  wall.addColorStop(0, '#b6dcef');
+  wall.addColorStop(0.5, '#e3eff4');
+  wall.addColorStop(0.68, '#f2e3c6');
+  wall.addColorStop(1, '#ddc296');
+  ctx.fillStyle = wall; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(146, 106, 58, 0.35)'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(0, h * 0.68); ctx.lineTo(w, h * 0.68); ctx.stroke();
+
+  const cx = w * 0.38, cy = h * 0.46, r = Math.min(w * 0.3, h * 0.38);
+  const dr = r * 0.86;
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(20, 45, 70, 0.3)'; ctx.shadowBlur = r * 0.3; ctx.shadowOffsetY = r * 0.12;
+  const rim = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+  rim.addColorStop(0, '#fbdc9a'); rim.addColorStop(0.45, '#f6c96a'); rim.addColorStop(1, '#c98a2c');
+  ctx.fillStyle = rim;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fill();
+  ctx.restore();
+
+  const dial = ctx.createRadialGradient(cx - dr * 0.4, cy - dr * 0.4, dr * 0.1, cx, cy, dr);
+  dial.addColorStop(0, '#ffffff'); dial.addColorStop(1, '#eee3ce');
+  ctx.fillStyle = dial;
+  ctx.beginPath(); ctx.arc(cx, cy, dr, 0, TAU); ctx.fill();
+
+  // the twelve heavy ticks, which is what makes it read as a clock at stamp size
+  ctx.strokeStyle = 'rgba(32, 65, 92, 0.85)'; ctx.lineCap = 'round';
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * TAU - Math.PI / 2;
+    ctx.lineWidth = Math.max(1, dr * 0.075);
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * dr * 0.78, cy + Math.sin(a) * dr * 0.78);
+    ctx.lineTo(cx + Math.cos(a) * dr * 0.93, cy + Math.sin(a) * dr * 0.93);
+    ctx.stroke();
+  }
+
+  // twenty past three: the hour hand a third of the way on, not parked on the numeral
+  const hand = (len: number, turns: number, width: number, tone: string): void => {
+    const a = turns * TAU - Math.PI / 2;
+    ctx.strokeStyle = tone; ctx.lineWidth = width; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - Math.cos(a) * dr * 0.1, cy - Math.sin(a) * dr * 0.1);
+    ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+    ctx.stroke();
+  };
+  hand(dr * 0.5, (3 + 20 / 60) / 12, Math.max(2, dr * 0.14), '#20415c');
+  hand(dr * 0.78, 20 / 60, Math.max(1.5, dr * 0.09), '#2f6d94');
+  ctx.fillStyle = '#c98a2c';
+  ctx.beginPath(); ctx.arc(cx, cy, Math.max(1.5, dr * 0.09), 0, TAU); ctx.fill();
+
+  // the digital clock it has to be turned into
+  const bw = w * 0.34, bh = bw * 0.42, bx = w * 0.76, by = h * 0.52;
+  ctx.fillStyle = '#1b3b52';
+  ctx.beginPath(); ctx.roundRect(bx - bw / 2, by - bh / 2, bw, bh, bh * 0.24); ctx.fill();
+  ctx.fillStyle = '#123040';
+  ctx.beginPath(); ctx.roundRect(bx - bw * 0.43, by - bh * 0.31, bw * 0.86, bh * 0.62, bh * 0.14); ctx.fill();
+  ctx.fillStyle = '#7ef0c8';
+  ctx.font = `900 ${Math.round(bh * 0.42)}px Nunito, system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('3:20', bx, by + bh * 0.02);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}

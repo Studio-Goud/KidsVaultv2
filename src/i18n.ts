@@ -118,6 +118,19 @@ const nl: Dict = {
   seen: 'Gezien',
   forecast: 'Verwachting',
   now: 'nu',
+  // Klokkijken
+  clockTitle: 'Klokkijken',
+  clockTag: 'Lees de klok, en zet hem zelf.',
+  clockWhatTime: 'Hoe laat is het?',
+  clockSetTo: 'Zet de klok op',
+  clockWhichClock: 'Welke klok is dit?',
+  clockDone: 'Klaar',
+  clockNext: 'Verder',
+  clockHourHand: 'korte wijzer',
+  clockMinuteHand: 'lange wijzer',
+  clockMinuteNumbers: 'Minuutgetallen',
+  clockHowMuchLater: 'Hoe laat is dat?',
+  clockFirstTime: 'in één keer goed',
 };
 
 const en: Dict = {
@@ -236,6 +249,19 @@ const en: Dict = {
   seen: 'Seen',
   forecast: 'Forecast',
   now: 'now',
+  // Telling the time
+  clockTitle: 'Telling the time',
+  clockTag: 'Read the clock, and set it yourself.',
+  clockWhatTime: 'What time is it?',
+  clockSetTo: 'Set the clock to',
+  clockWhichClock: 'Which clock is this?',
+  clockDone: 'Done',
+  clockNext: 'Next',
+  clockHourHand: 'short hand',
+  clockMinuteHand: 'long hand',
+  clockMinuteNumbers: 'Minute numbers',
+  clockHowMuchLater: 'What time is that?',
+  clockFirstTime: 'right first time',
 };
 
 export function lang(): 'nl' | 'en' {

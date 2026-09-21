@@ -21,6 +21,7 @@ export default defineConfig({
         market: resolve(__dirname, 'market.html'),
         puffball: resolve(__dirname, 'puffball.html'),
         moonshot: resolve(__dirname, 'moonshot.html'),
+        clock: resolve(__dirname, 'clock.html'),
       },
     },
   },

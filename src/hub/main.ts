@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawDigThumb, drawMarketThumb, drawMoonThumb, drawPuffThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
+import { drawClockThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawPuffThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -118,6 +118,16 @@ const GAMES: Game[] = [
     // the card shows the dig, not the specimen: the photographs are the reward inside the game,
     // and a white photographic plate among the other cards looked like a stock image
     paint: drawDigThumb,
+  },
+  {
+    href: './clock.html',
+    title: 'Klokkijken',
+    line: 'Read the hands, pick the figures, and drag the hands to the time you are given.',
+    lineNl: 'Lees de wijzers, kies de cijfers, en sleep de wijzers naar de tijd die gevraagd wordt.',
+    practises: 'Reading the analogue and digital clock, saying the time in Dutch, counting on in minutes',
+    practisesNl: 'De analoge en digitale klok lezen, de tijd in het Nederlands zeggen, minuten doortellen',
+    age: '6+',
+    paint: drawClockThumb,
   },
 ];
 
