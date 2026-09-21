@@ -37,6 +37,9 @@ type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won' | 'failed' | 'village';
 type Tool = 'dig' | 'bank';
 
+/** How long the valley stays dry at the start, so there is time to look and to dig. */
+const PREP_SECONDS = 15;
+
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (l: Level): string => (NL() ? l.nameNl : l.name);
@@ -68,6 +71,14 @@ export class Millstream {
   private tool: Tool = 'dig';
   private spade = 0;
   private springLeft = 0;
+  /**
+   * Seconds before the water comes.
+   *
+   * The valley used to start wet: the spring opened on the first frame and a child who was still
+   * working out what the picture meant had already lost. Now there is a quiet minute first - dig
+   * as much as you like, and press the button when you are ready rather than waiting it out.
+   */
+  private prep = 0;
   private wasted = 0;
   private moving = 0;
   private wheelAngle: number[] = [];
@@ -124,7 +135,7 @@ export class Millstream {
 
   debugState(): Record<string, unknown> {
     return {
-      phase: this.phase, level: this.level.id, spade: Math.round(this.spade), springLeft: Math.round(this.springLeft),
+      phase: this.phase, level: this.level.id, prep: Math.round(this.prep), spade: Math.round(this.spade), springLeft: Math.round(this.springLeft),
       filled: this.valley.filled.map(x => Math.round(x)), turned: this.valley.turned.map(x => Math.round(x * 10) / 10),
       wet: this.valley.wet.map(x => Math.round(x * 100) / 100), wasted: Math.round(this.wasted),
       water: Math.round(totalWater(this.valley) * 10) / 10, tool: this.tool,
@@ -201,9 +212,31 @@ export class Millstream {
     this.earned = 0;
     this.idle = 0;
     this.ps.clear();
+    this.prep = PREP_SECONDS;
     this.phase = 'play'; this.phaseT = 0;
     this.say(NL() ? this.level.hintNl : this.level.hint, 6);
+  }
+
+  /** Open the spring: either the quiet minute ran out, or the button was pressed. */
+  private openSpring(): void {
+    if (this.prep <= 0) return;
+    this.prep = 0;
+    this.idle = 0;
     mill.spring();
+    this.say(T('Here it comes!', 'Daar komt het!'), 2.2);
+  }
+
+  /** What this valley is asking for, in the words a child would use. */
+  private goalLine(): string {
+    const nl = NL();
+    const f = this.level.fields.length, w = this.level.wheels.length;
+    const bits: string[] = [];
+    if (f) bits.push(nl ? `${f} ${f === 1 ? 'akker' : 'akkers'}` : `${f} ${f === 1 ? 'field' : 'fields'}`);
+    if (w) bits.push(nl ? `${w} ${w === 1 ? 'molenrad' : 'molenraderen'}` : `${w} ${w === 1 ? 'mill wheel' : 'mill wheels'}`);
+    const list = bits.join(nl ? ' en ' : ' and ');
+    const dry = this.level.houses.length
+      ? (nl ? ' Hou de huizen droog.' : ' Keep the houses dry.') : '';
+    return (nl ? `Breng het water naar ${list}.` : `Get the water to ${list}.`) + dry;
   }
 
   private say(text: string, secs = 4): void { this.note = text; this.noteT = secs; }
@@ -220,6 +253,14 @@ export class Millstream {
     }
     if (this.phase !== 'play') { this.stream.update(0); return; }
     this.idle += dt;
+
+    // the quiet minute: dig all you like, nothing is flowing yet
+    if (this.prep > 0) {
+      this.prep = Math.max(0, this.prep - dt);
+      if (this.prep === 0) this.openSpring();
+      this.stream.update(0);
+      return;
+    }
 
     const v = this.valley, L = this.level;
 
@@ -349,6 +390,7 @@ export class Millstream {
   private onHit(id: string): void {
     if (id.startsWith('level:')) { const i = Number(id.slice(6)); if (this.unlocked(i)) { this.start(i); mill.tap(); } else mill.blocked(); return; }
     if (id === 'levels') { this.phase = 'levels'; this.phaseT = 0; this.cardPop = 0; this.reshape(); mill.tap(); return; }
+    if (id === 'gonow') { this.openSpring(); mill.tap(); return; }
     if (id === 'retry') { this.start(this.levelIndex); return; }
     if (id === 'next') { this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1)); return; }
     if (id === 'tool:dig' || id === 'tool:bank') { this.tool = id.slice(5) as Tool; mill.tap(); return; }
@@ -455,7 +497,7 @@ export class Millstream {
       art.paintWheel(ctx, g, v, wh, this.wheelAngle[k], this.wheelSpeed[k], clamp(v.turned[k] / wh.need, 0, 1), this.t, this.ps);
     });
     for (const [sx, sy] of this.level.springs) {
-      art.paintSpring(ctx, g, v, sx, sy, this.springLeft > 0, this.t, this.ps);
+      art.paintSpring(ctx, g, v, sx, sy, this.prep <= 0 && this.springLeft > 0, this.t, this.ps);
     }
     art.paintSea(ctx, g, v, this.t);
     art.paintGrain(ctx, g);
@@ -581,7 +623,8 @@ export class Millstream {
       ctx.restore();
     }
 
-    if (this.noteT > 0 && this.phase === 'play') {
+    // during the quiet minute the prep panel already says what to do, so one card is enough
+    if (this.noteT > 0 && this.phase === 'play' && this.prep <= 0) {
       const a = clamp(this.noteT, 0, 1);
       ctx.save();
       ctx.globalAlpha = a;
@@ -605,6 +648,7 @@ export class Millstream {
       const bw = 118 * u, bh = 52 * u, yb = this.h - bh - 28 * u;
       this.toolButton('tool:dig', T('Dig', 'Graven'), this.w / 2 - bw - 7 * u, yb, bw, bh, this.tool === 'dig');
       this.toolButton('tool:bank', T('Bank', 'Ophogen'), this.w / 2 + 7 * u, yb, bw, bh, this.tool === 'bank');
+      if (this.prep > 0) this.drawPrep(yb - 16 * u);
     }
     this.smallButton('levels', T('Valleys', 'Valleien'), 14 * u, 12 * u, 92 * u, 44 * u);
     ctx.textAlign = 'left';
@@ -650,6 +694,51 @@ export class Millstream {
       ctx.fill();
     }
     ctx.restore();
+  }
+
+  /**
+   * The quiet minute: what this valley wants, and the button that says you are ready.
+   *
+   * A countdown alone would be a wait, and a button alone would be a thing to press without
+   * knowing why. Together they are a moment to read the valley: the goal in words, the same
+   * pins already sitting over the fields and the wheels, and a way to start when you have seen it.
+   */
+  private drawPrep(bottom: number): void {
+    const ctx = this.ctx, u = this.u();
+    const left = Math.ceil(this.prep);
+
+    // What to do, high up and out of the way of the digging - and fading out well before the water
+    // comes, so the last seconds are a clear view of the valley rather than a card over the spring.
+    const fade = clamp((this.prep - PREP_SECONDS * 0.45) / (PREP_SECONDS * 0.2), 0, 1);
+    const inset = this.topInset();
+    ctx.save();
+    ctx.globalAlpha = fade;
+    ctx.font = this.font('900', 14);
+    const line = this.goalLine();
+    let tw = ctx.measureText(line).width;
+    ctx.font = this.font('800', 11.5);
+    tw = Math.min(this.w - 32 * u, Math.max(tw, ctx.measureText(NL() ? this.level.hintNl : this.level.hint).width) + 40 * u);
+    ctx.font = this.font('900', 14);
+    const gy = inset + 48 * u;
+    glassPanel(ctx, this.w / 2 - tw / 2, gy, tw, 62 * u, 16 * u, 0.94);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#123047';
+    ctx.fillText(line, this.w / 2, gy + 26 * u, tw - 26 * u);
+    ctx.font = this.font('800', 11.5);
+    ctx.fillStyle = 'rgba(18, 48, 71, 0.68)';
+    ctx.fillText(NL() ? this.level.hintNl : this.level.hint, this.w / 2, gy + 48 * u, tw - 26 * u);
+    ctx.restore();
+
+    // and the button
+    const bw = Math.min(250 * u, this.w - 48 * u), bh = 50 * u;
+    const bx = this.w / 2 - bw / 2, by = bottom - bh;
+    const face = chunkyButton(ctx, bx, by, bw, bh, { tone: '#5ab6ea', pressed: this.held === 'gonow' });
+    ctx.fillStyle = '#062338';
+    ctx.font = this.font('900', 15);
+    ctx.fillText(T(`Let the water go  ${left}`, `Laat het water lopen  ${left}`),
+      this.w / 2, face.y + bh * 0.62, bw - 22 * u);
+    this.hits.push({ id: 'gonow', x: bx, y: by, w: bw, h: bh });
+    ctx.textAlign = 'left';
   }
 
   /** One goal, drawn as a tiny version of the thing it stands for. */

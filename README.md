@@ -107,6 +107,11 @@ Dig channels and raise banks so the spring water reaches the fields and turns th
 valleys with rocks, slopes and multiple targets; the water is a real flow simulation, so a channel
 that is too steep floods and one that is too shallow stalls.
 
+A valley starts dry. For the first fifteen seconds nothing flows: a card says what this valley
+wants in as many words ("get the water to two fields and a mill wheel"), the pins sit over the
+things that want it, and there is time to look and to dig. The card fades before the end so the
+last seconds are a clear view, and a button lets anyone who is ready start the water early.
+
 Every valley pays in sheaves of grain, and the sheaves build a village of six things that make the
 next valley kinder: a water cellar that keeps the spring running longer, a shed with a bigger
 spade, a bridge that takes a rock out of the way, a sawmill, a dyke and an orchard. A valley pays
