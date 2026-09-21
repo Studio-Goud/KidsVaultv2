@@ -13,6 +13,7 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
+import { stepDirections } from './walkrule';
 import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
@@ -124,6 +125,9 @@ export class Puffball {
   private hits: Hit[] = [];
   private held = new Map<number, string>();
   private keys = new Set<string>();
+  /** a direction that was tapped rather than held, and how long it is still worth one step */
+  private nudge = { x: 0, y: 0 };
+  private nudgeT = 0;
   private ps = new Particles();
   private shake = new Shake();
   private cardPop = 0;
@@ -273,10 +277,8 @@ export class Puffball {
       if (e.k < 1) return;
       e.fx = e.tx; e.fy = e.ty;
     }
-    // standing on a square: take the direction asked for, else carry on, else stop
-    const tries = [want, e.dir];
-    for (const d of tries) {
-      if (!d.x && !d.y) continue;
+    // standing on a square: where to try to go, per the rule in walkrule.ts
+    for (const d of stepDirections(e === this.me, want, e.dir)) {
       const nx = e.tx + d.x, ny = e.ty + d.y;
       if (this.blocked(nx, ny)) continue;
       e.dir = { x: d.x, y: d.y };
@@ -388,6 +390,7 @@ export class Puffball {
     this.cardPop = Math.min(1, this.cardPop + dt * 2.6);
     this.idle += dt;
     this.denyT = Math.max(0, this.denyT - dt);
+    this.nudgeT = Math.max(0, this.nudgeT - dt);
     if (this.denyT === 0) this.denyCard = -1;
     this.me.bump = Math.max(0, this.me.bump - dt * 5);
     for (const m of this.moles) m.bump = Math.max(0, m.bump - dt * 5);
@@ -398,7 +401,11 @@ export class Puffball {
     if (this.phase !== 'play') return;
 
     // the player
-    this.step(this.me, dt, this.wanted());
+    const want = this.wanted();
+    const wasAt = `${this.me.tx},${this.me.ty}`;
+    this.step(this.me, dt, want);
+    // a tapped direction buys one square and is then spent
+    if (`${this.me.tx},${this.me.ty}` !== wasAt) this.nudgeT = 0;
     if (this.wantDrop) { this.wantDrop = false; this.dropPuff(); }
 
     // the moles
@@ -496,7 +503,16 @@ export class Puffball {
     else if (down('ArrowRight', 'd', 'pad:right')) d.x = 1;
     else if (down('ArrowUp', 'w', 'pad:up')) d.y = -1;
     else if (down('ArrowDown', 's', 'pad:down')) d.y = 1;
+    // A tap can be shorter than the time it takes to walk one square, and a tap that does nothing
+    // feels broken. So a fresh press is remembered for a moment and spends itself on one step.
+    if (!d.x && !d.y && this.nudgeT > 0) return { ...this.nudge };
     return d;
+  }
+
+  /** Remember a direction that was only tapped, so it still buys exactly one square. */
+  private tapped(x: number, y: number): void {
+    this.nudge = { x, y };
+    this.nudgeT = 0.28;
   }
 
   /**
@@ -537,6 +553,10 @@ export class Puffball {
     const hit = this.hitAt(this.at(e));
     if (!hit) return;
     this.held.set(e.pointerId, hit);
+    if (hit === 'pad:left') this.tapped(-1, 0);
+    else if (hit === 'pad:right') this.tapped(1, 0);
+    else if (hit === 'pad:up') this.tapped(0, -1);
+    else if (hit === 'pad:down') this.tapped(0, 1);
     if (hit.startsWith('pad:')) return;
     if (hit === 'drop') { this.wantDrop = true; return; }
     if (hit.startsWith('level:')) {
@@ -558,6 +578,12 @@ export class Puffball {
       unlockAudio();
       this.idle = 0;
       if (k === ' ' || k === 'Enter') { this.wantDrop = true; return; }
+      if (!this.keys.has(k)) {
+        if (k === 'ArrowLeft' || k === 'a') this.tapped(-1, 0);
+        else if (k === 'ArrowRight' || k === 'd') this.tapped(1, 0);
+        else if (k === 'ArrowUp' || k === 'w') this.tapped(0, -1);
+        else if (k === 'ArrowDown' || k === 's') this.tapped(0, 1);
+      }
       this.keys.add(k);
     } else this.keys.delete(k);
   }

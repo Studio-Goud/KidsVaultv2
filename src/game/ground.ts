@@ -103,7 +103,12 @@ export function updateGround(world: World, p: Plane, dt: number): void {
       // still on the runway until the first waypoint on the taxiway is reached
       const offRw = p.ground!.seg >= 2;
       const own = world.runwayById(p.landedOn ?? p.airportId);
-      if (own) { if (!p.outbound && !offRw && own.occupiedBy !== p.id) own.occupiedBy = p.id; if (!p.outbound && offRw && own.occupiedBy === p.id) own.occupiedBy = null; }
+      // Claim the strip while taxiing off it, but never take it from an aircraft that has been
+      // cleared in behind: once the next arrival holds it, this one just leaves quietly.
+      if (own) {
+        if (!p.outbound && !offRw && own.occupiedBy === null) own.occupiedBy = p.id;
+        if (!p.outbound && offRw && own.occupiedBy === p.id) own.occupiedBy = null;
+      }
       // hold short of any runway the route crosses
       const nextPt = p.ground!.path[p.ground!.seg];
       if (nextPt) {

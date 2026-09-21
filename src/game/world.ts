@@ -1,4 +1,5 @@
 import { add, angleDiff, clamp, dist, fromAngle, lerp, mul, norm, pointSegment, resample, smoothPolyline, sub, turnToward, TAU, type Vec } from '../util/math';
+import { stripBusyFor } from './runwayrule';
 import { makeRng, ValueNoise } from '../util/rng';
 import { sfx, haptic } from '../util/audio';
 import { lang, t } from '../i18n';
@@ -644,9 +645,14 @@ export class World {
     }
   }
 
+  /** Whether another arrival has to go around; the rule itself lives in runwayrule.ts. */
+  private stripBusy(rw: Runway, p: Plane): boolean {
+    return stripBusyFor(rw.occupiedBy, p.id, this.planes.find(o => o.id === rw.occupiedBy), rw.id);
+  }
+
   private tryLand(p: Plane, rw: Runway): void {
     const kindOk = runwayAccepts(rw.kind, p.type) && !rw.closed;
-    const busy = rw.occupiedBy !== null && rw.occupiedBy !== p.id;
+    const busy = this.stripBusy(rw, p);
     let reason: string | null = null;
     const wx = this.weather;
     const comp = wx.components(rw.heading);

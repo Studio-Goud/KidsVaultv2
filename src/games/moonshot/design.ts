@@ -66,6 +66,11 @@ const P = (p: Partial<Part> & Pick<Part, 'id' | 'kind' | 'group' | 'name' | 'nam
  * small tank is a cylinder of about 9 cubic metres - right for four and a half tonnes of kerosene
  * and liquid oxygen with ullage left at the top. The drawing and the numbers are the same rocket.
  *
+ * The burn rates are set so a rocket lifts off at a believable thrust-to-weight and the burn
+ * lasts long enough to watch and steer, rather than leaping off the pad and being over in twenty
+ * seconds. Fuel and exhaust speed are untouched, so how far a rocket goes is unchanged - only how
+ * long it takes to get there.
+ *
  * The engines differ in two ways at once, which is the thing worth learning. Thrust gets you off
  * the ground. Exhaust speed decides how far you end up going. The big engine pushes nearly four
  * times harder than the small one and will never take you as far as the quiet vacuum engine, and
@@ -146,49 +151,49 @@ export const PARTS: Part[] = [
   // ---- engines
   P({
     id: 'engine-xs', kind: 'engine', group: 'engine', name: 'Tiny engine', nameNl: 'Minimotor',
-    rows: 1, w: 0.7, dry: 0.2, burn: 0.06, exhaust: 2400,
+    rows: 1, w: 0.7, dry: 0.2, burn: 0.036, exhaust: 2400,
     note: 'Barely lifts itself. Useful on top, where there is nothing left to lift.',
     noteNl: 'Tilt zichzelf amper op. Handig bovenin, waar niets meer te tillen valt.',
   }),
   P({
     id: 'engine-s', kind: 'engine', group: 'engine', name: 'Small engine', nameNl: 'Kleine motor',
-    rows: 1, w: 1, dry: 0.5, burn: 0.17, exhaust: 2600,
+    rows: 1, w: 1, dry: 0.5, burn: 0.102, exhaust: 2600,
     note: 'The one to start with. Lifts about forty tonnes of nothing else.',
     noteNl: 'Om mee te beginnen. Tilt ongeveer veertig ton en verder niets.',
   }),
   P({
     id: 'engine-l', kind: 'engine', group: 'engine', name: 'Big engine', nameNl: 'Grote motor',
-    rows: 1, w: 1.06, dry: 1.3, burn: 0.55, exhaust: 3050,
+    rows: 1, w: 1.06, dry: 1.3, burn: 0.33, exhaust: 3050,
     note: 'Four times the push of the small one, and nearly three times the weight.',
     noteNl: 'Vier keer zoveel duw als de kleine, en bijna drie keer zo zwaar.',
   }),
   P({
     id: 'engine-x', kind: 'engine', group: 'engine', name: 'Three engines', nameNl: 'Drie motoren',
-    rows: 2, w: 1.3, dry: 2.8, burn: 1.55, exhaust: 2950,
+    rows: 2, w: 1.3, dry: 2.8, burn: 0.93, exhaust: 2950,
     note: 'Brute force off the pad. Drinks the tank in seconds.',
     noteNl: 'Botte kracht bij het opstijgen. Drinkt de tank in seconden leeg.',
   }),
   P({
     id: 'engine-w', kind: 'engine', group: 'engine', name: 'Nine engines', nameNl: 'Negen motoren',
-    rows: 2, w: 1.45, dry: 7, burn: 4.3, exhaust: 2980,
+    rows: 2, w: 1.45, dry: 7, burn: 2.58, exhaust: 2980,
     note: 'A whole first stage in one piece. It will lift anything you can build.',
     noteNl: 'Een hele eerste trap in een stuk. Tilt alles op wat je kunt bouwen.',
   }),
   P({
     id: 'engine-h', kind: 'engine', group: 'engine', name: 'Hydrogen engine', nameNl: 'Waterstofmotor',
-    rows: 2, w: 1.1, dry: 1.5, burn: 0.42, exhaust: 4400,
+    rows: 2, w: 1.1, dry: 1.5, burn: 0.252, exhaust: 4400,
     note: 'Burns hydrogen, so the exhaust comes out fast. Strong and efficient at once.',
     noteNl: 'Verbrandt waterstof, dus de uitlaat gaat er snel uit. Sterk en zuinig tegelijk.',
   }),
   P({
     id: 'engine-v', kind: 'engine', group: 'engine', name: 'Vacuum engine', nameNl: 'Vacuummotor',
-    rows: 2, w: 1, dry: 0.5, burn: 0.17, exhaust: 4000,
+    rows: 2, w: 1, dry: 0.5, burn: 0.102, exhaust: 4000,
     note: 'A big soft bell, made for the emptiness. Quiet, and it goes furthest.',
     noteNl: 'Een grote zachte klok, gemaakt voor de leegte. Stil, en komt het verst.',
   }),
   P({
     id: 'engine-n', kind: 'engine', group: 'engine', name: 'Nuclear engine', nameNl: 'Kernmotor',
-    rows: 2, w: 1.06, dry: 1.2, burn: 0.14, exhaust: 8000,
+    rows: 2, w: 1.06, dry: 1.2, burn: 0.084, exhaust: 8000,
     note: 'Heats the fuel with a reactor. Twice the exhaust speed of anything chemical.',
     noteNl: 'Verhit de brandstof met een reactor. Twee keer zo snelle uitlaat als alles chemisch.',
   }),
@@ -196,13 +201,13 @@ export const PARTS: Part[] = [
   // ---- strap-on boosters: an engine and its fuel in one piece
   P({
     id: 'srb-s', kind: 'solid', group: 'booster', name: 'Small booster', nameNl: 'Kleine booster',
-    rows: 2, w: 0.64, dry: 0.35, fuel: 5, burn: 0.62, exhaust: 2500, sharp: 0.7,
+    rows: 2, w: 0.64, dry: 0.35, fuel: 5, burn: 0.279, exhaust: 2500, sharp: 0.7,
     note: 'Fuel and engine in one. Lights once, burns hard, cannot be turned off.',
     noteNl: 'Brandstof en motor in een. Gaat een keer aan, brandt hard, kan niet uit.',
   }),
   P({
     id: 'srb-l', kind: 'solid', group: 'booster', name: 'Big booster', nameNl: 'Grote booster',
-    rows: 4, w: 0.74, dry: 0.75, fuel: 12, burn: 1.3, exhaust: 2550, sharp: 0.7,
+    rows: 4, w: 0.74, dry: 0.75, fuel: 12, burn: 0.585, exhaust: 2550, sharp: 0.7,
     note: 'Twelve tonnes of solid fuel. Two of these will shift almost anything.',
     noteNl: 'Twaalf ton vaste brandstof. Twee hiervan krijgen bijna alles in beweging.',
   }),
@@ -515,6 +520,46 @@ export function dudEngines(design: Design): number[] {
     if (engine >= 0 && fuel <= 0) out.push(engine);
   }
   return out;
+}
+
+/**
+ * What is still bolted to the payload, given what has already fallen away.
+ *
+ * A rocket is only a rocket while it is in one piece. Drop the core stage out from between a pair
+ * of boosters that are still burning and the two halves are no longer connected to what you are
+ * sending - so they are not part of the rocket any more either, and they go too. Without this the
+ * pieces simply hang there in formation, which is the one thing that makes the whole illusion
+ * collapse.
+ */
+export function stillAttached(design: Design, dropped: ReadonlySet<number>): Set<number> {
+  const keep = new Set<number>();
+  const queue: number[] = [];
+  design.forEach((p, i) => {
+    if (dropped.has(i) || partById(p.id).kind !== 'pod') return;
+    keep.add(i);
+    queue.push(i);
+  });
+  // nothing is riding: whatever is left around the lowest live part counts as the rocket
+  if (!queue.length) {
+    let low = -1, lowRow = Infinity;
+    design.forEach((p, i) => {
+      if (dropped.has(i) || p.row >= lowRow) return;
+      lowRow = p.row;
+      low = i;
+    });
+    if (low < 0) return keep;
+    keep.add(low);
+    queue.push(low);
+  }
+  while (queue.length) {
+    const i = queue.pop()!;
+    design.forEach((q, j) => {
+      if (keep.has(j) || dropped.has(j) || !touches(design[i], q)) return;
+      keep.add(j);
+      queue.push(j);
+    });
+  }
+  return keep;
 }
 
 /** Parts that will never fall away and never burn: a tank with no engine under it, say. */

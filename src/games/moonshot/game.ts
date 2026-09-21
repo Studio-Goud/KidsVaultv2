@@ -27,7 +27,7 @@ import {
   airAt, buildProblem, canLift, canPlace, clash, cleanDesign, coastHeight, collapse, COLS, deadWeight, densityAt,
   gravityAt, GROUPS, isFlyable, kmLabel, LADDER, MAX_PARTS, nextRung, padThrust,
   padWeight, partById, partsIn, ROWS, rungFor, shapeHint, shapeOf, slipperiness, stagesByColumn,
-  STARTER, topRow, totalMass,
+  STARTER, stillAttached, topRow, totalMass,
   type Design, type Group, type Part, type Placed, type Stage,
 } from './design';
 import {
@@ -121,6 +121,9 @@ export class Moonshot {
   private warp = 1;
   private topKm = 0;
   private shownKm = 0;
+  /** the foot and the middle of what is still flying, eased so staging does not jolt the camera */
+  private camRow = 0;
+  private camCol = 4;
   private countdown = 0;
   private lastTick = 9;
   private result = 0;
@@ -460,6 +463,8 @@ export class Moonshot {
     this.tilt = 0; this.wobble = 0; this.wind = 0; this.steer = 0;
     this.warp = 1;
     this.topKm = 0; this.shownKm = 0;
+    const bd0 = designBounds(this.design);
+    this.camRow = bd0.r0; this.camCol = (bd0.c0 + bd0.c1 + 1) / 2;
     this.countdown = 3.2; this.lastTick = 9;
     this.result = 0; this.fresh = false;
     this.phase = 'count'; this.phaseT = 0;
@@ -549,6 +554,40 @@ export class Moonshot {
     b.idx++;
     b.fuel = this.live(b)?.fuel ?? 0;
     if (this.live(b)) { rocket.stage(); this.shake.add(0.55); }
+    this.shed();
+  }
+
+  /**
+   * Let go of anything that is no longer bolted to what you are sending.
+   *
+   * Drop the core stage out from between two boosters that are still burning and those boosters
+   * are attached to nothing any more. They used to carry on flying in formation beside the rest,
+   * which looked exactly like the rocket coming apart in mid-air for no reason. Now they go, the
+   * way they would.
+   */
+  private shed(): void {
+    const keep = stillAttached(this.design, this.dropped);
+    const loose: number[] = [];
+    this.design.forEach((_, i) => { if (!this.dropped.has(i) && !keep.has(i)) loose.push(i); });
+    if (!loose.length) return;
+    for (const i of loose) this.dropped.add(i);
+    let wasBurning = false;
+    for (const b of this.burns) {
+      if (!this.live(b)) continue;
+      if (this.live(b)!.parts.some(i => loose.includes(i))) {
+        if (b.fuel > 0) wasBurning = true;
+        b.idx = b.stages.length;
+        b.fuel = 0;
+      }
+    }
+    // Say why. A piece that had fuel left going over the side needs explaining, or it just looks
+    // like the rocket broke.
+    this.say(wasBurning
+      ? T('That went with the stage — the middle was empty first.', 'Dat ging mee met de trap: het middenstuk was eerder leeg.')
+      : T('That piece was not attached to anything any more.', 'Dat stuk zat nergens meer aan vast.'), 3.6);
+    this.debris.push({
+      y: 0, vy: -this.vUp * 0.1 - 6, spin: (Math.random() - 0.5) * 1.8, a: 0, parts: loose, age: 0,
+    });
   }
 
   private burning(): boolean { return this.burns.some(b => b.fuel > 0 && this.live(b)); }
@@ -570,12 +609,13 @@ export class Moonshot {
       }
       return;
     }
+    if (this.phase === 'fly' || this.phase === 'coast') this.easeCamera(dt);
     if (this.phase === 'fly') {
       // Warping the burn must not coarsen the integration, or the rocket flies a different flight
-      // at 2x than it does at 1x. Take the same small steps, just more of them per frame.
-      // falling back into thicker air with the clock at 4x would take the steering away
-    if (this.phase === 'fly' && this.warp > 2 && airAt(this.alt) > 0.02) this.warp = 2;
-    const steps = Math.max(1, Math.round(this.warp));
+      // at 2x than it does at 1x. Take the same small steps, just more of them per frame. And
+      // falling back into thicker air with the clock at 4x would take the steering away.
+      if (this.warp > 2 && airAt(this.alt) > 0.02) this.warp = 2;
+      const steps = Math.max(1, Math.round(this.warp));
       for (let i = 0; i < steps && this.phase === 'fly'; i++) this.flyStep(dt);
       return;
     }
@@ -585,6 +625,27 @@ export class Moonshot {
       this.shownKm += (this.topKm - this.shownKm) * k;
       if (this.phaseT > 2.4 && (this.topKm === 0 || this.shownKm > this.topKm * 0.995)) this.finish();
     }
+  }
+
+  /**
+   * Keep the camera on what is left of the rocket.
+   *
+   * A stage falling away takes several rows of rocket with it, and drawing the remainder at its
+   * original grid position makes it leap up the screen at the exact moment a child is watching
+   * the separation. So the frame follows the live parts, and eases rather than cuts.
+   */
+  private easeCamera(dt: number): void {
+    const live = this.design.filter((_, i) => !this.dropped.has(i));
+    if (!live.length) return;
+    let r0 = Infinity, c0 = Infinity, c1 = -Infinity;
+    for (const p of live) {
+      r0 = Math.min(r0, p.row);
+      c0 = Math.min(c0, p.col);
+      c1 = Math.max(c1, p.col);
+    }
+    const k = 1 - Math.pow(0.02, dt);
+    this.camRow += (r0 - this.camRow) * k;
+    this.camCol += ((c0 + c1 + 1) / 2 - this.camCol) * k;
   }
 
   private flyStep(dt: number): void {
@@ -1165,8 +1226,8 @@ export class Moonshot {
     ctx.save();
     ctx.translate(cx, ry);
     ctx.rotate(this.tilt);
-    const ox = -((bd.c0 + bd.c1 + 1) / 2) * unit;
-    const oy = bd.r0 * unit;
+    const ox = -this.camCol * unit;
+    const oy = this.camRow * unit;
     const spread = 1 - airAt(this.alt);
 
     // every engine that is actually burning throws its own flame, so a rocket wearing four
@@ -1269,6 +1330,20 @@ export class Moonshot {
       ctx.textAlign = 'center';
       outlinedText(ctx, String(Math.max(1, c)), this.w / 2, this.h * 0.32, this.font('900', 64), '#ffffff', 'rgba(8,16,30,0.5)', 6);
       ctx.restore();
+    }
+
+    if (this.noteT > 0 && this.phase !== 'done') {
+      ctx.save();
+      ctx.globalAlpha = clamp(this.noteT, 0, 1);
+      ctx.font = this.font('800', 11.5);
+      ctx.textAlign = 'center';
+      const lines = wrap(ctx, this.note, this.w - 84 * u);
+      const nh = (lines.length * 17 + 12) * u;
+      glassPanel(ctx, 30 * u, this.h * 0.2, this.w - 60 * u, nh, 12 * u, 0.9);
+      ctx.fillStyle = '#12233b';
+      lines.forEach((ln, i) => ctx.fillText(ln, this.w / 2, this.h * 0.2 + 19 * u + i * 17 * u, this.w - 84 * u));
+      ctx.restore();
+      ctx.textAlign = 'left';
     }
 
     if (this.phase === 'fly') this.drawSteering();
