@@ -695,9 +695,11 @@ export function faultOf(board: Board, sim: Sim, net?: Net): Fault | null {
     const wire = board.findIndex((p, i) => p.id === 'wire' && Math.abs(sim.parts[i].i) > SHORT_AMPS);
     return { kind: 'short', at: wire >= 0 ? wire : src[0] };
   }
-  const flat = board.findIndex(p => p.id === 'battery' && chargeFrac(p) <= 0);
-  if (flat >= 0 && !board.some(p => p.id === 'solar')) return { kind: 'flat', at: flat };
+  // a cell with a whisper left in it is flat, but only once nothing on the board is still working:
+  // a bulb that is visibly dimming is a better thing to look at than a sentence about it
   if (working(board, sim)) return null;
+  const flat = board.findIndex(p => p.id === 'battery' && chargeFrac(p) < 0.02);
+  if (flat >= 0 && !board.some(p => p.id === 'solar')) return { kind: 'flat', at: flat };
 
   // would it work if every switch were closed? then the one that carries current is the one that is off
   const open = board.map((p, i) => ((p.id === 'switch' || p.id === 'button') && !p.on ? i : -1)).filter(i => i >= 0);
@@ -791,7 +793,12 @@ export function advance(board: Board, sim: Sim, dt: number): Tick {
     if (p.id === 'battery') {
       const was = chargeFrac(p);
       const used = Math.max(0, -sim.parts[i].i) * step;
-      p.charge = Math.max(0, (p.charge ?? BATTERY_CHARGE) - used);
+      let left = Math.max(0, (p.charge ?? BATTERY_CHARGE) - used);
+      // The last half per cent is thrown away rather than chased. A cell whose volts fall away as
+      // it empties draws less and less, so its charge creeps towards nought without ever getting
+      // there - and a battery that is for ever nearly flat is a battery the game can never say is.
+      if (left < BATTERY_CHARGE * 0.005) left = 0;
+      p.charge = left;
       if (was > 0 && chargeFrac(p) <= 0) out.wentFlat = true;
     } else if (p.id === 'cap') {
       const gained = sim.parts[i].i * step;        // current in at the plus plate fills it

@@ -225,9 +225,16 @@ export class Atlas {
     const view = VIEWS[this.level.board];
 
     if (wide) {
-      const colW = Math.min(300 * u, Math.max(w * 0.3, 240 * u));
+      // Turned on its side, the column beside the map takes whatever the map does not want. A map
+      // of the Netherlands is tall and narrow and leaves half the width over; a map of the world
+      // is a letterbox and leaves none. Handing the difference to the column is the difference
+      // between a fact on four cramped lines and a fact on two.
+      const areaH = h - top - 16 * u;
+      const aspect = ((view.lon1 - view.lon0) * view.kx) / (view.lat1 - view.lat0);
+      const wants = Math.min(areaH * aspect, w * 0.62);
+      const colW = clamp(w - wants - pad * 3, 240 * u, 420 * u);
       const colX = w - colW - pad;
-      const area: Rect = { x: pad, y: top, w: colX - pad * 2, h: h - top - 16 * u };
+      const area: Rect = { x: pad, y: top, w: colX - pad * 2, h: areaH };
       const prompt: Rect = { x: colX, y: top, w: colW, h: 48 * u };
       const handH = Math.min(150 * u, Math.max(84 * u, (h - top - 48 * u - 40 * u) * 0.5));
       const hand: Rect = { x: colX, y: prompt.y + prompt.h + 8 * u, w: colW, h: handH };
@@ -334,8 +341,10 @@ export class Atlas {
       if (!this.tried) { this.firstTry++; this.streak++; }
       this.fb = 'right';
       this.fbT = RIGHT_FOR;
+      // no amber outline on a right drop: the piece has just taken its own colour and its name,
+      // and the mark the map uses to correct you should never appear when you were correct
       this.shown = p;
-      this.showT = 1.4;
+      this.showT = 0;
       this.missed = null;
       atlassfx.snap(this.streak);
       const home = project(anchorOf(p), VIEWS[this.level.board], L.board);
@@ -446,10 +455,17 @@ export class Atlas {
     if (!this.drag) return;
     const at = this.at(e);
     const L = this.layout();
+    const u = this.u();
     this.drag = null;
-    // let go over the tray again and nothing has happened: the piece simply goes back
-    const inHand = at.y > L.hand.y - 6 * this.u();
-    if (inHand) { atlassfx.slide(); return; }
+    // Only a drop on the map is an answer. Let go anywhere else - back in the tray, on the card,
+    // out on the desk - and the piece simply goes back, with nothing gained and nothing lost.
+    // (This used to ask whether the finger was below the tray's top edge, which is the same thing
+    // upright and quite wrong on a phone turned sideways, where the tray is off to the right and
+    // most of the map is below its top edge.)
+    const b = L.board;
+    const onMap = at.x >= b.x - 8 * u && at.x <= b.x + b.w + 8 * u
+      && at.y >= b.y - 8 * u && at.y <= b.y + b.h + 8 * u;
+    if (!onMap) { atlassfx.slide(); return; }
     this.drop(at);
   }
 
@@ -545,17 +561,15 @@ export class Atlas {
           width: 1.2,
         });
       }
-      // The IJsselmeer and the Waddenzee are the two holes in the outline of the country, and
-      // without them the Netherlands is a lump rather than a shape you would recognise. They are
-      // drawn on every map of the Netherlands except the one where finding the water is the game.
+      // The IJsselmeer is the hole in the outline of the country, and without it the Netherlands
+      // is a lump rather than a shape you would recognise. It is drawn on every map of the
+      // Netherlands except the one where finding the water is the game itself.
       if (this.level.board === 'nl' && !this.level.dykes) {
-        for (const id of ['ijsselmeer', 'waddenzee']) {
-          const wet = NL_WATERS.find(f => f.id === id);
-          if (wet?.rings) {
-            drawShape(ctx, wet.rings, view, L.board, {
-              fill: SEA, stroke: 'rgba(255,255,255,0.6)', width: 1, alpha: 0.95,
-            });
-          }
+        const lake = NL_WATERS.find(f => f.id === 'ijsselmeer');
+        if (lake?.rings) {
+          drawShape(ctx, lake.rings, view, L.board, {
+            fill: SEA, stroke: 'rgba(255,255,255,0.6)', width: 1,
+          });
         }
       }
     }
@@ -582,6 +596,9 @@ export class Atlas {
 
     // ---- what is already home
     for (const f of this.placed) this.drawPlaced(f, view, L.board);
+    // every name after every shape: Limburg goes down after Noord-Brabant and would otherwise
+    // cover the tail of its neighbour's label
+    for (const f of this.placed) this.drawPlacedLabel(f, view, L.board);
 
     // ---- the one the map is pointing at, after a wrong drop
     if (this.shown && this.showT > 0 && (this.fb === 'wrong' || this.showT > 0)) {
@@ -605,15 +622,6 @@ export class Atlas {
     else if (this.fb === 'right' && this.shown) this.drawFactCard(L.card, this.shown, true);
     else if (this.noteT > 0) this.drawNote(L.card);
 
-    // ---- the dyke switch, over the corner of the map
-    if (this.level.dykes) {
-      const bw = Math.min(148 * u, L.area.w - 20 * u), bh = 42 * u;
-      const label = this.sea == null
-        ? T('Dykes off', 'Dijken uit')
-        : this.sea === SEA_OFF ? T('Storm surge', 'Stormvloed') : T('Dykes on', 'Dijken aan');
-      this.button('dykes', label, L.area.x + 6 * u, L.area.y + L.area.h - bh, bw, bh,
-        this.sea == null ? '#fffdf6' : '#3f86bd', this.sea == null ? '#25506e' : '#ffffff');
-    }
   }
 
   /** A piece that is home: filled in its own colour, with its name across it. */
@@ -629,6 +637,13 @@ export class Atlas {
     }
     const q = project(anchorOf(f), view, box);
     if (f.at) drawPin(ctx, q.x, q.y, 9 * u, f.tone);
+  }
+
+  /** The name over a piece that is home, drawn after every shape so nothing can cover it. */
+  private drawPlacedLabel(f: Feature, view: typeof VIEWS['nl'], box: Box): void {
+    const ctx = this.ctx, u = this.u();
+    const kind = pieceKindFor(this.level, f);
+    const q = project(anchorOf(f), view, box);
     if (kind === 'flag' && f.flag) {
       drawFlag(ctx, q.x - 17 * u, q.y - 11 * u, 34 * u, 22 * u, f.flag);
       return;
@@ -645,7 +660,8 @@ export class Atlas {
     // and it is kept inside the map: a label written at the anchor of the Arctic runs off the edge
     const half = ctx.measureText(label).width / 2 + 4 * u;
     const lx = clamp(q.x, box.x + half, box.x + box.w - half);
-    outlinedText(ctx, label, lx, q.y + (f.at ? -16 * u : 3 * u), ctx.font,
+    const ly = clamp(q.y + (f.at ? -16 * u : 3 * u), box.y + 13 * u, box.y + box.h - 6 * u);
+    outlinedText(ctx, label, lx, ly, ctx.font,
       f.kind === 'ocean' ? '#1c5a86' : '#123047', 'rgba(255,255,255,0.95)', 4);
     ctx.restore();
   }
@@ -667,7 +683,11 @@ export class Atlas {
     if (f.at) drawPin(ctx, q.x, q.y, 11 * u, '#e8a020', true);
     ctx.restore();
     ctx.textAlign = 'center';
-    outlinedText(ctx, nameOf(f, NL()), q.x, q.y + (f.at ? -20 * u : 4 * u),
+    ctx.font = this.font('900', 12);
+    const half = ctx.measureText(nameOf(f, NL())).width / 2 + 4 * u;
+    const lx = clamp(q.x, box.x + half, box.x + box.w - half);
+    const ly = clamp(q.y + (f.at ? -20 * u : 4 * u), box.y + 15 * u, box.y + box.h - 7 * u);
+    outlinedText(ctx, nameOf(f, NL()), lx, ly,
       this.font('900', 12), '#7a3d10', 'rgba(255,255,255,0.96)', 5);
   }
 
@@ -832,7 +852,8 @@ export class Atlas {
     ctx.save();
     ctx.globalAlpha = clamp(this.fbT * 0.8, 0, 1);
     glassPanel(ctx, b.x, b.y, b.w, b.h, 16 * u, 0.95);
-    const hasAnimals = !!f.cont;
+    // only where the question makes sense: a country or a whole continent
+    const hasAnimals = !!f.cont && (f.kind === 'country' || f.kind === 'continent');
     const bw = 78 * u, bh = 36 * u;
     const textW = b.w - (hasAnimals ? bw + 26 * u : 24 * u);
     const tx = b.x + 12 * u + textW / 2;
@@ -896,6 +917,30 @@ export class Atlas {
     ctx.stroke();
     ctx.restore();
     this.hits.push({ id: 'outlines', x: nx, y: 9 * u, w: 44 * u, h: 40 * u });
+
+    // the dyke switch, beside it, only on the level that has one: a drawn dyke with the sea
+    // against it, and the sea climbs as the switch goes round
+    if (this.level.dykes) {
+      const dx = nx + 51 * u;
+      const tone = this.sea == null ? '#fffdf6' : this.sea === SEA_OFF ? '#6fb8d8' : '#3f86bd';
+      const df = chunkyButton(ctx, dx, 9 * u, 44 * u, 40 * u, { tone, pressed: this.held === 'dykes' });
+      ctx.save();
+      ctx.translate(dx + 22 * u, df.y + 20 * u);
+      const wet = this.sea == null ? 5 * u : this.sea === SEA_OFF ? 0 : -5 * u;
+      ctx.fillStyle = this.sea == null ? '#5fb5e0' : '#1c5a86';
+      ctx.beginPath();
+      ctx.rect(-16 * u, wet, 13 * u, 12 * u - wet);
+      ctx.fill();
+      ctx.fillStyle = '#8a7f5a';
+      ctx.beginPath();
+      ctx.moveTo(-4 * u, 12 * u); ctx.lineTo(-1 * u, -6 * u);
+      ctx.lineTo(4 * u, -6 * u); ctx.lineTo(7 * u, 12 * u);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = this.sea == null ? '#9ec37a' : '#1c5a86';
+      ctx.fillRect(6 * u, 4 * u, 10 * u, 8 * u);
+      ctx.restore();
+      this.hits.push({ id: 'dykes', x: dx, y: 9 * u, w: 44 * u, h: 40 * u });
+    }
 
     const n = this.level.rounds;
     const dot = 4.5 * u, gap = 4.5 * u;

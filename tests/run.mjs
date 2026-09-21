@@ -1612,6 +1612,405 @@ const group = name => console.log(`\n${name}`);
   is('test_views_europe_is_drawn_with_the_longitudes_squashed', EU_VIEW.kx < 1, true);
 }
 
+// ---------------------------------------------------------------- Stroomkring: what the circuit does
+
+{
+  const c = await bundle('src/games/circuit/sim.ts', 'circuit.mjs');
+  const {
+    solve, advance, renew, layWire, marksOf, faultOf, faultLine, cleanCircuit, netlist,
+    canPlace, cellsOf, pinsOf, partAt, battVolts, chargeFrac, isSolved, startBoard,
+    PARTS, PUZZLES, specOf, BATTERY_CHARGE, FUSE_BLOWS_AT, SHORT_AMPS, LED_VF, CAP_FARADS, COLS, ROWS,
+  } = c;
+
+  /** a part, the way the game writes one down */
+  const put = (id, col, row, rot = 0, extra = {}) => ({ id, col, row, rot, ...extra });
+  /** draw a line of wire through these cells, one square at a time, the way a finger does */
+  const line = (board, cells) => {
+    let prev;
+    for (const cell of cells) {
+      while (prev && (prev[0] !== cell[0] || prev[1] !== cell[1])) {
+        const dc = Math.sign(cell[0] - prev[0]), dr = Math.sign(cell[1] - prev[1]);
+        const step = dc !== 0 ? [prev[0] + dc, prev[1]] : [prev[0], prev[1] + dr];
+        layWire(board, step[0], step[1], prev);
+        prev = step;
+      }
+      if (!prev) { layWire(board, cell[0], cell[1]); prev = cell; }
+    }
+    return board;
+  };
+  const r3 = x => Math.round(x * 1000) / 1000;
+  const r2 = x => Math.round(x * 100) / 100;
+  /** the loop every test below is built on: a battery at 2,2 and one thing at 6,2 */
+  const loop = (id, rot = 0, extra = {}) => {
+    const b = [put('battery', 2, 2), put(id, 6, 2, rot, extra)];
+    line(b, [[3, 2], [4, 2], [5, 2]]);
+    line(b, [[7, 2], [7, 4], [6, 4], [5, 4], [4, 4], [3, 4], [2, 4], [1, 4], [1, 2]]);
+    return b;
+  };
+  /** let the clock run on a board in steps small enough for the solver to follow */
+  const run = (board, seconds, step = 0.05) => {
+    let last = null;
+    for (let t = 0; t < seconds; t += step) {
+      last = solve(board, false);
+      advance(board, last, step);
+    }
+    return last ?? solve(board, false);
+  };
+
+  group('Stroomkring — the parts themselves');
+  is('test_parts_there_are_fourteen_of_them', PARTS.length, 14);
+  is('test_parts_ids_are_unique', new Set(PARTS.map(p => p.id)).size, PARTS.length);
+  is('test_parts_all_have_both_languages',
+    PARTS.every(p => p.name && p.nameNl && p.note && p.noteNl), true);
+  is('test_parts_every_one_has_a_resistance', PARTS.every(p => p.r > 0), true);
+  is('test_parts_only_the_sources_push', PARTS.filter(p => p.volts > 0).map(p => p.id), ['battery', 'solar']);
+  is('test_parts_a_source_has_resistance_inside_it',
+    PARTS.filter(p => p.volts > 0).every(p => p.rIn > 0), true);
+  is('test_parts_the_solar_cell_is_weaker_than_the_battery',
+    specOf('solar').volts < specOf('battery').volts, true);
+  is('test_parts_only_the_crocodile_lead_covers_two_cells',
+    PARTS.filter(p => p.len === 2).map(p => p.id), ['clip']);
+
+  group('Stroomkring — how parts are joined');
+  is('test_join_a_part_points_terminal_a_west_when_it_lies_flat',
+    pinsOf(put('bulb', 3, 3)).filter(t => t.label === 'A')[0].face, 3);
+  is('test_join_turning_it_a_quarter_puts_terminal_a_at_the_top',
+    pinsOf(put('bulb', 3, 3, 1)).filter(t => t.label === 'A')[0].face, 0);
+  is('test_join_a_wire_has_a_terminal_on_every_face', pinsOf(put('wire', 3, 3)).length, 4);
+  is('test_join_a_relay_has_four_terminals', pinsOf(put('relay', 3, 3)).length, 4);
+  is('test_join_a_relay_keeps_its_coil_and_its_contacts_on_opposite_corners',
+    pinsOf(put('relay', 3, 3)).map(t => t.face), [3, 0, 1, 2]);
+  is('test_join_a_crocodile_lead_covers_the_cell_beside_it',
+    cellsOf(put('clip', 3, 3)), [[3, 3], [4, 3]]);
+  is('test_join_two_lines_side_by_side_do_not_touch', (() => {
+    const b = [];
+    line(b, [[1, 1], [2, 1], [3, 1]]);
+    line(b, [[1, 2], [2, 2], [3, 2]]);
+    const net = netlist(b);
+    // six lengths of wire, and the two runs never meet: three nodes each end, none shared
+    return net.nodes > 6;
+  })(), true);
+  is('test_join_a_line_drawn_into_another_makes_a_branch', (() => {
+    const b = [];
+    line(b, [[1, 1], [2, 1], [3, 1]]);
+    line(b, [[2, 1], [2, 2]]);
+    return (b.find(p => p.col === 2 && p.row === 1).link & (1 << 2)) !== 0;
+  })(), true);
+  is('test_join_a_part_may_not_sit_on_another_part',
+    canPlace([put('bulb', 3, 3)], put('motor', 3, 3)), false);
+  is('test_join_a_part_may_not_hang_off_the_board',
+    canPlace([], put('bulb', COLS, 1)), false);
+  is('test_join_a_lead_needs_both_of_its_cells_free',
+    canPlace([put('bulb', 4, 3)], put('clip', 3, 3)), false);
+  is('test_join_which_part_is_on_a_cell', partAt([put('clip', 3, 3)], 4, 3), 0);
+
+  group('Stroomkring — an open loop and a closed one');
+  {
+    const open = [put('battery', 2, 2), put('bulb', 6, 2)];
+    line(open, [[3, 2], [4, 2], [5, 2]]);
+    const s = solve(open);
+    is('test_open_loop_carries_no_current', r3(s.drawn), 0);
+    is('test_open_loop_leaves_the_bulb_dark', r3(s.parts[1].duty), 0);
+    is('test_open_loop_names_the_gap', s.fault.kind, 'gap');
+    is('test_open_loop_points_at_the_loose_end', open[s.fault.at].id, 'bulb');
+    is('test_open_loop_says_so_in_dutch', faultLine(s.fault, true), 'Hier zit een gat in de kring.');
+    is('test_open_loop_says_so_in_english', faultLine(s.fault, false), 'There is a gap in the loop here.');
+  }
+  {
+    const b = [put('battery', 2, 2)];
+    const s = solve(b);
+    is('test_lone_battery_is_not_a_gap_but_a_loose_battery', s.fault.kind, 'loose');
+  }
+  is('test_empty_board_has_nothing_to_complain_about', solve([]).fault, null);
+  is('test_board_with_no_source_says_there_is_no_battery',
+    solve([put('bulb', 2, 2)]).fault.kind, 'nosource');
+  {
+    const closed = loop('bulb');
+    const s = solve(closed);
+    is('test_closed_loop_has_nothing_wrong_with_it', s.fault, null);
+    // one bulb straight across a fresh cell: 4.5 V over 12 ohm plus half an ohm inside the battery
+    is('test_closed_loop_carries_the_current_ohms_law_says', r3(s.drawn), 0.356);
+    // the line of wire has a resistance of its own, so the reading is a whisker under the sum
+    is('test_closed_loop_is_within_two_percent_of_the_textbook_sum',
+      Math.abs(s.drawn - 4.5 / 12.5) / (4.5 / 12.5) < 0.02, true);
+    is('test_closed_loop_burns_the_bulb_at_nearly_full_power', r2(s.parts[1].duty), 0.98);
+    is('test_closed_loop_marks_the_bulb_as_lit', marksOf(closed, s).includes('lit'), true);
+  }
+
+  group('Stroomkring — two bulbs in series and two in parallel');
+  {
+    const series = [put('battery', 2, 2), put('bulb', 5, 2), put('bulb', 6, 2)];
+    line(series, [[3, 2], [4, 2]]);
+    line(series, [[7, 2], [7, 4], [6, 4], [5, 4], [4, 4], [3, 4], [2, 4], [1, 4], [1, 2]]);
+    const s = solve(series);
+    // one current through both: 4.5 V over 24 ohm and a bit, which is half what one bulb draws
+    is('test_series_two_bulbs_share_one_current', r3(Math.abs(s.parts[1].i)), 0.183);
+    is('test_series_current_is_within_two_percent_of_the_textbook_sum',
+      Math.abs(Math.abs(s.parts[1].i) - 4.5 / 24.5) / (4.5 / 24.5) < 0.02, true);
+    is('test_series_both_bulbs_carry_exactly_the_same_current',
+      r3(s.parts[1].i), r3(s.parts[2].i));
+    is('test_series_each_bulb_gets_about_a_quarter_of_its_power', r2(s.parts[1].duty), 0.26);
+    is('test_series_two_bulbs_are_both_counted_as_lit', marksOf(series, s).includes('twolit'), true);
+    is('test_series_two_bulbs_are_not_counted_as_bright',
+      marksOf(series, s).includes('twobright'), false);
+
+    const parallel = [put('battery', 2, 2), put('bulb', 5, 1, 1), put('bulb', 5, 4, 1)];
+    line(parallel, [[3, 2], [4, 2], [5, 2], [5, 3]]);
+    line(parallel, [[5, 0], [4, 0], [3, 0], [2, 0], [1, 0], [1, 1], [1, 2]]);
+    line(parallel, [[5, 5], [4, 5], [3, 5], [2, 5], [1, 5], [1, 4], [1, 3], [1, 2]]);
+    const p = solve(parallel);
+    is('test_parallel_each_bulb_gets_its_own_current',
+      r3(Math.abs(p.parts[1].i)) > r3(Math.abs(s.parts[1].i)) * 1.8, true);
+    is('test_parallel_each_bulb_burns_at_nearly_full_power',
+      p.parts[1].duty > 0.85 && p.parts[2].duty > 0.85, true);
+    is('test_parallel_both_bulbs_count_as_bright',
+      marksOf(parallel, p).includes('twobright'), true);
+    is('test_parallel_the_battery_gives_out_about_twice_as_much',
+      p.drawn > s.drawn * 3.5, true);
+    is('test_parallel_taking_one_branch_out_leaves_the_other_lit', (() => {
+      const cut = parallel.filter(q => !(q.id === 'wire' && q.col === 5 && q.row === 0));
+      const after = solve(cut);
+      const m = marksOf(cut, after);
+      return m.includes('onelitonedark');
+    })(), true);
+  }
+
+  group('Stroomkring — a switch, a button and a relay');
+  {
+    const off = [put('battery', 2, 2), put('bulb', 6, 2), put('switch', 4, 4)];
+    line(off, [[3, 2], [4, 2], [5, 2]]);
+    line(off, [[7, 2], [7, 4], [6, 4], [5, 4]]);
+    line(off, [[3, 4], [2, 4], [1, 4], [1, 2]]);
+    const s = solve(off);
+    is('test_switch_open_stops_the_current', r3(s.drawn), 0);
+    is('test_switch_open_is_named_as_the_trouble', s.fault.kind, 'switchoff');
+    is('test_switch_open_points_at_the_switch_itself', off[s.fault.at].id, 'switch');
+    is('test_switch_open_says_so_in_dutch', faultLine(s.fault, true), 'Deze schakelaar staat uit.');
+    off[2].on = true;
+    const on = solve(off);
+    is('test_switch_closed_lets_the_current_through', r3(on.drawn), 0.356);
+    is('test_switch_closed_has_nothing_wrong_with_it', on.fault, null);
+
+    const bell = [put('battery', 2, 2), put('buzzer', 6, 2), put('button', 4, 4)];
+    line(bell, [[3, 2], [4, 2], [5, 2]]);
+    line(bell, [[7, 2], [7, 4], [6, 4], [5, 4]]);
+    line(bell, [[3, 4], [2, 4], [1, 4], [1, 2]]);
+    const quiet = solve(bell);
+    is('test_button_let_go_leaves_the_buzzer_silent', r3(quiet.parts[1].duty), 0);
+    is('test_button_let_go_is_marked_as_quiet',
+      marksOf(bell, quiet).includes('quietwhenlet'), true);
+    bell[2].on = true;
+    const held = solve(bell);
+    is('test_button_held_down_makes_the_buzzer_sound', held.parts[1].duty > 0.8, true);
+    is('test_button_held_down_is_marked_as_buzzing_while_held',
+      marksOf(bell, held).includes('buzzheld'), true);
+  }
+  {
+    // the little circuit on the left, the big one on the right, sharing only the relay
+    const rly = [put('relay', 4, 2), put('battery', 1, 2), put('battery', 6, 3, 1), put('bulb', 6, 4, 1)];
+    line(rly, [[2, 2], [3, 2]]);
+    line(rly, [[4, 1], [4, 0], [3, 0], [2, 0], [1, 0], [0, 0], [0, 1], [0, 2]]);
+    line(rly, [[5, 2], [6, 2]]);
+    line(rly, [[6, 5], [5, 5], [4, 5], [4, 4], [4, 3]]);
+    const s = solve(rly);
+    is('test_relay_the_coil_pulls_when_its_own_loop_is_closed', s.parts[0].on, true);
+    is('test_relay_pulling_closes_the_second_loop', Math.abs(s.parts[0].i2) > 0.1, true);
+    is('test_relay_the_second_loop_lights_its_bulb', s.parts[3].duty > 0.9, true);
+    is('test_relay_is_marked_as_switching_the_other_circuit',
+      marksOf(rly, s).includes('relayon'), true);
+    const flat = rly.map((p, i) => (i === 1 ? { ...p, charge: 0 } : { ...p }));
+    const after = solve(flat);
+    is('test_relay_with_a_flat_coil_battery_drops_out', after.parts[0].on, false);
+    is('test_relay_dropping_out_puts_the_second_loop_out', r3(after.parts[3].duty), 0);
+  }
+
+  group('Stroomkring — the LED and the motor care which way round they are');
+  {
+    const back = solve(loop('led', 0));
+    is('test_led_backwards_passes_no_current', r3(back.parts[1].i), 0);
+    is('test_led_backwards_stays_dark', back.parts[1].on, false);
+    is('test_led_backwards_is_named_as_the_trouble', back.fault.kind, 'ledback');
+    is('test_led_backwards_says_so_in_dutch', faultLine(back.fault, true), 'De led zit achterstevoren.');
+    const b = loop('led', 2);
+    const fwd = solve(b);
+    is('test_led_the_right_way_round_lights', fwd.parts[1].on, true);
+    is('test_led_the_right_way_round_has_nothing_wrong_with_it', fwd.fault, null);
+    // 4.5 V less the 1.8 V the diode swallows, over 20 ohm and the half inside the battery
+    is('test_led_the_right_way_round_carries_the_current_the_sum_says', r3(fwd.parts[1].i), 0.131);
+    is('test_led_swallows_its_forward_volts_before_it_conducts',
+      r2(fwd.parts[1].v - fwd.parts[1].i * specOf('led').r), r2(LED_VF));
+    is('test_led_marks_both_ways_round_once_both_have_been_seen',
+      [...marksOf(b, fwd), ...marksOf(loop('led', 0), back)].sort().join(','), 'ledback,ledon');
+
+    const one = solve(loop('motor', 0));
+    const other = solve(loop('motor', 2));
+    is('test_motor_turned_round_runs_the_other_way',
+      Math.sign(one.parts[1].i), -Math.sign(other.parts[1].i));
+    is('test_motor_turned_round_works_just_as_hard',
+      r3(Math.abs(one.parts[1].i)), r3(Math.abs(other.parts[1].i)));
+    is('test_motor_one_way_is_marked_as_running_forwards',
+      marksOf(loop('motor', 2), other).includes('motorfwd'), true);
+    is('test_motor_the_other_way_is_marked_as_running_backwards',
+      marksOf(loop('motor', 0), one).includes('motorback'), true);
+  }
+
+  group('Stroomkring — a short circuit, and the fuse that stops it');
+  {
+    const short = [put('battery', 2, 2)];
+    line(short, [[3, 2], [3, 3], [2, 3], [1, 3], [1, 2]]);
+    const s = solve(short);
+    // 4.5 V over the half ohm inside the cell and a little copper: about nine amps
+    is('test_short_circuit_draws_many_amps', r2(s.drawn), 8.18);
+    is('test_short_circuit_is_over_the_line_that_counts_as_one', s.drawn > SHORT_AMPS, true);
+    is('test_short_circuit_is_named_as_a_short', s.fault.kind, 'short');
+    is('test_short_circuit_says_so_in_english',
+      faultLine(s.fault, false), 'This is a short circuit: the current goes round everything.');
+    is('test_short_circuit_is_marked', marksOf(short, s).includes('shorted'), true);
+
+    const fused = [put('battery', 2, 2), put('fuse', 4, 2)];
+    line(fused, [[3, 2]]);
+    line(fused, [[5, 2], [5, 3], [4, 3], [3, 3], [2, 3], [1, 3], [1, 2]]);
+    const before = solve(fused);
+    is('test_fuse_carries_far_more_than_it_is_built_for_for_an_instant',
+      Math.abs(before.parts[1].i) > FUSE_BLOWS_AT, true);
+    is('test_fuse_is_told_to_melt', before.blew, [1]);
+    advance(fused, before, 0.05);
+    is('test_fuse_has_melted', fused[1].blown, true);
+    const after = solve(fused);
+    is('test_fuse_that_has_melted_stops_the_current', r3(after.drawn), 0);
+    is('test_fuse_that_has_melted_is_named_as_the_trouble', after.fault.kind, 'fuse');
+    is('test_fuse_that_has_melted_is_marked', marksOf(fused, after).includes('fuseblew'), true);
+    renew(fused);
+    is('test_fuse_gets_a_new_thread_when_the_bench_is_renewed', fused[1].blown, false);
+
+    const safe = [put('battery', 2, 2), put('fuse', 4, 2), put('bulb', 6, 2)];
+    line(safe, [[3, 2]]);
+    line(safe, [[5, 2]]);
+    line(safe, [[7, 2], [7, 4], [6, 4], [5, 4], [4, 4], [3, 4], [2, 4], [1, 4], [1, 2]]);
+    const ok = solve(safe);
+    is('test_fuse_leaves_an_ordinary_circuit_alone', ok.blew, []);
+    is('test_fuse_in_an_ordinary_circuit_hardly_notices', ok.parts[1].duty < 0.3, true);
+  }
+
+  group('Stroomkring — what the battery spends');
+  is('test_battery_a_fresh_one_pushes_its_full_volts', battVolts(1), specOf('battery').volts);
+  is('test_battery_sags_as_it_empties', battVolts(0.3) < battVolts(1), true);
+  is('test_battery_an_empty_one_pushes_nothing', battVolts(0), 0);
+  is('test_battery_a_negative_charge_still_pushes_nothing', battVolts(-1), 0);
+  {
+    const one = loop('bulb');
+    run(one, 10);
+    const spentOne = BATTERY_CHARGE - one[0].charge;
+    is('test_drain_one_bulb_for_ten_seconds_spends_what_it_drew', r2(spentOne), 3.53);
+
+    const series = [put('battery', 2, 2), put('bulb', 5, 2), put('bulb', 6, 2)];
+    line(series, [[3, 2], [4, 2]]);
+    line(series, [[7, 2], [7, 4], [6, 4], [5, 4], [4, 4], [3, 4], [2, 4], [1, 4], [1, 2]]);
+    run(series, 10);
+    const spentSeries = BATTERY_CHARGE - series[0].charge;
+    is('test_drain_two_bulbs_in_series_last_about_twice_as_long',
+      r2(spentOne / spentSeries), 1.94);
+
+    const parallel = [put('battery', 2, 2), put('bulb', 5, 1, 1), put('bulb', 5, 4, 1)];
+    line(parallel, [[3, 2], [4, 2], [5, 2], [5, 3]]);
+    line(parallel, [[5, 0], [4, 0], [3, 0], [2, 0], [1, 0], [1, 1], [1, 2]]);
+    line(parallel, [[5, 5], [4, 5], [3, 5], [2, 5], [1, 5], [1, 4], [1, 3], [1, 2]]);
+    run(parallel, 10);
+    const spentParallel = BATTERY_CHARGE - parallel[0].charge;
+    is('test_drain_two_bulbs_in_parallel_cost_nearly_four_times_a_series_pair',
+      r2(spentParallel / spentSeries), 3.71);
+    is('test_drain_a_wasteful_circuit_empties_the_battery_sooner', spentParallel > spentOne, true);
+
+    const short = [put('battery', 2, 2)];
+    line(short, [[3, 2], [3, 3], [2, 3], [1, 3], [1, 2]]);
+    run(short, 20);
+    is('test_drain_a_short_circuit_empties_the_battery_in_seconds', r2(chargeFrac(short[0])), 0);
+    is('test_drain_an_empty_battery_is_named_as_the_trouble', solve(short).fault.kind, 'flat');
+    renew(short);
+    is('test_drain_a_new_battery_is_full_again', chargeFrac(short[0]), 1);
+  }
+
+  group('Stroomkring — the solar cell and the capacitor');
+  {
+    const sun = [put('solar', 2, 2), put('bulb', 6, 2)];
+    line(sun, [[3, 2], [4, 2], [5, 2]]);
+    line(sun, [[7, 2], [7, 4], [6, 4], [5, 4], [4, 4], [3, 4], [2, 4], [1, 4], [1, 2]]);
+    const s = solve(sun);
+    is('test_solar_lights_a_bulb_but_not_as_brightly', s.parts[1].duty > 0.2 && s.parts[1].duty < 0.7, true);
+    is('test_solar_never_runs_out', sun[0].charge, undefined);
+    run(sun, 5);
+    is('test_solar_still_never_runs_out_after_a_while', solve(sun).parts[1].duty > 0.2, true);
+
+    const cap = [put('battery', 2, 2), put('switch', 4, 2, 0, { on: true }), put('cap', 6, 2, 2)];
+    line(cap, [[3, 2]]);
+    line(cap, [[5, 2]]);
+    line(cap, [[7, 2], [7, 4], [6, 4], [5, 4], [4, 4], [3, 4], [2, 4], [1, 4], [1, 2]]);
+    is('test_capacitor_starts_empty', cap[2].charge ?? 0, 0);
+    run(cap, 3);
+    const volts = (cap[2].charge ?? 0) / CAP_FARADS;
+    is('test_capacitor_fills_up_to_about_the_battery_volts', volts > 4 && volts < 4.6, true);
+  }
+
+  group('Stroomkring — the ten puzzles');
+  is('test_puzzles_there_are_ten_of_them', PUZZLES.length, 10);
+  is('test_puzzles_ids_are_unique', new Set(PUZZLES.map(p => p.id)).size, PUZZLES.length);
+  is('test_puzzles_all_have_both_languages',
+    PUZZLES.every(p => p.goal && p.goalNl && p.hint && p.hintNl), true);
+  is('test_puzzles_every_opening_board_fits_on_the_bench',
+    PUZZLES.every(p => p.start.every(q => canPlace(p.start.filter(o => o !== q), q))), true);
+  is('test_puzzles_every_opening_board_is_inside_the_grid',
+    PUZZLES.every(p => p.start.every(q => cellsOf(q).every(([x, y]) => x >= 0 && x < COLS && y >= 0 && y < ROWS))), true);
+  is('test_puzzles_every_part_on_an_opening_board_is_a_real_part',
+    PUZZLES.every(p => p.start.every(q => PARTS.some(s => s.id === q.id))), true);
+  is('test_puzzles_the_wire_is_on_every_shelf', PUZZLES.every(p => p.tray.includes('wire')), true);
+  is('test_puzzles_the_last_one_is_the_open_bench', PUZZLES[PUZZLES.length - 1].free, true);
+  is('test_puzzles_the_open_bench_offers_every_part',
+    PUZZLES[PUZZLES.length - 1].tray.length, PARTS.length);
+  is('test_puzzles_only_the_bench_asks_for_nothing',
+    PUZZLES.filter(p => p.needs.length === 0).map(p => p.id), ['bench']);
+  is('test_puzzles_are_not_finished_before_their_marks_are_seen',
+    isSolved(PUZZLES[0], new Set()), false);
+  is('test_puzzles_are_finished_once_every_mark_is_seen',
+    isSolved(PUZZLES[0], new Set(['lit'])), true);
+  is('test_puzzles_half_the_marks_is_not_enough',
+    isSolved(PUZZLES[1], new Set(['lit'])), false);
+  is('test_puzzles_the_open_bench_is_never_finished',
+    isSolved(PUZZLES[PUZZLES.length - 1], new Set(['lit'])), false);
+  is('test_puzzles_a_fresh_opening_board_is_a_copy', (() => {
+    const a = startBoard(PUZZLES[0]);
+    a[0].col = 8;
+    return startBoard(PUZZLES[0])[0].col;
+  })(), PUZZLES[0].start[0].col);
+  is('test_puzzles_a_fresh_opening_board_has_a_full_battery',
+    startBoard(PUZZLES[0]).filter(p => p.id === 'battery').every(p => p.charge === BATTERY_CHARGE), true);
+
+  group('Stroomkring — a board out of a save nobody wrote');
+  is('test_clean_an_empty_board_is_fine', cleanCircuit([]), []);
+  is('test_clean_a_sound_board_comes_back_whole',
+    cleanCircuit([{ id: 'bulb', col: 2, row: 2, rot: 0 }]).length, 1);
+  is('test_clean_rubbish_is_thrown_away', cleanCircuit('nonsense'), null);
+  is('test_clean_a_part_that_does_not_exist_is_thrown_away',
+    cleanCircuit([{ id: 'flux-capacitor', col: 2, row: 2, rot: 0 }]), null);
+  is('test_clean_a_part_off_the_board_is_thrown_away',
+    cleanCircuit([{ id: 'bulb', col: 99, row: 2, rot: 0 }]), null);
+  is('test_clean_two_parts_on_one_cell_are_thrown_away',
+    cleanCircuit([{ id: 'bulb', col: 2, row: 2, rot: 0 }, { id: 'motor', col: 2, row: 2, rot: 0 }]), null);
+  is('test_clean_a_silly_rotation_is_brought_back_into_range',
+    cleanCircuit([{ id: 'bulb', col: 2, row: 2, rot: 17 }])[0].rot, 1);
+  is('test_clean_a_negative_rotation_is_brought_back_into_range',
+    cleanCircuit([{ id: 'bulb', col: 2, row: 2, rot: -1 }])[0].rot, 3);
+  is('test_clean_a_lead_only_lies_two_ways',
+    cleanCircuit([{ id: 'clip', col: 2, row: 2, rot: 3 }])[0].rot, 1);
+  is('test_clean_a_battery_cannot_hold_more_than_a_full_one',
+    cleanCircuit([{ id: 'battery', col: 2, row: 2, rot: 0, charge: 1e9 }])[0].charge, BATTERY_CHARGE);
+  is('test_clean_a_wire_keeps_the_line_it_was_drawn_with',
+    cleanCircuit([{ id: 'wire', col: 2, row: 2, rot: 0, link: 5 }])[0].link, 5);
+  is('test_clean_a_wire_with_a_silly_link_is_brought_back_into_range',
+    cleanCircuit([{ id: 'wire', col: 2, row: 2, rot: 0, link: 999 }])[0].link, 15);
+  is('test_clean_a_board_bigger_than_the_bench_is_thrown_away',
+    cleanCircuit(Array.from({ length: 200 }, (_, i) => ({ id: 'wire', col: i % 9, row: 0, rot: 0 }))), null);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);

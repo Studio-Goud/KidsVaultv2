@@ -223,6 +223,13 @@ export function drawHeightMap(
   ctx.save();
   shapePath(ctx, clip, view, box);
   ctx.clip();
+  // everything the bands do not cover is ordinary ground a whisker above the sea, so the country
+  // is filled with that first and the bands are laid over it - otherwise the map is a handful of
+  // patches with the sea showing through the gaps between them
+  const base = 0.5;
+  shapePath(ctx, clip, view, box);
+  ctx.fillStyle = sea != null && base < sea ? '#3f86bd' : rampFor(base);
+  ctx.fill();
   // the low ground first, then the high, so the highest band wins where they overlap
   const order = [...HEIGHT].sort((a, b) => a.m - b.m);
   for (const band of order) {

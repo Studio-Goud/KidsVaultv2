@@ -145,6 +145,44 @@ over nothing at all. It is a pencil mark on a doorframe.
 Practises weighing one thing against another, cause and effect, shape against speed, and reading a
 number that grows. Age 6 and up.
 
+### Stroomkring (`circuit.html`)
+A workbench with a grid on it and fourteen real parts on the shelf: batterij, draad, lampje,
+schakelaar, drukknop, motor, zoemer, weerstand, led, zekering, zonnecel, condensator, relais and a
+krokodillenklem. You drag the parts onto the board and draw the wire between them with your finger,
+one cell at a time. Two lines of wire lying side by side do not touch, because the line was never
+drawn between them - which is the only reason a circuit can be run back past itself without
+shorting out.
+
+The physics is real and lives in one pure module. Every terminal becomes a node, every part becomes
+an edge between nodes, and the whole board is solved forty times a second by nodal analysis: G·V =
+I, Gaussian elimination, one pass per diode and relay until their states stop changing. Nothing is
+scripted. A bulb is twelve ohms of glowing wire and its brightness is the power the sum gives it,
+so two bulbs in series share one current of 0.18 A and each get a quarter of their power, while two
+in parallel each get 0.34 A and burn at nine tenths - and the battery pays for both, which it
+visibly does: the same cell that runs one bulb for three minutes runs the parallel pair for about
+ninety seconds. Every source has a resistance inside it, which is why a wire laid straight across
+the battery draws about eight amps rather than infinity, why the wire glows, why the fuse has
+something to melt at, and why the cell is empty in seven seconds. The LED swallows 1.8 V before it
+passes anything and passes nothing at all backwards. The motor turns the other way round when you
+turn it round. The relay is a coil that pulls a switch shut, so a circuit with one battery in it
+can turn on a circuit with another.
+
+Nothing ever just fails. One line under the board names what is wrong and a ring on the board points
+at the part it is in: *hier zit een gat in de kring*, *deze schakelaar staat uit*, *de led zit
+achterstevoren*, *dit is kortsluiting*, *de zekering is doorgeslagen*, *de batterij is leeg*. The
+open switch and the backwards LED are worked out by trying it - close every switch and solve it
+again, turn the LED round and solve it again - so the game only says so when that really would have
+fixed it.
+
+Nine puzzles and an open bench, and none of them is a gate: the bench can be opened from the list at
+any time, and what is built on it is still there tomorrow. Light the bulb. Put a switch in. Two
+bulbs, both lit. Two bulbs, and one may go out while the other stays on. A motor that runs both
+ways. A doorbell that only buzzes while the button is held. A fuse that saves the circuit from a
+short you make on purpose. An LED that only lights one way round. A relay: a small circuit
+switching a big one.
+Practises cause and effect, reading a circuit, series against parallel, and finding your own
+mistake. Age 6 and up.
+
 ### Dino Dig (`dig.html`)
 Excavate real fossils (Smithsonian, NASA and Wikimedia public domain photographs) with brush, chisel,
 hammer and scribe, each with its own reach, bite and risk, before the daylight runs out. Ten species

@@ -318,7 +318,7 @@ export class Circuit {
     const panelH = Math.min(availH, ROWS * unit + headH + footH + inset * 2);
     const panel = {
       x: wide ? 8 * u + (availW - panelW) / 2 : this.w / 2 - panelW / 2,
-      y: top + Math.min(Math.max(0, (availH - panelH) / 2), 26 * u),
+      y: top + Math.min(Math.max(0, (availH - panelH) / 2), 40 * u),
       w: panelW, h: panelH,
     };
     return { wide, chip, goal, panel, headH, footH, tray, trayDown: wide, bar, unit };
@@ -347,9 +347,12 @@ export class Circuit {
     const u = this.u();
     const n = this.quiz().tray.length;
     const pad = 4 * u;
-    const arrow = 26 * u;
-    const alongW = b.trayDown ? b.tray.w - pad * 2 : b.tray.w - pad * 2 - arrow * 2;
-    const alongH = b.trayDown ? b.tray.h - pad * 2 - arrow * 2.2 : b.tray.h - pad * 2;
+    // room kept clear at both ends for the page arrows, whether or not there is a second page,
+    // so the shelf does not shuffle sideways the moment one more part is put on it
+    const arrow = b.trayDown ? 0 : 30 * u;
+    const vGap = b.trayDown ? 48 * u : 0;
+    const alongW = b.tray.w - pad * 2 - arrow * 2;
+    const alongH = b.tray.h - pad * 2 - vGap * 2;
     const colsMax = Math.max(1, Math.floor(alongW / (50 * u)));
     const rowsFit = Math.max(1, Math.min(b.trayDown ? 6 : 2, Math.floor(alongH / (54 * u))));
     // a shelf with three things on it puts them in three columns, not in the first three of six,
@@ -798,8 +801,8 @@ export class Circuit {
     const cx = b.panel.x + b.panel.w / 2, cy = b.panel.y + b.panel.h / 2;
     const r = Math.max(b.panel.w, b.panel.h) * 0.95;
     const pool = ctx.createRadialGradient(cx, cy - b.panel.h * 0.1, r * 0.2, cx, cy, r);
-    pool.addColorStop(0, 'rgba(150, 196, 240, 0.12)');
-    pool.addColorStop(0.55, 'rgba(120, 170, 220, 0.05)');
+    pool.addColorStop(0, 'rgba(150, 196, 240, 0.16)');
+    pool.addColorStop(0.55, 'rgba(120, 170, 220, 0.06)');
     pool.addColorStop(1, 'rgba(120, 170, 220, 0)');
     ctx.fillStyle = pool;
     ctx.fillRect(0, 0, this.w, this.h);
@@ -961,7 +964,7 @@ export class Circuit {
     // a hand drawing a line, for a bench nobody has touched in a while
     if (this.idle > 9 && !this.drag && !this.line && !this.picking) {
       const k = (this.t % 2.6) / 2.6;
-      const hx = ox + unit * (0.6 + k * 2.4), hy = oy + bh + unit * 0.1;
+      const hx = ox + unit * (0.6 + k * 2.4), hy = oy + bh - unit * 0.9;
       ctx.save();
       ctx.globalAlpha = 0.75;
       handCursor(ctx, hx, hy, unit * 0.3, k < 0.12 ? 1 : 0);
@@ -1077,9 +1080,10 @@ export class Circuit {
     const g = this.trayGrid(b);
     const list = all.slice(g.page * g.per, g.page * g.per + g.per);
     const pad = 4 * u;
-    const arrow = 26 * u;
-    const left = r.x + pad + (b.trayDown ? 0 : g.pages > 1 ? arrow : 0) + g.offX;
-    const top = r.y + pad + (b.trayDown && g.pages > 1 ? arrow * 1.6 : 0) + g.offY;
+    const arrow = b.trayDown ? 0 : 30 * u;
+    const vGap = b.trayDown ? 48 * u : 0;
+    const left = r.x + pad + arrow + g.offX;
+    const top = r.y + pad + vGap + g.offY;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     list.forEach((id, k) => {
@@ -1095,10 +1099,9 @@ export class Circuit {
           null, cx, cy, pu, this.t, 0.6);
       }
       ctx.fillStyle = 'rgba(222, 238, 252, 0.94)';
-      const label = nameOf(id);
       ctx.font = this.font('800', 8.5);
-      if (ctx.measureText(label).width > g.cell - 6 * u) ctx.font = this.font('800', 7.2);
-      ctx.fillText(label, cx, y + g.rowH - 5 * u, g.cell - 4 * u);
+      const said = wrap(ctx, nameOf(id), g.cell - 6 * u).slice(0, 2);
+      said.forEach((ln, j) => ctx.fillText(ln, cx, y + g.rowH - 5 * u - (said.length - 1 - j) * 10 * u, g.cell - 4 * u));
       this.hits.push({ id: `tray:${id}`, x, y, w: g.cell, h: g.rowH });
     });
 
@@ -1106,10 +1109,10 @@ export class Circuit {
       ctx.textBaseline = 'middle';
       ctx.font = this.font('900', 16);
       const spots: Array<[string, number, number, string, boolean]> = b.trayDown
-        ? [['page:-1', r.x + r.w / 2, r.y + 24 * u, '‹', g.page > 0],
-          ['page:1', r.x + r.w / 2, r.y + r.h - 24 * u, '›', g.page < g.pages - 1]]
-        : [['page:-1', r.x + arrow * 0.7, r.y + r.h / 2, '‹', g.page > 0],
-          ['page:1', r.x + r.w - arrow * 0.7, r.y + r.h / 2, '›', g.page < g.pages - 1]];
+        ? [['page:-1', r.x + r.w / 2, r.y + 26 * u, '‹', g.page > 0],
+          ['page:1', r.x + r.w / 2, r.y + r.h - 26 * u, '›', g.page < g.pages - 1]]
+        : [['page:-1', r.x + 18 * u, r.y + r.h / 2, '‹', g.page > 0],
+          ['page:1', r.x + r.w - 18 * u, r.y + r.h / 2, '›', g.page < g.pages - 1]];
       for (const [id, ax, ay, glyph, on] of spots) {
         ctx.save();
         if (b.trayDown) { ctx.translate(ax, ay); ctx.rotate(Math.PI / 2); ctx.translate(-ax, -ay); }
@@ -1212,46 +1215,65 @@ export class Circuit {
   private drawCheer(b: Bands): void {
     const ctx = this.ctx, u = this.u();
     const k = this.cheer;
-    const w = Math.min(this.w - 32 * u, 380 * u);
-    const h = Math.min(140 * u, Math.max(112 * u, b.panel.h - 12 * u));
+    const q = this.quiz();
+    const last = this.puzzle >= PUZZLES.length - 1;
     const mid = this.cardMid(b);
+    const w = Math.min(this.w - 24 * u, b.wide ? 540 * u : 380 * u);
+    const h = b.wide ? 82 * u : Math.min(140 * u, Math.max(112 * u, b.panel.h - 12 * u));
     const x = mid - w / 2;
     const y = this.cardTop(b, h) + (1 - k) * 26 * u;
+    const bw = b.wide ? Math.min(128 * u, (w - 48 * u) * 0.34) : (w - 36 * u) / 2;
+    const bh = 34 * u;
+    const by = b.wide ? y + h / 2 - bh / 2 : y + h - bh - 12 * u;
+    const sx = b.wide ? x + w - bw * 2 - 20 * u : x + 12 * u;
+    const nx = x + w - bw - 12 * u;
+
     ctx.save();
     ctx.globalAlpha = k;
     glassPanel(ctx, x, y, w, h, 16 * u, 0.97);
-    drawStar(ctx, mid, y + 28 * u, 17 * u, true, 0.92 + 0.08 * Math.sin(this.t * 4));
-    ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = '#12233b';
-    ctx.font = this.font('900', 15);
-    ctx.fillText(T('That is it.', 'Zo werkt het.'), mid, y + 60 * u, w - 28 * u);
-    ctx.fillStyle = 'rgba(18,35,59,0.65)';
-    ctx.font = this.font('800', 10);
-    const q = this.quiz();
-    wrap(ctx, NL() ? q.hintNl : q.hint, w - 30 * u).slice(0, 2)
-      .forEach((ln, i) => ctx.fillText(ln, mid, y + 77 * u + i * 13 * u, w - 30 * u));
+    if (b.wide) {
+      drawStar(ctx, x + 28 * u, y + h / 2, 16 * u, true, 0.92 + 0.08 * Math.sin(this.t * 4));
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#12233b';
+      ctx.font = this.font('900', 14);
+      const tw = sx - x - 62 * u;
+      ctx.fillText(T('That is it.', 'Zo werkt het.'), x + 50 * u, y + h / 2 - 6 * u, tw);
+      ctx.fillStyle = 'rgba(18,35,59,0.65)';
+      ctx.font = this.font('800', 9.5);
+      const hint = wrap(ctx, NL() ? q.hintNl : q.hint, tw);
+      ctx.fillText(hint.length > 1 ? `${hint[0]}…` : hint[0] ?? '', x + 50 * u, y + h / 2 + 12 * u, tw);
+    } else {
+      drawStar(ctx, mid, y + 28 * u, 17 * u, true, 0.92 + 0.08 * Math.sin(this.t * 4));
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#12233b';
+      ctx.font = this.font('900', 15);
+      ctx.fillText(T('That is it.', 'Zo werkt het.'), mid, y + 60 * u, w - 28 * u);
+      ctx.fillStyle = 'rgba(18,35,59,0.65)';
+      ctx.font = this.font('800', 10);
+      wrap(ctx, NL() ? q.hintNl : q.hint, w - 30 * u).slice(0, 2)
+        .forEach((ln, i) => ctx.fillText(ln, mid, y + 77 * u + i * 13 * u, w - 30 * u));
+    }
 
-    const bw = (w - 36 * u) / 2, bh = 34 * u, by = y + h - bh - 12 * u;
-    const last = this.puzzle >= PUZZLES.length - 1;
-    const sf = chunkyButton(ctx, x + 12 * u, by, bw, bh, { tone: '#46566a', pressed: this.held === 'stay' });
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const sf = chunkyButton(ctx, sx, by, bw, bh, { tone: '#46566a', pressed: this.held === 'stay' });
     ctx.fillStyle = 'rgba(255,255,255,0.94)';
     ctx.font = this.font('900', 11.5);
-    ctx.textBaseline = 'middle';
-    ctx.fillText(T('Keep playing', 'Doorspelen'), x + 12 * u + bw / 2, sf.y + bh / 2, bw - 10 * u);
-    const nf = chunkyButton(ctx, x + w - bw - 12 * u, by, bw, bh, { tone: '#65d48c', pressed: this.held === 'next' });
+    ctx.fillText(T('Keep playing', 'Doorspelen'), sx + bw / 2, sf.y + bh / 2, bw - 10 * u);
+    const nf = chunkyButton(ctx, nx, by, bw, bh, { tone: '#65d48c', pressed: this.held === 'next' });
     ctx.fillStyle = '#0b2a1c';
     ctx.fillText(last ? T('To the bench', 'Naar de werkbank') : T('Next', 'Volgende'),
-      x + w - bw - 12 * u + bw / 2, nf.y + bh / 2, bw - 10 * u);
+      nx + bw / 2, nf.y + bh / 2, bw - 10 * u);
     ctx.restore();
-    this.hits.push({ id: 'stay', x: x + 12 * u, y: by, w: bw, h: bh });
-    this.hits.push({ id: 'next', x: x + w - bw - 12 * u, y: by, w: bw, h: bh });
+    this.hits.push({ id: 'stay', x: sx, y: by, w: bw, h: bh });
+    this.hits.push({ id: 'next', x: nx, y: by, w: bw, h: bh });
   }
 
   /** The ten of them, with a star on the ones that are done and nothing locked. */
   private drawPicker(): void {
     const ctx = this.ctx, u = this.u();
-    ctx.fillStyle = 'rgba(5, 11, 20, 0.88)';
+    ctx.fillStyle = 'rgba(5, 11, 20, 0.97)';
     ctx.fillRect(0, 0, this.w, this.h);
     this.hits.push({ id: 'closepick', x: 0, y: 0, w: this.w, h: this.h });
 
@@ -1289,8 +1311,9 @@ export class Circuit {
       ctx.fillText(q.free ? T('The bench', 'De werkbank') : `${i + 1}`, x + 42 * u, my - 9 * u, cw - 58 * u);
       ctx.fillStyle = on ? 'rgba(142,232,173,0.8)' : 'rgba(226,238,252,0.62)';
       ctx.font = this.font('800', 9.5);
-      ctx.fillText(wrap(ctx, NL() ? q.goalNl : q.goal, cw - 58 * u)[0] ?? '', x + 42 * u, my + 9 * u, cw - 58 * u);
-      this.hits.push({ id: `pick:${i}`, x, y, w: cw, h: ch - 5 * u });
+      const said = wrap(ctx, NL() ? q.goalNl : q.goal, cw - 58 * u);
+      ctx.fillText(said.length > 1 ? `${said[0]}…` : said[0] ?? '', x + 42 * u, my + 9 * u, cw - 58 * u);
+      this.hits.push({ id: `pick:${i}`, x, y, w: cw, h: ch });
     });
   }
 }
