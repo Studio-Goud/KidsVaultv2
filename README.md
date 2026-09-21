@@ -198,6 +198,36 @@ plum, six strawberries shared fairly between two baskets, or a basket that alrea
 and a customer who wants five. Eight market days, up to twelve customers with a patience ring.
 Practises counting out, counting two things at once, sharing equally and how many more. Age 4 and up.
 
+### Klokkijken (`clock.html`)
+A clock on a schoolroom wall and nine levels in the order a school teaches them: whole hours, the
+half hour, the quarters, five minutes at a time, setting the hands yourself, single minutes, finding
+the face that matches a digital time, the twenty-four hour clock, and last the question a clock is
+actually for - it is twenty past two and the bus goes in twenty-five minutes.
+
+Three kinds of question, mixed: read the hands and pick the figures, drag the hands to a time given
+in words, and pick which of four faces is the digital time on the card. The hands are geared
+together the way a real clock's are, so moving the long one carries the short one along, and taking
+it past twelve moves the hour.
+
+The hour hand moves between the numbers. At half past three it is genuinely halfway to the four,
+which is why Dutch says "half vier" and why children read it as four o'clock, and the wrong answers
+on offer are that mistake and its cousins rather than random numbers: 4:30 beside 3:30, 10:25 beside
+5:50 for a child reading the short hand as the long one, quarter past beside quarter to, and the
+same hands read as the other half of the day once the twenty-four hour clock arrives.
+
+Getting one wrong is not a loss and there is no way to fail. The hour hand lights up, the slice of
+dial it is inside is shaded, the number it has left is circled, and the reading is spelled out in
+words - "tien voor half vier · 3:20" - before the next question comes. The stars count what was read
+right the first time, before the clock showed you. A switch in the corner puts the 5, 10, 15 ring on
+the dial for a child still counting round in fives, and takes it off again.
+
+The spoken layer is the point and it lives in `src/games/clock/dutchtime.ts`, a module with no
+canvas in it: whole hours, the quarters, "half vier" for 3:30, "tien voor half vier" for 3:20, "vijf
+over half vier" for 3:35, midnight and midday both called twelve. It is tested case by case in
+`tests/run.mjs`, in Dutch and in English.
+Practises reading the analogue and the digital clock, saying the time in Dutch, and counting on in
+minutes. Age 6 and up.
+
 ## Stack
 - Vite + TypeScript, Canvas 2D, multi-page build (one entry per game)
 - Photographs only where they are real: NASA planets and moons, public domain fossils; everything

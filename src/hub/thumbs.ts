@@ -698,7 +698,7 @@ export function drawClockThumb(c: HTMLCanvasElement): void {
   ctx.beginPath(); ctx.arc(cx, cy, Math.max(1.5, dr * 0.09), 0, TAU); ctx.fill();
 
   // the digital clock it has to be turned into
-  const bw = w * 0.34, bh = bw * 0.42, bx = w * 0.76, by = h * 0.52;
+  const bw = w * 0.32, bh = bw * 0.44, bx = w * 0.73, by = h * 0.52;
   ctx.fillStyle = '#1b3b52';
   ctx.beginPath(); ctx.roundRect(bx - bw / 2, by - bh / 2, bw, bh, bh * 0.24); ctx.fill();
   ctx.fillStyle = '#123040';

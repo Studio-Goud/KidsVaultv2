@@ -40,6 +40,8 @@ export interface FaceOptions {
   compact?: boolean;
   /** 0..1, the card sliding in */
   pop?: number;
+  /** draw the nail it hangs from; off where there is no room above the case */
+  hanging?: boolean;
 }
 
 const CASE_A = '#f6c96a';
@@ -48,8 +50,8 @@ const DIAL = '#fffaf0';
 const INK = '#20415c';
 
 /** How long each hand is, as a fraction of the dial radius. A real clock, near enough. */
-export const HOUR_LEN = 0.55;
-export const MINUTE_LEN = 0.82;
+export const HOUR_LEN = 0.52;
+export const MINUTE_LEN = 0.85;
 
 /** The dial inside the case. Everything else is measured from this. */
 export const dialRadius = (r: number): number => r * 0.86;
@@ -60,6 +62,23 @@ export function drawClockFace(ctx: Ctx, cx: number, cy: number, r: number, o: Fa
 
   ctx.save();
   contactShadow(ctx, cx, cy + r * 0.98, r * 0.92, r * 0.2, 0.3);
+
+  // the nail it hangs from, and the loop over it. A clock on a wall hangs off something; without
+  // it the face floats in the middle of the room like a sticker.
+  if (o.hanging && !compact) {
+    const ny = cy - r * 1.12;
+    ctx.strokeStyle = 'rgba(120, 88, 48, 0.7)';
+    ctx.lineWidth = Math.max(1.5, r * 0.022);
+    ctx.beginPath();
+    ctx.moveTo(cx, ny + r * 0.02);
+    ctx.lineTo(cx, cy - r * 0.99);
+    ctx.stroke();
+    const nail = ctx.createLinearGradient(cx - r * 0.04, ny - r * 0.04, cx + r * 0.04, ny + r * 0.04);
+    nail.addColorStop(0, '#e8e2d6');
+    nail.addColorStop(1, '#9a9184');
+    ctx.fillStyle = nail;
+    ctx.beginPath(); ctx.arc(cx, ny, Math.max(2, r * 0.035), 0, TAU); ctx.fill();
+  }
 
   // the case: a brass ring lit from the top left
   const rim = ctx.createLinearGradient(cx + LIGHT.x * r, cy + LIGHT.y * r, cx - LIGHT.x * r, cy - LIGHT.y * r);
@@ -106,8 +125,8 @@ export function drawClockFace(ctx: Ctx, cx: number, cy: number, r: number, o: Fa
     const g = handAngles(o.ghost.h, o.ghost.m);
     ctx.save();
     ctx.globalAlpha = 0.38;
-    hand(ctx, cx, cy, dr * HOUR_LEN, g.hour, dr * 0.085, '#4f9b62', false);
-    hand(ctx, cx, cy, dr * MINUTE_LEN, g.minute, dr * 0.055, '#4f9b62', false);
+    hand(ctx, cx, cy, dr * HOUR_LEN, g.hour, dr * 0.095, '#4f9b62', false);
+    hand(ctx, cx, cy, dr * MINUTE_LEN, g.minute, dr * 0.05, '#4f9b62', false);
     ctx.restore();
   }
 
@@ -118,8 +137,10 @@ export function drawClockFace(ctx: Ctx, cx: number, cy: number, r: number, o: Fa
 
   const hourTone = o.highlight === 'hour' ? '#e0642f' : INK;
   const minTone = o.highlight === 'minute' ? '#e0642f' : mix(INK, '#2f6d94', 0.5);
-  hand(ctx, cx, cy, dr * HOUR_LEN, a.hour, dr * 0.085, hourTone, o.dragging === 'hour');
-  hand(ctx, cx, cy, dr * MINUTE_LEN, a.minute, dr * 0.055, minTone, o.dragging === 'minute');
+  // the short one is visibly stubbier and the long one visibly thinner: which is which has to be
+  // a matter of looking, not of remembering
+  hand(ctx, cx, cy, dr * HOUR_LEN, a.hour, dr * 0.095, hourTone, o.dragging === 'hour');
+  hand(ctx, cx, cy, dr * MINUTE_LEN, a.minute, dr * 0.05, minTone, o.dragging === 'minute');
 
   // the boss in the middle, over both hands
   const cap = dr * 0.07;
@@ -178,10 +199,11 @@ function drawMinuteNumbers(ctx: Ctx, cx: number, cy: number, dr: number, r: numb
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#c1622c';
   ctx.font = `800 ${Math.round(r * 0.085)}px Nunito, system-ui, sans-serif`;
-  for (let i = 1; i <= 12; i++) {
+  // 5 to 55, and nothing at the top: the 12 is already where the counting starts
+  for (let i = 1; i <= 11; i++) {
     const a = (i / 12) * TAU - Math.PI / 2;
     const rr = dr * 0.5;
-    ctx.fillText(String((i * 5) % 60), cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+    ctx.fillText(String(i * 5), cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
   }
   ctx.restore();
 }
@@ -196,12 +218,16 @@ function hourWedge(ctx: Ctx, cx: number, cy: number, dr: number, h: number, m: n
   const a0 = (hour / 12) * TAU - Math.PI / 2;
   const a1 = ((hour + 1) / 12) * TAU - Math.PI / 2;
   ctx.save();
-  ctx.fillStyle = 'rgba(224, 100, 47, 0.16)';
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.arc(cx, cy, dr * 0.82, a0, a1);
-  ctx.closePath();
-  ctx.fill();
+  // on the hour there is nothing to shade: the hand is on the numeral, and a slice would only
+  // suggest it is somewhere it is not
+  if (m !== 0) {
+    ctx.fillStyle = 'rgba(224, 100, 47, 0.16)';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, dr * 0.82, a0, a1);
+    ctx.closePath();
+    ctx.fill();
+  }
   // the number it has left is the hour, so that one is circled
   ctx.strokeStyle = 'rgba(224, 100, 47, 0.9)';
   ctx.lineWidth = Math.max(2, dr * 0.024);
@@ -209,7 +235,6 @@ function hourWedge(ctx: Ctx, cx: number, cy: number, dr: number, h: number, m: n
   ctx.beginPath();
   ctx.arc(cx + Math.cos(a0) * rr, cy + Math.sin(a0) * rr, dr * 0.15, 0, TAU);
   ctx.stroke();
-  void m;
   ctx.restore();
 }
 

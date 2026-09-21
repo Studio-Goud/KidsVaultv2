@@ -1,6 +1,7 @@
 import './../../style.css';
-import { addHomeButton } from '../../hub/homebtn';
+import { addBackButton, addHomeButton } from '../../hub/homebtn';
 import { Clock } from './game';
 
-new Clock(document.getElementById('clock') as HTMLCanvasElement);
+const game = new Clock(document.getElementById('clock') as HTMLCanvasElement);
 addHomeButton();
+addBackButton({ back: () => game.back(), canBack: () => game.canBack() });

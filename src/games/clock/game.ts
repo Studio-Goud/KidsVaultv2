@@ -138,6 +138,13 @@ export class Clock {
 
   destroy(): void { cancelAnimationFrame(this.raf); }
 
+  /**
+   * One step back, for the button every game shares. Here there is only one step to take: out of
+   * a level and back to the ladder, from the middle of it or from the card at the end.
+   */
+  canBack(): boolean { return this.phase !== 'levels'; }
+  back(): void { this.phase = 'levels'; this.cardPop = 0; }
+
   debugState(): Record<string, unknown> {
     const L = this.layout();
     return {
@@ -213,50 +220,85 @@ export class Clock {
     const pad = 14 * u;
     const wide = w > h * 1.3;
     const n = this.q.kind === 'set' ? 0 : Math.max(1, this.q.options.length);
-    const cols = n === 3 && !wide ? 3 : 2;
+    const cols = n === 3 ? 3 : 2;
     const rows = Math.max(1, Math.ceil(n / cols));
     const isMatch = this.q.kind === 'match';
     const gap = 9 * u;
-
-    const bandH = 58 * u;
+    const bandH = 62 * u;
+    // the level button, the minute-number switch and the shared house button live across the top,
+    // so nothing else starts above this line in either orientation
+    const top = 64 * u;
 
     if (wide) {
       const colX = Math.max(w * 0.46, w - 420 * u);
       const rightW = w - colX - pad;
       const promptH = (this.q.kind === 'elapsed' ? 92 : 70) * u;
-      const prompt: Rect = { x: colX, y: 14 * u, w: rightW, h: promptH };
+      const prompt: Rect = { x: colX, y: top, w: rightW, h: promptH };
       const band: Rect = { x: colX, y: prompt.y + promptH + 8 * u, w: rightW, h: bandH };
-      const btnTop = band.y + bandH + 10 * u;
-      const btnH = Math.min(isMatch ? 128 * u : 56 * u, (h - btnTop - 18 * u - gap * (rows - 1)) / rows);
-      const area: Rect = { x: colX, y: btnTop, w: rightW, h: btnH * rows + gap * (rows - 1) };
-      const opts = this.q.kind === 'set' ? [] : this.grid(area, n, cols, gap);
+      const free = { top: band.y + bandH + 10 * u, bottom: h - 20 * u };
       const cw = colX - pad * 2;
-      const r = Math.max(50 * u, Math.min(cw / 2, (h - 40 * u) / 2));
+      const check: Rect = { x: colX + rightW / 2 - 90 * u, y: free.top + 16 * u, w: 180 * u, h: 58 * u };
+      if (isMatch) {
+        // turned on its side the two panes swap over: four faces need the room, and the digital
+        // clock they have to be matched against is one short line of figures
+        const pane: Rect = { x: pad, y: top, w: cw, h: h - top - 20 * u };
+        const dw = Math.min(rightW, 300 * u);
+        return {
+          clock: { cx: colX + rightW / 2, cy: (free.top + free.bottom) / 2, r: dw / 2 },
+          prompt, band, check, wide,
+          opts: this.squared(pane, n, 2, gap * 1.6, true),
+        };
+      }
+      const btnH = Math.min(60 * u, (free.bottom - free.top - gap * (rows - 1)) / rows);
+      const stackH = btnH * rows + gap * (rows - 1);
+      const area: Rect = {
+        x: colX, y: free.top + (free.bottom - free.top - stackH) / 2, w: rightW, h: stackH,
+      };
+      const opts = this.q.kind === 'set' ? [] : this.grid(area, n, cols, gap);
+      const r = Math.max(50 * u, Math.min(cw / 2, (h - top - 20 * u) / 2));
       return {
-        clock: { cx: pad + cw / 2, cy: 20 * u + (h - 28 * u) / 2, r },
-        prompt, band, opts,
-        check: { x: colX + rightW / 2 - 90 * u, y: btnTop + 8 * u, w: 180 * u, h: 58 * u },
-        wide,
+        clock: { cx: pad + cw / 2, cy: top + (h - top - 20 * u) / 2, r },
+        prompt, band, opts, check, wide,
       };
     }
 
-    const top = 64 * u;
     const promptH = (this.q.kind === 'elapsed' ? 92 : 62) * u;
     const prompt: Rect = { x: pad, y: top, w: w - pad * 2, h: promptH };
     const band: Rect = { x: pad, y: prompt.y + promptH + 8 * u, w: w - pad * 2, h: bandH };
-    const btnH = isMatch ? Math.min(132 * u, (w - pad * 2 - gap) / 2) : 54 * u;
+    const btnH = isMatch ? Math.min(140 * u, (w - pad * 2 - gap) / 2) : 54 * u;
     const stackH = btnH * rows + gap * (rows - 1);
     const bottom = h - 18 * u;
     const area: Rect = { x: pad, y: bottom - stackH, w: w - pad * 2, h: stackH };
-    const opts = this.q.kind === 'set' ? [] : this.grid(area, n, cols, gap);
+    const opts = this.q.kind === 'set' ? [] : this.squared(area, n, cols, gap, isMatch);
     const check: Rect = { x: w / 2 - 90 * u, y: bottom - 58 * u, w: 180 * u, h: 58 * u };
     const clockTop = band.y + bandH + 8 * u;
     const clockBottom = (this.q.kind === 'set' ? check.y : area.y) - 14 * u;
-    const r = Math.max(46 * u, Math.min(w * 0.42, (clockBottom - clockTop) / 2));
+    const r = Math.max(46 * u, Math.min(w * 0.44, (clockBottom - clockTop) / 2));
     return {
       clock: { cx: w / 2, cy: clockTop + (clockBottom - clockTop) / 2, r },
       prompt, band, opts, check, wide,
     };
+  }
+
+  /**
+   * The answer grid, with the faces on a matching question pulled in to squares.
+   *
+   * A clock on a tile twice as wide as it is tall is a clock the height of the tile with a lot of
+   * empty card either side of it, which reads as a small clock. Squaring the tiles and centring
+   * the row gives the same face a third more diameter for nothing.
+   */
+  private squared(area: Rect, n: number, cols: number, gap: number, square: boolean): Rect[] {
+    const cells = this.grid(area, n, cols, gap);
+    if (!square || !cells.length) return cells;
+    const side = Math.min(cells[0].w, cells[0].h);
+    if (side >= cells[0].w - 1) return cells;
+    const rows = Math.ceil(n / cols);
+    void rows;
+    const usedW = cols * side + gap * (cols - 1);
+    const x0 = area.x + (area.w - usedW) / 2;
+    return cells.map((c, i) => ({
+      x: x0 + (i % cols) * (side + gap), y: c.y + (c.h - side) / 2, w: side, h: side,
+    }));
   }
 
   // ---------- the run of a level ----------
@@ -503,7 +545,7 @@ export class Clock {
 
     // ---- the clock, or the digital card on a matching question
     if (q.kind === 'match') {
-      const cw = Math.min(L.clock.r * 2.1, this.w - 56 * u);
+      const cw = L.wide ? L.clock.r * 2 : Math.min(L.clock.r * 2.1, this.w - 56 * u, 300 * u);
       drawDigital(ctx, L.clock.cx, L.clock.cy, cw, cw * 0.42, digitalLabel(q.t.h, q.t.m, this.level.h24));
       if (this.fb === 'wrong') {
         ctx.textAlign = 'center';
@@ -516,6 +558,9 @@ export class Clock {
       drawClockFace(ctx, L.clock.cx, L.clock.cy, L.clock.r, {
         h: ft.h, m: ft.m,
         minuteNumbers: save.clock.minuteNumbers,
+        // the nail only where the case has room above it; on a short screen the clock fills the
+        // space it has and the nail would poke through the card above
+        hanging: L.clock.cy - L.clock.r * 1.2 > L.band.y + L.band.h,
         highlight: wrong ? 'hour' : null,
         ghost: wrong && q.kind === 'set' ? { h: q.t.h, m: q.t.m } : null,
         dragging: this.dragging,
@@ -549,9 +594,26 @@ export class Clock {
       L.opts.forEach((r, i) => this.optionButton(r, i));
     }
 
-    // ---- the correction, or whatever the game last had to say
+    // ---- the correction, the reading out loud, or whatever the game last had to say
     if (this.fb === 'wrong') this.drawTeach(L);
+    else if (this.fb === 'right') this.drawSaid(L.band);
     else if (this.noteT > 0) this.drawNote(L.band);
+  }
+
+  /**
+   * What the clock said, in words, the moment it was read right.
+   *
+   * The figures were the answer; the Dutch is the thing worth carrying away, and a child who has
+   * just got it right is the one most likely to read it.
+   */
+  private drawSaid(b: Rect): void {
+    const ctx = this.ctx, u = this.u();
+    const t = this.q.t;
+    glassPanel(ctx, b.x, b.y, b.w, b.h, 16 * u, 0.94);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#2f7a4c';
+    ctx.font = this.font('900', 17);
+    ctx.fillText(spoken(t.h, t.m, NL()), b.x + b.w / 2, b.y + b.h / 2 + 6 * u, b.w - 24 * u);
   }
 
   /** The level's own hint, in the same strip the correction uses, fading out on its own. */
@@ -689,7 +751,7 @@ export class Clock {
       tx, b.y + 23 * u, textW);
     ctx.fillStyle = 'rgba(18,48,71,0.78)';
     ctx.font = this.font('700', 11);
-    this.wrapText(teachLine(t, nl), tx, b.y + 40 * u, textW, 13 * u, 2);
+    this.wrapText(teachLine(t, nl), tx, b.y + 43 * u, textW, 13.5 * u, 2);
     // the way on, always in the same place, and it presses itself after a few seconds
     this.button('go', T('Next', 'Verder'), b.x + b.w - bw - 10 * u, b.y + (b.h - bh) / 2, bw, bh, '#4fae6e', '#ffffff');
   }
