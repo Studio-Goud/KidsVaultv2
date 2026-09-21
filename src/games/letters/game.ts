@@ -104,7 +104,10 @@ export class Letters {
   private recent: string[] = [];
 
   private firstTry = 0;
+  /** mistakes on the word in hand; reset the moment the game steps in, so it helps again */
   private wrongHere = 0;
+  /** nothing has gone wrong on this word at all, which is the only thing a star counts */
+  private clean = true;
   private streak = 0;
   private earned = 0;
 
@@ -176,6 +179,7 @@ export class Letters {
       solved: this.solved,
       firstTry: this.firstTry,
       wrongHere: this.wrongHere,
+      clean: this.clean,
       streak: this.streak,
       stars: this.earned,
       teach: this.teach,
@@ -349,6 +353,7 @@ export class Letters {
     this.solved = false;
     this.solvedT = 0;
     this.wrongHere = 0;
+    this.clean = true;
     this.teach = '';
     this.teachT = 0;
     this.glowSlot = -1;
@@ -399,6 +404,7 @@ export class Letters {
    */
   private gotItWrong(slot: number, unit: string): void {
     this.wrongHere++;
+    this.clean = false;
     this.streak = 0;
     this.shake.add(0.4);
     lettersfx.bounce();
@@ -429,6 +435,10 @@ export class Letters {
     this.wrongHere = 0;
     this.glowSlot = slot;
     this.glowT = 1.4;
+    // the slot is no longer the place a mistake was made, it is a slot with the right tile in it
+    this.badSlot = -1;
+    this.teach = NL() ? `Ik zet de ${want} even voor je neer.` : `I will put the ${want} in for you.`;
+    this.teachT = 2.6;
     lettersfx.land();
     const r = this.layout().slots[slot];
     if (r) this.ps.spawn('spark', r.x + r.w / 2, r.y + r.h / 2, 8, { colour: '#ffd873', speed: 150, size: 6, max: 0.6 });
@@ -445,7 +455,8 @@ export class Letters {
     this.badSlot = -1;
     this.picked = -1;
     this.held = null;
-    if (this.wrongHere === 0) { this.firstTry++; this.streak++; } else this.streak = 0;
+    // a word the wood had to help with is not a word that was read, whatever the counter says
+    if (this.clean) { this.firstTry++; this.streak++; } else this.streak = 0;
     lettersfx.word(this.streak);
     stopSpeaking();
     this.speakWhole();
@@ -573,6 +584,7 @@ export class Letters {
       return;
     }
     this.wrongHere++;
+    this.clean = false;
     this.streak = 0;
     this.shake.add(0.4);
     lettersfx.bounce();
