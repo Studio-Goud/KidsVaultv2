@@ -120,6 +120,12 @@ export interface Round {
   /** the song, and which of its notes were taken out */
   tune: Tune | null;
   blanks: number[];
+  /**
+   * Echo only: the chimes this phrase was built from. The rest of the instrument is greyed out
+   * while the phrase is being played back, because picking one of three bars by ear is a fair
+   * question for a five year old and picking one of nine is not.
+   */
+  pool: number[];
   /** what the level says over this round, beyond the level's own hint */
   say: string;
   sayNl: string;
@@ -133,7 +139,7 @@ const STRESS_OF = (beat: number, sig: TimeSig): Stress => {
 
 const empty = (level: Level): Round => ({
   kind: level.kind, sig: level.sig, bpm: level.bpm, bars: 2,
-  sounds: [], asks: [], answer: [], pair: null, tune: null, blanks: [], say: '', sayNl: '',
+  sounds: [], asks: [], answer: [], pair: null, tune: null, blanks: [], pool: [], say: '', sayNl: '',
 });
 
 const pick = <T>(rng: Rng, xs: T[]): T => xs[Math.floor(rng() * xs.length) % xs.length];
@@ -214,6 +220,7 @@ function echoRound(level: Level, rng: Rng, i: number): Round {
   const width = i < 2 ? 3 : i < 4 ? 5 : 7;
   const lo = Math.max(0, Math.min(CHIME_MIDI.length - width, 3 - Math.floor((width - 3) / 2)));
   const pool = CHIME_MIDI.slice(lo, lo + width);
+  r.pool = pool;
   const count = i < 2 ? 3 : i < 4 ? 4 : 5;
   // every note is one beat or two, and the phrase is however many bars that comes to. A last
   // note stretched to fill the bar would be six beats long, which is not a phrase a child sings

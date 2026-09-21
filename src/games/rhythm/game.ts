@@ -1072,21 +1072,26 @@ export class Rhythm {
     glassPanel(ctx, r.x, r.y, r.w, r.h, 16 * u, 0.93);
     ctx.textAlign = 'center';
     const cx = r.x + r.w / 2;
+    const k = this.level.kind;
     let line = '';
     if (this.step === 'count') line = T('Get ready…', 'Klaarmaken…');
-    else if (this.noteT > 0) line = this.note;
-    else if (this.level.kind === 'echo') {
+    else if (this.step === 'judge') {
+      // the moment after the answer says how it went, whatever kind of level it is
+      if (k === 'tap' || k === 'together') line = this.clean ? T('On the beat.', 'Op de tel.') : this.lateOrEarly();
+      else if (this.noteT > 0) line = this.note;
+      else line = this.clean
+        ? T('That is it. Well listened.', 'Dat is hem. Goed geluisterd.')
+        : T('Not quite - the game played the right one after yours.',
+          'Net niet - het spel speelde de goede erachteraan.');
+    } else if (this.noteT > 0) line = this.note;
+    else if (k === 'echo') {
       line = this.step === 'listen' ? T('Listen.', 'Luister.') : T('Now you play it back.', 'Nu speel jij het na.');
-    } else if (this.level.kind === 'tune') {
+    } else if (k === 'tune') {
       const name = this.round.tune ? (NL() ? this.round.tune.nameNl : this.round.tune.name) : '';
       line = this.step === 'listen' ? name : T('Which chime fills the gap?', 'Welk klokje hoort in het gat?');
-    } else if (this.level.kind === 'pitch') {
+    } else if (k === 'pitch') {
       line = this.step === 'listen' ? T('Listen.', 'Luister.') : (NL() ? this.round.sayNl : this.round.say);
-    } else if (this.step === 'judge' && (this.level.kind === 'tap' || this.level.kind === 'together')) {
-      line = this.clean
-        ? T('On the beat.', 'Op de tel.')
-        : this.lateOrEarly();
-    } else if (this.level.kind === 'together') {
+    } else if (k === 'together') {
       line = T('Keep the drum going.', 'Hou de trom aan de gang.');
     } else line = T('Tap with the beat.', 'Tik mee met de tel.');
 
@@ -1378,6 +1383,7 @@ export class Rhythm {
         pressed: this.held0 === `chime:${i}`,
         point: midi === wantMidi && midi !== crossMidi,
         cross: midi === crossMidi,
+        dim: this.round.pool.length > 0 && !this.round.pool.includes(midi),
       });
       // the card at the end of a level covers the room; nothing behind it takes a tap
       if (this.phase !== 'won') this.hits.push({ id: `chime:${i}`, x: b.x, y: r.y, w: b.w, h: r.h });

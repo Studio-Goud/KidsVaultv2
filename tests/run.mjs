@@ -1032,6 +1032,17 @@ const group = name => console.log(`\n${name}`);
   is('test_round_echo_gives_a_phrase_to_play_back', echo.answer.length > 0, true);
   is('test_round_echo_never_repeats_a_note_straight_away',
     echo.answer.every((n, i) => i === 0 || n !== echo.answer[i - 1]), true);
+  is('test_round_echo_opens_with_only_three_chimes_in_play', echo.pool.length, 3);
+  is('test_round_echo_never_plays_a_note_outside_its_own_pool',
+    echo.answer.every(n => echo.pool.includes(n)), true);
+  is('test_round_echo_opens_out_to_more_chimes_later',
+    makeRound(LEVELS[4], rngFor(LEVELS[4], 1), 5).pool.length, 7);
+  is('test_round_echo_notes_are_one_beat_or_two',
+    echo.sounds.every(s => s.beats === 1 || s.beats === 2), true);
+  is('test_round_echo_never_runs_past_its_own_bars',
+    echo.sounds.every(s => s.beat + s.beats <= roundBeats(echo)), true);
+  is('test_round_a_level_that_is_not_echo_greys_nothing_out',
+    makeRound(LEVELS[0], rngFor(LEVELS[0], 1), 0).pool.length, 0);
   const pair = makeRound(LEVELS[5], rngFor(LEVELS[5], 1), 0);
   is('test_round_high_and_low_gives_two_different_notes', pair.pair.a !== pair.pair.b, true);
   is('test_round_high_and_low_starts_with_the_easy_question', pair.pair.exact, false);
