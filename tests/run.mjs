@@ -638,6 +638,969 @@ const group = name => console.log(`\n${name}`);
   is('test_shelves_have_no_duplicate_ids', new Set(GROUPS.map(g => g.id)).size, GROUPS.length);
 }
 
+// ---------------------------------------------------------------- Rekenrijk: the sums themselves
+
+{
+  const {
+    LEVELS, distractors, inRule, keyOf, makeQuestion, rngFor, starsFor, stepOverTen, targetOf,
+  } = await bundle('src/games/numbers/model.ts', 'numbers-model.mjs');
+  const { numberWord, sumSymbols, sumWords } = await bundle('src/games/numbers/numberwords.ts', 'numberwords.mjs');
+  const level = id => LEVELS.find(l => l.id === id);
+
+  /** A whole level played through, the way the game plays it: a fresh rng and no repeats. */
+  const runLevel = (l, attempts = 30) => {
+    const out = [];
+    for (let a = 1; a <= attempts; a++) {
+      const rng = rngFor(l, a);
+      const recent = [];
+      for (let i = 0; i < l.rounds; i++) {
+        const q = makeQuestion(l, rng, i, recent);
+        recent.push(keyOf(q));
+        if (recent.length > 4) recent.shift();
+        out.push(q);
+      }
+    }
+    return out;
+  };
+  const everyQuestion = LEVELS.flatMap(l => runLevel(l).map(q => ({ l, q })));
+
+  group('Rekenrijk — getallen in woorden');
+  is('test_numberword_zero_is_nul', numberWord(0, true), 'nul');
+  is('test_numberword_the_teens_are_irregular_in_dutch', numberWord(13, true), 'dertien');
+  is('test_numberword_units_come_before_tens_in_dutch', numberWord(21, true), 'eenentwintig');
+  is('test_numberword_a_word_ending_in_e_takes_a_diaeresis', numberWord(22, true), 'tweeëntwintig');
+  is('test_numberword_drie_takes_the_diaeresis_too', numberWord(33, true), 'drieëndertig');
+  is('test_numberword_vier_does_not_take_a_diaeresis', numberWord(44, true), 'vierenveertig');
+  is('test_numberword_eighty_is_tachtig_not_achttig', numberWord(80, true), 'tachtig');
+  is('test_numberword_a_round_hundred_is_honderd', numberWord(100, true), 'honderd');
+  is('test_numberword_the_side_by_side_mistake_is_sayable', numberWord(215, true), 'tweehonderdvijftien');
+  is('test_numberword_english_hyphenates_the_twenties', numberWord(21, false), 'twenty-one');
+  is('test_numberword_english_teens_are_one_word', numberWord(13, false), 'thirteen');
+  is('test_numberword_english_hundred_reads_as_one_hundred', numberWord(100, false), 'one hundred');
+
+  group('Rekenrijk — de som opgeschreven en uitgesproken');
+  is('test_sumsymbols_adding_reads_left_to_right', sumSymbols('add', 8, 5, 13), '8 + 5 = 13');
+  is('test_sumsymbols_splitting_puts_the_whole_first', sumSymbols('split', 7, 3, 4), '7 = 3 + 4');
+  is('test_sumsymbols_taking_away_uses_a_real_minus_sign', sumSymbols('sub', 9, 3, 6), '9 − 3 = 6');
+  is('test_sumsymbols_times_uses_a_real_multiplication_sign', sumSymbols('times', 4, 6, 24), '4 × 6 = 24');
+  is('test_sumsymbols_a_difference_is_written_as_a_subtraction', sumSymbols('diff', 23, 30, 7), '30 − 23 = 7');
+  is('test_sumwords_adding_is_said_with_plus', sumWords('add', 8, 5, 13, true), 'acht plus vijf is dertien');
+  is('test_sumwords_splitting_is_said_with_en', sumWords('split', 7, 3, 4, true), 'zeven is drie en vier');
+  is('test_sumwords_times_is_said_with_keer', sumWords('times', 4, 6, 24, true), 'vier keer zes is vierentwintig');
+  is('test_sumwords_a_difference_is_said_as_a_walk', sumWords('diff', 23, 30, 7, true),
+    'van drieëntwintig naar dertig is zeven erbij');
+  is('test_sumwords_english_takes_away_rather_than_minus', sumWords('sub', 9, 3, 6, false), 'nine take away three is six');
+
+  group('Rekenrijk — de stap over het tiental');
+  is('test_step_eight_plus_five_fills_the_ten_with_two', stepOverTen(8, 5), { to: 10, first: 2, rest: 3 });
+  is('test_step_twentyseven_plus_eight_jumps_to_thirty_first', stepOverTen(27, 8), { to: 30, first: 3, rest: 5 });
+  is('test_step_nine_plus_nine_needs_only_one_to_reach_ten', stepOverTen(9, 9), { to: 10, first: 1, rest: 8 });
+  is('test_step_fortyfive_plus_seven_jumps_to_fifty_first', stepOverTen(45, 7), { to: 50, first: 5, rest: 2 });
+  is('test_step_the_two_halves_always_add_back_to_b',
+    [[8, 5], [27, 8], [45, 7], [19, 6]].every(([a, b]) => {
+      const s = stepOverTen(a, b);
+      return s.first + s.rest === b && s.to === a + s.first;
+    }), true);
+
+  group('Rekenrijk — elke som blijft binnen de regel van zijn eigen niveau');
+  for (const l of LEVELS) {
+    is(`test_generator_${l.id}_only_ever_makes_sums_inside_its_rule`,
+      runLevel(l).every(q => inRule(l, q)), true);
+  }
+  is('test_generator_every_answer_is_arithmetically_right', everyQuestion.every(({ q }) => {
+    if (q.op === 'split' || q.op === 'sub') return q.answer === q.a - q.b;
+    if (q.op === 'diff') return q.answer === q.b - q.a;
+    if (q.op === 'times') return q.answer === q.a * q.b;
+    return q.answer === q.a + q.b;
+  }), true);
+  is('test_generator_adding_to_ten_never_passes_ten',
+    runLevel(level('erbij')).every(q => q.a + q.b <= 10 && q.a >= 1 && q.b >= 1), true);
+  is('test_generator_taking_away_never_goes_below_one',
+    runLevel(level('eraf')).every(q => q.answer >= 1 && q.answer < q.a), true);
+  is('test_generator_splitting_never_offers_a_part_of_nothing',
+    runLevel(level('splitsen')).every(q => q.b >= 1 && q.answer >= 1), true);
+  is('test_generator_filling_the_ten_always_crosses_the_ten',
+    runLevel(level('tienvol')).every(q => q.a + q.b > 10 && q.a < 10), true);
+  is('test_generator_filling_the_ten_always_carries_the_right_step',
+    runLevel(level('tienvol')).every(q => q.step.to === 10 && q.step.first === 10 - q.a && q.step.rest === q.b - q.step.first), true);
+  is('test_generator_tens_and_ones_never_crosses_a_ten',
+    runLevel(level('tientallen')).every(q => (q.a % 10) + (q.b % 10) <= 9), true);
+  is('test_generator_tens_and_ones_stays_under_a_hundred',
+    runLevel(level('tientallen')).every(q => q.answer <= 99), true);
+  is('test_generator_over_the_ten_always_actually_crosses_one',
+    runLevel(level('overtiental')).every(q => (q.a % 10) + q.b > 10), true);
+  is('test_generator_over_the_ten_carries_the_jump_to_the_next_ten',
+    runLevel(level('overtiental')).every(q => q.step.to === (Math.floor(q.a / 10) + 1) * 10
+      && q.step.first >= 1 && q.step.rest >= 1 && q.step.first + q.step.rest === q.b), true);
+  is('test_generator_a_difference_always_runs_forwards',
+    runLevel(level('verschil')).every(q => q.b > q.a && q.answer >= 2 && q.answer <= 30), true);
+  is('test_generator_a_difference_is_short_enough_to_walk',
+    runLevel(level('verschil')).every(q => q.answer <= 12), true);
+  is('test_generator_a_difference_that_stays_inside_its_ten_really_does',
+    runLevel(level('verschil')).filter(q => Math.floor(q.a / 10) === Math.floor(q.b / 10))
+      .every(q => (q.a % 10) + q.answer <= 9), true);
+  is('test_generator_the_easy_tables_are_only_one_two_five_and_ten',
+    [...new Set(runLevel(level('keer')).map(q => q.b))].sort((x, y) => x - y), [1, 2, 5, 10]);
+  is('test_generator_the_hard_tables_leave_out_the_easy_ones',
+    [...new Set(runLevel(level('tafels')).map(q => q.b))].sort((x, y) => x - y), [3, 4, 6, 7, 8, 9]);
+  is('test_generator_a_table_never_goes_past_ten_rows',
+    runLevel(level('tafels')).every(q => q.a >= 2 && q.a <= 10), true);
+  is('test_generator_every_number_line_holds_the_whole_sum',
+    everyQuestion.filter(({ q }) => q.line).every(({ q }) => q.line.lo <= q.a && q.answer <= q.line.hi), true);
+
+  group('Rekenrijk — de afleiders zijn de fouten die kinderen echt maken');
+  is('test_options_hold_the_answer_exactly_once',
+    everyQuestion.every(({ q }) => q.options.filter(o => o === q.answer).length === 1), true);
+  is('test_options_point_at_the_answer_they_hold',
+    everyQuestion.every(({ q }) => q.options[q.correct] === q.answer), true);
+  is('test_options_never_repeat_a_number',
+    everyQuestion.every(({ q }) => new Set(q.options).size === q.options.length), true);
+  is('test_options_are_never_negative',
+    everyQuestion.every(({ q }) => q.options.every(o => o >= 0)), true);
+  is('test_options_are_always_four_to_choose_between',
+    everyQuestion.every(({ q }) => q.options.length === 4), true);
+  is('test_options_never_offer_the_answer_twice_under_another_name',
+    everyQuestion.every(({ q }) => q.options.filter(o => o === q.answer).length === 1), true);
+
+  const rng = rngFor(level('overtiental'), 3);
+  const cross = { op: 'cross', stage: 'line', a: 27, b: 8, answer: 35, step: stepOverTen(27, 8), line: { lo: 20, hi: 40 } };
+  const crossWrong = distractors(cross, rng);
+  is('test_distractor_over_the_ten_offers_the_dropped_carry', crossWrong.includes(25), true);
+  is('test_distractor_over_the_ten_offers_the_digits_side_by_side', crossWrong.includes(215), true);
+  is('test_distractor_over_the_ten_never_offers_the_answer', crossWrong.includes(35), false);
+  is('test_distractor_over_the_ten_puts_the_carry_mistake_first', crossWrong[0], 25);
+
+  const bridge = { op: 'bridge', stage: 'frame', a: 8, b: 5, answer: 13, step: stepOverTen(8, 5), line: { lo: 0, hi: 20 } };
+  const bridgeWrong = distractors(bridge, rngFor(level('tienvol'), 2));
+  is('test_distractor_filling_the_ten_offers_stopping_at_the_ten', bridgeWrong[0], 10);
+  is('test_distractor_filling_the_ten_offers_the_ten_dropped', bridgeWrong.includes(3), true);
+  is('test_distractor_filling_the_ten_never_offers_the_answer', bridgeWrong.includes(13), false);
+
+  const table = { op: 'times', stage: 'array', a: 6, b: 7, answer: 42, step: null, line: null };
+  const tableWrong = distractors(table, rngFor(level('tafels'), 2));
+  is('test_distractor_a_table_fact_offers_the_row_below', tableWrong.includes(35), true);
+  is('test_distractor_a_table_fact_offers_the_row_above', tableWrong.includes(49), true);
+  is('test_distractor_a_table_fact_offers_the_table_next_door', tableWrong.includes(36), true);
+  is('test_distractor_a_table_fact_never_offers_the_answer', tableWrong.includes(42), false);
+  is('test_distractor_a_table_fact_never_offers_nought',
+    distractors({ op: 'times', stage: 'array', a: 10, b: 1, answer: 10, step: null, line: null },
+      rngFor(level('keer'), 4)).includes(0), false);
+  is('test_distractor_every_times_option_is_a_real_count', LEVELS.filter(l => l.op === 'times')
+    .every(l => runLevel(l).every(q => q.options.every(o => o > 0))), true);
+
+  const splitQ = { op: 'split', stage: 'rack', a: 7, b: 3, answer: 4, step: null, line: null };
+  const splitWrong = distractors(splitQ, rngFor(level('splitsen'), 2));
+  is('test_distractor_splitting_offers_the_whole_left_alone', splitWrong.includes(7), true);
+  is('test_distractor_splitting_offers_the_part_read_back', splitWrong.includes(3), true);
+
+  const addQ = { op: 'add', stage: 'crates', a: 3, b: 4, answer: 7, step: null, line: null };
+  is('test_distractor_adding_offers_the_difference_instead',
+    distractors(addQ, rngFor(level('erbij'), 2)).includes(1), true);
+  const diffQ = { op: 'diff', stage: 'line', a: 23, b: 30, answer: 7, step: null, line: { lo: 20, hi: 40 } };
+  is('test_distractor_a_difference_offers_the_units_taken_alone',
+    distractors(diffQ, rngFor(level('verschil'), 2)).includes(3), true);
+  is('test_distractor_a_difference_offers_the_fencepost_mistake',
+    distractors(diffQ, rngFor(level('verschil'), 2)).includes(8), true);
+
+  group('Rekenrijk — herhaling, sterren en wat er verschoven moet worden');
+  is('test_rounds_never_ask_the_same_sum_twice_in_a_row', LEVELS.every(l => {
+    for (let a = 1; a <= 40; a++) {
+      const r = rngFor(l, a);
+      const recent = [];
+      let last = null;
+      for (let i = 0; i < l.rounds; i++) {
+        const q = makeQuestion(l, r, i, recent);
+        if (last != null && keyOf(q) === last) return false;
+        last = keyOf(q);
+        recent.push(last);
+        if (recent.length > 4) recent.shift();
+      }
+    }
+    return true;
+  }), true);
+  is('test_stars_everything_first_time_earns_three', starsFor(8, 8), 3);
+  is('test_stars_most_of_it_first_time_earns_two', starsFor(6, 8), 2);
+  is('test_stars_half_of_it_earns_one', starsFor(4, 8), 1);
+  is('test_stars_a_level_that_was_shown_every_time_earns_none', starsFor(2, 8), 0);
+  is('test_stars_an_empty_level_earns_none', starsFor(0, 0), 0);
+  is('test_target_a_rack_must_be_split_where_the_question_says', targetOf(splitQ), 3);
+  is('test_target_a_ten_frame_must_be_filled_to_ten', targetOf(bridge), 2);
+  is('test_target_a_number_line_must_reach_the_next_ten', targetOf(cross), 30);
+  is('test_target_an_array_must_hold_the_whole_product', targetOf(table), 42);
+  is('test_target_taking_away_must_move_every_apple_asked_for',
+    targetOf({ op: 'sub', stage: 'crates', a: 9, b: 3, answer: 6, step: null, line: null }), 3);
+}
+
+// ---------------------------------------------------------------- Klankhuis: the music itself
+
+{
+  const m = await bundle('src/games/rhythm/music.ts', 'rhythmmusic.mjs');
+  const {
+    noteFreq, midiOf, freqOfMidi, nameOfMidi, letterOfMidi, colourIndexOfMidi,
+    noteSeconds, beatSeconds, valueOfBeats, VALUE_BEATS,
+    barBeats, beatsPerBar, beatInBar,
+    tapGrade, tapTightness, tapSide, TAP_WINDOWS,
+    CHIME_MIDI, CHIME_LOW, CHIME_HIGH, chimeIndexOf,
+    TUNES, tuneBeats, tuneInRange, tuneFillsBars, tuneEvents, tuneById,
+    SEQ_STEPS, SEQ_PITCHES, emptyGrid, encodeGrid, decodeGrid, sanitiseSteps, gridNoteCount, stepNotes,
+  } = m;
+
+  /** to five decimals, because a frequency is never going to be exactly anything */
+  const hz = f => Math.round(f * 100000) / 100000;
+
+  group('Klankhuis — a note name is a frequency');
+  is('test_pitch_a4_is_the_tuning_fork', noteFreq('A4'), 440);
+  is('test_pitch_a3_is_an_octave_below_a4', noteFreq('A3'), 220);
+  is('test_pitch_a5_is_an_octave_above_a4', noteFreq('A5'), 880);
+  is('test_pitch_middle_c_is_two_six_one_point_six', Math.round(noteFreq('C4') * 100) / 100, 261.63);
+  is('test_pitch_one_semitone_is_the_twelfth_root_of_two',
+    hz(noteFreq('A#4') / noteFreq('A4')), hz(Math.pow(2, 1 / 12)));
+  is('test_pitch_twelve_semitones_make_exactly_an_octave', hz(freqOfMidi(81) / freqOfMidi(69)), 2);
+  is('test_pitch_a_flat_and_its_sharp_are_the_same_note', noteFreq('Bb3'), noteFreq('A#3'));
+  is('test_midi_middle_c_is_sixty', midiOf('C4'), 60);
+  is('test_midi_a4_is_sixty_nine', midiOf('A4'), 69);
+  is('test_midi_the_name_comes_back_out_again', nameOfMidi(midiOf('F#5')), 'F#5');
+  is('test_midi_a_bad_name_is_refused', (() => { try { midiOf('H4'); return 'no'; } catch { return 'threw'; } })(), 'threw');
+  is('test_letter_drops_the_octave', letterOfMidi(67), 'G');
+  is('test_colour_index_is_the_same_for_both_cs', colourIndexOfMidi(60), colourIndexOfMidi(72));
+  is('test_colour_index_of_c_is_the_first_colour', colourIndexOfMidi(60), 0);
+  is('test_colour_index_of_b_is_the_last_colour', colourIndexOfMidi(71), 6);
+
+  group('Klankhuis — how long a note lasts against a tempo');
+  is('test_duration_a_beat_at_sixty_is_a_second', beatSeconds(60), 1);
+  is('test_duration_a_quarter_at_one_twenty_is_half_a_second', noteSeconds('quarter', 120), 0.5);
+  is('test_duration_a_half_at_sixty_lasts_two_seconds', noteSeconds('half', 60), 2);
+  is('test_duration_an_eighth_is_half_a_quarter',
+    noteSeconds('eighth', 90) * 2, noteSeconds('quarter', 90));
+  is('test_duration_a_whole_note_is_four_beats', VALUE_BEATS.whole, 4);
+  is('test_duration_a_dotted_half_is_half_again', VALUE_BEATS.dottedHalf, 3);
+  is('test_duration_twice_the_tempo_is_half_the_time',
+    noteSeconds('quarter', 180) * 3, noteSeconds('quarter', 60));
+  is('test_duration_three_beats_is_written_as_a_dotted_half', valueOfBeats(3), 'dottedHalf');
+  is('test_duration_a_length_with_no_name_says_so', valueOfBeats(1.75), null);
+
+  group('Klankhuis — the beats of a bar');
+  is('test_bar_two_four_has_two_beats', beatsPerBar('2/4'), 2);
+  is('test_bar_three_four_has_three_beats', beatsPerBar('3/4'), 3);
+  is('test_bar_four_four_has_four_beats', beatsPerBar('4/4'), 4);
+  is('test_bar_two_four_leans_on_the_one',
+    barBeats('2/4').map(b => b.stress), ['strong', 'weak']);
+  is('test_bar_a_waltz_leans_only_on_the_one',
+    barBeats('3/4').map(b => b.stress), ['strong', 'weak', 'weak']);
+  is('test_bar_four_four_has_a_second_lighter_stress_on_the_three',
+    barBeats('4/4').map(b => b.stress), ['strong', 'weak', 'medium', 'weak']);
+  is('test_bar_beats_are_numbered_from_one', barBeats('4/4').map(b => b.n), [1, 2, 3, 4]);
+  is('test_bar_the_count_starts_again_after_four', beatInBar(4, '4/4'), 1);
+  is('test_bar_the_count_starts_again_after_three', beatInBar(3, '3/4'), 1);
+  is('test_bar_the_sixth_beat_of_four_four_is_a_two', beatInBar(5, '4/4'), 2);
+
+  group('Klankhuis — how close a tap was');
+  is('test_tap_dead_on_the_beat_is_perfect', tapGrade(0), 'perfect');
+  is('test_tap_inside_sixty_milliseconds_is_perfect', tapGrade(59), 'perfect');
+  is('test_tap_at_the_edge_of_the_window_is_still_perfect', tapGrade(TAP_WINDOWS.perfect), 'perfect');
+  is('test_tap_a_hair_past_it_is_only_good', tapGrade(TAP_WINDOWS.perfect + 1), 'good');
+  is('test_tap_early_is_judged_the_same_as_late', tapGrade(-100), tapGrade(100));
+  is('test_tap_a_fifth_of_a_second_out_is_the_last_that_counts', tapGrade(TAP_WINDOWS.ok), 'ok');
+  is('test_tap_past_the_window_belongs_to_no_beat', tapGrade(TAP_WINDOWS.ok + 1), 'miss');
+  is('test_tap_tightness_is_one_on_the_beat', tapTightness(0), 1);
+  is('test_tap_tightness_is_nothing_at_the_edge', tapTightness(TAP_WINDOWS.ok), 0);
+  is('test_tap_tightness_halves_halfway_out', tapTightness(TAP_WINDOWS.ok / 2), 0.5);
+  is('test_tap_side_on_the_beat_is_neither', tapSide(20), 'on');
+  is('test_tap_side_behind_the_beat_is_late', tapSide(150), 'late');
+  is('test_tap_side_ahead_of_the_beat_is_early', tapSide(-150), 'early');
+
+  group('Klankhuis — the instrument');
+  is('test_chimes_are_nine_bars', CHIME_MIDI.length, 9);
+  is('test_chimes_run_low_to_high', CHIME_MIDI.every((m, i) => i === 0 || m > CHIME_MIDI[i - 1]), true);
+  is('test_chimes_are_a_c_major_scale_from_g_to_a',
+    CHIME_MIDI.map(nameOfMidi), ['G3', 'A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4']);
+  is('test_chimes_have_no_black_notes', CHIME_MIDI.every(m => !nameOfMidi(m).includes('#')), true);
+  is('test_chimes_span_an_octave_and_a_step', CHIME_HIGH - CHIME_LOW, 14);
+  is('test_chimes_know_where_a_pitch_sits', chimeIndexOf(60), 3);
+  is('test_chimes_admit_a_pitch_they_have_not_got', chimeIndexOf(61), -1);
+
+  group('Klankhuis — the songs');
+  is('test_tunes_there_are_three_of_them', TUNES.length, 3);
+  for (const t of TUNES) {
+    is(`test_tune_${t.id}_fits_the_chimes_with_nothing_moved`, tuneInRange(t), true);
+    is(`test_tune_${t.id}_ends_where_a_bar_ends`, tuneFillsBars(t), true);
+    is(`test_tune_${t.id}_has_no_note_of_no_length`, t.notes.every(n => n.beats > 0), true);
+  }
+  is('test_tune_vader_jacob_is_eight_bars', tuneBeats(tuneById('jacob')), 32);
+  is('test_tune_vader_jacob_opens_do_re_mi_do',
+    tuneById('jacob').notes.slice(0, 4).map(n => nameOfMidi(n.midi)), ['C4', 'D4', 'E4', 'C4']);
+  is('test_tune_vader_jacob_drops_to_the_sol_below_at_the_end',
+    nameOfMidi(tuneById('jacob').notes[tuneById('jacob').notes.length - 2].midi), 'G3');
+  is('test_tune_kortjakje_is_twelve_bars', tuneBeats(tuneById('kortjakje')), 48);
+  is('test_tune_kortjakje_opens_do_do_sol_sol_la_la_sol',
+    tuneById('kortjakje').notes.slice(0, 7).map(n => nameOfMidi(n.midi)),
+    ['C4', 'C4', 'G4', 'G4', 'A4', 'A4', 'G4']);
+  is('test_tune_maneschijn_stays_inside_three_notes',
+    new Set(tuneById('maneschijn').notes.map(n => n.midi)).size, 3);
+  is('test_tune_events_start_at_beat_zero', tuneEvents(tuneById('kortjakje'))[0].beat, 0);
+  is('test_tune_events_are_laid_out_from_the_start_not_added_up',
+    tuneEvents(tuneById('kortjakje'))[7].beat, 8);
+  is('test_tune_events_never_go_backwards',
+    tuneEvents(tuneById('jacob')).every((e, i, a) => i === 0 || e.beat > a[i - 1].beat), true);
+  is('test_tune_a_tempo_a_child_can_follow', TUNES.every(t => t.bpm >= 80 && t.bpm <= 110), true);
+
+  group('Klankhuis — the sequencer, and what survives in the save');
+  const blank = emptyGrid();
+  is('test_grid_starts_with_eight_steps', blank.length, SEQ_STEPS);
+  is('test_grid_has_a_row_per_chime', blank[0].length, SEQ_PITCHES);
+  is('test_grid_starts_empty', gridNoteCount(blank), 0);
+  const made = emptyGrid();
+  made[0][3] = true; made[0][5] = true; made[2][7] = true; made[7][0] = true;
+  is('test_grid_counts_what_was_written', gridNoteCount(made), 4);
+  const saved = encodeGrid(made);
+  is('test_save_a_step_is_one_number_per_step', saved.length, SEQ_STEPS);
+  is('test_save_a_step_is_a_bit_per_chime', saved[0], (1 << 3) | (1 << 5));
+  is('test_save_an_untouched_step_is_zero', saved[1], 0);
+  is('test_save_the_grid_comes_back_exactly_as_it_went_in', encodeGrid(decodeGrid(saved)), saved);
+  is('test_save_the_round_trip_keeps_every_note', gridNoteCount(decodeGrid(saved)), 4);
+  is('test_save_the_round_trip_keeps_the_right_squares',
+    decodeGrid(saved)[0].map(Boolean), made[0].map(Boolean));
+  is('test_save_a_missing_grid_opens_empty', sanitiseSteps(undefined), [0, 0, 0, 0, 0, 0, 0, 0]);
+  is('test_save_a_grid_of_the_wrong_shape_is_padded', sanitiseSteps([7, 3]), [7, 3, 0, 0, 0, 0, 0, 0]);
+  is('test_save_a_grid_that_is_too_long_is_cut', sanitiseSteps([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]).length, 8);
+  is('test_save_a_step_with_too_many_bits_is_clamped', sanitiseSteps([99999])[0], (1 << SEQ_PITCHES) - 1);
+  is('test_save_a_negative_step_is_refused', sanitiseSteps([-4])[0], 0);
+  is('test_save_a_step_that_is_not_a_number_is_refused', sanitiseSteps(['x', null, 1.7])[0], 0);
+  is('test_save_a_fractional_step_is_made_whole', sanitiseSteps([1.7])[0], 1);
+  is('test_save_rubbish_never_throws', sanitiseSteps({ a: 1 }), [0, 0, 0, 0, 0, 0, 0, 0]);
+  is('test_step_notes_come_back_low_to_high', stepNotes(made, 0), [CHIME_MIDI[3], CHIME_MIDI[5]]);
+  is('test_step_notes_of_an_empty_step_are_none', stepNotes(made, 1), []);
+  is('test_step_notes_wrap_round_the_loop', stepNotes(made, SEQ_STEPS + 2), stepNotes(made, 2));
+  is('test_step_notes_are_all_playable_on_the_chimes',
+    stepNotes(made, 0).every(n => CHIME_MIDI.includes(n)), true);
+}
+
+// ---------------------------------------------------------------- Klankhuis: the ladder
+
+{
+  const r = await bundle('src/games/rhythm/model.ts', 'rhythmmodel.mjs');
+  const { LEVELS, makeRound, rngFor, roundBeats, starsFor } = r;
+  const mm = await bundle('src/games/rhythm/music.ts', 'rhythmmusic2.mjs');
+  const { CHIME_MIDI, beatsPerBar } = mm;
+
+  group('Klankhuis — the ladder');
+  is('test_ladder_has_nine_levels', LEVELS.length, 9);
+  is('test_ladder_every_level_has_a_dutch_name', LEVELS.every(l => l.nameNl.length > 0), true);
+  is('test_ladder_every_level_has_a_hint_in_both_languages',
+    LEVELS.every(l => l.hint.length > 0 && l.hintNl.length > 0), true);
+  is('test_ladder_no_two_levels_share_an_id', new Set(LEVELS.map(l => l.id)).size, LEVELS.length);
+  is('test_ladder_starts_with_the_pulse', LEVELS[0].id, 'pulse');
+  is('test_ladder_ends_with_making_something', LEVELS[LEVELS.length - 1].kind, 'make');
+  is('test_ladder_the_waltz_is_the_only_level_in_three', LEVELS.filter(l => l.sig === '3/4').map(l => l.id), ['three']);
+  is('test_ladder_tempos_are_all_walkable', LEVELS.every(l => l.bpm >= 70 && l.bpm <= 120), true);
+
+  group('Klankhuis — the rounds a level makes');
+  for (const level of LEVELS) {
+    if (level.kind === 'make') continue;
+    const rng = rngFor(level, 1);
+    let ok = true, asksInRange = true, notesPlayable = true, ordered = true;
+    for (let i = 0; i < level.rounds; i++) {
+      const round = makeRound(level, rng, i);
+      const total = roundBeats(round);
+      if (total <= 0 || round.sounds.length === 0) ok = false;
+      if (!round.asks.every(b => b >= 0 && b < total)) asksInRange = false;
+      if (!round.sounds.every(s => s.midi === null || CHIME_MIDI.includes(s.midi))) notesPlayable = false;
+      if (!round.sounds.every((s, k) => k === 0 || s.beat >= round.sounds[k - 1].beat)) ordered = false;
+      if (!round.sounds.every(s => s.beat >= 0 && s.beat < total)) ok = false;
+    }
+    is(`test_round_${level.id}_always_has_something_to_play`, ok, true);
+    is(`test_round_${level.id}_never_asks_for_a_beat_outside_the_bar`, asksInRange, true);
+    is(`test_round_${level.id}_only_uses_notes_the_chimes_have`, notesPlayable, true);
+    is(`test_round_${level.id}_lays_its_notes_out_in_order`, ordered, true);
+  }
+  const pulse = makeRound(LEVELS[0], rngFor(LEVELS[0], 1), 0);
+  is('test_round_pulse_asks_for_every_beat_of_two_bars', pulse.asks, [0, 1, 2, 3, 4, 5, 6, 7]);
+  is('test_round_pulse_sounds_something_on_every_beat', pulse.sounds.length, 8);
+  const ls = makeRound(LEVELS[1], rngFor(LEVELS[1], 1), 0);
+  is('test_round_long_and_short_fills_the_bars_exactly',
+    ls.sounds.reduce((a, s) => a + s.beats, 0), roundBeats(ls));
+  is('test_round_long_and_short_has_a_long_and_a_short_in_it',
+    new Set(ls.sounds.map(s => s.beats)).size > 1, true);
+  const waltz = makeRound(LEVELS[3], rngFor(LEVELS[3], 1), 0);
+  is('test_round_the_waltz_counts_to_three', beatsPerBar(waltz.sig), 3);
+  is('test_round_the_waltz_leans_on_every_third_beat',
+    waltz.sounds.filter(s => s.stress === 'strong').map(s => s.beat), [0, 3]);
+  const four = makeRound(LEVELS[2], rngFor(LEVELS[2], 1), 5);
+  is('test_round_the_late_rounds_of_four_ask_only_for_the_one',
+    four.asks.every(b => b % 4 === 0), true);
+  const echo = makeRound(LEVELS[4], rngFor(LEVELS[4], 1), 0);
+  is('test_round_echo_gives_a_phrase_to_play_back', echo.answer.length > 0, true);
+  is('test_round_echo_never_repeats_a_note_straight_away',
+    echo.answer.every((n, i) => i === 0 || n !== echo.answer[i - 1]), true);
+  const pair = makeRound(LEVELS[5], rngFor(LEVELS[5], 1), 0);
+  is('test_round_high_and_low_gives_two_different_notes', pair.pair.a !== pair.pair.b, true);
+  is('test_round_high_and_low_starts_with_the_easy_question', pair.pair.exact, false);
+  is('test_round_high_and_low_asks_which_bar_later_on',
+    makeRound(LEVELS[5], rngFor(LEVELS[5], 1), 4).pair.exact, true);
+  const song = makeRound(LEVELS[6], rngFor(LEVELS[6], 1), 0);
+  is('test_round_the_song_takes_a_note_out', song.blanks.length > 0, true);
+  is('test_round_the_song_never_takes_the_first_note_out', song.blanks.includes(0), false);
+  is('test_round_the_song_knows_what_belongs_in_the_gap',
+    song.answer.length, song.blanks.length);
+  is('test_round_the_song_gap_is_a_note_the_chimes_have',
+    song.answer.every(n => CHIME_MIDI.includes(n)), true);
+  const tog = makeRound(LEVELS[7], rngFor(LEVELS[7], 1), 0);
+  is('test_round_together_asks_for_the_one_and_the_three', tog.asks, [0, 2, 4, 6]);
+  is('test_round_together_plays_a_tune_over_the_top', tog.sounds.length > 0, true);
+
+  group('Klankhuis — the stars');
+  is('test_stars_everything_first_time_is_three', starsFor(6, 6), 3);
+  is('test_stars_one_slip_in_six_is_two', starsFor(5, 6), 2);
+  is('test_stars_three_quarters_is_two', starsFor(6, 8), 2);
+  is('test_stars_half_is_one', starsFor(3, 6), 1);
+  is('test_stars_a_third_is_none', starsFor(2, 6), 0);
+  is('test_stars_nothing_right_is_none', starsFor(0, 6), 0);
+  is('test_stars_a_level_with_no_rounds_earns_none', starsFor(0, 0), 0);
+}
+
+// ---------------------------------------------------------------- Letterbos: Dutch phonics
+
+{
+  const {
+    sayOf, phonemeOf, sameSound, isDigraph, isVowelUnit, splitWord, spellingName, exampleLine,
+    pickDistractor, CONFUSED, knownUnit,
+  } = await bundle('src/games/letters/phonics.ts', 'phonics.mjs');
+
+  group('Letterbos — hoe een letter klinkt, niet hoe hij heet');
+  // a sound that can be held is written held, so a voice says /m/ and not "em"
+  is('test_phonics_m_is_the_sound_not_the_letter_name', sayOf('m'), 'mmm');
+  is('test_phonics_s_is_stretched', sayOf('s'), 'sss');
+  is('test_phonics_r_is_stretched', sayOf('r'), 'rrr');
+  is('test_phonics_z_is_stretched', sayOf('z'), 'zzz');
+  // a plosive cannot be said alone, so it gets the smallest vowel there is
+  is('test_phonics_p_gets_the_smallest_vowel', sayOf('p'), 'puh');
+  is('test_phonics_b_gets_the_smallest_vowel', sayOf('b'), 'buh');
+  is('test_phonics_p_and_b_are_still_two_sounds', sameSound('p', 'b'), false);
+  // a bare short vowel cannot be written in Dutch, so the interjection spelling stands in
+  is('test_phonics_short_a_is_not_the_long_a', sayOf('a') === sayOf('aa'), false);
+  is('test_phonics_short_a_is_written_as_the_interjection', sayOf('a'), 'ah');
+  is('test_phonics_short_u_is_written_as_the_interjection', sayOf('u'), 'uh');
+  is('test_phonics_long_aa_is_read_straight', sayOf('aa'), 'aa');
+  is('test_phonics_long_uu_is_read_straight', sayOf('uu'), 'uu');
+
+  group('Letterbos — twee spellingen, één klank');
+  is('test_phonics_ei_and_ij_sound_the_same', sameSound('ei', 'ij'), true);
+  is('test_phonics_ei_and_ij_are_said_the_same', sayOf('ij'), sayOf('ei'));
+  is('test_phonics_ij_is_never_spelled_out_as_i_j', sayOf('ij'), 'ei');
+  is('test_phonics_au_and_ou_sound_the_same', sameSound('au', 'ou'), true);
+  is('test_phonics_auw_and_ouw_sound_the_same', sameSound('auw', 'ouw'), true);
+  is('test_phonics_g_and_ch_are_one_sound_in_dutch', sameSound('g', 'ch'), true);
+  is('test_phonics_ei_and_ie_are_two_sounds', sameSound('ei', 'ie'), false);
+  is('test_phonics_ou_and_oe_are_two_sounds', sameSound('ou', 'oe'), false);
+  is('test_phonics_ui_and_eu_are_two_sounds', sameSound('ui', 'eu'), false);
+  is('test_phonics_ij_is_called_the_long_ij', spellingName('ij', true), 'de lange ij');
+  is('test_phonics_ei_is_called_the_short_ei', spellingName('ei', true), 'de korte ei');
+  is('test_phonics_the_long_ij_is_named_in_english_too', spellingName('ij', false), 'the long ij');
+  is('test_phonics_a_plain_letter_has_no_special_name', spellingName('m', true), 'm');
+
+  group('Letterbos — wat is één klank en wat zijn er twee');
+  is('test_phonics_aa_is_one_sound_of_two_letters', isDigraph('aa'), true);
+  is('test_phonics_a_single_letter_is_not_a_digraph', isDigraph('a'), false);
+  is('test_phonics_eeuw_is_one_sound_of_four_letters', isDigraph('eeuw'), true);
+  is('test_phonics_ui_is_a_vowel', isVowelUnit('ui'), true);
+  is('test_phonics_s_is_not_a_vowel', isVowelUnit('s'), false);
+  is('test_phonics_ng_is_a_consonant', isVowelUnit('ng'), false);
+  is('test_phonics_ng_and_nk_are_two_sounds', sameSound('ng', 'nk'), false);
+  is('test_phonics_an_unknown_spelling_falls_back_to_itself', sayOf('qx'), 'qx');
+  is('test_phonics_an_unknown_spelling_is_not_known', knownUnit('qx'), false);
+  is('test_phonics_example_names_a_word_the_child_knows', exampleLine('aa', true), 'de aa van maan');
+  is('test_phonics_example_is_english_in_english', exampleLine('ui', false), 'the ui in huis');
+  is('test_phonics_every_sound_has_a_phoneme', phonemeOf('oe') !== 'oe', true);
+
+  group('Letterbos — een woord in klanken hakken');
+  is('test_split_short_word_is_letter_by_letter', splitWord('kat'), ['k', 'a', 't']);
+  is('test_split_doubled_vowel_stays_together', splitWord('maan'), ['m', 'aa', 'n']);
+  is('test_split_oe_is_one_sound', splitWord('boek'), ['b', 'oe', 'k']);
+  is('test_split_ui_is_one_sound', splitWord('huis'), ['h', 'ui', 's']);
+  is('test_split_eu_is_one_sound', splitWord('deur'), ['d', 'eu', 'r']);
+  is('test_split_ie_is_one_sound', splitWord('fiets'), ['f', 'ie', 't', 's']);
+  is('test_split_ei_is_one_sound', splitWord('trein'), ['t', 'r', 'ei', 'n']);
+  is('test_split_ij_is_one_sound', splitWord('ijs'), ['ij', 's']);
+  is('test_split_ij_at_the_end_of_a_word', splitWord('bij'), ['b', 'ij']);
+  is('test_split_ou_is_one_sound', splitWord('koud'), ['k', 'ou', 'd']);
+  is('test_split_auw_beats_au', splitWord('blauw'), ['b', 'l', 'auw']);
+  is('test_split_ouw_beats_ou', splitWord('touw'), ['t', 'ouw']);
+  is('test_split_eeuw_beats_ee', splitWord('leeuw'), ['l', 'eeuw']);
+  is('test_split_sch_is_s_plus_ch', splitWord('schaap'), ['s', 'ch', 'aa', 'p']);
+  is('test_split_three_consonants_in_front', splitWord('straat'), ['s', 't', 'r', 'aa', 't']);
+  is('test_split_ng_is_one_sound', splitWord('angst'), ['a', 'ng', 's', 't']);
+  is('test_split_nk_is_one_sound', splitWord('bank'), ['b', 'a', 'nk']);
+  is('test_split_four_consonants_at_the_end', splitWord('herfst'), ['h', 'e', 'r', 'f', 's', 't']);
+  is('test_split_a_word_that_starts_with_its_vowel', splitWord('eik'), ['ei', 'k']);
+  is('test_split_two_syllables_still_works', splitWord('augurk'), ['au', 'g', 'u', 'r', 'k']);
+
+  group('Letterbos — de verkeerde tegel op het rek');
+  const fixedRng = () => 0.4;
+  const d1 = pickDistractor(['k', 'a', 't'], fixedRng);
+  is('test_distractor_is_confusable_with_a_sound_in_the_word',
+    ['k', 'a', 't'].some(p => (CONFUSED[p] ?? []).includes(d1)), true);
+  is('test_distractor_is_never_a_sound_the_word_needs', ['k', 'a', 't'].includes(d1), false);
+  const d2 = pickDistractor(['b', 'u', 's'], fixedRng, ['d']);
+  is('test_distractor_avoids_a_tile_already_on_the_rack', d2 === 'd', false);
+  is('test_confusion_pairs_b_with_d', (CONFUSED.b ?? []).includes('d'), true);
+  is('test_confusion_pairs_ei_with_ij', (CONFUSED.ei ?? []).includes('ij'), true);
+}
+
+// ---------------------------------------------------------------- Letterbos: the word list
+
+{
+  const { WORDS, LADDERS, SENTENCES, stepBetween, byWord, wordsIn } =
+    await bundle('src/games/letters/words.ts', 'letterwords.mjs');
+  const { knownUnit } = await bundle('src/games/letters/phonics.ts', 'phonics2.mjs');
+  const { PICTURES, SCENES } = await bundle('src/games/letters/pictures.ts', 'pictures.mjs');
+
+  group('Letterbos — de woordenlijst');
+  is('test_wordlist_holds_at_least_a_hundred_and_twenty_words', WORDS.length >= 120, true);
+  is('test_wordlist_every_breakdown_spells_its_own_word',
+    WORDS.filter(w => w.parts.join('') !== w.w).map(w => w.w), []);
+  is('test_wordlist_every_sound_is_in_the_table',
+    WORDS.flatMap(w => w.parts).filter(p => !knownUnit(p)), []);
+  is('test_wordlist_every_word_has_a_drawing',
+    WORDS.filter(w => !PICTURES[w.pic]).map(w => w.w), []);
+  is('test_wordlist_has_no_word_twice',
+    new Set(WORDS.map(w => w.w)).size, WORDS.length);
+  is('test_wordlist_first_level_words_are_three_sounds_long',
+    wordsIn('kort').filter(w => w.parts.length !== 3).map(w => w.w), []);
+  is('test_wordlist_first_level_vowels_are_all_short',
+    wordsIn('kort').filter(w => w.parts[1].length !== 1).map(w => w.w), []);
+  is('test_wordlist_long_level_words_all_have_a_doubled_vowel',
+    wordsIn('lang').filter(w => !w.parts.some(p => p.length === 2 && p[0] === p[1])).map(w => w.w), []);
+  is('test_wordlist_ei_words_all_contain_ei',
+    wordsIn('ei').filter(w => !w.parts.includes('ei')).map(w => w.w), []);
+  is('test_wordlist_ij_words_all_contain_ij',
+    wordsIn('ij').filter(w => !w.parts.includes('ij')).map(w => w.w), []);
+  is('test_wordlist_au_words_all_contain_au_or_auw',
+    wordsIn('au').filter(w => !w.parts.includes('au') && !w.parts.includes('auw')).map(w => w.w), []);
+  is('test_wordlist_ou_words_all_contain_ou_or_ouw',
+    wordsIn('ou').filter(w => !w.parts.includes('ou') && !w.parts.includes('ouw')).map(w => w.w), []);
+  // every word on the cluster level earns its place: either two consonants land next to each
+  // other, or the word carries the ng/nk that the level is also there to teach
+  const consonant = p => !'aeiou'.includes(p[0]);
+  is('test_wordlist_cluster_words_really_stack_consonants',
+    wordsIn('cluster').filter(w => {
+      const stacked = w.parts.some((p, i) => i > 0 && consonant(p) && consonant(w.parts[i - 1]));
+      return !stacked && !w.parts.includes('ng') && !w.parts.includes('nk');
+    }).map(w => w.w), []);
+
+  group('Letterbos — de woordtrap');
+  is('test_ladder_every_word_is_in_the_list',
+    LADDERS.flat().filter(w => !byWord(w)), []);
+  is('test_ladder_every_step_changes_exactly_one_sound',
+    LADDERS.flatMap(chain => chain.slice(1).map((w, i) => {
+      const a = byWord(chain[i]).parts, b = byWord(w).parts;
+      return stepBetween(a, b) < 0 ? `${chain[i]}->${w}` : null;
+    })).filter(Boolean), []);
+  is('test_step_between_poot_and_pot_is_the_vowel',
+    stepBetween(byWord('poot').parts, byWord('pot').parts), 1);
+  is('test_step_between_maan_and_man_is_the_vowel',
+    stepBetween(byWord('maan').parts, byWord('man').parts), 1);
+  is('test_step_between_kat_and_kam_is_the_last_sound',
+    stepBetween(byWord('kat').parts, byWord('kam').parts), 2);
+  is('test_step_between_the_same_word_is_no_step',
+    stepBetween(['k', 'a', 't'], ['k', 'a', 't']), -1);
+  is('test_step_between_two_changes_is_no_step',
+    stepBetween(['k', 'a', 't'], ['p', 'a', 'p']), -1);
+  is('test_step_between_words_of_different_length_is_no_step',
+    stepBetween(['k', 'a', 't'], ['k', 'a']), -1);
+
+  group('Letterbos — de zinnetjes');
+  is('test_sentences_are_three_or_four_words',
+    SENTENCES.filter(s => s.nl.length < 3 || s.nl.length > 4).map(s => s.nl.join(' ')), []);
+  is('test_sentences_all_have_a_scene_to_draw',
+    SENTENCES.filter(s => !SCENES[s.scene]).map(s => s.scene), []);
+}
+
+// ---------------------------------------------------------------- Letterbos: the ladder of levels
+
+{
+  const {
+    LEVELS, makeQuestion, rngFor, rackFor, cutsOf, tileFits, isSolved, firstEmpty, starsFor,
+    teachFor, chooseQuestion, ladderQuestion, sentenceQuestion,
+  } = await bundle('src/games/letters/model.ts', 'lettermodel.mjs');
+  const { byWord } = await bundle('src/games/letters/words.ts', 'letterwords2.mjs');
+  const level = id => LEVELS.find(l => l.id === id);
+
+  group('Letterbos — het rek tegels');
+  const kort = level('klanken');
+  const rack1 = rackFor(byWord('bus'), kort, rngFor(kort, 1));
+  is('test_rack_holds_every_sound_the_word_needs',
+    ['b', 'u', 's'].every(p => rack1.includes(p)), true);
+  is('test_rack_holds_exactly_one_tile_too_many', rack1.length, 4);
+  const lang2 = level('lange');
+  const rack2 = rackFor(byWord('maan'), lang2, rngFor(lang2, 1));
+  is('test_long_level_offers_the_double_vowel_as_one_tile', rack2.includes('aa'), true);
+  is('test_long_level_offers_the_single_vowel_beside_it', rack2.includes('a'), true);
+  const rack3 = rackFor(byWord('schaap'), level('cluster'), rngFor(level('cluster'), 1));
+  is('test_cluster_rack_holds_sch_as_s_and_ch', rack3.includes('ch') && rack3.includes('s'), true);
+  is('test_cluster_rack_has_two_tiles_too_many', rack3.length, 6);
+
+  group('Letterbos — ei of ij, au of ou');
+  const qEi = chooseQuestion(byWord('trein'), () => 0.3);
+  is('test_choose_question_leaves_only_the_trap_open', qEi.filled, ['t', 'r', null, 'n']);
+  is('test_choose_question_points_at_the_open_slot', qEi.focus, 2);
+  is('test_choose_question_offers_both_spellings', qEi.rack.slice().sort(), ['ei', 'ij']);
+  const qIj = chooseQuestion(byWord('ijs'), () => 0.3);
+  is('test_choose_question_works_when_the_trap_is_first', qIj.filled, [null, 's']);
+  const qOu = chooseQuestion(byWord('hout'), () => 0.3);
+  is('test_choose_question_offers_au_beside_ou', qOu.rack.slice().sort(), ['au', 'ou']);
+  const qAuw = chooseQuestion(byWord('blauw'), () => 0.3);
+  is('test_choose_question_offers_ouw_beside_auw', qAuw.rack.slice().sort(), ['auw', 'ouw']);
+  is('test_teach_says_the_two_spellings_sound_the_same',
+    teachFor(qEi, 2, 'ij', true), 'ei en ij klinken hetzelfde. In dit woord is het de korte ei.');
+  is('test_teach_says_a_double_vowel_is_one_sound',
+    teachFor({ kind: 'build', parts: ['m', 'aa', 'n'] }, 1, 'a', true),
+    'aa is één klank: twee letters, samen /aa/.');
+  is('test_teach_names_the_sound_that_belongs_there',
+    teachFor({ kind: 'build', parts: ['k', 'a', 't'] }, 2, 's', true), 'Hier hoort de t.');
+
+  group('Letterbos — woorden hakken');
+  is('test_cuts_fall_between_the_sounds', cutsOf(['m', 'aa', 'n']), [1, 3]);
+  is('test_cuts_of_a_three_letter_word', cutsOf(['k', 'a', 't']), [1, 2]);
+  is('test_cuts_count_the_letters_not_the_sounds', cutsOf(['s', 'ch', 'aa', 'p']), [1, 3, 5]);
+  is('test_cuts_of_a_single_sound_word_are_none', cutsOf(['ei']), []);
+  const qChop = makeQuestion(level('hakken'), rngFor(level('hakken'), 2), 0);
+  is('test_chop_question_writes_the_word_out_letter_by_letter',
+    qChop.letters.join(''), qChop.word);
+  is('test_chop_question_has_one_cut_fewer_than_it_has_sounds',
+    qChop.gaps.length, qChop.parts.length - 1);
+  is('test_chop_question_has_no_rack', qChop.rack.length, 0);
+
+  group('Letterbos — van woord naar woord, en de zin');
+  const qLad = ladderQuestion(() => 0.1, 0);
+  is('test_ladder_question_keeps_the_rest_of_the_word',
+    qLad.filled.filter(x => x == null).length, 1);
+  is('test_ladder_question_offers_the_sound_that_changes',
+    qLad.rack.includes(qLad.parts[qLad.focus]), true);
+  is('test_ladder_question_says_where_it_came_from', typeof qLad.from, 'string');
+  is('test_ladder_question_comes_from_a_different_word', qLad.from === qLad.word, false);
+  const qSen = sentenceQuestion(() => 0.5);
+  is('test_sentence_question_has_one_word_too_many', qSen.rack.length, qSen.parts.length + 1);
+  is('test_sentence_question_offers_every_word_of_the_sentence',
+    qSen.parts.every(p => qSen.rack.includes(p)), true);
+
+  group('Letterbos — wat telt als goed');
+  is('test_tile_fits_its_own_slot', tileFits({ parts: ['m', 'aa', 'n'] }, 1, 'aa'), true);
+  is('test_tile_does_not_fit_another_slot', tileFits({ parts: ['m', 'aa', 'n'] }, 0, 'aa'), false);
+  is('test_a_repeated_sound_fits_either_of_its_places',
+    tileFits({ parts: ['p', 'o', 'p'] }, 2, 'p'), true);
+  is('test_tile_outside_the_word_never_fits', tileFits({ parts: ['k', 'a', 't'] }, 7, 'k'), false);
+  is('test_word_is_solved_when_every_slot_is_right',
+    isSolved({ parts: ['k', 'a', 't'] }, ['k', 'a', 't']), true);
+  is('test_word_is_not_solved_with_a_hole_in_it',
+    isSolved({ parts: ['k', 'a', 't'] }, ['k', null, 't']), false);
+  is('test_first_empty_slot_is_where_the_help_goes', firstEmpty(['k', null, 't']), 1);
+  is('test_first_empty_of_a_finished_word_is_none', firstEmpty(['k', 'a', 't']), -1);
+  is('test_stars_all_six_without_help_is_three', starsFor(6, 6), 3);
+  is('test_stars_most_without_help_is_two', starsFor(5, 6), 2);
+  is('test_stars_half_without_help_is_one', starsFor(3, 6), 1);
+  is('test_stars_none_without_help_is_none', starsFor(0, 6), 0);
+
+  group('Letterbos — de ladder zelf');
+  is('test_ladder_has_nine_levels', LEVELS.length, 9);
+  is('test_ladder_level_ids_are_all_different',
+    new Set(LEVELS.map(l => l.id)).size, LEVELS.length);
+  is('test_ladder_every_level_has_a_dutch_name_and_hint',
+    LEVELS.filter(l => !l.nameNl || !l.hintNl).map(l => l.id), []);
+  is('test_ladder_every_level_asks_at_least_five_questions',
+    LEVELS.filter(l => l.rounds < 5).map(l => l.id), []);
+  is('test_question_never_repeats_a_word_it_was_told_to_avoid', (() => {
+    const l = level('klanken'), rng = rngFor(l, 3);
+    const asked = [];
+    for (let i = 0; i < 6; i++) { const q = makeQuestion(l, rng, i, asked); asked.push(q.word); }
+    return new Set(asked).size;
+  })(), 6);
+  is('test_every_level_can_be_played_through_without_throwing', (() => {
+    let made = 0;
+    for (const l of LEVELS) {
+      const rng = rngFor(l, 1);
+      const asked = [];
+      for (let i = 0; i < l.rounds; i++) {
+        const q = makeQuestion(l, rng, i, asked);
+        asked.push(q.word);
+        if (q.parts.length && q.filled.length === q.parts.length) made++;
+      }
+    }
+    return made;
+  })(), LEVELS.reduce((a, l) => a + l.rounds, 0));
+}
+
+// ---------------------------------------------------------------- Wereldatlas: the map and its rules
+
+{
+  const geo = await bundle('src/games/atlas/geo.ts', 'atlasgeo.mjs');
+  const mod = await bundle('src/games/atlas/model.ts', 'atlasmodel.mjs');
+  const {
+    ALL_FEATURES, CONTINENTS, EU_COUNTRIES, FLAG_COUNTRIES, NL_CITIES, NL_WATERS, OCEANS,
+    PROVINCES, WORLD_COUNTRIES, EU_VIEW, NL_VIEW, anchorOf, bounds, capitalOf, centroid,
+    distanceToPath, featureById, fit, floodedAt, heightAt, hits, innerPoint, missDistance, nameOf,
+    pointInRing, pointInRings, project, spanOf, unproject,
+  } = geo;
+  const {
+    LEVELS, MIN_SPAN, NEAR, VIEWS, boardFor, dropTarget, isRight, levelById, nextLevel, placeable,
+    poolFor, rngFor, runFor, starsFor, teachLine,
+  } = mod;
+
+  const byId = id => ALL_FEATURES.find(f => f.id === id);
+  const box = { x: 0, y: 0, w: 300, h: 300 };
+  const square = [[[0, 0], [0, 2], [2, 2], [2, 0]]];
+
+  group('Wereldatlas — the twelve provinces');
+  is('test_provinces_all_twelve_are_present', PROVINCES.length, 12);
+  is('test_provinces_have_no_duplicate_ids', new Set(PROVINCES.map(p => p.id)).size, 12);
+  is('test_provinces_have_twelve_distinct_dutch_names', new Set(PROVINCES.map(p => p.nl)).size, 12);
+  is('test_provinces_have_twelve_distinct_english_names', new Set(PROVINCES.map(p => p.en)).size, 12);
+  is('test_provinces_each_name_their_own_capital',
+    PROVINCES.every(p => !!p.capNl && !!p.capEn), true);
+  is('test_provinces_capitals_are_all_different', new Set(PROVINCES.map(p => p.capNl)).size, 12);
+  is('test_provinces_friesland_is_named_for_its_language',
+    byId('friesland').factNl.includes('eigen taal'), true);
+  is('test_provinces_limburg_knows_the_highest_point',
+    byId('limburg').factNl.includes('322'), true);
+  is('test_provinces_zeeland_is_drawn_as_more_than_one_island',
+    byId('zeeland').rings.length, 2);
+  is('test_provinces_every_shape_is_a_closed_ring_of_points',
+    PROVINCES.every(p => p.rings.every(r => r.length >= 5)), true);
+
+  group('Wereldatlas — hitting a shape with a finger');
+  // arrange: a two by two degree square, and three points
+  is('test_point_in_ring_a_point_in_the_middle_is_inside', pointInRing([1, 1], square[0]), true);
+  is('test_point_in_ring_a_point_outside_is_outside', pointInRing([3, 1], square[0]), false);
+  is('test_point_in_rings_finds_the_second_island',
+    pointInRings([3.6, 51.5], byId('zeeland').rings), true);
+  is('test_point_in_rings_the_sea_between_the_islands_is_not_zeeland',
+    pointInRings([3.2, 51.9], byId('zeeland').rings), false);
+  is('test_miss_distance_inside_a_shape_is_nought', missDistance(byId('drenthe'), [6.6, 52.8]), 0);
+  is('test_miss_distance_outside_a_shape_is_the_distance_to_its_coast',
+    missDistance({ rings: square }, [4, 1]) > 1.9, true);
+  is('test_miss_distance_a_city_is_measured_to_its_spot',
+    Math.round(missDistance(byId('amsterdam'), [4.89, 52.37]) * 1000), 0);
+  is('test_miss_distance_a_river_is_measured_to_the_line',
+    Math.round(distanceToPath([5.2, 51.95], byId('rijn').path) * 100) <= 1, true);
+  is('test_hits_a_finger_near_a_city_counts', hits(byId('amsterdam'), [4.95, 52.4], 0.22), true);
+  is('test_hits_a_finger_far_from_a_city_does_not', hits(byId('amsterdam'), [6.5, 53.2], 0.22), false);
+
+  group('Wereldatlas — where a piece flies home to');
+  // the anchor is what a piece is dragged by and flown to, so it must be inside its own shape
+  is('test_anchor_of_a_city_is_its_own_spot', anchorOf(byId('groningenstad')), [6.57, 53.22]);
+  is('test_anchor_of_every_shape_lies_inside_that_shape',
+    ALL_FEATURES.filter(f => f.rings?.length).every(f => pointInRings(anchorOf(f), f.rings)), true);
+  is('test_anchor_of_norway_is_not_in_sweden',
+    pointInRings(anchorOf(byId('noorwegen')), byId('zweden').rings), false);
+  is('test_inner_point_of_a_square_is_its_middle',
+    innerPoint(square).map(v => Math.round(v)), [1, 1]);
+  is('test_centroid_of_a_square_is_its_middle', centroid(square).map(v => Math.round(v)), [1, 1]);
+  is('test_bounds_of_a_square_are_its_corners', bounds(square), { lon0: 0, lat0: 0, lon1: 2, lat1: 2 });
+
+  group('Wereldatlas — the map on the screen');
+  is('test_project_the_top_left_corner_lands_on_the_box_corner',
+    project([NL_VIEW.lon0, NL_VIEW.lat1], NL_VIEW, box).y, 0);
+  is('test_project_and_back_again_returns_the_same_place', (() => {
+    const p = project([5.2, 52.1], NL_VIEW, box);
+    const back = unproject(p.x, p.y, NL_VIEW, box);
+    return [Math.round(back[0] * 100) / 100, Math.round(back[1] * 100) / 100];
+  })(), [5.2, 52.1]);
+  is('test_fit_uses_one_scale_for_both_directions',
+    fit(NL_VIEW, box).s > 0 && Number.isFinite(fit(NL_VIEW, box).s), true);
+  is('test_span_of_the_netherlands_is_about_three_degrees',
+    Math.round(spanOf(byId('nederland'), 0.62) * 10) / 10, 2.7);
+
+  group('Wereldatlas — how low the land is');
+  // arrange: the Haarlemmermeer polder, the dunes in front of it, and the hills of south Limburg
+  is('test_height_the_haarlemmermeer_is_metres_below_the_sea', heightAt([4.68, 52.24]) < 0, true);
+  is('test_height_south_limburg_is_the_only_high_ground', heightAt([5.85, 50.85]), 200);
+  is('test_height_the_dune_ridge_stands_above_the_land_behind_it',
+    heightAt([4.45, 52.25]) > heightAt([4.68, 52.24]), true);
+  is('test_flood_with_the_dykes_off_the_deep_polder_goes_under', floodedAt([4.68, 52.24], 0), true);
+  is('test_flood_with_the_dykes_off_the_dunes_stay_dry', floodedAt([4.45, 52.25], 0), false);
+  is('test_flood_a_storm_surge_of_five_metres_takes_the_low_west',
+    floodedAt([4.75, 52.6], 5), true);
+  is('test_flood_a_storm_surge_never_reaches_limburg', floodedAt([5.85, 50.85], 5), false);
+
+  group('Wereldatlas — the names and the facts are complete');
+  is('test_names_every_feature_has_a_dutch_and_an_english_name',
+    ALL_FEATURES.every(f => f.nl.length > 1 && f.en.length > 1), true);
+  is('test_facts_every_feature_has_a_dutch_and_an_english_fact',
+    ALL_FEATURES.every(f => f.factNl.length > 20 && f.factEn.length > 20), true);
+  is('test_facts_the_two_languages_are_not_the_same_sentence',
+    ALL_FEATURES.every(f => f.factNl !== f.factEn), true);
+  is('test_names_dutch_and_english_are_told_apart', nameOf(byId('noordholland'), true), 'Noord-Holland');
+  is('test_names_english_is_english', nameOf(byId('noordholland'), false), 'North Holland');
+  is('test_feature_by_id_finds_a_place', featureById('maas').nl, 'De Maas');
+  is('test_feature_by_id_of_nothing_finds_nothing', featureById('atlantis'), undefined);
+  is('test_ids_are_unique_across_the_whole_atlas',
+    new Set(ALL_FEATURES.map(f => f.id)).size, ALL_FEATURES.length);
+
+  group('Wereldatlas — Europe and its capitals');
+  is('test_europe_has_at_least_thirty_five_countries', EU_COUNTRIES.length >= 35, true);
+  is('test_europe_every_country_names_a_capital',
+    EU_COUNTRIES.every(c => !!c.capNl && !!c.capEn), true);
+  is('test_europe_no_two_countries_share_a_capital',
+    new Set(EU_COUNTRIES.map(c => c.capNl)).size, EU_COUNTRIES.length);
+  is('test_europe_no_two_countries_share_a_name',
+    new Set(EU_COUNTRIES.map(c => c.nl)).size, EU_COUNTRIES.length);
+  is('test_europe_the_capital_of_france_is_paris', capitalOf(byId('frankrijk'), false), 'Paris');
+  is('test_europe_the_capital_of_the_netherlands_is_amsterdam', capitalOf(byId('nederland'), true), 'Amsterdam');
+  is('test_europe_the_capital_of_switzerland_is_bern_not_zurich', capitalOf(byId('zwitserland'), true), 'Bern');
+  is('test_europe_the_capital_of_turkey_is_ankara_not_istanbul', capitalOf(byId('turkije'), true), 'Ankara');
+  is('test_europe_every_country_sits_in_europe', EU_COUNTRIES.every(c => c.cont === 'eu'), true);
+  is('test_europe_every_capital_falls_inside_its_own_country_on_the_map',
+    EU_COUNTRIES.every(c => pointInRings(anchorOf(c), c.rings)), true);
+
+  group('Wereldatlas — the world');
+  is('test_continents_there_are_seven', CONTINENTS.length, 7);
+  is('test_continents_use_the_animal_books_own_codes',
+    CONTINENTS.map(c => c.id).sort().join(','), 'af,an,as,eu,na,oc,sa');
+  is('test_continents_every_one_has_an_outline', CONTINENTS.every(c => c.rings.length >= 1), true);
+  is('test_oceans_there_are_five', OCEANS.length, 5);
+  is('test_oceans_have_no_duplicate_names', new Set(OCEANS.map(o => o.nl)).size, 5);
+  is('test_world_has_about_forty_countries', WORLD_COUNTRIES.length >= 40, true);
+  is('test_world_every_country_names_a_capital',
+    WORLD_COUNTRIES.every(c => !!c.capNl && !!c.capEn), true);
+  is('test_world_every_country_sits_on_one_of_the_seven_continents',
+    WORLD_COUNTRIES.every(c => CONTINENTS.some(k => k.id === c.cont)), true);
+  is('test_world_japan_is_filed_under_asia', byId('japan').cont, 'as');
+  is('test_world_a_european_country_reuses_the_very_same_outline',
+    byId('frankrijk_w').rings, byId('frankrijk').rings);
+  is('test_cities_there_are_twenty_or_more', NL_CITIES.length >= 20, true);
+  is('test_cities_have_no_duplicate_names', new Set(NL_CITIES.map(c => c.nl)).size, NL_CITIES.length);
+  is('test_waters_cover_the_rivers_and_the_works', NL_WATERS.length, 10);
+
+  group('Wereldatlas — the flags');
+  is('test_flags_every_one_belongs_to_a_country_in_the_atlas',
+    FLAG_COUNTRIES.every(id => !!byId(id)), true);
+  is('test_flags_every_named_country_really_has_a_flag_drawn',
+    FLAG_COUNTRIES.every(id => !!byId(id).flag), true);
+  is('test_flags_are_only_stripes_crosses_and_discs',
+    FLAG_COUNTRIES.every(id => ['bands', 'cross', 'disc'].includes(byId(id).flag.kind)), true);
+  is('test_flags_every_colour_is_a_hex_colour',
+    FLAG_COUNTRIES.every(id => {
+      const f = byId(id).flag;
+      const cols = f.kind === 'bands' ? f.colours : f.kind === 'cross' ? [f.field, f.cross, f.inner] : [f.field, f.disc];
+      return cols.filter(Boolean).every(c => /^#[0-9a-f]{6}$/i.test(c));
+    }), true);
+  is('test_flags_the_dutch_flag_is_red_white_blue_from_the_top',
+    byId('nederland').flag.colours, ['#ae1c28', '#ffffff', '#21468b']);
+  is('test_flags_the_french_flag_stands_up_rather_than_lying_down', byId('frankrijk').flag.dir, 'v');
+  is('test_flags_the_danish_flag_is_a_cross', byId('denemarken').flag.kind, 'cross');
+  is('test_flags_the_norwegian_cross_has_a_cross_inside_it', byId('noorwegen').flag.inner, '#00205b');
+
+  group('Wereldatlas — the ladder');
+  is('test_levels_there_are_nine', LEVELS.length, 9);
+  is('test_levels_have_no_duplicate_ids', new Set(LEVELS.map(l => l.id)).size, 9);
+  is('test_levels_start_at_home_and_end_at_the_flags',
+    [LEVELS[0].id, LEVELS[8].id], ['provincies', 'vlaggen']);
+  is('test_levels_every_one_has_both_a_dutch_and_an_english_name',
+    LEVELS.every(l => l.name.length > 2 && l.nameNl.length > 2 && l.name !== l.nameNl), true);
+  is('test_levels_every_one_has_a_hint_in_both_languages',
+    LEVELS.every(l => l.hint.length > 10 && l.hintNl.length > 10), true);
+  is('test_level_by_id_finds_the_water_level', levelById('water').board, 'nl');
+  is('test_next_level_after_the_provinces_is_the_water', nextLevel('provincies').id, 'water');
+  is('test_next_level_after_the_last_one_is_nothing', nextLevel('vlaggen'), null);
+  is('test_levels_only_the_water_level_has_the_dyke_switch',
+    LEVELS.filter(l => l.dykes).map(l => l.id), ['water']);
+  is('test_levels_the_first_one_is_the_twelve_provinces',
+    poolFor(LEVELS[0]).length, 12);
+
+  group('Wereldatlas — dealing out the pieces');
+  is('test_pool_never_hands_out_a_target_too_small_to_hit',
+    LEVELS.every(l => poolFor(l).every(f => placeable(l, f))), true);
+  is('test_pool_leaves_luxembourg_off_the_map_of_europe',
+    poolFor(levelById('europa')).some(f => f.id === 'luxemburg'), false);
+  is('test_pool_keeps_luxembourg_as_a_neighbour_where_it_is_big_enough',
+    poolFor(levelById('buren')).some(f => f.id === 'luxemburg_buur'), true);
+  is('test_pool_keeps_belgium_on_the_map_of_europe',
+    poolFor(levelById('europa')).some(f => f.id === 'belgie'), true);
+  is('test_pool_of_every_level_is_at_least_as_long_as_its_rounds',
+    LEVELS.every(l => poolFor(l).length >= l.rounds), true);
+  is('test_run_hands_out_exactly_as_many_pieces_as_there_are_rounds',
+    LEVELS.map(l => runFor(l, rngFor(l, 1)).length), LEVELS.map(l => l.rounds));
+  is('test_run_never_hands_out_the_same_piece_twice',
+    LEVELS.every(l => {
+      const r = runFor(l, rngFor(l, 1));
+      return new Set(r.map(f => f.id)).size === r.length;
+    }), true);
+  is('test_run_stays_inside_its_own_levels_pool',
+    LEVELS.every(l => {
+      const ids = new Set(poolFor(l).map(f => f.id));
+      return runFor(l, rngFor(l, 3)).every(f => ids.has(f.id));
+    }), true);
+  is('test_run_a_second_go_at_europe_is_not_the_same_twelve_countries',
+    runFor(levelById('europa'), rngFor(levelById('europa'), 1)).map(f => f.id).join() ===
+    runFor(levelById('europa'), rngFor(levelById('europa'), 2)).map(f => f.id).join(), false);
+  is('test_run_is_the_same_every_time_for_the_same_attempt',
+    runFor(levelById('steden'), rngFor(levelById('steden'), 4)).map(f => f.id).join(),
+    runFor(levelById('steden'), rngFor(levelById('steden'), 4)).map(f => f.id).join());
+  is('test_board_of_a_dutch_level_is_the_twelve_provinces', boardFor(levelById('steden')).length, 12);
+  is('test_board_of_the_neighbours_puts_the_netherlands_first',
+    boardFor(levelById('buren'))[0].id, 'nederland_buur');
+  is('test_board_the_netherlands_is_a_piece_on_the_neighbours_level_too',
+    poolFor(levelById('buren')).some(f => f.id === 'nederland_buur'), true);
+  is('test_board_every_piece_of_every_level_has_its_home_on_the_board',
+    LEVELS.every(l => {
+      const v = VIEWS[l.board];
+      return poolFor(l).every(f => {
+        const a = anchorOf(f);
+        return a[0] >= v.lon0 && a[0] <= v.lon1 && a[1] >= v.lat0 && a[1] <= v.lat1;
+      });
+    }), true);
+
+  group('Wereldatlas — dropping a piece');
+  const prov = levelById('provincies');
+  const cities = levelById('steden');
+  is('test_drop_a_province_on_its_own_ground_is_right',
+    isRight(prov, byId('friesland'), anchorOf(byId('friesland'))), true);
+  is('test_drop_a_province_on_the_wrong_one_is_wrong',
+    isRight(prov, byId('friesland'), anchorOf(byId('drenthe'))), false);
+  is('test_drop_names_what_was_hit_instead',
+    dropTarget(prov, anchorOf(byId('drenthe'))).id, 'drenthe');
+  is('test_drop_in_the_sea_hits_nothing_at_all', dropTarget(prov, [2.0, 51.0]), null);
+  is('test_drop_every_piece_of_every_level_is_right_at_its_own_place',
+    LEVELS.every(l => poolFor(l).every(f => isRight(l, f, anchorOf(f)))), true);
+  is('test_drop_a_city_pin_a_little_off_still_counts',
+    isRight(cities, byId('amsterdam'), [4.95, 52.40]), true);
+  is('test_drop_a_city_pin_on_the_neighbouring_city_does_not',
+    isRight(cities, byId('amsterdam'), anchorOf(byId('haarlem'))), false);
+  is('test_drop_the_nearer_of_two_cities_wins',
+    dropTarget(cities, anchorOf(byId('nijmegen'))).id, 'nijmegen');
+  is('test_drop_the_nearer_of_two_rivers_wins',
+    dropTarget(levelById('water'), anchorOf(byId('waal'))).id, 'waal');
+  is('test_drop_a_continent_on_the_right_part_of_the_world',
+    isRight(levelById('werelddelen'), byId('af'), [20, 5]), true);
+  is('test_drop_a_continent_on_the_wrong_part_of_the_world',
+    isRight(levelById('werelddelen'), byId('af'), [100, 40]), false);
+  is('test_near_is_tighter_on_the_map_of_the_netherlands_than_on_the_world',
+    NEAR.nl < NEAR.world, true);
+  is('test_min_span_is_nought_at_home_where_everything_is_big_enough', MIN_SPAN.nl, 0);
+
+  group('Wereldatlas — what a wrong drop teaches');
+  is('test_teach_names_what_was_hit_and_says_where_the_right_one_is',
+    teachLine(byId('friesland'), byId('drenthe'), true), 'Dat is Drenthe. Friesland ligt hier.');
+  is('test_teach_in_english_says_the_same_thing',
+    teachLine(byId('friesland'), byId('drenthe'), false), 'That is Drenthe. Friesland is here.');
+  is('test_teach_a_drop_in_open_sea_just_points_at_the_place',
+    teachLine(byId('friesland'), null, true), 'Friesland ligt hier.');
+  is('test_teach_never_says_a_place_missed_itself',
+    teachLine(byId('friesland'), byId('friesland'), true), 'Friesland ligt hier.');
+  is('test_teach_the_rhine_comes_out_of_switzerland',
+    byId('rijn').factNl.includes('Zwitserland'), true);
+
+  group('Wereldatlas — the stars');
+  is('test_stars_every_piece_first_time_is_three', starsFor(12, 12), 3);
+  is('test_stars_nine_in_ten_is_two', starsFor(9, 10), 2);
+  is('test_stars_two_thirds_is_one', starsFor(8, 12), 1);
+  is('test_stars_exactly_half_is_still_one', starsFor(6, 12), 1);
+  is('test_stars_fewer_than_half_is_none', starsFor(5, 12), 0);
+  is('test_stars_a_level_with_no_rounds_earns_none', starsFor(0, 0), 0);
+  is('test_views_every_board_has_a_window_onto_the_globe',
+    LEVELS.every(l => !!VIEWS[l.board] && VIEWS[l.board].lon1 > VIEWS[l.board].lon0), true);
+  is('test_views_europe_is_drawn_with_the_longitudes_squashed', EU_VIEW.kx < 1, true);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);

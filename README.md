@@ -267,6 +267,222 @@ the repository, so the book needs no network to know anything; only the photogra
 you go, with a drawn silhouette in their place while they come and instead of them if they do not.
 Practises looking closely, comparing sizes, sorting into groups and looking something up. Age 4 and up.
 
+### Klankhuis (`rhythm.html`)
+The instrument comes first. What opens is nine chime bars you can hit - a C major scale from the G
+below middle C up to the A above it - and nothing else asks anything of you. Each bar is a real
+pitch in equal temperament, each is coloured the way real chime bars are (C red, D orange, E
+yellow, and so on round to B), and the low ones are drawn long and the high ones short, because on
+a xylophone the pitch *is* the length of the bar.
+
+The sound is built rather than played back, like everything else here, but this game is its sound
+so it is built properly. A note is five oscillators, not one: the fundamental, the octave, and
+three partials above it that are not whole multiples - the fifth sits at five and a half times the
+fundamental, which is what metal does and a harmonic series does not. Each partial has its own
+decay, and the high ones die first, so a struck bar starts bright and ends warm. In front of it is
+a few milliseconds of filtered noise with no pitch in it at all, which is the mallet, and under it
+a second fundamental five cents away, because two bars of metal are never in perfect tune with
+each other and that slow beating is most of what "warm" means. Behind all of it is a room: a
+convolution reverb whose impulse response is a decaying burst of noise, generated at startup.
+There are four instruments - klokkenspel, houten blokjes, fluit and harp - and the difference
+between them is where the partials sit and how fast each one dies, not a filter sweep.
+
+Every note is scheduled against `AudioContext.currentTime` at an absolute moment, a quarter of a
+second before it sounds, and the drawing is worked out from that same clock: the ball on the screen
+and the beat in the ear are the same number. Nothing is timed with `setTimeout` and nothing hangs
+off a frame. A tap is judged against when the child *heard* the beat, so the output latency comes
+off before anything is compared - sixty milliseconds either side is on the beat, two hundred is
+where a tap stops belonging to that beat at all. None of that appears on screen as a number: it is
+a ring that tightens.
+
+Nine levels. Klap mee, a ball that falls and bounces on the beat so you can see it coming. Lang en
+kort, half notes against quarter notes, drawn as long and short blocks before you hear them. Maat
+van vier, where the count starts again, with the one drawn bigger and leant on - and halfway
+through the level it stops asking for every beat and asks only for the one. Drie tellen, the same
+thing in three, so that "the beat" stops meaning "four". Echo, where the game plays a phrase and
+you play it back on the chimes. Hoog en laag: was the second note higher or lower, and then, on a
+drawn ladder of pitches, how much higher. Het liedje, a song a Dutch child already knows with notes
+taken out of it - Vader Jacob, Altijd is Kortjakje ziek and In de maneschijn, all three written in
+the key that fits the chimes with no note moved an octave to make it fit. Samen, a drum you keep
+going while a tune plays over the top. And Zelf maken.
+
+Zelf maken is the point of the whole thing and it is never locked: there is a button to it on the
+opening screen, because a child who has to earn eight levels before being allowed to make anything
+will never make anything. It is a grid of nine pitches by eight beats. Tap the squares, press
+spelen, and it loops; the column the loop is on lights up as it passes. A button changes the
+instrument, another the tempo. It saves itself the moment a square changes, so it is still there
+tomorrow - and it is read back out of the save sanitised rather than trusted, so a half-written or
+hand-edited save opens as an empty grid instead of stopping the game.
+
+Getting something wrong is never a dead end. A tap that was late leaves a ring where it landed with
+a dashed line back to the beat it belonged to, and then that one bar - not the whole pattern -
+plays again at half speed with the beats lit. In the ear levels a wrong chime is answered by the
+right one three tenths of a second later, long enough to be two sounds and short enough to be one
+thought, and then the game moves on. Listening to a phrase again is free and always offered. The
+stars count only what went right the first time, before any of that happened.
+
+The music itself lives in `src/games/rhythm/music.ts`, a module with no canvas and no browser in
+it: note names to frequencies in equal temperament from A4 = 440 Hz, note values against a tempo,
+the beats of a bar in 2/4, 3/4 and 4/4 and which of them are leant on, the three tunes as note
+lists, how close a tap was, and the sequencer's save format. It is tested case by case in
+`tests/run.mjs`, including that every stored tune really does fit the nine bars the instrument has.
+Practises keeping a beat, long against short, hearing high from low, playing a phrase back, doing
+two things at once, and writing something down and hearing it again. Age 4 and up.
+
+### Rekenrijk (`numbers.html`)
+Market Day counts to about ten and stops. This is the ladder after that, and the rule the whole
+thing is built on is that every sum is something you can see and move. There is no screen in this
+game where a row of symbols sits with an empty box at the end and nothing else to go on: seven is
+seven beads on a rack, eight plus five is eight apples in a ten-frame and five waiting beside it,
+thirty plus forty is three rods and four, twenty-seven plus eight is a peg standing on a number
+line. The child does the sum by moving the things, and the written sum underneath fills itself in
+while they do it - so the figures end up as a description of something they have already done
+rather than a code to be broken.
+
+The answers do not appear until the things have been moved. That is deliberate and it is the
+difference between this and a worksheet with a picture beside it: the crate has to be pushed, the
+frame has to be filled, the peg has to be walked to the next ten. Only then do four numerals come
+up to be chosen between.
+
+Nine levels, in the order a Dutch school teaches them: splitsen tot 10 on a bead rack with a
+divider you slide, erbij with two crates that slide together, eraf with apples taken out one at a
+time, de tien vol on a ten-frame, tientallen as rods and cubes with a number line saying the same
+thing underneath, over het tiental as two jumps drawn on the line, verschil as one walk from here
+to there, keersommen as an array you build by dragging the corner of the crate, and last the
+tafels of 3, 4, 6, 7, 8 and 9.
+
+The step over the ten is shown, not skipped. 8 + 5 fills the frame to ten first and then counts on
+the three; 27 + 8 jumps to thirty and then the rest. Both are written out as two lines, and both
+lines fill in as the objects move, because "rijgen over het tiental" is the strategy the school
+teaches and a game that jumps straight to the answer teaches a child to guess instead.
+
+Getting one wrong is not a loss and there is no way to fail. The objects rearrange themselves and
+count the right answer out in front of you - the frame fills, the apples number themselves one to
+seventeen, the second jump draws itself on the line - the sum is written and said in words
+("achtentwintig plus acht is zesendertig"), and then you tap on. The stars count what was worked
+out first time, before the apples showed you. Nothing locks.
+
+The wrong answers on offer are the mistakes children actually make, and never a random number.
+Beside 27 + 8 = 35 sits 25, because a child who adds seven and eight, gets fifteen and writes down
+the five keeps the two and loses the carry; and 215, because a child who adds the tens and the
+units separately and writes them side by side gets exactly that - and the number line, which stops
+at a hundred, is the answer to it. Beside 8 + 5 sits 10, which is stopping at the ten this level
+just taught, and 3, which is dropping it. Beside 6 x 7 sit 35, 49 and 36: the fact above, the fact
+below, and the same fact in the table next door.
+
+All of that lives in `src/games/numbers/model.ts`, which has no canvas in it. Every level's rule is
+written once in `inRule`, and the tests hold every generator to it rather than to a comment. The
+words - "vierentwintig", "tweeentwintig" with its diaeresis, "vier keer zes is vierentwintig" -
+are in `numberwords.ts` beside it, tested in Dutch and in English.
+
+A switch in the corner puts a number on every object on the table, for a child still counting one
+by one, and takes it off again. On the last level there is a bar marked "hoe snel" that empties
+while you think: nothing happens when it runs out and no star is lost, but three quick answers in a
+row fade the apples down to outlines, so a child who has learnt the table stops being handed it.
+Practises splitting to ten, adding and taking away, crossing the ten, tens and ones, difference,
+and the tables. Age 5 and up.
+
+### Wereldatlas (`atlas.html`)
+A drawn map and pieces you drag onto it. Pick up Friesland, drop it where Friesland is and it
+clicks home; drop it on Drenthe and it springs back, Friesland lights up where it really was, and
+a line appears that is worth knowing. Nine levels, working outward from where a Dutch child is
+standing: the twelve provinces, the water, the cities, the neighbours, Europe by shape, the
+European capitals, the continents and oceans, the countries of the world, and the flags.
+
+The piece is carried at the map's own scale. The moment it leaves the tray it is exactly as big as
+the hole it is going into, so a child can see Zeeland fit rather than guess. A piece is dragged by
+its own middle - a point worked out to sit as far inside the shape as the shape allows, because
+the middle-of-the-area of Norway lands in Sweden - so where the finger is *is* where the piece is,
+and a drop can simply ask whether that point is inside the place it belongs.
+
+A drop finds the *nearest* thing the level deals in rather than the first. Arnhem and Nijmegen are
+fifteen kilometres apart and within a fingertip of each other on a phone; the Rijn and the Waal run
+side by side across the middle of the country. Asking which is nearer answers both the way a
+teacher would, and hands the correction its own words for free: *dat is Nijmegen, Arnhem ligt hier*,
+with the fact underneath. Then the piece flies home by itself, so nobody is ever stuck on a shape
+they do not know. The stars count only what went home first time, before the map showed you.
+
+The water level has a switch marked "dijken uit". The Netherlands is redrawn by height - the deep
+polders six metres down, the peat behind the dunes, the sandy east, the Veluwe, the hills of south
+Limburg - and every band lower than the water outside turns blue. With the dykes off and an
+ordinary sea, a quarter of the country is already under. Press it again for a storm surge of five
+metres, which is roughly what stood against the dykes in 1953, and the west goes.
+
+On a continent or a country the card offers **welke dieren wonen hier?**, and that opens the animal
+book filtered to that part of the world - `animals.html#af` is Africa. The animal data already
+carries a continent per species, so the two are the same shelf seen from two sides.
+
+Nothing is fetched and nothing is a photograph. The outlines are longitude and latitude in
+`src/games/atlas/geo.ts`, simplified to about ten kilometres of detail and drawn as canvas paths,
+which is what lets the same Germany appear on a map of the neighbours, a map of Europe and a map of
+the world without being redrawn. The continents come out of the animal book's own `worldmap.ts`,
+so there are not two different Africas in Bramblewood. The flags are written down rather than
+photographed - bands, a cross, a disc - and only the flags that description can tell the truth
+about are in the game, because a drawn approximation of a coat of arms is a wrong flag rather than
+a simple one.
+
+What is simplified is the coastline. What is not is the naming: twelve provinces with their
+capitals, twenty-two Dutch cities, ten rivers and seas and the works that hold them back,
+thirty-nine European countries each with its real capital, seven continents, five oceans and
+forty-one countries of the world. Bern, not Zurich. Ankara, not Istanbul. Den Haag is where the
+government sits and Amsterdam is the capital, and the game says so.
+
+Luxembourg on a map of Europe that fits a phone is four pixels across. It stays on the board and in
+the data - a real country, a real capital, three real languages - but it is never dealt out as a
+piece, because nobody can hit it. A switch in the corner outlines the empty places for a child
+still finding the holes, and takes the outlines away again for a child who should know.
+Practises where things are, reading a map, and the Netherlands, Europe and the world. Age 5 and up.
+
+### Letterbos (`letters.html`)
+A picture of a moon. The game says *maan* out loud, then says it again in pieces - /m/ /aa/ /n/ -
+and the letters lie on a rack underneath. The word gets built by dragging them into the boxes.
+Nothing here is multiple choice: picking the right picture out of four proves nothing about
+reading, and putting the sounds back together in order is the thing a child actually has to learn
+to do.
+
+Nine levels, in the order a Dutch school teaches them: three letters and a short vowel (*bus*,
+*kat*, *vis*, *zon*); the doubled vowel (*maan*, *boom*, *vuur*), where the rack offers the `aa`
+as one tile and a single `a` beside it, because that mistake is the lesson; the two-letter sounds
+*ui*, *oe*, *eu*, *ie* and *eeuw*; *ei* against *ij*; *au* against *ou*; consonants stacked up
+(*schaap*, *straat*, *angst*, *herfst*); chopping a written word back into its sounds by tapping
+where it falls apart; a word ladder where exactly one sound changes at a time - *boom*, *boot*,
+*poot*, *pot*, *pet*, *pen*; and last, four-word sentences with a drawn scene that says the same
+thing without words. A hundred and forty-one words, each with its own drawing, and ten scenes.
+Nothing is fetched and nothing is a photograph.
+
+The sounds are sounds, not letter names. /m/ is "mmm" and never "em", because "em-aa-en" never
+becomes *maan*. That table is `src/games/letters/phonics.ts`, a module with no canvas in it: the
+consonants that can be held are written held, the ones that cannot get the smallest vowel Dutch
+has ("puh", "buh") because /p/ on its own is a puff of air and then silence, and the short vowels
+are written the only way Dutch ever writes them alone - ah, eh, ih, oh, uh, the interjections.
+Every reading method makes those same two compromises; this one writes them down rather than
+hiding them. The breakdowns in the word list are not typed out by hand either: the same module
+cuts each word up, longest spelling first, which is what gets *schaap* to s-ch-aa-p, *leeuw* to
+l-eeuw and *angst* to a-ng-s-t. It is tested case by case, in Dutch.
+
+Two spellings, one sound, three times over: *ei* and *ij*, *au* and *ou*, and *g* and *ch*. They
+share a sound in that table on purpose, so the game can say the true thing - they sound exactly
+the same, and only the word itself says which it is - instead of inventing a rule. Get one wrong
+and the word is written out underneath with the right spelling in red and named the way a school
+names it: de lange ij, de korte ei.
+
+A wrong tile is never a dead end. It springs back, the box it does belong in glows, the sound that
+box wants is said again slowly and then borrowed from a word a child knows ("de aa van maan"), and
+the second time the game lifts the right tile into place itself and reads the whole word out. The
+stars count only the words that were built with no help at all, so nothing is lost by needing it.
+
+Two things on a tile are teaching rather than decoration. The vowels are warm and the consonants
+are cool, the way Dutch methods mark the klinkers apart from the medeklinkers, because a word is a
+run of consonants around a vowel and seeing that shape is most of the way to reading it. And a
+tile with two letters on it carries a tie underneath them - the stroke a teacher draws under *aa*
+to say "these two are one sound". A switch in the corner writes the word above the boxes for a
+child who still wants to copy it, and takes it away again.
+
+The voice is the browser's own, with a Dutch one picked at startup. If the machine has no Dutch
+voice, nothing waits and nothing breaks: the pictures, the tiles, the glowing box and the wooden
+knocks carry the whole game in silence.
+Practises hearing the separate sounds in a word, putting them back together into the word, the
+two-letter sounds, the ei/ij and au/ou traps, and reading a short sentence. Age 5 and up.
+
 ## Stack
 - Vite + TypeScript, Canvas 2D, multi-page build (one entry per game)
 - Photographs only where they are real: NASA planets and moons, public domain fossils, and the

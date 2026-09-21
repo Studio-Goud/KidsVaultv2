@@ -793,3 +793,358 @@ export function drawAnimalsThumb(c: HTMLCanvasElement): void {
     ctx.beginPath(); ctx.roundRect(x + cw * 0.09, y + ch * 0.83, cw * 0.58, ch * 0.08, ch * 0.04); ctx.fill();
   }
 }
+
+/**
+ * Rekenrijk: a ten-frame two short of full, with the three that are left over waiting beside it.
+ *
+ * That one picture is the whole game - the sum is a thing on a table, and the step over the ten is
+ * something you can see happening rather than a rule you are told.
+ */
+export function drawNumbersThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, '#8fd0ef');
+  sky.addColorStop(0.42, '#d4ebe2');
+  sky.addColorStop(0.52, '#cfe0b4');
+  sky.addColorStop(0.56, '#c8955c');
+  sky.addColorStop(1, '#a9793f');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+
+  // apple trees along the horizon
+  ctx.fillStyle = 'rgba(104, 150, 88, 0.6)';
+  for (let x = -10; x < w + 20; x += w * 0.2) {
+    ctx.beginPath(); ctx.arc(x, h * 0.48, w * 0.1, 0, TAU); ctx.fill();
+  }
+
+  const apple = (x: number, y: number, r: number, tone: string): void => {
+    ctx.fillStyle = tone;
+    ctx.beginPath();
+    ctx.moveTo(x, y - r * 0.7);
+    ctx.bezierCurveTo(x - r * 1.16, y - r, x - r * 1.1, y + r * 0.95, x, y + r);
+    ctx.bezierCurveTo(x + r * 1.1, y + r * 0.95, x + r * 1.16, y - r, x, y - r * 0.7);
+    ctx.fill();
+    ctx.fillStyle = '#6fae54';
+    ctx.beginPath(); ctx.ellipse(x + r * 0.4, y - r, r * 0.36, r * 0.18, -0.5, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath(); ctx.ellipse(x - r * 0.33, y - r * 0.28, r * 0.2, r * 0.3, -0.5, 0, TAU); ctx.fill();
+  };
+
+  // the frame: five across, two down, eight red and two green make it full
+  const cell = Math.min(w * 0.135, h * 0.2);
+  const fx = w * 0.09, fy = h * 0.4;
+  ctx.fillStyle = '#fffaf0';
+  ctx.beginPath(); ctx.roundRect(fx, fy, cell * 5, cell * 2, cell * 0.16); ctx.fill();
+  ctx.strokeStyle = '#3f9d61'; ctx.lineWidth = Math.max(1.6, cell * 0.09);
+  ctx.beginPath(); ctx.roundRect(fx, fy, cell * 5, cell * 2, cell * 0.16); ctx.stroke();
+  ctx.strokeStyle = 'rgba(18,48,71,0.3)'; ctx.lineWidth = 1;
+  for (let i = 1; i < 5; i++) {
+    ctx.beginPath(); ctx.moveTo(fx + cell * i, fy); ctx.lineTo(fx + cell * i, fy + cell * 2); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.moveTo(fx, fy + cell); ctx.lineTo(fx + cell * 5, fy + cell); ctx.stroke();
+  for (let i = 0; i < 10; i++) {
+    const x = fx + cell * ((i % 5) + 0.5), y = fy + cell * (Math.floor(i / 5) + 0.5);
+    // the last two are the ones that were just moved in, which is what filled the ten
+    apple(x, y, cell * 0.32, i < 8 ? '#e0553f' : '#cf6f3c');
+  }
+
+  // the three that would not fit, waiting outside
+  for (let i = 0; i < 3; i++) apple(w * 0.855, fy + cell * (i * 0.72 + 0.34), cell * 0.28, '#cf6f3c');
+
+  ctx.fillStyle = 'rgba(18,48,71,0.8)';
+  ctx.font = `900 ${Math.round(h * 0.16)}px Nunito, system-ui, sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.fillText('8 + 5', fx + 1, h * 0.32);
+}
+
+/**
+ * Klankhuis: five chime bars in a warm room, one of them just struck.
+ *
+ * The bars are coloured the way real chime bars are - red for C, orange for D, and so on - and the
+ * low one is the long one, because on a xylophone the pitch is the length of the bar. The stamp
+ * says what the instrument is before a word is read.
+ */
+export function drawRhythmThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+
+  const wall = ctx.createLinearGradient(0, 0, 0, h);
+  wall.addColorStop(0, '#2c4a63');
+  wall.addColorStop(0.45, '#42708c');
+  wall.addColorStop(0.66, '#a9825a');
+  wall.addColorStop(1, '#6f5134');
+  ctx.fillStyle = wall; ctx.fillRect(0, 0, w, h);
+
+  const lamp = ctx.createRadialGradient(w * 0.28, -h * 0.1, 0, w * 0.28, h * 0.15, h * 1.4);
+  lamp.addColorStop(0, 'rgba(255, 238, 200, 0.34)');
+  lamp.addColorStop(1, 'rgba(255, 238, 200, 0)');
+  ctx.fillStyle = lamp; ctx.fillRect(0, 0, w, h);
+
+  const colours = ['#e05a4b', '#ef8f3f', '#f0c73c', '#6fbe5a', '#38b6ad'];
+  const n = colours.length;
+  const gap = w * 0.028;
+  const bw = (w * 0.76 - gap * (n - 1)) / n;
+  const x0 = w * 0.12;
+  const top = h * 0.24;
+  // the third bar is the one that has just been hit
+  const struck = 2;
+  for (let i = 0; i < n; i++) {
+    const bh = h * 0.56 * (1 - (i / (n - 1)) * 0.34);
+    const x = x0 + i * (bw + gap);
+    ctx.fillStyle = 'rgba(24, 14, 6, 0.4)';
+    ctx.beginPath(); ctx.roundRect(x + bw * 0.1, top + h * 0.02, bw * 0.8, bh, bw * 0.28); ctx.fill();
+    const lit = i === struck;
+    const g = ctx.createLinearGradient(x, top, x + bw, top + bh);
+    g.addColorStop(0, lit ? '#fff6dd' : shadeHex(colours[i], 0.34));
+    g.addColorStop(1, shadeHex(colours[i], -0.2));
+    if (lit) { ctx.save(); ctx.shadowColor = colours[i]; ctx.shadowBlur = bw * 0.9; }
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.roundRect(x, top, bw, bh, bw * 0.28); ctx.fill();
+    if (lit) ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.roundRect(x + bw * 0.12, top + bh * 0.08, bw * 0.76, bh * 0.22, bw * 0.2); ctx.fill();
+  }
+
+  // the ring of sound coming off the struck bar
+  const sx = x0 + struck * (bw + gap) + bw / 2, sy = top + h * 0.12;
+  ctx.strokeStyle = 'rgba(255, 246, 214, 0.65)';
+  for (let k = 1; k <= 2; k++) {
+    ctx.lineWidth = Math.max(1, w * 0.012 / k);
+    ctx.beginPath(); ctx.arc(sx, sy, bw * (0.7 + k * 0.5), -Math.PI * 0.9, -Math.PI * 0.1); ctx.stroke();
+  }
+
+  // a quaver in the corner, so the card says "music" at stamp size
+  ctx.fillStyle = '#fff2d8';
+  const qx = w * 0.88, qy = h * 0.3, s = h * 0.15;
+  ctx.beginPath(); ctx.ellipse(qx - s * 0.3, qy + s * 0.75, s * 0.42, s * 0.3, -0.35, 0, TAU); ctx.fill();
+  ctx.fillRect(qx + s * 0.02, qy - s * 0.9, s * 0.15, s * 1.7);
+  ctx.beginPath();
+  ctx.moveTo(qx + s * 0.17, qy - s * 0.9);
+  ctx.quadraticCurveTo(qx + s * 0.95, qy - s * 0.5, qx + s * 0.5, qy + s * 0.2);
+  ctx.quadraticCurveTo(qx + s * 0.68, qy - s * 0.38, qx + s * 0.17, qy - s * 0.5);
+  ctx.closePath(); ctx.fill();
+}
+
+/** Lighten or darken a hex colour, for the thumbnail that must not import the game's own look. */
+function shadeHex(hex: string, amt: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const f = (c: number): number => Math.max(0, Math.min(255, Math.round(c + (amt > 0 ? (255 - c) * amt : c * amt))));
+  const r = f((n >> 16) & 255), g = f((n >> 8) & 255), b = f(n & 255);
+  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
+}
+
+/**
+ * A map of the Netherlands with a province being carried onto it.
+ *
+ * The outlines are the same longitude and latitude the game itself draws from, squashed by the
+ * same 0.62 - a degree of longitude at 52 north - so the shape on the card is the shape in the
+ * game rather than a sketch of one.
+ */
+export function drawAtlasThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const paper = ctx.createLinearGradient(0, 0, 0, h);
+  paper.addColorStop(0, '#f6efdd'); paper.addColorStop(1, '#e5dbc2');
+  ctx.fillStyle = paper; ctx.fillRect(0, 0, w, h);
+
+  // the window onto the country, and where a point in it lands on the card
+  const LON0 = 3.2, LON1 = 7.4, LAT0 = 50.7, LAT1 = 53.6, KX = 0.62;
+  const s = Math.min((w * 0.62) / ((LON1 - LON0) * KX), (h * 0.9) / (LAT1 - LAT0));
+  const ox = w * 0.1, oy = (h - (LAT1 - LAT0) * s) / 2;
+  const px = (lon: number): number => ox + (lon - LON0) * KX * s;
+  const py = (lat: number): number => oy + (LAT1 - lat) * s;
+  const shape = (pts: number[][], fill: string, edge = 'rgba(255,255,255,0.85)'): void => {
+    ctx.beginPath();
+    pts.forEach((p, i) => (i ? ctx.lineTo(px(p[0]), py(p[1])) : ctx.moveTo(px(p[0]), py(p[1]))));
+    ctx.closePath();
+    ctx.fillStyle = fill; ctx.fill();
+    ctx.strokeStyle = edge; ctx.lineWidth = 1; ctx.stroke();
+  };
+
+  // the sea it stands in
+  ctx.fillStyle = '#bfe0ee';
+  ctx.beginPath(); ctx.roundRect(ox - w * 0.06, oy - h * 0.04, w * 0.72, h * 1.02, 6); ctx.fill();
+
+  // the country, as one quiet outline with the holes waiting in it
+  shape([[3.4, 51.45], [4.1, 51.95], [4.6, 52.45], [4.75, 52.98], [5.42, 53.07], [6.2, 53.42],
+    [7.2, 53.22], [7.05, 52.6], [6.8, 52.1], [6.2, 51.85], [6.02, 50.75], [5.65, 50.78],
+    [5.52, 51.35], [4.55, 51.42], [3.38, 51.3]], '#d9cfae');
+  ctx.save();
+  ctx.setLineDash([3, 3]);
+  ctx.strokeStyle = 'rgba(30, 70, 95, 0.35)'; ctx.lineWidth = 1;
+  [[[6.18, 53.41], [7.22, 53.22], [7.05, 52.96], [6.25, 53.03], [6.02, 53.25]],
+    [[5.2, 52.28], [5.9, 52.4], [6.83, 52.12], [6.4, 51.86], [5.82, 51.72], [5.27, 51.94]]]
+    .forEach(r => {
+      ctx.beginPath();
+      r.forEach((p, i) => (i ? ctx.lineTo(px(p[0]), py(p[1])) : ctx.moveTo(px(p[0]), py(p[1]))));
+      ctx.closePath(); ctx.stroke();
+    });
+  ctx.restore();
+
+  // two that are already home
+  shape([[3.42, 51.53], [3.82, 51.72], [4.3, 51.73], [4.3, 51.5], [3.72, 51.44], [3.55, 51.48]], '#4f9fa8');
+  shape([[6.2, 52.92], [6.75, 52.99], [7.05, 52.96], [7.05, 52.83], [6.8, 52.62], [6.35, 52.62],
+    [6.13, 52.8]], '#7a9c46');
+
+  // and one on its way, lifted off the page with a shadow under it
+  ctx.save();
+  ctx.translate(w * 0.5, -h * 0.04);
+  ctx.shadowColor = 'rgba(20, 44, 64, 0.4)';
+  ctx.shadowBlur = 8; ctx.shadowOffsetY = 5;
+  shape([[5.42, 53.07], [5.35, 53.2], [5.88, 53.4], [6.18, 53.41], [6.25, 53.03], [6.2, 52.92],
+    [5.8, 52.83], [5.48, 52.95]], '#3f8fbf', '#ffffff');
+  ctx.restore();
+}
+
+/** Letterbos: a moon in a frame, and the three tiles that spell it, with the aa tied together. */
+export function drawLettersThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+
+  const air = ctx.createLinearGradient(0, 0, 0, h);
+  air.addColorStop(0, '#cfe8d6'); air.addColorStop(0.6, '#e2f0dc'); air.addColorStop(1, '#a8cb84');
+  ctx.fillStyle = air; ctx.fillRect(0, 0, w, h);
+  // trees standing back from the clearing
+  ctx.fillStyle = 'rgba(110, 150, 84, 0.55)';
+  for (const [fx, s] of [[0.06, 1], [0.94, 0.92], [0.2, 0.6], [0.8, 0.66]] as Array<[number, number]>) {
+    ctx.beginPath(); ctx.arc(fx * w, h * (0.18 - 0.05 * s), h * 0.3 * s, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(122, 92, 58, 0.45)';
+    ctx.fillRect(fx * w - w * 0.016, h * 0.1, w * 0.032, h * 0.55);
+    ctx.fillStyle = 'rgba(110, 150, 84, 0.55)';
+  }
+
+  // the picture card: a moon on a night square
+  const cw = w * 0.3, cx = w * 0.2, cy = h * 0.14;
+  ctx.save();
+  ctx.shadowColor = 'rgba(30,50,24,0.3)'; ctx.shadowBlur = w * 0.03; ctx.shadowOffsetY = w * 0.012;
+  ctx.fillStyle = '#fffdf4';
+  ctx.beginPath(); ctx.roundRect(cx, cy, cw, cw, w * 0.03); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = '#1e3a5c';
+  ctx.beginPath(); ctx.roundRect(cx + cw * 0.08, cy + cw * 0.08, cw * 0.84, cw * 0.84, w * 0.02); ctx.fill();
+  ctx.fillStyle = '#f6e8a8';
+  ctx.beginPath();
+  ctx.arc(cx + cw * 0.56, cy + cw * 0.5, cw * 0.3, 0, TAU);
+  ctx.arc(cx + cw * 0.42, cy + cw * 0.44, cw * 0.26, 0, TAU, true);
+  ctx.fill();
+
+  // the three tiles: m, aa, n - the aa one tile with a tie under it
+  const th = h * 0.3, ty = h * 0.55;
+  const units = ['m', 'aa', 'n'];
+  const widths = units.map(u => th * (u.length === 1 ? 0.8 : 1.06));
+  const gap = w * 0.018;
+  let x = w * 0.52;
+  units.forEach((u, i) => {
+    const tw = widths[i];
+    ctx.fillStyle = u === 'aa' ? '#d69a3e' : '#7fa8c0';
+    ctx.beginPath(); ctx.roundRect(x, ty + th * 0.07, tw, th, th * 0.22); ctx.fill();
+    ctx.fillStyle = u === 'aa' ? '#f0b45e' : '#9fc3d8';
+    ctx.beginPath(); ctx.roundRect(x, ty, tw, th, th * 0.22); ctx.fill();
+    ctx.fillStyle = '#2d3e2a';
+    const fs = Math.round(Math.min(th * (u.length > 1 ? 0.5 : 0.6), (tw * 0.8) / (u.length * 0.6)));
+    ctx.font = `900 ${fs}px Nunito, system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(u, x + tw / 2, ty + th * 0.5 + fs * (u.length > 1 ? 0.24 : 0.36));
+    if (u.length > 1) {
+      const mw = ctx.measureText(u).width;
+      ctx.strokeStyle = '#2d3e2a'; ctx.lineWidth = Math.max(1, fs * 0.08); ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x + tw / 2 - mw / 2, ty + th * 0.5 + fs * 0.46);
+      ctx.quadraticCurveTo(x + tw / 2, ty + th * 0.5 + fs * 0.66, x + tw / 2 + mw / 2, ty + th * 0.5 + fs * 0.46);
+      ctx.stroke();
+    }
+    x += tw + gap;
+  });
+  ctx.textAlign = 'left';
+}
+
+/**
+ * Stroomkring: a battery, a lit bulb, and the loop of copper that joins them.
+ *
+ * The loop is closed and the bulb is on, because the card has to say in one glance what the game
+ * is about - and a dark bulb on a dark bench says nothing at all.
+ */
+export function drawCircuitThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+
+  // the bench top, with its grid of holes
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#16273a');
+  bg.addColorStop(1, '#22394b');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(160, 200, 240, 0.14)';
+  const step = Math.max(9, Math.min(w, h) / 7);
+  for (let x = step / 2; x < w; x += step) {
+    for (let y = step / 2; y < h; y += step) {
+      ctx.beginPath(); ctx.arc(x, y, 1, 0, TAU); ctx.fill();
+    }
+  }
+
+  const left = w * 0.22, right = w * 0.74, top = h * 0.3, bot = h * 0.74;
+
+  // the loop of wire, drawn first so the parts sit on it
+  ctx.strokeStyle = '#d98a4a';
+  ctx.lineWidth = Math.max(2.4, h * 0.05);
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(left, top);
+  ctx.lineTo(right, top);
+  ctx.lineTo(right, bot);
+  ctx.lineTo(left, bot);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(246, 189, 130, 0.55)';
+  ctx.lineWidth = Math.max(0.8, h * 0.016);
+  ctx.stroke();
+
+  // three beads of current, which is the one thing on the card that is not a part
+  ctx.fillStyle = '#ffe8a8';
+  for (const [x, y] of [[left + (right - left) * 0.3, top], [right, top + (bot - top) * 0.6],
+    [left + (right - left) * 0.5, bot]] as const) {
+    ctx.beginPath(); ctx.arc(x, y, Math.max(1.4, h * 0.022), 0, TAU); ctx.fill();
+  }
+
+  // the battery, lying along the bottom rail
+  const bw = w * 0.2, bh = h * 0.15, bx = left + (right - left) * 0.16, by = bot;
+  const bgr = ctx.createLinearGradient(0, by - bh / 2, 0, by + bh / 2);
+  bgr.addColorStop(0, '#4a6a92'); bgr.addColorStop(1, '#22374f');
+  ctx.fillStyle = bgr;
+  ctx.beginPath(); ctx.roundRect(bx - bw / 2, by - bh / 2, bw, bh, bh * 0.28); ctx.fill();
+  ctx.fillStyle = '#8ee8ad';
+  ctx.fillRect(bx - bw / 2 + bw * 0.08, by + bh * 0.1, bw * 0.6, bh * 0.2);
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.font = `900 ${Math.round(bh * 0.7)}px Nunito, system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('+', bx - bw * 0.3, by - bh * 0.15);
+
+  // and the bulb, lit
+  const lx = right, ly = top + (bot - top) * 0.22, r = Math.min(w, h) * 0.12;
+  const halo = ctx.createRadialGradient(lx, ly, 0, lx, ly, r * 3.4);
+  halo.addColorStop(0, 'rgba(255, 207, 107, 0.7)');
+  halo.addColorStop(0.45, 'rgba(255, 190, 90, 0.22)');
+  halo.addColorStop(1, 'rgba(255, 180, 70, 0)');
+  ctx.fillStyle = halo;
+  ctx.beginPath(); ctx.arc(lx, ly, r * 3.4, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#bac7d7';
+  ctx.beginPath(); ctx.roundRect(lx - r * 0.5, ly + r * 0.55, r, r * 0.8, r * 0.12); ctx.fill();
+  const glass = ctx.createRadialGradient(lx - r * 0.35, ly - r * 0.4, r * 0.1, lx, ly, r);
+  glass.addColorStop(0, 'rgba(255, 246, 216, 0.96)');
+  glass.addColorStop(1, 'rgba(255, 207, 107, 0.7)');
+  ctx.fillStyle = glass;
+  ctx.beginPath(); ctx.arc(lx, ly, r, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 241, 196, 0.8)';
+  ctx.lineWidth = Math.max(0.8, r * 0.09);
+  ctx.stroke();
+  ctx.strokeStyle = '#fffbe8';
+  ctx.lineWidth = Math.max(1, r * 0.14);
+  ctx.beginPath();
+  ctx.moveTo(lx - r * 0.34, ly + r * 0.2);
+  ctx.lineTo(lx - r * 0.1, ly - r * 0.26);
+  ctx.lineTo(lx + r * 0.12, ly + r * 0.18);
+  ctx.lineTo(lx + r * 0.34, ly - r * 0.2);
+  ctx.stroke();
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}

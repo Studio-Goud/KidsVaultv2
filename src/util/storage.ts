@@ -24,6 +24,29 @@ export interface SaveData {
   clock: { minuteNumbers: boolean };
   /** The animal book: which animals have been looked at, and how tall the child is on the size bar */
   animals: { seen: number[]; childCm: number };
+  /** Wereldatlas: the empty places on the board are outlined, for a child still finding the holes */
+  atlas: { outlines: boolean };
+  /** Rekenrijk: every object on the table wears its number, for a child still counting one by one */
+  numbers: { countOn: boolean };
+  /** Letterbos: the word is written above the boxes, for a child who still wants to copy it */
+  letters: { spell: boolean };
+  /**
+   * Klankhuis: the tune the child wrote in the sequencer, which instrument plays it and how fast.
+   * `steps` is one small number per step of the grid, a bit per chime - see `music.ts`. It is
+   * sanitised on the way out rather than trusted, because a corrupt save may not stop the game
+   * opening.
+   */
+  rhythm: { steps: number[]; voice: string; tempo: number };
+  /**
+   * Stroomkring: which puzzles have come out, which one is open, and the circuit left on the
+   * workbench. The board is plain data written by the game and read back by `cleanCircuit()`,
+   * which throws the lot away rather than opening a bench that cannot be solved.
+   */
+  circuit: {
+    solved: string[];
+    puzzle: number;
+    bench: Array<{ id: string; col: number; row: number; rot: number; on?: boolean; blown?: boolean; charge?: number; link?: number }>;
+  };
 }
 
 const KEY = 'cloudhopper.save.v1';
@@ -36,6 +59,11 @@ const defaults = (): SaveData => ({
   moon: { best: 0, target: 7, topKm: 0, design: [] },
   clock: { minuteNumbers: false },
   animals: { seen: [], childCm: 120 },
+  atlas: { outlines: true },
+  numbers: { countOn: false },
+  letters: { spell: false },
+  rhythm: { steps: [0, 0, 0, 0, 0, 0, 0, 0], voice: 'chime', tempo: 100 },
+  circuit: { solved: [], puzzle: 0, bench: [] },
 });
 
 export function loadSave(): SaveData {
@@ -52,6 +80,11 @@ export function loadSave(): SaveData {
       moon: { ...d.moon, ...(got.moon ?? {}) },
       clock: { ...d.clock, ...(got.clock ?? {}) },
       animals: { ...d.animals, ...(got.animals ?? {}) },
+      atlas: { ...d.atlas, ...(got.atlas ?? {}) },
+      numbers: { ...d.numbers, ...(got.numbers ?? {}) },
+      letters: { ...d.letters, ...(got.letters ?? {}) },
+      rhythm: { ...d.rhythm, ...(got.rhythm ?? {}) },
+      circuit: { ...d.circuit, ...(got.circuit ?? {}) },
     };
   } catch { return defaults(); }
 }

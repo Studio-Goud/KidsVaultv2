@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawAnimalsThumb, drawClockThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawPuffThumb, drawPlaneThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
+import { drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 
 const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
 const T = (en: string, nl: string): string => (NL() ? nl : en);
@@ -66,6 +66,16 @@ const GAMES: Game[] = [
     practisesNl: 'Afwegen, oorzaak en gevolg, vorm tegen snelheid',
     age: '6+',
     paint: drawMoonThumb,
+  },
+  {
+    href: './circuit.html',
+    title: 'Stroomkring',
+    line: 'A bench of real parts and a real solver. Draw the wire, close the loop, and the bulb lights - or the game says where the gap is.',
+    lineNl: 'Een werkbank met echte onderdelen en echte natuurkunde. Trek de draad, maak de kring rond, en het lampje brandt - of het spel zegt waar het gat zit.',
+    practises: 'Cause and effect, reading a circuit, series against parallel, finding your own mistake',
+    practisesNl: 'Oorzaak en gevolg, een schakeling lezen, serie tegen parallel, je eigen fout vinden',
+    age: '6+',
+    paint: drawCircuitThumb,
   },
   {
     href: './mill.html',
@@ -130,6 +140,16 @@ const GAMES: Game[] = [
     paint: drawClockThumb,
   },
   {
+    href: './atlas.html',
+    title: 'Wereldatlas',
+    line: 'Drag the provinces, the rivers, the countries and the flags onto a drawn map.',
+    lineNl: 'Sleep de provincies, de rivieren, de landen en de vlaggen op een getekende kaart.',
+    practises: 'Where things are, reading a map, the Netherlands, Europe and the world',
+    practisesNl: 'Waar dingen liggen, kaartlezen, Nederland, Europa en de wereld',
+    age: '5+',
+    paint: drawAtlasThumb,
+  },
+  {
     href: './animals.html',
     title: 'Dierenboek',
     line: 'Thousands of real animals in real photographs. How big it is next to you, where it lives, what it eats.',
@@ -138,6 +158,36 @@ const GAMES: Game[] = [
     practisesNl: 'Goed kijken, groottes vergelijken, in groepen indelen, iets opzoeken',
     age: '4+',
     paint: drawAnimalsThumb,
+  },
+  {
+    href: './letters.html',
+    title: 'Letterbos',
+    line: 'A picture, the word said out loud, and then the word in pieces. Drag the letters into place and build it yourself.',
+    lineNl: 'Een plaatje, het woord hardop, en dan het woord in stukjes. Sleep de letters op hun plek en bouw het zelf.',
+    practises: 'Hearing the sounds in a word, building a word from them, ei and ij, au and ou, reading a sentence',
+    practisesNl: 'De klanken in een woord horen, er een woord van bouwen, ei en ij, au en ou, een zin lezen',
+    age: '5+',
+    paint: drawLettersThumb,
+  },
+  {
+    href: './rhythm.html',
+    title: 'Klankhuis',
+    line: 'Nine chimes you can play. Clap with the beat, echo what you hear, fill the gaps in a song, and write a tune of your own that is still there tomorrow.',
+    lineNl: 'Negen klokjes om op te spelen. Klap mee met de tel, speel na wat je hoort, vul de gaten in een liedje, en schrijf een eigen deuntje dat er morgen nog staat.',
+    practises: 'Keeping a beat, long against short, hearing high from low, playing a phrase back, two things at once',
+    practisesNl: 'De tel vasthouden, lang tegen kort, hoog van laag horen, een stukje naspelen, twee dingen tegelijk',
+    age: '4+',
+    paint: drawRhythmThumb,
+  },
+  {
+    href: './numbers.html',
+    title: 'Rekenrijk',
+    line: 'Beads, crates, a ten-frame and a number line. Do the sum by moving things, and the figures write themselves.',
+    lineNl: 'Kralen, kisten, een tienveld en een getallenlijn. Doe de som door dingen te verschuiven; de cijfers schrijven zichzelf.',
+    practises: 'Splitting to ten, adding and taking away, crossing the ten, tens and ones, the tables',
+    practisesNl: 'Splitsen tot 10, erbij en eraf, over het tiental, tientallen, de tafels',
+    age: '5+',
+    paint: drawNumbersThumb,
   },
 ];
 
