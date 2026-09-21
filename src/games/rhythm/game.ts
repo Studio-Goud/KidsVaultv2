@@ -604,7 +604,7 @@ export class Rhythm {
       if (this.level.kind === 'tune') this.playWhole();
       this.step = 'judge';
       this.judgeT = this.t + (this.level.kind === 'tune' ? 1.2 : 0);
-      if (this.clean) cheer();
+      if (this.clean) { this.noteT = 0; cheer(); }
     }
   }
 
@@ -631,7 +631,7 @@ export class Rhythm {
       this.struck[CHIME_MIDI.indexOf(pair.a)] = t;
       this.struck[right] = t + 0.55;
       this.say(T('This one was the second note.', 'Dit was de tweede noot.'), 3);
-    } else cheer();
+    } else { this.noteT = 0; cheer(); }
     this.step = 'judge';
     this.judgeT = this.t + (this.clean ? 0 : 0.8);
   }
@@ -649,7 +649,7 @@ export class Rhythm {
       this.say(right
         ? T('The second one went up.', 'De tweede ging omhoog.')
         : T('The second one went down.', 'De tweede ging omlaag.'), 3);
-    } else cheer();
+    } else { this.noteT = 0; cheer(); }
     this.step = 'judge';
     this.judgeT = this.t + (this.clean ? 0 : 1.2);
   }
@@ -1317,10 +1317,11 @@ export class Rhythm {
       if (this.held0 === `rung:${i}`) state = 'press';
       rung(ctx, x, y, rw, rh, midi, state);
       if (isFirst) {
-        ctx.fillStyle = '#fff2d8';
-        ctx.font = this.font('900', 11);
+        ctx.fillStyle = 'rgba(255, 250, 235, 0.95)';
+        ctx.font = this.font('900', 10.5);
+        ctx.textAlign = 'right';
+        ctx.fillText(T('first note', 'eerste noot'), x + rw - 10 * u, y + rh * 0.66, rw * 0.7);
         ctx.textAlign = 'left';
-        ctx.fillText(T('first note', 'eerste noot'), x + rw + 7 * u, y + rh * 0.68);
       }
       if (this.picked === null) this.hits.push({ id: `rung:${i}`, x, y, w: rw, h: rh });
     }
