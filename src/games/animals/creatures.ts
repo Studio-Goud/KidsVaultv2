@@ -15,11 +15,21 @@
 type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
 
-/** Run a drawing inside a box of the given width and height, from the unit box it was drawn in. */
-export function inBox(ctx: Ctx, x: number, y: number, w: number, h: number, draw: (c: Ctx) => void): void {
+/**
+ * How tall each shape is for its own length, as it is drawn: one for the shapes that fill their
+ * hundred by hundred box, and a good deal less for the ones that are mostly length. A whale drawn
+ * as tall as it is long is not a whale, it is a barrage balloon - and on the size bar, where the
+ * whole point is that the number is true, that matters.
+ */
+export const ASPECT: Record<string, number> = {
+  mam: 1, bir: 1, fis: 1, rep: 1, amp: 1, but: 1, ins: 1, spi: 1, sea: 1, whale: 0.34, seal: 0.5,
+};
+
+/** Run a drawing inside a box of the given width and height, from the box it was drawn in. */
+export function inBox(ctx: Ctx, x: number, y: number, w: number, h: number, draw: (c: Ctx) => void, tall = 100): void {
   ctx.save();
   ctx.translate(x, y);
-  ctx.scale(w / 100, h / 100);
+  ctx.scale(w / 100, h / tall);
   draw(ctx);
   ctx.restore();
 }
@@ -34,41 +44,47 @@ const leg = (ctx: Ctx, x: number, top: number, bottom: number, wide: number): vo
 function mammal(ctx: Ctx): void {
   // tail
   ctx.beginPath();
-  ctx.moveTo(26, 48);
-  ctx.quadraticCurveTo(10, 40, 6, 22);
-  ctx.quadraticCurveTo(16, 34, 30, 42);
+  ctx.moveTo(28, 44);
+  ctx.quadraticCurveTo(14, 36, 8, 22);
+  ctx.quadraticCurveTo(20, 31, 33, 41);
   ctx.closePath();
   ctx.fill();
-  // legs
-  for (const x of [32, 43, 63, 75]) leg(ctx, x, 58, 90, 7);
+  // legs, drawn first so the body sits over the top of them
+  for (const x of [33, 44, 62, 73]) leg(ctx, x, 54, 90, 8);
   // body
   ctx.beginPath();
-  ctx.ellipse(52, 50, 28, 17, 0, 0, TAU);
+  ctx.ellipse(52, 48, 28, 17, 0, 0, TAU);
   ctx.fill();
-  // neck
+  // neck: a wedge from the shoulder up to the head, wide enough to read as one animal
   ctx.beginPath();
-  ctx.moveTo(66, 44);
-  ctx.quadraticCurveTo(76, 40, 80, 28);
-  ctx.lineTo(90, 30);
-  ctx.quadraticCurveTo(86, 46, 72, 54);
+  ctx.moveTo(63, 36);
+  ctx.quadraticCurveTo(74, 35, 79, 23);
+  ctx.lineTo(90, 27);
+  ctx.quadraticCurveTo(84, 44, 70, 53);
   ctx.closePath();
   ctx.fill();
-  // head and muzzle
-  ctx.beginPath();
-  ctx.ellipse(86, 26, 11, 9, -0.25, 0, TAU);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(92, 20);
-  ctx.quadraticCurveTo(100, 20, 99, 28);
-  ctx.quadraticCurveTo(94, 31, 90, 30);
-  ctx.closePath();
-  ctx.fill();
-  // ears
-  for (const [ex, ey] of [[80, 16], [88, 14]] as const) {
+  // ears, leaning back off the top of the head - rounded, because a triangle on a mammal reads
+  // as a horn and this one has to stand in for a fox, a mouse and a bear as well as a deer
+  for (const [ex, ey, a] of [[79, 20, -0.4], [87, 18, -0.15]] as const) {
+    ctx.save();
+    ctx.translate(ex, ey);
+    ctx.rotate(a);
     ctx.beginPath();
-    ctx.ellipse(ex, ey, 3.4, 7, 0.25, 0, TAU);
+    ctx.ellipse(0, -3.5, 3.2, 6, 0, 0, TAU);
     ctx.fill();
+    ctx.restore();
   }
+  // head
+  ctx.beginPath();
+  ctx.ellipse(84, 28, 10, 8.5, -0.2, 0, TAU);
+  ctx.fill();
+  // muzzle
+  ctx.beginPath();
+  ctx.moveTo(88, 22);
+  ctx.quadraticCurveTo(100, 24, 99, 31);
+  ctx.quadraticCurveTo(93, 35, 86, 34);
+  ctx.closePath();
+  ctx.fill();
 }
 
 /** A perched bird, facing right. */
@@ -147,31 +163,37 @@ function fish(ctx: Ctx): void {
 
 /** A lizard seen from above. */
 function reptile(ctx: Ctx): void {
-  // tail
+  // tail, long and tapering, which is most of what says lizard rather than beetle
   ctx.beginPath();
-  ctx.moveTo(28, 44);
-  ctx.quadraticCurveTo(8, 40, 4, 66);
-  ctx.quadraticCurveTo(12, 78, 14, 66);
-  ctx.quadraticCurveTo(16, 50, 32, 54);
+  ctx.moveTo(30, 44);
+  ctx.quadraticCurveTo(10, 40, 3, 64);
+  ctx.quadraticCurveTo(9, 74, 12, 63);
+  ctx.quadraticCurveTo(15, 49, 32, 55);
   ctx.closePath();
   ctx.fill();
-  // legs
-  for (const [lx, ly, a] of [[36, 30, -0.9], [36, 62, 0.9], [66, 30, -0.7], [66, 62, 0.7]] as const) {
+  // four stubby limbs with a foot on the end, drawn under the body
+  for (const [lx, ly, a] of [[41, 43, -2.3], [41, 57, 2.3], [63, 43, -0.85], [63, 57, 0.85]] as const) {
     ctx.save();
     ctx.translate(lx, ly);
     ctx.rotate(a);
     ctx.beginPath();
-    ctx.roundRect(-4, -2, 26, 7, 3.5);
+    ctx.roundRect(0, -4.5, 17, 9, 4.5);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(18, 0, 5, 5.5, 0, 0, TAU);
     ctx.fill();
     ctx.restore();
   }
   // body
   ctx.beginPath();
-  ctx.ellipse(52, 47, 26, 13, 0, 0, TAU);
+  ctx.ellipse(50, 50, 24, 12, 0, 0, TAU);
   ctx.fill();
-  // head
+  // neck and a snout that comes to a point
   ctx.beginPath();
-  ctx.ellipse(84, 44, 14, 10, 0, 0, TAU);
+  ctx.moveTo(66, 42);
+  ctx.quadraticCurveTo(82, 39, 96, 48);
+  ctx.quadraticCurveTo(82, 58, 66, 55);
+  ctx.closePath();
   ctx.fill();
 }
 
@@ -353,19 +375,82 @@ function seaCreature(ctx: Ctx): void {
   ctx.restore();
 }
 
+/** A whale, drawn in a box a hundred long and thirty-four deep, because that is a whale. */
+function whale(ctx: Ctx): void {
+  // flukes
+  ctx.beginPath();
+  ctx.moveTo(19, 17); ctx.lineTo(2, 3); ctx.lineTo(8, 17); ctx.lineTo(2, 32);
+  ctx.closePath();
+  ctx.fill();
+  // body
+  ctx.beginPath();
+  ctx.moveTo(10, 17);
+  ctx.quadraticCurveTo(40, 2, 76, 8);
+  ctx.quadraticCurveTo(96, 12, 98, 19);
+  ctx.quadraticCurveTo(88, 29, 60, 30);
+  ctx.quadraticCurveTo(30, 31, 10, 17);
+  ctx.closePath();
+  ctx.fill();
+  // dorsal fin
+  ctx.beginPath();
+  ctx.moveTo(33, 7); ctx.quadraticCurveTo(38, -2, 45, 8);
+  ctx.closePath();
+  ctx.fill();
+  // pectoral fin
+  ctx.beginPath();
+  ctx.moveTo(63, 24);
+  ctx.quadraticCurveTo(58, 35, 46, 34);
+  ctx.quadraticCurveTo(54, 28, 59, 22);
+  ctx.closePath();
+  ctx.fill();
+}
+
+/** A seal hauled out on a rock, for the ones that swim but come ashore. */
+function seal(ctx: Ctx): void {
+  ctx.beginPath();
+  ctx.moveTo(22, 34); ctx.lineTo(3, 21); ctx.lineTo(9, 34); ctx.lineTo(2, 47);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(14, 33);
+  ctx.quadraticCurveTo(34, 18, 62, 16);
+  ctx.quadraticCurveTo(74, 14, 80, 7);
+  ctx.quadraticCurveTo(93, 3, 96, 14);
+  ctx.quadraticCurveTo(98, 22, 88, 24);
+  ctx.quadraticCurveTo(70, 30, 56, 38);
+  ctx.quadraticCurveTo(34, 47, 14, 33);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(57, 30);
+  ctx.quadraticCurveTo(48, 45, 35, 47);
+  ctx.quadraticCurveTo(44, 37, 49, 28);
+  ctx.closePath();
+  ctx.fill();
+}
+
 const SHAPES: Record<string, (c: Ctx) => void> = {
   mam: mammal, bir: bird, fis: fish, rep: reptile, amp: amphibian,
   but: butterfly, ins: insect, spi: spider, sea: seaCreature,
+  whale, seal,
 };
 
-/** Draw the shape for a shelf inside the given box, in the given colour. */
-export function creature(ctx: Ctx, group: string, x: number, y: number, w: number, h: number, colour: string, alpha = 1): void {
-  const shape = SHAPES[group] ?? mammal;
+/** Draw a shape to exactly fill the given box, in the given colour. */
+export function creature(ctx: Ctx, id: string, x: number, y: number, w: number, h: number, colour: string, alpha = 1): void {
+  const shape = SHAPES[id] ?? mammal;
   ctx.save();
   ctx.globalAlpha *= alpha;
   ctx.fillStyle = colour;
-  inBox(ctx, x, y, w, h, shape);
+  inBox(ctx, x, y, w, h, shape, (ASPECT[id] ?? 1) * 100);
   ctx.restore();
+}
+
+/** Draw a shape as large as it fits inside the box without changing its proportions, centred. */
+export function creatureFit(ctx: Ctx, id: string, x: number, y: number, w: number, h: number, colour: string, alpha = 1): void {
+  const a = ASPECT[id] ?? 1;
+  const dw = Math.min(w, h / a);
+  const dh = dw * a;
+  creature(ctx, id, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, colour, alpha);
 }
 
 /**

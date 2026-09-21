@@ -710,7 +710,7 @@ export function drawClockThumb(c: HTMLCanvasElement): void {
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
 }
 
-/** A page of the animal book: three photographs' worth of animals on a warm paper ground. */
+/** A page of the animal book: four cards of animals on a warm paper ground. */
 export function drawAnimalsThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;
@@ -722,9 +722,53 @@ export function drawAnimalsThumb(c: HTMLCanvasElement): void {
   ctx.fillStyle = 'rgba(120, 100, 70, 0.10)';
   ctx.fillRect(w * 0.495, 0, w * 0.014, h);
 
-  // four cards, the way the grid lays them out
+  // four little animals, one to a card, drawn in a hundred by hundred box apiece
+  const beast: Array<(g: CanvasRenderingContext2D) => void> = [
+    g => {                                     // a four legged animal
+      for (const x of [34, 45, 62, 73]) { g.beginPath(); g.roundRect(x - 4, 52, 8, 34, 4); g.fill(); }
+      g.beginPath(); g.ellipse(52, 47, 27, 16, 0, 0, TAU); g.fill();
+      g.beginPath(); g.moveTo(28, 43); g.quadraticCurveTo(12, 34, 7, 20);
+      g.quadraticCurveTo(19, 30, 32, 40); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(63, 35); g.quadraticCurveTo(75, 34, 80, 22);
+      g.lineTo(90, 26); g.quadraticCurveTo(84, 43, 70, 52); g.closePath(); g.fill();
+      g.beginPath(); g.ellipse(84, 27, 10, 8, -0.2, 0, TAU); g.fill();
+      g.beginPath(); g.ellipse(79, 17, 3, 6, -0.4, 0, TAU); g.fill();
+      g.beginPath(); g.ellipse(87, 15, 3, 6, -0.1, 0, TAU); g.fill();
+      g.beginPath(); g.moveTo(88, 21); g.quadraticCurveTo(99, 23, 98, 30);
+      g.quadraticCurveTo(92, 34, 86, 33); g.closePath(); g.fill();
+    },
+    g => {                                     // a bird
+      g.beginPath(); g.moveTo(30, 52); g.lineTo(5, 70); g.lineTo(11, 74);
+      g.lineTo(34, 62); g.closePath(); g.fill();
+      for (const x of [52, 61]) { g.beginPath(); g.roundRect(x - 2, 66, 4, 22, 2); g.fill(); }
+      g.beginPath(); g.ellipse(54, 50, 25, 18, -0.22, 0, TAU); g.fill();
+      g.beginPath(); g.arc(76, 29, 11, 0, TAU); g.fill();
+      g.beginPath(); g.moveTo(85, 24); g.lineTo(99, 30); g.lineTo(85, 35); g.closePath(); g.fill();
+    },
+    g => {                                     // a butterfly
+      for (const s of [-1, 1]) {
+        g.save(); g.translate(50, 50); g.scale(s, 1);
+        g.beginPath(); g.moveTo(2, -8); g.quadraticCurveTo(22, -44, 43, -36);
+        g.quadraticCurveTo(50, -19, 31, 0); g.quadraticCurveTo(15, 4, 2, -8); g.closePath(); g.fill();
+        g.beginPath(); g.moveTo(3, 2); g.quadraticCurveTo(27, 2, 35, 17);
+        g.quadraticCurveTo(39, 34, 21, 36); g.quadraticCurveTo(6, 32, 3, 11); g.closePath(); g.fill();
+        g.restore();
+      }
+      g.beginPath(); g.ellipse(50, 50, 5, 25, 0, 0, TAU); g.fill();
+      g.beginPath(); g.arc(50, 29, 6, 0, TAU); g.fill();
+    },
+    g => {                                     // a fish
+      g.beginPath(); g.moveTo(20, 50); g.lineTo(3, 31); g.lineTo(7, 50);
+      g.lineTo(3, 70); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(16, 50); g.quadraticCurveTo(40, 24, 73, 35);
+      g.quadraticCurveTo(93, 43, 96, 52); g.quadraticCurveTo(87, 67, 61, 69);
+      g.quadraticCurveTo(34, 71, 16, 50); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(44, 29); g.lineTo(52, 9); g.lineTo(67, 33); g.closePath(); g.fill();
+    },
+  ];
+
   const pad = w * 0.055, cw = (w - pad * 3) / 2, ch = (h - pad * 3) / 2;
-  const tones = ['#c98a50', '#4fa8dd', '#e08bb4', '#3b8fa8'];
+  const tones = ['#c98a50', '#4fa8dd', '#e08bb4', '#2f8fa0'];
   for (let i = 0; i < 4; i++) {
     const x = pad + (i % 2) * (cw + pad), y = pad + Math.floor(i / 2) * (ch + pad);
     ctx.save();
@@ -732,17 +776,20 @@ export function drawAnimalsThumb(c: HTMLCanvasElement): void {
     ctx.fillStyle = '#fffdf7';
     ctx.beginPath(); ctx.roundRect(x, y, cw, ch, w * 0.035); ctx.fill();
     ctx.restore();
-    const g = ctx.createLinearGradient(0, y, 0, y + ch * 0.74);
-    g.addColorStop(0, tones[i]); g.addColorStop(1, `${tones[i]}cc`);
+    const ph = ch * 0.74;
+    const g = ctx.createLinearGradient(0, y, 0, y + ph);
+    g.addColorStop(0, `${tones[i]}e8`); g.addColorStop(1, tones[i]);
     ctx.save();
-    ctx.beginPath(); ctx.roundRect(x, y, cw, ch * 0.74, w * 0.035); ctx.clip();
-    ctx.fillStyle = g; ctx.fillRect(x, y, cw, ch * 0.74);
-    // a shape in the middle of each card: a body and a head, enough to read as an animal
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.beginPath(); ctx.ellipse(x + cw * 0.46, y + ch * 0.46, cw * 0.22, ch * 0.16, 0, 0, TAU); ctx.fill();
-    ctx.beginPath(); ctx.arc(x + cw * 0.70, y + ch * 0.30, cw * 0.11, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(x, y, cw, ph, w * 0.035); ctx.clip();
+    ctx.fillStyle = g; ctx.fillRect(x, y, cw, ph);
+    const s = Math.min(cw * 0.78, ph * 0.86);
+    ctx.translate(x + cw / 2 - s / 2, y + ph / 2 - s / 2);
+    ctx.scale(s / 100, s / 100);
+    ctx.fillStyle = 'rgba(255,255,255,0.93)';
+    beast[i](ctx);
     ctx.restore();
+    // the name, as a bar of type too small to read, which is what a thumbnail of a card looks like
     ctx.fillStyle = 'rgba(60, 46, 26, 0.35)';
-    ctx.beginPath(); ctx.roundRect(x + cw * 0.09, y + ch * 0.84, cw * 0.6, ch * 0.075, ch * 0.04); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(x + cw * 0.09, y + ch * 0.83, cw * 0.58, ch * 0.08, ch * 0.04); ctx.fill();
   }
 }

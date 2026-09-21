@@ -23,13 +23,17 @@ interface Entry {
   img: HTMLImageElement | null;
   /** when it arrived, for the fade-in */
   at: number;
+  /** how many times it has been asked for: a flaky connection gets a second and a third go */
+  tries: number;
 }
 
 const cache = new Map<string, Entry>();
 /** how many are in flight: a grid of forty would otherwise open forty connections at once */
 let flight = 0;
 const queue: Array<() => void> = [];
-const MAX_FLIGHT = 8;
+const MAX_FLIGHT = 6;
+/** how many goes one photograph gets before the drawn stand-in takes over for good */
+const MAX_TRIES = 3;
 
 let onArrive: (() => void) | null = null;
 /** The app asks to be told when a picture lands, so a still screen can redraw itself. */
@@ -47,9 +51,16 @@ function pump(): void {
  *
  * Wikimedia's thumbnailer takes the width out of the address itself, so the data file stores the
  * path with a hole in it and the width goes in here: a small one for a grid of cards, a large one
- * for the animal actually open. Only a few widths are ever asked for, so the browser's cache is
- * shared across the book rather than holding one bespoke size per card.
+ * for the animal actually open. That saves a phone about nine tenths of the pixels a full-size
+ * photograph would cost, and because only three widths are ever asked for, the browser's cache is
+ * shared across the whole book.
+ *
+ * The widths are not free choices. Wikimedia renders thumbnails at a fixed set of sizes and answers
+ * 400 to anything else, so only `SIZES` below may be asked for - they are the ones the MediaWiki
+ * API itself rounds a request up to.
  */
+export const SIZES = { row: 250, card: 330, page: 960 } as const;
+
 export function photoUrl(base: string, path: string, width: number): string {
   // almost every thumbnail is named after its own file, so the data file leaves that half out and
   // it is put back here; the few that are named differently carry the whole thing
@@ -65,11 +76,12 @@ export function photoUrl(base: string, path: string, width: number): string {
 export function photo(url: string): Entry {
   const got = cache.get(url);
   if (got) return got;
-  const e: Entry = { state: 'loading', img: null, at: 0 };
+  const e: Entry = { state: 'loading', img: null, at: 0, tries: 0 };
   cache.set(url, e);
 
   const start = (): void => {
     flight++;
+    e.tries++;
     const img = new Image();
     img.decoding = 'async';
     img.onload = () => {
@@ -82,9 +94,15 @@ export function photo(url: string): Entry {
     };
     img.onerror = () => {
       flight--;
-      e.state = 'failed';
+      // a picture that failed once is usually a busy network rather than a missing file, so it
+      // gets another go after a moment; only after three does the drawn animal take over
+      if (e.tries < MAX_TRIES) {
+        setTimeout(() => { if (flight < MAX_FLIGHT) start(); else queue.push(start); }, 700 * e.tries);
+      } else {
+        e.state = 'failed';
+        if (onArrive) onArrive();
+      }
       pump();
-      if (onArrive) onArrive();
     };
     img.src = url;
   };

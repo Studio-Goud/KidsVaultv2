@@ -528,7 +528,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- Dierenboek: finding it, and how big it is
 
 {
-  const { fold, search, scaleBar, sizeLabel, compareToChild, facts, shelf, joinNames, GROUPS } =
+  const { fold, search, scaleBar, sizeLabel, compareToChild, facts, shelf, shapeOf, joinNames, GROUPS } =
     await bundle('src/games/animals/rules.ts', 'animalrules.mjs');
 
   const animal = (over) => ({
@@ -539,7 +539,7 @@ const group = name => console.log(`\n${name}`);
   const zeehond = animal({ i: 2, n: 'Gewone zeehond', e: 'Harbour seal', s: 'Phoca vitulina', g: 'mam', z: 160, o: 800 });
   const zeester = animal({ i: 3, n: 'Zeester', e: 'Common starfish', s: 'Asterias rubens', g: 'sea', z: 25, o: 700 });
   const lieveheer = animal({ i: 4, n: 'Lieveheersbeestje', e: 'Seven-spot ladybird', s: 'Coccinella septempunctata', g: 'ins', z: 0.7, o: 600 });
-  const blauwevinvis = animal({ i: 5, n: 'Blauwe vinvis', e: 'Blue whale', s: 'Balaenoptera musculus', g: 'mam', z: 2500, o: 100 });
+  const blauwevinvis = animal({ i: 5, n: 'Blauwe vinvis', e: 'Blue whale', s: 'Balaenoptera musculus', g: 'mam', h: 'sea', z: 2500, o: 100 });
   const book = [leeuw, zeehond, zeester, lieveheer, blauwevinvis];
 
   group('Dierenboek — a child typing');
@@ -553,6 +553,12 @@ const group = name => console.log(`\n${name}`);
   is('test_search_a_prefix_beats_a_hit_inside_a_word', search(book, 'zee').map(a => a.n), ['Zeester', 'Gewone zeehond']);
   is('test_search_unknown_letters_find_nothing', search(book, 'qqq').length, 0);
   is('test_search_stops_at_the_limit', search(book, 'e', 2).length, 2);
+  is('test_search_finds_a_two_word_name_typed_without_the_space',
+    search(book, 'gewonezeehond').map(a => a.s), ['Phoca vitulina']);
+  is('test_search_finds_a_two_word_name_typed_with_the_space',
+    search(book, 'gewone zee').map(a => a.s), ['Phoca vitulina']);
+  is('test_search_a_whole_word_match_beats_a_squashed_one',
+    search(book, 'zeester')[0].n, 'Zeester');
 
   group('Dierenboek — the animal beside a child');
   const lion = scaleBar(200, 120, 100);
@@ -604,6 +610,12 @@ const group = name => console.log(`\n${name}`);
   is('test_facts_are_english_in_english', facts(leeuw, false, 120)[2], 'Eats mostly meat.');
   is('test_join_names_two_are_joined_with_and', joinNames(['Europa', 'Azië'], true), 'Europa en Azië');
   is('test_join_names_three_take_commas_then_and', joinNames(['a', 'b', 'c'], false), 'a, b and c');
+
+  group('Dierenboek — which drawn animal stands in');
+  is('test_shape_a_land_mammal_gets_the_four_legged_drawing', shapeOf(leeuw), 'mam');
+  is('test_shape_a_whale_is_not_drawn_as_a_deer', shapeOf(blauwevinvis), 'whale');
+  is('test_shape_a_seal_gets_its_own_drawing', shapeOf(animal({ g: 'mam', h: 'coast' })), 'seal');
+  is('test_shape_everything_else_falls_back_to_its_shelf', shapeOf(zeester), 'sea');
 
   group('Dierenboek — the shelves');
   is('test_shelf_holds_only_its_own_group', shelf(book, 'mam').map(a => a.i), [1, 2, 5]);

@@ -19,12 +19,12 @@ import { lang, t } from '../../i18n';
 import { persist, save } from '../../util/storage';
 import { safeArea, uiScale } from '../../util/ui';
 import { chunkyButton, contactShadow, easeOutCubic, grainOver, hexA, roundRectPath, shade, vGrad } from '../../render/look';
-import { child, creature } from './creatures';
-import { drawCover, onPhoto, photo, photoCount, photoUrl } from './photo';
+import { ASPECT, child, creature, creatureFit } from './creatures';
+import { SIZES, drawCover, onPhoto, photo, photoCount, photoUrl } from './photo';
 import { worldMap } from './worldmap';
 import {
   CONTINENT_EN, CONTINENT_NL, GROUPS, STATUS_EN, STATUS_NL, STATUS_TONE,
-  compareToChild, facts, groupById, joinNames, scaleBar, search, shelf, sizeLabel,
+  compareToChild, facts, groupById, joinNames, scaleBar, search, shapeOf, shelf, sizeLabel,
   type Animal, type GroupId,
 } from './rules';
 
@@ -174,6 +174,9 @@ export class AnimalBook {
 
   /** Press a button by name. The same path a tap takes, without needing to aim. */
   tap(id: string): boolean {
+    // one step back is the round button in the corner, which is a real button in the page rather
+    // than a hit box on the canvas - but a test should be able to press it by the same name
+    if (id === 'back') { this.back(); return true; }
     if (!this.hits.some(b => b.id === id)) return false;
     this.act(id);
     return true;
@@ -248,7 +251,10 @@ export class AnimalBook {
       const k = id.slice(4);
       if (k === 'del') this.query = this.query.slice(0, -1);
       else if (k === 'clear') this.query = '';
-      else if (this.query.length < 18) this.query += k;
+      else if (k === 'space') {
+        // a space that starts the query, or follows one, is nothing a child meant to type
+        if (this.query && !this.query.endsWith(' ')) this.query += ' ';
+      } else if (this.query.length < 18) this.query += k;
       this.list = search(this.all, this.query, 80);
       this.scroll = 0;
       return;
@@ -379,11 +385,25 @@ export class AnimalBook {
       if (ctx.measureText(next).width > maxW && line) {
         lines.push(line);
         line = word;
-        if (lines.length === maxLines) return lines;
+        // a line that had to stop early says so, rather than looking like the whole name
+        if (lines.length === maxLines) {
+          lines[maxLines - 1] = this.ellipsis(lines[maxLines - 1], maxW);
+          return lines;
+        }
       } else line = next;
     }
     if (line && lines.length < maxLines) lines.push(line);
     return lines;
+  }
+
+  /** Put a … on the end of a line, taking a word off if the … no longer fits. */
+  private ellipsis(line: string, maxW: number): string {
+    const ctx = this.ctx;
+    let out = `${line}…`;
+    while (out.length > 2 && ctx.measureText(out).width > maxW) {
+      out = `${out.slice(0, -2).trimEnd()}…`;
+    }
+    return out;
   }
 
   /**
@@ -394,7 +414,7 @@ export class AnimalBook {
   private urlOf(a: Animal, width: number): string { return photoUrl(this.base, a.p, width); }
 
   /** The photograph, the shimmer while it is coming, or the drawn stand-in if it never does. */
-  private picture(a: Animal, x: number, y: number, w: number, h: number, radius: number, width = 320): void {
+  private picture(a: Animal, x: number, y: number, w: number, h: number, radius: number, width: number = SIZES.card): void {
     const ctx = this.ctx;
     const g = groupById(a.g);
     const tone = g?.tone ?? '#8aa6b8';
@@ -407,7 +427,7 @@ export class AnimalBook {
     const done = drawCover(ctx, e, x, y, w, h, this.t);
     if (!done) {
       if (e.state === 'failed') {
-        creature(ctx, a.g, x + w * 0.1, y + h * 0.14, w * 0.8, h * 0.72, tone, 0.5);
+        creatureFit(ctx, shapeOf(a), x + w * 0.1, y + h * 0.14, w * 0.8, h * 0.72, tone, 0.5);
       } else {
         // a slow sheen travelling across, so waiting looks like waiting rather than broken
         const k = (this.t * 0.55 + (a.i % 97) / 97) % 1;
@@ -417,7 +437,7 @@ export class AnimalBook {
         sg.addColorStop(1, hexA(tone, 0));
         ctx.fillStyle = sg;
         ctx.fillRect(x, y, w, h);
-        creature(ctx, a.g, x + w * 0.22, y + h * 0.26, w * 0.56, h * 0.48, shade(tone, -0.1), 0.2);
+        creatureFit(ctx, shapeOf(a), x + w * 0.22, y + h * 0.26, w * 0.56, h * 0.48, shade(tone, -0.1), 0.2);
       }
     }
     ctx.restore();
@@ -436,8 +456,9 @@ export class AnimalBook {
     ctx.fillRect(0, 0, this.w, h);
     ctx.fillStyle = 'rgba(23, 58, 79, 0.1)';
     ctx.fillRect(0, h - 1, this.w, 1);
-    // the round home and back buttons live in the top right corner, so the words keep away from it
-    const room = this.w - 132 * Math.min(u, 1.3) - 16 * u;
+    // the round buttons live in the top right corner - the way home always, one step back as well
+    // once you are inside something - so the words keep clear of however many there are
+    const room = this.w - (this.canBack() ? 126 : 74) * Math.min(u, 1.3) - 16 * u;
     ctx.textAlign = 'left';
     ctx.fillStyle = INK;
     ctx.font = this.font('900', 21);
@@ -445,11 +466,14 @@ export class AnimalBook {
     ctx.fillText(line, 16 * u, 28 * u);
     ctx.fillStyle = SOFT;
     ctx.font = this.font('700', 12.5);
-    ctx.fillText(sub, 16 * u, 46 * u);
+    ctx.fillText(this.wrap(sub, this.font('700', 12.5), room, 1)[0] ?? sub, 16 * u, 46 * u);
     return h;
   }
 
   private collectionLine(): string {
+    // the long form is the one a parent reads out; on a small phone it would be cut in half, so
+    // the short one says the same thing in the room there is
+    if (this.w < 390) return T(`${this.seen.size} of ${this.all.length} seen`, `${this.seen.size} van ${this.all.length} bekeken`);
     return T(
       `You have looked at ${this.seen.size} of the ${this.all.length} animals`,
       `Je hebt ${this.seen.size} van de ${this.all.length} dieren bekeken`);
@@ -501,24 +525,37 @@ export class AnimalBook {
     ctx.clip();
     let y = top + pad - this.scroll;
 
-    // the two things you can do without choosing a shelf first
-    const bw = (this.w - pad * 3) / 2;
+    // the two things you can do without choosing a shelf first; on a wide screen they stay the
+    // size of a button rather than stretching into two banners
+    const rowW = Math.min(this.w - pad * 2, 600 * u);
+    const rowX = (this.w - rowW) / 2;
+    const bw = (rowW - pad) / 2;
     const bh = 50 * u;
-    this.button('search', pad, y, bw, bh, t('animalsSearch'), '#3e7fb0');
-    this.button('surprise', pad * 2 + bw, y, bw, bh, t('animalsSurprise'), '#e0913a');
+    this.button('search', rowX, y, bw, bh, t('animalsSearch'), '#3e7fb0');
+    this.button('surprise', rowX + bw + pad, y, bw, bh, t('animalsSurprise'), '#e0913a');
     y += bh + pad * 1.4;
 
     // the collection, as a bar rather than only a sentence
     const done = this.all.length ? this.seen.size / this.all.length : 0;
     ctx.fillStyle = 'rgba(23, 58, 79, 0.1)';
-    roundRectPath(ctx, pad, y, this.w - pad * 2, 10 * u, 5 * u);
+    roundRectPath(ctx, rowX, y, rowW, 10 * u, 5 * u);
     ctx.fill();
-    ctx.fillStyle = '#5da65f';
-    roundRectPath(ctx, pad, y, Math.max(10 * u, (this.w - pad * 2) * done), 10 * u, 5 * u);
-    ctx.fill();
+    if (done > 0) {
+      ctx.fillStyle = '#5da65f';
+      roundRectPath(ctx, rowX, y, Math.max(10 * u, rowW * done), 10 * u, 5 * u);
+      ctx.fill();
+    }
     y += 24 * u;
 
-    const cols = this.w > 700 ? (this.w > 1000 ? 4 : 3) : 2;
+    // How many tiles across: enough that two rows fit on a phone held sideways, and that a tile
+    // on a laptop is still a tile rather than a poster.
+    const room = Math.max(120 * u, this.h - top - 90 * u);
+    let cols = 2;
+    while (cols < 6) {
+      const w2 = (this.w - pad * (cols + 1)) / cols;
+      if (w2 * 0.82 <= room / 1.7 && w2 <= 250 * u) break;
+      cols++;
+    }
     const tw = (this.w - pad * (cols + 1)) / cols;
     const th = tw * 0.82;
     GROUPS.forEach((g, i) => {
@@ -692,26 +729,35 @@ export class AnimalBook {
     const inner = this.w - pad * 2;
     const top = this.header(nameOf(a), otherName(a));
 
+    // Turned sideways there is twice the width and half the height, so the photograph and the
+    // names take one column and the cards take the other. One page down the middle of a laptop
+    // would be a stripe of photograph with a mile of paper either side of it.
+    const two = this.w > this.h && this.w >= 620;
+    const gap = 18 * u;
+    const colW = two ? (inner - gap) / 2 : inner;
+    const rightX = two ? pad + colW + gap : pad;
+
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, top, this.w, this.h - top);
     ctx.clip();
-    let y = top + pad - this.scroll;
+    const y0 = top + pad - this.scroll;
+    let y = y0;
 
-    // the photograph, as big as one thumb-width of scrolling allows
-    const ph = Math.min(inner * 0.62, this.h * 0.42);
-    this.picture(a, pad, y, inner, ph, 18 * u, this.w > 520 ? 960 : 640);
+    // the photograph, as big as the column allows
+    const ph = Math.min(colW * 0.7, two ? this.h * 0.74 : this.h * 0.42);
+    this.picture(a, pad, y, colW, ph, 18 * u, SIZES.page);
     // who took it
     ctx.save();
-    roundRectPath(ctx, pad, y, inner, ph, 18 * u);
+    roundRectPath(ctx, pad, y, colW, ph, 18 * u);
     ctx.clip();
     ctx.fillStyle = 'rgba(8, 24, 36, 0.52)';
-    ctx.fillRect(pad, y + ph - 18 * u, inner, 18 * u);
+    ctx.fillRect(pad, y + ph - 18 * u, colW, 18 * u);
     ctx.textAlign = 'left';
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
     ctx.font = this.font('700', 9.5);
     const licence = this.licences[a.l] ?? '';
-    const credit = this.wrap(`${a.c} · ${licence} · Wikimedia Commons`, this.font('700', 9.5), inner - 16 * u, 1)[0] ?? '';
+    const credit = this.wrap(`${a.c} · ${licence} · Wikimedia Commons`, this.font('700', 9.5), colW - 16 * u, 1)[0] ?? '';
     ctx.fillText(credit, pad + 8 * u, y + ph - 5.5 * u);
     ctx.restore();
     y += ph + pad;
@@ -720,25 +766,25 @@ export class AnimalBook {
     ctx.textAlign = 'left';
     ctx.fillStyle = INK;
     ctx.font = this.font('900', 26);
-    for (const l of this.wrap(nameOf(a), this.font('900', 26), inner, 2)) {
+    for (const l of this.wrap(nameOf(a), this.font('900', 26), colW, 2)) {
       ctx.fillText(l, pad, y + 20 * u);
       y += 28 * u;
     }
     ctx.fillStyle = SOFT;
     ctx.font = this.font('800', 14);
-    ctx.fillText(otherName(a), pad, y + 12 * u);
+    ctx.fillText(this.wrap(otherName(a), this.font('800', 14), colW, 1)[0] ?? '', pad, y + 12 * u);
     y += 20 * u;
     ctx.font = this.font('700', 13);
     ctx.fillStyle = '#7b8f9c';
-    ctx.fillText(a.s, pad, y + 12 * u);
+    ctx.fillText(this.wrap(a.s, this.font('700', 13), colW, 1)[0] ?? '', pad, y + 12 * u);
     y += 26 * u;
 
-    // how it is doing
+    // how it is doing, shown only for the ones it is not going well for
     if (a.r) {
       const label = (NL() ? STATUS_NL : STATUS_EN)[a.r] ?? '';
       const tone = STATUS_TONE[a.r] ?? '#7a6b63';
       ctx.font = this.font('800', 12);
-      const tw = ctx.measureText(label).width + 22 * u;
+      const tw = Math.min(colW, ctx.measureText(label).width + 22 * u);
       ctx.fillStyle = hexA(tone, 0.16);
       roundRectPath(ctx, pad, y, tw, 24 * u, 12 * u);
       ctx.fill();
@@ -749,21 +795,26 @@ export class AnimalBook {
       ctx.fillText(label, pad + 19 * u, y + 16 * u);
       y += 34 * u;
     }
+    // How big it is belongs under the photograph and the name, in the same column - that is one
+    // thought. The map, the facts and the way along the shelf go in the other, which also leaves
+    // the two columns about the same length rather than one of them trailing off into paper.
+    y = this.sizeCard(a, pad, y, colW) + pad;
+    const leftBottom = y;
 
-    y = this.sizeCard(a, pad, y, inner) + pad;
-    y = this.whereCard(a, pad, y, inner) + pad;
-    y = this.factsCard(a, pad, y, inner) + pad;
+    let r = two ? y0 : y;
+    r = this.whereCard(a, rightX, r, colW) + pad;
+    r = this.factsCard(a, rightX, r, colW) + pad;
 
     // one step along the shelf, either way
-    const bw = (inner - 10 * u) / 2;
-    this.button('prev', pad, y, bw, 46 * u, T('◀ Before', '◀ Vorige'), this.at > 0 ? '#5c8ba8' : '#b9c7cf');
-    this.button('next', pad + bw + 10 * u, y, bw, 46 * u, T('Next ▶', 'Volgende ▶'), this.at < this.list.length - 1 ? '#5c8ba8' : '#b9c7cf');
-    y += 62 * u;
-    this.button('surprise', pad, y, inner, 46 * u, t('animalsSurprise'), '#e0913a');
-    y += 70 * u;
+    const bw = (colW - 10 * u) / 2;
+    this.button('prev', rightX, r, bw, 46 * u, T('◀ Before', '◀ Vorige'), this.at > 0 ? '#5c8ba8' : '#b9c7cf');
+    this.button('next', rightX + bw + 10 * u, r, bw, 46 * u, T('Next ▶', 'Volgende ▶'), this.at < this.list.length - 1 ? '#5c8ba8' : '#b9c7cf');
+    r += 62 * u;
+    this.button('surprise', rightX, r, colW, 46 * u, t('animalsSurprise'), '#e0913a');
+    r += 70 * u;
 
     ctx.restore();
-    this.scrollMax = Math.max(0, y + this.scroll - this.h);
+    this.scrollMax = Math.max(0, Math.max(r, leftBottom) + this.scroll - this.h);
     this.scrollHint(top);
   }
 
@@ -789,11 +840,25 @@ export class AnimalBook {
   private sizeCard(a: Animal, x: number, y: number, w: number): number {
     const ctx = this.ctx;
     const u = this.u();
-    const h = 196 * u;
-    const inner = this.card(x, y, w, h, t('animalsHowBig'));
     const childCm = save.animals.childCm;
+    // the sentence under the bar can run to two lines - "there are about a hundred and seventy of
+    // them along your height" is the whole point, and cutting it off with a … wastes it
+    const note = a.z && !a.x ? T(' (typical for its family)', ' (gemiddeld voor zijn familie)') : '';
+    const fSmall = this.font('700', 11.5);
+    // the box is always tall enough for two lines of it, so the card never changes height
+    // underneath the thing it is describing
+    const h = 226 * u;
+    this.card(x, y, w, h, t('animalsHowBig'));
+    // how tall the child on the bar is, on the title's line so it is never in the drawing's way
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#93a8b5';
+    ctx.font = this.font('800', 11);
+    ctx.fillText(`${childCm} cm`, x + w - 78 * u, y + 26 * u);
+    this.tiny('shorter', x + w - 70 * u, y + 8 * u, '\u2212');
+    this.tiny('taller', x + w - 38 * u, y + 8 * u, '+');
+    const inner = y + 46 * u;
     // the line they both stand on, with room under it for the sentence
-    const floor = y + h - 48 * u;
+    const floor = y + h - 64 * u;
     const childX = x + 32 * u;
     const animalX = childX + 26 * u;
     const roomW = Math.max(30 * u, x + w - 16 * u - animalX);
@@ -803,8 +868,9 @@ export class AnimalBook {
     const tone = groupById(a.g)?.tone ?? '#8aa6b8';
 
     child(ctx, childX, floor - bar.childPx, bar.childPx, '#9fb6c4');
-    const ch = Math.min(bar.animalPx * 0.82, roomH);
-    creature(ctx, a.g, animalX, floor - ch, bar.animalPx, ch, tone);
+    const shape = shapeOf(a);
+    const ch = Math.min(bar.animalPx * (ASPECT[shape] ?? 1) * 0.86, roomH);
+    creature(ctx, shape, animalX, floor - ch, bar.animalPx, ch, tone);
 
     ctx.strokeStyle = 'rgba(23, 58, 79, 0.22)';
     ctx.lineWidth = 1.6;
@@ -818,19 +884,10 @@ export class AnimalBook {
     ctx.font = this.font('900', 16);
     ctx.fillText(a.z ? sizeLabel(a.z, NL()) : T('not known', 'onbekend'), x + 14 * u, floor + 22 * u);
     ctx.fillStyle = SOFT;
-    ctx.font = this.font('700', 11.5);
-    const note = a.z && !a.x ? T(' (typical for its family)', ' (gemiddeld voor zijn familie)') : '';
+    ctx.font = fSmall;
     const blown = bar.magnified ? T(` · drawn ${bar.times}× life size`, ` · ${bar.times}× vergroot getekend`) : '';
-    const line = this.wrap(`${compareToChild(a.z, childCm, NL())}${note}${blown}`, this.font('700', 11.5), w - 28 * u, 1)[0] ?? '';
-    ctx.fillText(line, x + 14 * u, floor + 36 * u);
-
-    // how tall the child on the bar is, because every child is a different size
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#93a8b5';
-    ctx.font = this.font('800', 11);
-    ctx.fillText(`${childCm} cm`, x + w - 78 * u, inner + 12 * u);
-    this.tiny('shorter', x + w - 70 * u, inner, '\u2212');
-    this.tiny('taller', x + w - 38 * u, inner, '+');
+    const said = this.wrap(`${compareToChild(a.z, childCm, NL())}${note}${blown}`, fSmall, w - 28 * u, 2);
+    said.forEach((l, i) => ctx.fillText(l, x + 14 * u, floor + 36 * u + i * 14 * u));
     return y + h;
   }
 
@@ -913,7 +970,9 @@ export class AnimalBook {
     const ctx = this.ctx;
     const u = this.u();
     const pad = 12 * u;
-    const top = this.header(t('animalsSearch'), this.collectionLine());
+    const top = this.header(t('animalsSearch'), this.query
+      ? T(`${this.list.length} found`, `${this.list.length} gevonden`)
+      : T(`${this.all.length} animals`, `${this.all.length} dieren`));
 
     // what has been typed so far
     const boxH = 44 * u;
@@ -935,31 +994,26 @@ export class AnimalBook {
       ctx.fillRect(pad + 16 * u + cw, top + pad + 11 * u, 2.4 * u, boxH - 22 * u);
     }
 
-    // the keyboard, at the bottom where a thumb is
-    const rows = this.w > 620 ? [9, 9, 8] : [7, 7, 7, 5];
-    const keyH = Math.min(46 * u, (this.h * 0.36) / rows.length - 6 * u);
-    const kbH = rows.length * (keyH + 6 * u) + 8 * u;
+    // The keyboard, at the bottom where a thumb is. Letters first, then a row with a space bar and
+    // a backspace on it - both have to exist: half the Dutch names are two words, and a child who
+    // has typed the wrong letter must be able to take it back.
+    const letterRows = this.w > 620 ? [13, 13] : [7, 7, 7, 5];
+    const keyH = Math.min(46 * u, (this.h * 0.46) / (letterRows.length + 1) - 6 * u);
+    const kbH = (letterRows.length + 1) * (keyH + 6 * u) + 8 * u;
     const kbTop = this.h - kbH;
     let k = 0;
-    rows.forEach((n, r) => {
+    letterRows.forEach((n, row) => {
       const kw = (this.w - pad * 2 - (n - 1) * 5 * u) / n;
-      const last = r === rows.length - 1;
-      const count = last ? Math.min(n, KEYS.length - k) : n;
-      for (let c = 0; c < count; c++, k++) {
-        this.key(`key:${KEYS[k]}`, pad + c * (kw + 5 * u), kbTop + r * (keyH + 6 * u), kw, keyH, KEYS[k].toUpperCase(), '#ffffff', INK);
-      }
-      if (last) {
-        const left = n - count;
-        if (left > 0) {
-          const kx = pad + count * (kw + 5 * u);
-          this.key('key:del', kx, kbTop + r * (keyH + 6 * u), kw * left + (left - 1) * 5 * u, keyH, '⌫', '#d9e4ea', INK);
-        }
+      const ky = kbTop + row * (keyH + 6 * u);
+      for (let c = 0; c < n && k < KEYS.length; c++, k++) {
+        this.key(`key:${KEYS[k]}`, pad + c * (kw + 5 * u), ky, kw, keyH, KEYS[k].toUpperCase(), '#ffffff', INK);
       }
     });
-    if (KEYS.length % rows[rows.length - 1] === 0) {
-      // every row was full, so the backspace gets a row of its own along the bottom
-      this.key('key:del', pad, kbTop + rows.length * (keyH + 6 * u), this.w - pad * 2, keyH * 0.8, '⌫', '#d9e4ea', INK);
-    }
+    const fy = kbTop + letterRows.length * (keyH + 6 * u);
+    const wide = this.w - pad * 2;
+    const spaceW = wide * 0.64;
+    this.key('key:space', pad, fy, spaceW, keyH, T('space', 'spatie'), '#e7eef3', INK);
+    this.key('key:del', pad + spaceW + 5 * u, fy, wide - spaceW - 5 * u, keyH, '\u232b', '#d0dde5', INK);
 
     // the answers in between
     const listTop = top + pad * 2 + boxH;
@@ -1010,7 +1064,7 @@ export class AnimalBook {
     ctx.fillStyle = pressed ? '#e6eef3' : '#ffffff';
     roundRectPath(ctx, x, y, w, h, 12 * u);
     ctx.fill();
-    this.picture(a, x + 5 * u, y + 5 * u, h - 10 * u, h - 10 * u, 9 * u, 160);
+    this.picture(a, x + 5 * u, y + 5 * u, h - 10 * u, h - 10 * u, 9 * u, SIZES.row);
     ctx.textAlign = 'left';
     ctx.fillStyle = INK;
     ctx.font = this.font('900', 15);

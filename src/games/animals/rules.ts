@@ -73,17 +73,25 @@ export function fold(s: string): string {
  */
 export function score(a: Animal, q: string): number {
   if (!q) return 0;
+  const squashed = q.replace(/ /g, '');
   let best = 0;
   const fields: Array<[string, number]> = [[a.n, 100], [a.e, 80], [a.s, 60], [a.f, 40]];
   for (const [raw, weight] of fields) {
     const f = fold(raw);
     if (!f) continue;
-    const at = f.indexOf(q);
-    if (at < 0) continue;
-    // starts with what was typed, starts a word, or sits somewhere inside one
-    const kind = at === 0 ? 3 : f[at - 1] === ' ' ? 2 : 1;
     const shortness = Math.max(0, 20 - f.length / 4);
-    best = Math.max(best, weight + kind * 30 + shortness);
+    const at = f.indexOf(q);
+    if (at >= 0) {
+      // starts with what was typed, starts a word, or sits somewhere inside one
+      const kind = at === 0 ? 3 : f[at - 1] === ' ' ? 2 : 1;
+      best = Math.max(best, weight + kind * 30 + shortness);
+      continue;
+    }
+    // a child who has not found the space bar yet, or has put one in the wrong place, should
+    // still find the blauwe vinvis by typing "blauwevinvis"
+    if (squashed && f.replace(/ /g, '').includes(squashed)) {
+      best = Math.max(best, weight + shortness);
+    }
   }
   return best;
 }
@@ -185,16 +193,31 @@ export interface Group {
 export const GROUPS: Group[] = [
   { id: 'mam', nl: 'Zoogdieren', en: 'Mammals', tone: '#c98a50' },
   { id: 'bir', nl: 'Vogels', en: 'Birds', tone: '#4fa8dd' },
-  { id: 'fis', nl: 'Vissen en haaien', en: 'Fish and sharks', tone: '#3b8fa8' },
-  { id: 'rep', nl: 'Reptielen', en: 'Reptiles', tone: '#6aa84f' },
-  { id: 'amp', nl: 'Amfibieën', en: 'Amphibians', tone: '#7bbd5a' },
+  { id: 'fis', nl: 'Vissen en haaien', en: 'Fish and sharks', tone: '#2f8fa0' },
+  { id: 'rep', nl: 'Reptielen', en: 'Reptiles', tone: '#4f9455' },
+  { id: 'amp', nl: 'Amfibieën', en: 'Amphibians', tone: '#8dc63f' },
   { id: 'but', nl: 'Vlinders', en: 'Butterflies', tone: '#e08bb4' },
   { id: 'ins', nl: 'Insecten', en: 'Insects', tone: '#d3a642' },
   { id: 'spi', nl: 'Spinnen', en: 'Spiders', tone: '#8a7ab8' },
-  { id: 'sea', nl: 'Zeedieren', en: 'Sea creatures', tone: '#4a72b8' },
+  { id: 'sea', nl: 'Zeedieren', en: 'Sea creatures', tone: '#3d64b0' },
 ];
 
 export const groupById = (id: string): Group | undefined => GROUPS.find(g => g.id === id);
+
+/**
+ * Which drawn animal stands in for this one.
+ *
+ * The shelf is usually the answer - a badger gets the four legged shape, a wren gets the bird.
+ * The exceptions are the mammals that went back into the water, because a blue whale drawn as a
+ * deer twenty-five metres long next to a child is not a size comparison, it is a joke.
+ */
+export function shapeOf(a: Animal): string {
+  if (a.g === 'mam') {
+    if (a.h === 'sea') return 'whale';
+    if (a.h === 'coast') return 'seal';
+  }
+  return a.g;
+}
 
 /** Every animal on one shelf, most-photographed first - which is also most-recognisable first. */
 export function shelf(list: Animal[], id: GroupId): Animal[] {

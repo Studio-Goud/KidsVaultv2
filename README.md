@@ -230,8 +230,8 @@ minutes. Age 6 and up.
 
 ### Dierenboek (`animals.html`)
 Nine shelves - mammals, birds, fish and sharks, reptiles, amphibians, butterflies, insects, spiders
-and sea creatures - and a couple of thousand real animals behind them, every one with a real
-photograph. Pick a shelf, scroll the grid, tap one.
+and sea creatures - and three thousand seven hundred real animals behind them, every one with a
+real photograph. Pick a shelf, scroll the grid, tap one.
 
 The page that opens is the point. It says the animal's name in Dutch, in English and in Latin. It
 draws the animal beside a child, both on one ruler, so the length stops being a number: a red deer
@@ -244,12 +244,13 @@ itself out of the data - which family it belongs to, where it lives, what it eat
 up against you - followed by a paragraph from Wikipedia in whichever language is set.
 
 There is a keyboard a child can hunt and peck at: three or four letters is enough, accents and
-capitals do not matter, and it searches the Dutch, the English and the scientific name at once.
-And there is a button marked "Verras me" that opens an animal nobody chose - one you have not seen
-yet, for as long as there are any left.
+capitals do not matter, there is a space bar and a backspace, and it searches the Dutch, the
+English and the scientific name at once. Forgetting the space is forgiven too - "blauwevinvis"
+finds the blauwe vinvis. And there is a button marked "Verras me" that opens an animal nobody
+chose - one you have not seen yet, for as long as there are any left.
 
 The book remembers which animals have been looked at and says so on the way in: *je hebt 37 van de
-2000 dieren bekeken*. That is the only thing it keeps. No score, no streak, nothing to lose by
+3744 dieren bekeken*. That is the only thing it keeps. No score, no streak, nothing to lose by
 staying away, and the count only ever goes up.
 
 None of it is typed by hand. `npm run animals` builds `public/animals/animals.json` out of four

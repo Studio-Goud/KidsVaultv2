@@ -158,6 +158,19 @@ const MUST_HAVE = [
   'Limulus polyphemus', 'Helix pomatia', 'Tridacna gigas', 'Lumbricus terrestris',
 ];
 
+/**
+ * Out of the book, by name.
+ *
+ * Wikipedia's article on Homo sapiens leads with an anatomical drawing of a naked man and woman,
+ * which is exactly right for an encyclopaedia and exactly wrong for a five year old scrolling a
+ * grid of animals. The human lice are here for the same reason: the photograph is only a louse,
+ * but the page a child would be reading about is not one a five year old needs.
+ */
+const NOT_FOR_CHILDREN = [
+  'Homo sapiens', 'Homo', 'Pthirus pubis', 'Phthirus pubis', 'Pediculus humanus',
+  'Enterobius vermicularis', 'Sarcoptes scabiei',
+];
+
 const GROUP_OF_ANCESTOR = [
   [47224, 'but'], [47157, 'but'], [47119, 'spi'], [47158, 'ins'], [40151, 'mam'], [3, 'bir'],
   [26036, 'rep'], [20978, 'amp'], [47178, 'fis'], [196614, 'fis'], [47273, 'fis'],
@@ -437,7 +450,7 @@ async function main() {
 
   console.log('Writing the book…');
   const species = [];
-  const dropped = { photo: 0, licence: 0, name: 0 };
+  const dropped = { photo: 0, licence: 0, name: 0, notForChildren: 0 };
   usable.forEach((t, i) => {
     const title = decodeURIComponent(t.wikipedia_url.split('/wiki/')[1] ?? '').replace(/_/g, ' ');
     const m = meta.get(title);
@@ -457,6 +470,8 @@ async function main() {
       return;
     }
     const { tpl, l } = pick;
+
+    if (NOT_FOR_CHILDREN.includes(t.name)) { dropped.notForChildren++; return; }
 
     const nl = tidyName(t.preferred_common_name) || tidyName(m.nlTitle);
     const en = tidyName(t.english_common_name) || tidyName(m.title);
@@ -538,7 +553,7 @@ async function main() {
   const kbEn = Math.round(readFileSync(join(dirname(OUT), 'text-en.json')).length / 1024);
   console.log(`\n${species.length} species written to public/animals/animals.json (${kb} kB, text ${kbNl}/${kbEn} kB)`);
   console.log('  per shelf:', counts);
-  console.log(`  dropped: ${dropped.photo} with no free photograph, ${dropped.licence} with a licence we may not use, ${dropped.name} with no name`);
+  console.log(`  dropped: ${dropped.photo} with no free photograph, ${dropped.licence} with a licence we may not use, ${dropped.name} with no name, ${dropped.notForChildren} not for children`);
   console.log(`  with a Dutch paragraph: ${Object.keys(nlOut).length}, english: ${Object.keys(enOut).length}`);
   console.log(`  with a size: ${species.filter(s => s.z).length}, a diet: ${species.filter(s => s.t).length}, a place: ${species.filter(s => s.w.length).length}`);
 }
