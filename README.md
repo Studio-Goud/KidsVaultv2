@@ -439,11 +439,12 @@ teacher would, and hands the correction its own words for free: *dat is Nijmegen
 with the fact underneath. Then the piece flies home by itself, so nobody is ever stuck on a shape
 they do not know. The stars count only what went home first time, before the map showed you.
 
-The water level has a switch marked "dijken uit". The Netherlands is redrawn by height - the deep
-polders six metres down, the peat behind the dunes, the sandy east, the Veluwe, the hills of south
-Limburg - and every band lower than the water outside turns blue. With the dykes off and an
-ordinary sea, a quarter of the country is already under. Press it again for a storm surge of five
-metres, which is roughly what stood against the dykes in 1953, and the west goes.
+The water level has a third button in the corner: a drawn dyke with the sea against it. Press it
+and the Netherlands is redrawn by height - the deep polders six metres down, the peat behind the
+dunes, the sandy east, the Veluwe, the hills of south Limburg - with every band lower than the
+water outside turned blue. With the dykes off and an ordinary sea, a quarter of the country is
+already under. Press it again for a storm surge of five metres, which is roughly what stood
+against the dykes in 1953, and the west goes. Press it once more and the dykes come back.
 
 On a continent or a country the card offers **welke dieren wonen hier?**, and that opens the animal
 book filtered to that part of the world - `animals.html#af` is Africa. The animal data already
@@ -466,8 +467,11 @@ government sits and Amsterdam is the capital, and the game says so.
 
 Luxembourg on a map of Europe that fits a phone is four pixels across. It stays on the board and in
 the data - a real country, a real capital, three real languages - but it is never dealt out as a
-piece, because nobody can hit it. A switch in the corner outlines the empty places for a child
-still finding the holes, and takes the outlines away again for a child who should know.
+piece there, because nobody could hit it. On the map of the neighbours, zoomed right in on the
+Netherlands, it is big enough and it is dealt out. Every level works that way: a target too small
+to put a finger on is drawn, but never asked for. A switch in the corner outlines the empty places
+for a child still finding the holes, and takes the outlines away again for a child who should
+know.
 Practises where things are, reading a map, and the Netherlands, Europe and the world. Age 5 and up.
 
 ### Letterbos (`letters.html`)

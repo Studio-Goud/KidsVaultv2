@@ -129,6 +129,8 @@ export class Circuit {
   private idle = 0;
   private history: Board[] = [];
   private cheer = 0;
+  /** which of the bench's open challenges the goal card is up to */
+  private extra = -1;
   private cheerOpen = false;
   private lastLit = false;
   private cam = { ox: 0, oy: 0, unit: 30 };
@@ -602,7 +604,11 @@ export class Circuit {
     if (hit.startsWith('pick:')) { this.goTo(Number(hit.slice(5))); return; }
     if (hit === 'goal') {
       const q = this.quiz();
-      this.say(NL() ? q.hintNl : q.hint, 7);
+      const more = q.extras ?? [];
+      // the bench has nothing to prove, so what its card offers is things worth trying, one per tap
+      this.extra = more.length ? (this.extra + 1) % (more.length + 1) : -1;
+      const line = this.extra <= 0 ? (NL() ? q.hintNl : q.hint) : (NL() ? more[this.extra - 1][1] : more[this.extra - 1][0]);
+      this.say(this.extra > 0 ? `${T('Try this:', 'Probeer dit:')} ${line}` : line, 8);
       bench.tap();
       return;
     }
@@ -742,6 +748,7 @@ export class Circuit {
   }
 
   private goTo(i: number): void {
+    this.extra = -1;
     this.puzzle = clamp(i, 0, PUZZLES.length - 1);
     this.picking = false;
     this.hits = [];
@@ -1036,13 +1043,24 @@ export class Circuit {
     const w = b.wide ? Math.max(60 * u, this.w - 116 - x) : b.goal.w;
     const { y, h } = b.goal;
     glassPanel(ctx, x, y, w, h, 12 * u, 0.9);
-    ctx.textAlign = 'left';
+    // a card you can ask says so, or nobody ever asks it
+    const ask = Math.min(h * 0.56, 24 * u);
+    ctx.fillStyle = 'rgba(18, 35, 59, 0.12)';
+    ctx.beginPath();
+    ctx.arc(x + w - ask * 0.72, y + h / 2, ask / 2, 0, TAU);
+    ctx.fill();
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(18, 35, 59, 0.62)';
+    ctx.font = this.font('900', 12);
+    ctx.fillText('?', x + w - ask * 0.72, y + h / 2 + u, ask);
+    ctx.textAlign = 'left';
     ctx.font = this.font('800', 11.5);
-    const lines = wrap(ctx, NL() ? q.goalNl : q.goal, w - 20 * u).slice(0, 2);
+    const room = w - 20 * u - ask;
+    const lines = wrap(ctx, NL() ? q.goalNl : q.goal, room).slice(0, 2);
     ctx.fillStyle = '#12233b';
     lines.forEach((ln, i) => {
-      ctx.fillText(ln, x + 10 * u, y + h / 2 + (i - (lines.length - 1) / 2) * 14 * u, w - 20 * u);
+      ctx.fillText(ln, x + 10 * u, y + h / 2 + (i - (lines.length - 1) / 2) * 14 * u, room);
     });
     this.hits.push({ id: 'goal', x, y, w, h });
   }

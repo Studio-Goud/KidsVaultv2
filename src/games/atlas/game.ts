@@ -115,6 +115,8 @@ export class Atlas {
   private pop = 0;
   private note = '';
   private noteT = 0;
+  /** where a name has already been written this frame, so the next one can step out of its way */
+  private labels: Rect[] = [];
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
@@ -531,6 +533,8 @@ export class Atlas {
     const view = VIEWS[this.level.board];
     const piece = this.piece();
 
+    this.labels = [];
+
     // ---- the map
     drawSea(ctx, L.board, Math.min(L.board.w, L.board.h) * 0.04);
     drawGraticule(ctx, view, L.board, this.level.board === 'world' ? 30 : this.level.board === 'eu' ? 10 : 1);
@@ -660,7 +664,18 @@ export class Atlas {
     // and it is kept inside the map: a label written at the anchor of the Arctic runs off the edge
     const half = ctx.measureText(label).width / 2 + 4 * u;
     const lx = clamp(q.x, box.x + half, box.x + box.w - half);
-    const ly = clamp(q.y + (f.at ? -16 * u : 3 * u), box.y + 13 * u, box.y + box.h - 6 * u);
+    const line = 13 * u;
+    // Leeuwarden and Groningen are eighty kilometres apart and their names are longer than that
+    // on a phone. A name that would land on one already written steps a line down, then a line
+    // up; if both are taken it stays where it belongs and takes the overlap.
+    let ly = clamp(q.y + (f.at ? -16 * u : 3 * u), box.y + 13 * u, box.y + box.h - 6 * u);
+    const free = (y: number): boolean => !this.labels.some(r =>
+      Math.abs(r.x - lx) < (r.w + half * 2) / 2 && Math.abs(r.y - y) < line);
+    if (!free(ly)) {
+      if (free(ly + line * 1.6)) ly += line * 1.6;
+      else if (free(ly - line * 1.6)) ly -= line * 1.6;
+    }
+    this.labels.push({ x: lx, y: ly, w: half * 2, h: line });
     outlinedText(ctx, label, lx, ly, ctx.font,
       f.kind === 'ocean' ? '#1c5a86' : '#123047', 'rgba(255,255,255,0.95)', 4);
     ctx.restore();
