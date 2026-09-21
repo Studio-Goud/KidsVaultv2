@@ -61,7 +61,8 @@ const group = name => console.log(`\n${name}`);
 {
   const d = await bundle('src/games/moonshot/design.ts', 'design.mjs');
   const { partById, stagesByColumn, deadWeight, dudEngines, buildProblem, isOnePiece, canPlace,
-    collapse, stillAttached, shapeOf, slipperiness, widthOf, taperSpan, canLift, isFlyable } = d;
+    collapse, stillAttached, shapeOf, slipperiness, widthOf, taperSpan, canLift, isFlyable,
+    PARTS, padThrust, totalThrust, DELAYS, clampDelay } = d;
 
   /** a column of parts stacked bottom-first, the way a child builds one */
   const col = (c, ids) => {
@@ -72,6 +73,34 @@ const group = name => console.log(`\n${name}`);
   };
   const stageParts = design =>
     [...stagesByColumn(design)].map(([c, l]) => `${c}:${l.map(s => s.parts.slice().sort((a, b) => a - b).join('+')).join('|')}`).join(' ');
+
+  group('Moonshot — the parts themselves');
+  is('test_parts_there_are_at_least_a_hundred', PARTS.length >= 100, true);
+  is('test_parts_ids_are_unique', new Set(PARTS.map(p => p.id)).size, PARTS.length);
+  is('test_parts_all_have_both_languages',
+    PARTS.every(p => p.name && p.nameNl && p.note && p.noteNl), true);
+  is('test_parts_all_fit_on_the_grid', PARTS.every(p => p.rows >= 1 && p.rows <= 6 && p.w > 0), true);
+  is('test_parts_nothing_weighs_nothing', PARTS.every(p => p.dry > 0 || p.fuel > 0), true);
+  is('test_parts_every_engine_has_thrust',
+    PARTS.filter(p => p.kind === 'engine').every(p => p.burn > 0 && p.exhaust > 0), true);
+  is('test_parts_every_booster_carries_its_own_fuel',
+    PARTS.filter(p => p.kind === 'solid').every(p => p.fuel > 0 && p.burn > 0), true);
+  is('test_parts_tank_fuel_follows_volume', PARTS.filter(p => p.kind === 'tank' && p.art === undefined)
+    .every(p => Math.abs(p.fuel - 2.75 * p.w * p.w * p.rows) < 0.06), true);
+
+  group('Moonshot — holding an engine back');
+  const held = [...col(4, ['engine-s', 'tank-s', 'capsule'])];
+  held[0] = { ...held[0], delay: 10 };
+  is('test_delay_engine_set_to_wait_is_not_pad_thrust', padThrust(held), 0);
+  is('test_delay_engine_set_to_wait_still_counts_as_thrust', totalThrust(held) > 0, true);
+  is('test_delay_all_engines_waiting_is_a_problem', buildProblem(held, false),
+    'Every engine is set to wait. One of them has to light at zero.');
+  const mixed = [...col(4, ['engine-s', 'tank-s', 'capsule']), ...col(3, ['srb-s'])];
+  mixed[3] = { ...mixed[3], delay: 15 };
+  is('test_delay_a_waiting_booster_leaves_the_rest_on_the_pad',
+    Math.round(padThrust(mixed)), Math.round(totalThrust(mixed) - partById('srb-s').burn * partById('srb-s').exhaust));
+  is('test_delay_snaps_to_one_of_the_offered_values', DELAYS.includes(clampDelay(13)), true);
+  is('test_delay_zero_stays_zero', clampDelay(0), 0);
 
   group('Moonshot — cutting a design into stages');
   const twoStage = col(4, ['engine-s', 'tank-s', 'engine-v', 'tank-s', 'capsule']);

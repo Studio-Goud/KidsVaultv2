@@ -24,10 +24,11 @@ import {
   outlinedText, Particles, Shake, vignette,
 } from '../../render/look';
 import {
-  airAt, buildProblem, canLift, canPlace, clash, cleanDesign, coastHeight, collapse, COLS, deadWeight, densityAt,
+  airAt, buildProblem, canLift, canPlace, clash, cleanDesign, clampDelay, coastHeight, collapse, COLS,
+  deadWeight, DELAYS, densityAt,
   gravityAt, GROUPS, isFlyable, kmLabel, LADDER, MAX_PARTS, nextRung, padThrust,
   padWeight, partById, partsIn, ROWS, rungFor, shapeHint, shapeOf, slipperiness, stagesByColumn,
-  STARTER, stillAttached, topRow, totalMass,
+  STARTER, stillAttached, topRow, totalMass, totalThrust,
   type Design, type Group, type Milestone, type Part, type Placed, type Stage,
 } from './design';
 import {
@@ -102,11 +103,15 @@ export class Moonshot {
   // the workshop
   private design: Design = [];
   private tab: Group = 'tank';
+  /** which page of the shelf is showing, per tab */
+  private page: Record<string, number> = {};
   /** where this rocket is meant to go: an index into the ladder */
   private target = 7;
   /** the destination list, open over the workshop */
   private picking = false;
   private drag: Drag | null = null;
+  /** the placed engine whose ignition delay panel is open, or -1 */
+  private tuning = -1;
   private history: Design[] = [];
   /** where the grid was last drawn, so a finger can be turned back into a cell */
   private cam = { ox: 0, oy: 0, unit: 24 };
@@ -116,6 +121,10 @@ export class Moonshot {
   private dropped = new Set<number>();
   private debris: Debris[] = [];
   private fuel0 = 1;
+  /** seconds since lift-off, which is what an ignition delay is measured against */
+  private burnT = 0;
+  /** engines that have already lit, so an ignition is announced once */
+  private lit = new Set<number>();
   private alt = 0;
   private vUp = 0;
   private vSide = 0;
@@ -170,7 +179,8 @@ export class Moonshot {
     return {
       phase: this.phase,
       parts: this.design.length,
-      design: this.design.map(p => `${p.id}@${p.col},${p.row}`),
+      design: this.design.map(p => `${p.id}@${p.col},${p.row}${p.delay ? '+' + p.delay + 's' : ''}`),
+      tuning: this.tuning,
       mass: Math.round(totalMass(this.design) * 10) / 10,
       thrust: Math.round(padThrust(this.design)),
       weight: Math.round(padWeight(this.design)),
@@ -182,6 +192,8 @@ export class Moonshot {
       stages: [...stagesByColumn(this.design)].map(([c, l]) => `${c}:${l.length}`),
       dead: deadWeight(this.design).length,
       tab: this.tab,
+      trayPage: this.trayGrid().page,
+      trayPages: this.trayGrid().pages,
       target: this.target,
       picking: this.picking,
       best: this.best(),
@@ -255,11 +267,16 @@ export class Moonshot {
    * Measured in real pixels rather than scaled ones, because what decides whether a part can be
    * hit is the width of a thumb, and a thumb is the same size on a tablet as on a phone.
    */
-  private trayGrid(): { cols: number; rows: number } {
+  private trayGrid(): { cols: number; rows: number; per: number; pages: number; page: number } {
+    const u = this.u();
     const n = partsIn(this.tab).length;
-    const fits = Math.max(3, Math.floor((this.w - 12 * this.u()) / 58));
-    const rows = n > fits ? 2 : 1;
-    return { cols: Math.ceil(n / rows), rows };
+    const arrows = 30 * u;
+    const cols = Math.max(3, Math.floor((this.w - 12 * u - arrows * 2) / 58));
+    const rows = n > cols ? 2 : 1;
+    const per = cols * rows;
+    const pages = Math.max(1, Math.ceil(n / per));
+    const page = clamp(this.page[this.tab] ?? 0, 0, pages - 1);
+    return { cols, rows, per, pages, page };
   }
 
   private bands(): Bands {
@@ -479,6 +496,8 @@ export class Moonshot {
     this.tilt = 0; this.wobble = 0; this.wind = 0; this.steer = 0;
     this.warp = 1;
     this.topKm = 0; this.shownKm = 0;
+    this.burnT = 0;
+    this.lit = new Set();
     const bd0 = designBounds(this.design);
     this.camRow = bd0.r0; this.camCol = (bd0.c0 + bd0.c1 + 1) / 2;
     this.countdown = 3.2; this.lastTick = 9;
@@ -492,11 +511,17 @@ export class Moonshot {
   /** The stage a column is burning right now, or nothing if it is finished. */
   private live(b: Burn): Stage | null { return b.idx < b.stages.length ? b.stages[b.idx] : null; }
 
+  /** Is this column's stage actually burning: it exists, it has fuel, and its clock has come up? */
+  private firing(b: Burn): Stage | null {
+    const s = this.live(b);
+    return s && b.fuel > 0 && this.burnT >= s.delay ? s : null;
+  }
+
   private thrustNow(): number {
     let n = 0;
     for (const b of this.burns) {
-      const s = this.live(b);
-      if (s && b.fuel > 0) n += s.thrust;
+      const s = this.firing(b);
+      if (s) n += s.thrust;
     }
     return n;
   }
@@ -505,8 +530,8 @@ export class Moonshot {
   private pushCentreNow(): number {
     let f = 0, x = 0;
     for (const b of this.burns) {
-      const s = this.live(b);
-      if (!s || b.fuel <= 0) continue;
+      const s = this.firing(b);
+      if (!s) continue;
       f += s.thrust;
       x += s.thrust * s.col;
     }
@@ -606,6 +631,54 @@ export class Moonshot {
     });
   }
 
+  /** Still something to come: burning now, or waiting for its moment. */
+  /**
+   * Let go of something on purpose, rather than waiting for it to run dry.
+   *
+   * With a decoupler on the rocket it separates at the lowest live one, which is what a decoupler
+   * is for. Without one it drops whatever is strapped to the sides, and once those are gone the
+   * bottom stage of the core - which is the order a child means by "drop it now".
+   */
+  private manualStage(): void {
+    const core = this.coreCol();
+    // a decoupler first, if there is one
+    let best = -1, bestRow = Infinity;
+    this.design.forEach((p, i) => {
+      if (this.dropped.has(i) || p.id !== 'decoupler' && p.id !== 'decoupler-l') return;
+      if (p.row < bestRow) { bestRow = p.row; best = i; }
+    });
+    if (best >= 0) {
+      const cut = this.design[best];
+      this.design.forEach((p, i) => {
+        if (this.dropped.has(i)) return;
+        if (p.col === cut.col && p.row <= cut.row) this.dropped.add(i);
+      });
+      for (const b of this.burns) {
+        const s = this.live(b);
+        if (s && s.parts.some(i => this.dropped.has(i))) { b.idx++; b.fuel = this.live(b)?.fuel ?? 0; }
+      }
+      rocket.stage();
+      this.shake.add(0.6);
+      this.shed();
+      return;
+    }
+    const sides = this.burns.filter(b => b.col !== core && this.live(b));
+    const target = sides.length ? sides : this.burns.filter(b => b.col === core && this.live(b));
+    if (!target.length) { rocket.blocked(); return; }
+    for (const b of target) this.dropStage(b);
+    if (!sides.length) this.shake.add(0.6);
+  }
+
+  /** What the separate button is about to let go of, for its label. */
+  private stageLabel(): string {
+    if (this.design.some((p, i) => !this.dropped.has(i) && (p.id === 'decoupler' || p.id === 'decoupler-l'))) {
+      return T('Separate', 'Ontkoppelen');
+    }
+    const core = this.coreCol();
+    return this.burns.some(b => b.col !== core && this.live(b))
+      ? T('Drop boosters', 'Boosters los') : T('Drop stage', 'Trap los');
+  }
+
   private burning(): boolean { return this.burns.some(b => b.fuel > 0 && this.live(b)); }
 
   private update(dt: number): void {
@@ -665,6 +738,18 @@ export class Moonshot {
   }
 
   private flyStep(dt: number): void {
+    this.burnT += dt;
+    // an engine whose moment has come announces itself
+    for (const b of this.burns) {
+      const s = this.firing(b);
+      if (!s || this.lit.has(s.engine)) continue;
+      this.lit.add(s.engine);
+      if (this.burnT > 0.4) {
+        rocket.ignite();
+        this.shake.add(0.7);
+        this.say(T('Another engine lights.', 'Er gaat nog een motor aan.'), 2);
+      }
+    }
     const m = this.liveMass() * 1000;
     const g = gravityAt(this.alt);
     const air = airAt(this.alt);
@@ -694,8 +779,8 @@ export class Moonshot {
       a += acc * Math.cos(this.tilt);
       ax += acc * Math.sin(this.tilt);
       for (const b of this.burns) {
-        const s = this.live(b);
-        if (s && b.fuel > 0) b.fuel = Math.max(0, b.fuel - s.burn * dt);
+        const s = this.firing(b);
+        if (s) b.fuel = Math.max(0, b.fuel - s.burn * dt);
       }
       if (this.alt < 400) this.shake.add(dt * 1.2);
     }
@@ -718,7 +803,7 @@ export class Moonshot {
     this.debris = this.debris.filter(d => d.age < 6);
 
     engineSound.set(thrust > 0 ? 1 : 0, 1 - air);
-    for (const b of this.burns) if (b.fuel <= 0 && this.live(b)) this.dropStage(b);
+    for (const b of this.burns) if (b.fuel <= 0 && this.live(b) && this.burnT >= this.live(b)!.delay) this.dropStage(b);
 
     if (!this.burning()) {
       // out of fuel: work out where that speed carries the rocket and let the number climb
@@ -770,7 +855,7 @@ export class Moonshot {
     this.idle = 0;
     const p = this.at(e);
     const hit = this.hitAt(p);
-    if (!hit) { this.drag = null; return; }
+    if (!hit) { this.drag = null; this.tuning = -1; return; }
     this.held = hit;
     if (hit === 'target') { this.picking = true; rocket.tap(); return; }
     if (hit === 'closepick') { this.picking = false; rocket.tap(); return; }
@@ -790,9 +875,27 @@ export class Moonshot {
       return;
     }
     if (hit.startsWith('tab:')) { this.tab = hit.slice(4) as Group; rocket.tap(); return; }
-    if (hit === 'launch') { this.picking = false; this.launch(); return; }
+    if (hit.startsWith('page:')) {
+      const { pages, page } = this.trayGrid();
+      this.page[this.tab] = clamp(page + Number(hit.slice(5)), 0, pages - 1);
+      rocket.tap();
+      return;
+    }
+    if (hit.startsWith('delay:')) {
+      const v = Number(hit.slice(6));
+      if (this.design[this.tuning]) {
+        this.push();
+        if (v > 0) this.design[this.tuning].delay = clampDelay(v);
+        else delete this.design[this.tuning].delay;
+        this.remember();
+        rocket.clunk();
+      }
+      return;
+    }
+    if (hit === 'launch') { this.picking = false; this.tuning = -1; this.launch(); return; }
     if (hit === 'undo') { this.undo(); return; }
     if (hit === 'clear') {
+      this.tuning = -1;
       if (!this.design.length) { rocket.blocked(); return; }
       this.push();
       this.design = [];
@@ -802,6 +905,7 @@ export class Moonshot {
     }
     if (hit === 'left') { this.steer = -1; return; }
     if (hit === 'right') { this.steer = 1; return; }
+    if (hit === 'stage') { this.manualStage(); return; }
     if (hit === 'warp') {
       // While there is air there is something to steer, so the burn goes no faster than 2x. Once
       // the air is gone there is nothing to do but wait out a long nuclear burn, so it goes to 4x
@@ -846,8 +950,15 @@ export class Moonshot {
     // Barely moved: a tap. From the shelf that means "put it on top of the rocket"; on the rocket
     // it means "tell me what this is", which is how a child finds out what a vacuum engine is for.
     if (d.moved < 9) {
-      if (d.from < 0) this.autoPlace(d.id);
-      else this.say(`${nameOf(partById(d.id))} - ${noteOf(partById(d.id))}`);
+      if (d.from < 0) { this.autoPlace(d.id); return; }
+      const part = partById(d.id);
+      if (part.kind === 'engine' || part.kind === 'solid') {
+        this.tuning = this.tuning === d.from ? -1 : d.from;
+        rocket.tap();
+        return;
+      }
+      this.tuning = -1;
+      this.say(`${nameOf(part)} - ${noteOf(part)}`);
       return;
     }
     // let go over the shelf: that is the bin
@@ -913,6 +1024,7 @@ export class Moonshot {
     this.drawTabs(b);
     this.drawTray(b);
     this.drawBottom(b);
+    this.drawDelayPanel(b);
     this.drawGhost();
     if (this.picking) { this.hits = []; this.drawPicker(); }
 
@@ -1081,6 +1193,32 @@ export class Moonshot {
       });
     }
 
+    // an engine that is set to wait says so, so the plan is visible before the launch
+    for (const box of boxes) {
+      const d = this.design[box.i].delay ?? 0;
+      if (d <= 0) continue;
+      const bx = box.x + box.w + 2 * u, by = box.y + box.h / 2;
+      ctx.fillStyle = 'rgba(255, 216, 107, 0.92)';
+      ctx.beginPath(); ctx.roundRect(bx, by - 8 * u, 26 * u, 16 * u, 6 * u); ctx.fill();
+      ctx.fillStyle = '#3b2c05';
+      ctx.font = this.font('900', 9);
+      ctx.textAlign = 'center';
+      ctx.fillText(`${d}s`, bx + 13 * u, by + 3.5 * u, 24 * u);
+      ctx.textAlign = 'left';
+    }
+
+    // the one being tuned is ringed, so it is clear which engine the panel belongs to
+    if (this.design[this.tuning]) {
+      const box = boxes.find(bx2 => bx2.i === this.tuning);
+      if (box) {
+        ctx.strokeStyle = '#8ee8ad';
+        ctx.lineWidth = Math.max(1.6, 2.4 * u);
+        ctx.beginPath();
+        ctx.roundRect(box.x - 3 * u, box.y - 3 * u, box.w + 6 * u, box.h + 6 * u, 6 * u);
+        ctx.stroke();
+      }
+    }
+
     // Where the weight sits and where the push comes from. When the arrow is not under the line,
     // the rocket leans all by itself once it is off the pad.
     if (this.design.length > 1 && padThrust(this.design) > 0) {
@@ -1225,27 +1363,50 @@ export class Moonshot {
       return;
     }
 
-    const list = partsIn(this.tab);
-    const { cols, rows } = this.trayGrid();
+    const all = partsIn(this.tab);
+    const { cols, rows, per, pages, page } = this.trayGrid();
+    const list = all.slice(page * per, page * per + per);
     const rowH = b.trayH / rows;
-    const cell = clamp((this.w - 12 * u) / cols, 56, 96 * u);
+    const arrows = 30 * u;
+    const cell = clamp((this.w - 12 * u - arrows * 2) / cols, 52, 96 * u);
+    const left = Math.max(arrows + 4 * u, (this.w - cols * cell) / 2);
     list.forEach((p, k) => {
       const row = Math.floor(k / cols), col = k % cols;
-      const inRow = Math.min(cols, list.length - row * cols);
-      const x = Math.max(6 * u, (this.w - inRow * cell) / 2) + col * cell;
+      const x = left + col * cell;
       const ry = b.trayY + row * rowH;
-      const cy = ry + rowH * 0.38;
-      const pu = Math.min((cell - 18 * u) / Math.max(1, p.w), (rowH * 0.44) / Math.max(1, p.rows));
+      const cy = ry + rowH * 0.36;
+      const pu = Math.min((cell - 16 * u) / Math.max(1, p.w), (rowH * 0.42) / Math.max(1, p.rows));
       paintPart(ctx, p, x + cell / 2, cy + (p.rows * pu) / 2, pu, this.t);
       ctx.fillStyle = 'rgba(226,238,252,0.92)';
-      ctx.font = this.font('800', 8.5);
+      ctx.font = this.font('800', 8);
       ctx.textAlign = 'center';
-      ctx.fillText(nameOf(p), x + cell / 2, ry + rowH - 17 * u, cell - 4 * u);
+      ctx.fillText(nameOf(p), x + cell / 2, ry + rowH - 16 * u, cell - 3 * u);
       ctx.fillStyle = '#ffd86b';
-      ctx.font = this.font('900', 9.5);
-      ctx.fillText(this.tagFor(p), x + cell / 2, ry + rowH - 5 * u, cell - 4 * u);
+      ctx.font = this.font('900', 9);
+      ctx.fillText(this.tagFor(p), x + cell / 2, ry + rowH - 5 * u, cell - 3 * u);
       this.hits.push({ id: `tray:${p.id}`, x, y: ry, w: cell, h: rowH });
     });
+
+    // Pages, because a hundred parts do not fit on one shelf. Arrows rather than a swipe: a swipe
+    // and a drag-a-part-out are the same gesture, and the part has to win.
+    if (pages > 1) {
+      const ay = b.trayY + b.trayH / 2;
+      ctx.font = this.font('900', 17);
+      ctx.textAlign = 'center';
+      for (const [id, ax, glyph, on] of [
+        ['page:-1', 15 * u, '‹', page > 0],
+        ['page:1', this.w - 15 * u, '›', page < pages - 1],
+      ] as const) {
+        ctx.fillStyle = on ? 'rgba(226,238,252,0.16)' : 'rgba(226,238,252,0.05)';
+        ctx.beginPath(); ctx.roundRect(ax - 13 * u, ay - 26 * u, 26 * u, 52 * u, 10 * u); ctx.fill();
+        ctx.fillStyle = on ? '#e2ecf8' : 'rgba(226,238,252,0.25)';
+        ctx.fillText(glyph, ax, ay + 6 * u, 24 * u);
+        if (on) this.hits.push({ id, x: ax - 15 * u, y: ay - 28 * u, w: 30 * u, h: 56 * u });
+      }
+      ctx.fillStyle = 'rgba(226,238,252,0.45)';
+      ctx.font = this.font('800', 9);
+      ctx.fillText(`${page + 1}/${pages}`, 15 * u, b.trayY + 11 * u, 28 * u);
+    }
     ctx.textAlign = 'left';
   }
 
@@ -1281,6 +1442,48 @@ export class Moonshot {
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
     ctx.fillText(T('Empty', 'Leeg'), this.w - side / 2 - 8 * u, cf.y + bh * 0.62, side - 6 * u);
     this.hits.push({ id: 'clear', x: this.w - side - 8 * u, y: by, w: side, h: bh });
+    ctx.textAlign = 'left';
+  }
+
+  /**
+   * When an engine is tapped: how long after lift-off it lights.
+   *
+   * Real rockets stagger their ignitions all the time - a second pair of boosters a minute in, an
+   * upper stage that waits for the first one to finish. Here it is the difference between spending
+   * all your thrust in the first ten seconds and a rocket that keeps pushing, which is the whole
+   * skill of the thing.
+   */
+  private drawDelayPanel(b: Bands): void {
+    const p = this.design[this.tuning];
+    if (!p) return;
+    const ctx = this.ctx, u = this.u();
+    const part = partById(p.id);
+    const h = 74 * u;
+    const w = Math.min(this.w - 20 * u, 380 * u);
+    const x = this.w / 2 - w / 2, y = b.gridBottom - h - 2 * u;
+    glassPanel(ctx, x, y, w, h, 14 * u, 0.95);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#12233b';
+    ctx.font = this.font('900', 12);
+    ctx.fillText(nameOf(part), x + 14 * u, y + 19 * u, w - 28 * u);
+    ctx.fillStyle = 'rgba(18,35,59,0.6)';
+    ctx.font = this.font('800', 10.5);
+    ctx.fillText(T('Lights this many seconds after lift-off', 'Gaat zoveel seconden na de start aan'),
+      x + 14 * u, y + 34 * u, w - 28 * u);
+
+    const cur = p.delay ?? 0;
+    const cw = (w - 20 * u) / DELAYS.length;
+    ctx.textAlign = 'center';
+    DELAYS.forEach((d, i) => {
+      const bx = x + 10 * u + i * cw, by = y + 42 * u, bh = 24 * u;
+      const on = d === cur;
+      ctx.fillStyle = on ? '#65d48c' : 'rgba(18,35,59,0.1)';
+      ctx.beginPath(); ctx.roundRect(bx + 2 * u, by, cw - 4 * u, bh, 8 * u); ctx.fill();
+      ctx.fillStyle = on ? '#0b2a1c' : 'rgba(18,35,59,0.75)';
+      ctx.font = this.font('900', 10.5);
+      ctx.fillText(d === 0 ? T('now', 'nu') : `${d}s`, bx + cw / 2, by + bh * 0.66, cw - 6 * u);
+      this.hits.push({ id: `delay:${d}`, x: bx, y: by, w: cw, h: bh });
+    });
     ctx.textAlign = 'left';
   }
 
@@ -1516,6 +1719,7 @@ export class Moonshot {
     ctx.fillStyle = Math.abs(k) < 0.25 ? '#8ee8ad' : '#ffd86b';
     ctx.beginPath(); ctx.arc(lx + k * (lw / 2 - 8 * u), ly, 6 * u, 0, TAU); ctx.fill();
     this.warpButton();
+    this.stageButton();
 
     // the hand, if nothing has been touched and the rocket is drifting
     if (this.idle > 2 && Math.abs(this.tilt) > 0.22) {
@@ -1529,6 +1733,18 @@ export class Moonshot {
         ctx.restore();
       }
     }
+  }
+
+  /** Let go of the boosters, or the stage, when you decide rather than when the tank decides. */
+  private stageButton(): void {
+    const ctx = this.ctx, u = this.u();
+    const w = 108 * u, h = 34 * u, x = this.w - w - 14 * u, y = 102 * u;
+    const face = chunkyButton(ctx, x, y, w, h, { tone: '#ffd86b', pressed: this.held === 'stage' });
+    ctx.fillStyle = '#3b2c05';
+    ctx.font = this.font('900', 11.5);
+    ctx.textAlign = 'center';
+    ctx.fillText(this.stageLabel(), x + w / 2, face.y + h * 0.64, w - 10 * u);
+    this.hits.push({ id: 'stage', x, y, w, h });
   }
 
   private warpButton(): void {

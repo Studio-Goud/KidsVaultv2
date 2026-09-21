@@ -102,15 +102,425 @@ function seams(ctx: Ctx, x: number, y: number, w: number, h: number, rows: numbe
  * Every part is drawn from its own bottom edge upwards, because that is how they stack: the thing
  * below decides where the thing above starts.
  */
+/**
+ * The shapes that are not a tube, a cone or a bell.
+ *
+ * A hundred parts drawn as five silhouettes is not a hundred parts, so everything that is really a
+ * different object - a satellite, a lander, a reactor, a grid fin, a parachute pack - gets its own
+ * drawing here. Returns true when it has handled the part.
+ */
+function paintSpecial(
+  ctx: Ctx, art: string, part: Part, cx: number, bottomY: number, u: number, t: number,
+  side: number, w: number, h: number, x: number, y: number,
+): boolean {
+  const s = side || 1;
+  const band = (yy: number, hh: number, c: string): void => { ctx.fillStyle = c; ctx.fillRect(x, yy, w, hh); };
+
+  switch (art) {
+    case 'shield': {
+      // a blunt ablative dish, wide and dark
+      ctx.fillStyle = tube(ctx, x, w, '#6b5a4e');
+      ctx.beginPath();
+      ctx.moveTo(x, bottomY);
+      ctx.quadraticCurveTo(cx, y - h * 0.5, x + w, bottomY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(30,22,18,0.35)';
+      ctx.lineWidth = Math.max(0.8, w * 0.02);
+      for (let i = 1; i < 4; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + (w * i) / 4, bottomY);
+        ctx.quadraticCurveTo(cx, y + h * 0.1, x + (w * i) / 4, bottomY - h * 0.5);
+        ctx.stroke();
+      }
+      return true;
+    }
+    case 'sat': {
+      // a box with two panels and a dish on top
+      ctx.fillStyle = tube(ctx, x + w * 0.28, w * 0.44, '#c9d0d8');
+      roundRectPath(ctx, x + w * 0.28, y + h * 0.22, w * 0.44, h * 0.72, w * 0.06);
+      ctx.fill();
+      ctx.fillStyle = '#2f4a6b';
+      ctx.fillRect(x, y + h * 0.36, w * 0.26, h * 0.34);
+      ctx.fillRect(x + w * 0.74, y + h * 0.36, w * 0.26, h * 0.34);
+      ctx.strokeStyle = 'rgba(180,210,255,0.45)';
+      ctx.lineWidth = Math.max(0.6, w * 0.015);
+      for (let i = 1; i < 3; i++) {
+        ctx.beginPath(); ctx.moveTo(x, y + h * (0.36 + i * 0.11)); ctx.lineTo(x + w * 0.26, y + h * (0.36 + i * 0.11)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + w * 0.74, y + h * (0.36 + i * 0.11)); ctx.lineTo(x + w, y + h * (0.36 + i * 0.11)); ctx.stroke();
+      }
+      ctx.fillStyle = '#e8eef6';
+      ctx.beginPath(); ctx.ellipse(cx, y + h * 0.18, w * 0.2, h * 0.16, 0, Math.PI, 0); ctx.fill();
+      return true;
+    }
+    case 'scope': {
+      ctx.fillStyle = tube(ctx, x, w, '#b9c2cc');
+      roundRectPath(ctx, x, y + h * 0.1, w, h * 0.9, w * 0.08);
+      ctx.fill();
+      ctx.fillStyle = '#1b2330';
+      ctx.beginPath(); ctx.ellipse(cx, y + h * 0.12, w * 0.46, h * 0.07, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(140, 200, 255, 0.35)';
+      ctx.beginPath(); ctx.ellipse(cx, y + h * 0.13, w * 0.34, h * 0.05, 0, 0, TAU); ctx.fill();
+      band(y + h * 0.42, Math.max(1, h * 0.05), 'rgba(40,48,60,0.3)');
+      band(y + h * 0.7, Math.max(1, h * 0.05), 'rgba(40,48,60,0.3)');
+      return true;
+    }
+    case 'cabin': case 'station': {
+      ctx.fillStyle = tube(ctx, x, w, WHITE);
+      roundRectPath(ctx, x, y, w, h, w * 0.14);
+      ctx.fill();
+      const rings = art === 'station' ? 3 : 2;
+      for (let i = 0; i < rings; i++) band(y + h * (0.18 + i * 0.28), Math.max(1.2, h * 0.035), 'rgba(190, 62, 48, 0.6)');
+      for (let i = 0; i < rings; i++) {
+        ctx.fillStyle = '#7fd2f2';
+        ctx.beginPath(); ctx.ellipse(cx - w * 0.2, y + h * (0.3 + i * 0.28), w * 0.09, h * 0.045, 0, 0, TAU); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.beginPath(); ctx.ellipse(cx + w * 0.18, y + h * (0.3 + i * 0.28), w * 0.07, h * 0.035, 0, 0, TAU); ctx.fill();
+      }
+      if (art === 'station') {
+        ctx.fillStyle = shade(DARK, 0.2);
+        ctx.fillRect(x - w * 0.08, y + h * 0.44, w * 0.08, h * 0.12);
+        ctx.fillRect(x + w, y + h * 0.44, w * 0.08, h * 0.12);
+      }
+      return true;
+    }
+    case 'lander': {
+      ctx.fillStyle = tube(ctx, x + w * 0.12, w * 0.76, '#d7dde5');
+      roundRectPath(ctx, x + w * 0.12, y, w * 0.76, h * 0.7, w * 0.1);
+      ctx.fill();
+      ctx.fillStyle = '#7fd2f2';
+      ctx.beginPath(); ctx.ellipse(cx, y + h * 0.24, w * 0.16, h * 0.08, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = shade(DARK, 0.25);
+      ctx.lineWidth = Math.max(1.2, w * 0.05);
+      ctx.lineCap = 'round';
+      for (const sx of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(cx + sx * w * 0.3, y + h * 0.66);
+        ctx.lineTo(cx + sx * w * 0.5, bottomY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + sx * w * 0.38, bottomY);
+        ctx.lineTo(cx + sx * w * 0.6, bottomY);
+        ctx.stroke();
+      }
+      return true;
+    }
+    case 'rover': {
+      ctx.fillStyle = tube(ctx, x + w * 0.1, w * 0.8, '#cfd6de');
+      roundRectPath(ctx, x + w * 0.1, y + h * 0.16, w * 0.8, h * 0.48, w * 0.06);
+      ctx.fill();
+      ctx.fillStyle = '#2f4a6b';
+      ctx.fillRect(x + w * 0.2, y + h * 0.06, w * 0.6, h * 0.12);
+      ctx.fillStyle = shade(DARK, 0.1);
+      for (const sx of [0.18, 0.5, 0.82]) {
+        ctx.beginPath(); ctx.arc(x + w * sx, bottomY - h * 0.16, w * 0.12, 0, TAU); ctx.fill();
+      }
+      return true;
+    }
+    case 'cargo': {
+      ctx.fillStyle = tube(ctx, x, w, '#c6ccd4');
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = 'rgba(28, 34, 44, 0.55)';
+      ctx.fillRect(x + w * 0.1, y + h * 0.16, w * 0.8, h * 0.68);
+      ctx.strokeStyle = 'rgba(210,220,232,0.7)';
+      ctx.lineWidth = Math.max(0.8, w * 0.02);
+      ctx.beginPath(); ctx.moveTo(cx, y + h * 0.16); ctx.lineTo(cx, y + h * 0.84); ctx.stroke();
+      return true;
+    }
+    case 'ball': {
+      ctx.fillStyle = tube(ctx, x, w, WHITE);
+      ctx.beginPath(); ctx.ellipse(cx, bottomY - h / 2, w / 2, h / 2, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(190, 62, 48, 0.7)';
+      ctx.fillRect(cx - w * 0.5, bottomY - h / 2 - h * 0.03, w, Math.max(1.2, h * 0.05));
+      return true;
+    }
+    case 'balloon': {
+      ctx.fillStyle = tube(ctx, x, w, '#f4f7fa');
+      roundRectPath(ctx, x, y, w, h, w * 0.3);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(150, 170, 190, 0.5)';
+      ctx.lineWidth = Math.max(0.6, w * 0.012);
+      for (let i = 1; i < 5; i++) {
+        ctx.beginPath(); ctx.moveTo(x, y + (h * i) / 5); ctx.lineTo(x + w, y + (h * i) / 5); ctx.stroke();
+      }
+      return true;
+    }
+    case 'ribbed': {
+      ctx.fillStyle = tube(ctx, x, w, '#d9dee6');
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = 'rgba(70, 80, 95, 0.22)';
+      const ribs = Math.max(3, part.rows * 3);
+      for (let i = 0; i < ribs; i++) ctx.fillRect(x, y + (h * (i + 0.3)) / ribs, w, Math.max(1, h * 0.02));
+      ctx.fillStyle = 'rgba(190, 62, 48, 0.8)';
+      ctx.fillRect(x, y + h * 0.05, w, Math.max(1.2, h * 0.045));
+      return true;
+    }
+    case 'spike': {
+      // an aerospike: a wedge instead of a bell, which is the whole point of it
+      ctx.fillStyle = tube(ctx, x, w, WHITE);
+      roundRectPath(ctx, x, y, w, h * 0.42, w * 0.05);
+      ctx.fill();
+      ctx.fillStyle = tube(ctx, x, w, DARK);
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.06, y + h * 0.42);
+      ctx.lineTo(x + w * 0.94, y + h * 0.42);
+      ctx.lineTo(cx, bottomY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.14)';
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.2, y + h * 0.42);
+      ctx.lineTo(x + w * 0.34, y + h * 0.42);
+      ctx.lineTo(cx - w * 0.04, bottomY - h * 0.06);
+      ctx.closePath();
+      ctx.fill();
+      return true;
+    }
+    case 'reactor': {
+      ctx.fillStyle = tube(ctx, x, w, '#bfc6cf');
+      roundRectPath(ctx, x, y, w, h * 0.5, w * 0.05);
+      ctx.fill();
+      ctx.fillStyle = '#e2b03a';
+      ctx.fillRect(x, y + h * 0.13, w, h * 0.1);
+      ctx.fillStyle = 'rgba(40,44,52,0.7)';
+      for (let i = 0; i < 3; i++) ctx.fillRect(x + w * (0.18 + i * 0.26), y + h * 0.14, w * 0.08, h * 0.08);
+      ctx.fillStyle = tube(ctx, x + w * 0.1, w * 0.8, DARK);
+      ctx.beginPath();
+      ctx.moveTo(cx - w * 0.22, y + h * 0.5);
+      ctx.quadraticCurveTo(cx - w * 0.34, bottomY - h * 0.08, cx - w * 0.48, bottomY);
+      ctx.lineTo(cx + w * 0.48, bottomY);
+      ctx.quadraticCurveTo(cx + w * 0.34, bottomY - h * 0.08, cx + w * 0.22, y + h * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      return true;
+    }
+    case 'turbo': {
+      ctx.fillStyle = tube(ctx, x, w, '#c8ccd2');
+      roundRectPath(ctx, x, y, w, h * 0.46, w * 0.06);
+      ctx.fill();
+      // the pumps, bolted on the outside where you can see them
+      ctx.fillStyle = shade('#8a929c', 0.1);
+      for (const sx of [-1, 1]) {
+        ctx.beginPath(); ctx.arc(cx + sx * w * 0.36, y + h * 0.22, w * 0.15, 0, TAU); ctx.fill();
+      }
+      ctx.fillStyle = '#d96a2c';
+      ctx.fillRect(x, y + h * 0.4, w, Math.max(1.2, h * 0.05));
+      ctx.fillStyle = tube(ctx, x + w * 0.16, w * 0.68, DARK);
+      ctx.beginPath();
+      ctx.moveTo(cx - w * 0.2, y + h * 0.46);
+      ctx.quadraticCurveTo(cx - w * 0.3, bottomY - h * 0.08, cx - w * 0.42, bottomY);
+      ctx.lineTo(cx + w * 0.42, bottomY);
+      ctx.quadraticCurveTo(cx + w * 0.3, bottomY - h * 0.08, cx + w * 0.2, y + h * 0.46);
+      ctx.closePath();
+      ctx.fill();
+      return true;
+    }
+    case 'rcs': {
+      ctx.fillStyle = tube(ctx, x + w * 0.3, w * 0.4, '#c6ccd4');
+      roundRectPath(ctx, x + w * 0.3, y + h * 0.2, w * 0.4, h * 0.6, w * 0.08);
+      ctx.fill();
+      ctx.fillStyle = shade(DARK, 0.15);
+      for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+        ctx.beginPath();
+        ctx.ellipse(cx + dx * w * 0.36, bottomY - h * (dy > 0 ? 0.24 : 0.62), w * 0.12, h * 0.08, dx * 0.6, 0, TAU);
+        ctx.fill();
+      }
+      return true;
+    }
+    case 'ring': {
+      ctx.fillStyle = tube(ctx, x, w, '#9aa3ae');
+      roundRectPath(ctx, x, y + h * 0.2, w, h * 0.6, w * 0.06);
+      ctx.fill();
+      ctx.fillStyle = '#c0392b';
+      const n = 6;
+      for (let i = 0; i < n; i++) {
+        ctx.beginPath();
+        ctx.arc(x + w * (0.1 + (0.8 * i) / (n - 1)), y + h * 0.5, Math.max(1, w * 0.035), 0, TAU);
+        ctx.fill();
+      }
+      return true;
+    }
+    case 'strut': {
+      ctx.strokeStyle = shade(COPPER, -0.05);
+      ctx.lineWidth = Math.max(1.2, w * 0.45);
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(cx, y + h * 0.12); ctx.lineTo(cx, bottomY - h * 0.12); ctx.stroke();
+      return true;
+    }
+    case 'leg': {
+      ctx.strokeStyle = shade(DARK, 0.3);
+      ctx.lineWidth = Math.max(1.4, w * 0.07);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(cx - s * w * 0.06, y + h * 0.1);
+      ctx.lineTo(cx + s * w * 0.42, bottomY - h * 0.1);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + s * w * 0.28, bottomY - h * 0.1);
+      ctx.lineTo(cx + s * w * 0.5, bottomY - h * 0.1);
+      ctx.stroke();
+      ctx.fillStyle = shade(DARK, 0.45);
+      ctx.beginPath(); ctx.ellipse(cx + s * w * 0.4, bottomY - h * 0.06, w * 0.13, h * 0.06, 0, 0, TAU); ctx.fill();
+      return true;
+    }
+    case 'chute': {
+      ctx.fillStyle = tube(ctx, x + w * 0.2, w * 0.6, '#d5dbe3');
+      roundRectPath(ctx, x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.62, w * 0.1);
+      ctx.fill();
+      ctx.fillStyle = '#e06a4a';
+      ctx.fillRect(x + w * 0.2, y + h * 0.3, w * 0.6, Math.max(1.2, h * 0.08));
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.fillRect(x + w * 0.3, y + h * 0.2, w * 0.07, h * 0.62);
+      return true;
+    }
+    case 'solar': {
+      ctx.fillStyle = shade('#8a929c', 0);
+      ctx.fillRect(cx - w * 0.04, y + h * 0.3, w * 0.08, h * 0.4);
+      for (const sx of [-1, 1]) {
+        const px = sx > 0 ? cx + w * 0.06 : cx - w * 0.46;
+        ctx.fillStyle = '#20406b';
+        ctx.fillRect(px, y + h * 0.22, w * 0.4, h * 0.56);
+        ctx.strokeStyle = 'rgba(150, 200, 255, 0.4)';
+        ctx.lineWidth = Math.max(0.5, w * 0.008);
+        for (let i = 1; i < 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(px + (w * 0.4 * i) / 4, y + h * 0.22);
+          ctx.lineTo(px + (w * 0.4 * i) / 4, y + h * 0.78);
+          ctx.stroke();
+        }
+      }
+      return true;
+    }
+    case 'dish': {
+      ctx.strokeStyle = shade('#9aa3ae', 0);
+      ctx.lineWidth = Math.max(1, w * 0.06);
+      ctx.beginPath(); ctx.moveTo(cx, bottomY); ctx.lineTo(cx + s * w * 0.2, y + h * 0.45); ctx.stroke();
+      ctx.fillStyle = '#e4e9f0';
+      ctx.beginPath();
+      ctx.ellipse(cx + s * w * 0.24, y + h * 0.34, w * 0.3, h * 0.26, s * 0.5, 0, TAU);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(120,140,165,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(cx + s * w * 0.24, y + h * 0.34, w * 0.2, h * 0.17, s * 0.5, 0, TAU);
+      ctx.fill();
+      return true;
+    }
+    case 'lamp': {
+      ctx.fillStyle = shade(DARK, 0.25);
+      roundRectPath(ctx, cx - w * 0.22, y + h * 0.3, w * 0.44, h * 0.4, w * 0.1);
+      ctx.fill();
+      const glow = ctx.createRadialGradient(cx, y + h * 0.5, 0, cx, y + h * 0.5, w * 0.7);
+      glow.addColorStop(0, 'rgba(255, 244, 190, 0.85)');
+      glow.addColorStop(1, 'rgba(255, 230, 150, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(cx, y + h * 0.5, w * 0.7, 0, TAU); ctx.fill();
+      return true;
+    }
+    case 'camera': {
+      ctx.fillStyle = shade(DARK, 0.2);
+      roundRectPath(ctx, cx - w * 0.3, y + h * 0.28, w * 0.6, h * 0.44, w * 0.08);
+      ctx.fill();
+      ctx.fillStyle = '#6ec6ef';
+      ctx.beginPath(); ctx.arc(cx + s * w * 0.1, y + h * 0.5, w * 0.16, 0, TAU); ctx.fill();
+      return true;
+    }
+    case 'ladder': {
+      ctx.strokeStyle = shade('#aeb6c2', 0);
+      ctx.lineWidth = Math.max(0.8, w * 0.16);
+      ctx.beginPath();
+      ctx.moveTo(cx - w * 0.3, y); ctx.lineTo(cx - w * 0.3, bottomY);
+      ctx.moveTo(cx + w * 0.3, y); ctx.lineTo(cx + w * 0.3, bottomY);
+      ctx.stroke();
+      ctx.lineWidth = Math.max(0.6, w * 0.12);
+      const rungs = Math.max(3, part.rows * 3);
+      for (let i = 0; i < rungs; i++) {
+        const yy = y + (h * (i + 0.5)) / rungs;
+        ctx.beginPath(); ctx.moveTo(cx - w * 0.3, yy); ctx.lineTo(cx + w * 0.3, yy); ctx.stroke();
+      }
+      return true;
+    }
+    case 'flag': {
+      ctx.strokeStyle = shade('#aeb6c2', 0);
+      ctx.lineWidth = Math.max(0.8, w * 0.14);
+      ctx.beginPath(); ctx.moveTo(cx - s * w * 0.2, y); ctx.lineTo(cx - s * w * 0.2, bottomY); ctx.stroke();
+      ctx.fillStyle = '#e06a4a';
+      const wave = Math.sin(t * 2.2) * h * 0.06;
+      ctx.beginPath();
+      ctx.moveTo(cx - s * w * 0.2, y + h * 0.06);
+      ctx.quadraticCurveTo(cx + s * w * 0.2, y + h * 0.16 + wave, cx + s * w * 0.6, y + h * 0.1);
+      ctx.lineTo(cx + s * w * 0.6, y + h * 0.42);
+      ctx.quadraticCurveTo(cx + s * w * 0.2, y + h * 0.48 - wave, cx - s * w * 0.2, y + h * 0.38);
+      ctx.closePath();
+      ctx.fill();
+      return true;
+    }
+    case 'grid': {
+      // a waffle of little blades, which is exactly what a real grid fin is
+      for (const sx of [-1, 1]) {
+        const gx = cx + sx * w * 0.32, gw = w * 0.3, gh = h * 0.72;
+        ctx.fillStyle = 'rgba(150, 160, 175, 0.55)';
+        ctx.fillRect(gx - gw / 2, y + h * 0.14, gw, gh);
+        ctx.strokeStyle = shade('#8a929c', -0.1);
+        ctx.lineWidth = Math.max(0.5, w * 0.012);
+        for (let i = 1; i < 4; i++) {
+          ctx.beginPath(); ctx.moveTo(gx - gw / 2 + (gw * i) / 4, y + h * 0.14); ctx.lineTo(gx - gw / 2 + (gw * i) / 4, y + h * 0.14 + gh); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(gx - gw / 2, y + h * 0.14 + (gh * i) / 4); ctx.lineTo(gx + gw / 2, y + h * 0.14 + (gh * i) / 4); ctx.stroke();
+        }
+      }
+      return true;
+    }
+    case 'wing': {
+      ctx.fillStyle = tube(ctx, x, w, '#c3cad4');
+      ctx.beginPath();
+      ctx.moveTo(cx, y + h * 0.1);
+      ctx.lineTo(cx + s * w * 0.5, bottomY - h * 0.08);
+      ctx.lineTo(cx + s * w * 0.12, bottomY);
+      ctx.lineTo(cx, bottomY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(40,48,60,0.18)';
+      ctx.beginPath();
+      ctx.moveTo(cx, y + h * 0.1);
+      ctx.lineTo(cx + s * w * 0.5, bottomY - h * 0.08);
+      ctx.lineTo(cx + s * w * 0.42, bottomY - h * 0.05);
+      ctx.closePath();
+      ctx.fill();
+      return true;
+    }
+    case 'brake': {
+      ctx.fillStyle = shade('#aeb6c2', 0);
+      for (const sx of [-1, 1]) {
+        ctx.save();
+        ctx.translate(cx + sx * w * 0.3, y + h * 0.5);
+        ctx.rotate(sx * 0.5);
+        ctx.fillRect(-w * 0.16, -h * 0.34, w * 0.32, h * 0.68);
+        ctx.restore();
+      }
+      ctx.fillStyle = '#e06a4a';
+      ctx.fillRect(cx - w * 0.06, y + h * 0.2, w * 0.12, h * 0.6);
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
+/** What a part looks like when nothing more specific is asked for. */
+const DEFAULT_ART: Record<string, string> = {
+  nose: 'cone', pod: 'capsule', tank: 'tank', engine: 'bell', solid: 'solid', fin: 'fin', truss: 'truss',
+};
+
 export function paintPart(
   ctx: Ctx, part: Part, cx: number, bottomY: number, u: number, t: number,
   side = 0, wu = part.w, wTop = wu,
 ): void {
   const w = wu * u, h = part.rows * u;
   const x = cx - w / 2, y = bottomY - h;
+  const art = part.art ?? DEFAULT_ART[part.kind] ?? 'tank';
+  if (paintSpecial(ctx, art, part, cx, bottomY, u, t, side, w, h, x, y)) return;
 
-  if (part.kind === 'nose') {
-    if (part.id === 'fairing') {
+  if (art === 'cone' || art === 'needle' || art === 'blunt' || art === 'fairing') {
+    if (art === 'fairing') {
       // a two-piece shell with the split line down the middle, which is what a real one looks like
       ctx.fillStyle = tube(ctx, x, w, WHITE);
       ctx.beginPath();
@@ -145,7 +555,7 @@ export function paintPart(
     return;
   }
 
-  if (part.id === 'shuttle') {
+  if (art === 'shuttle') {
     // an orbiter seen from the side: a fat white body, a black belly, a swept wing and a fin
     const s = side || 1;
     ctx.save();
@@ -202,7 +612,7 @@ export function paintPart(
     return;
   }
 
-  if (part.kind === 'pod') {
+  if (art === 'capsule' || art === 'probe') {
     // a cone with a window, and only the very tip dark: a cone that is half black reads as a pencil
     ctx.fillStyle = tube(ctx, x, w, WHITE);
     ctx.beginPath();
@@ -220,7 +630,7 @@ export function paintPart(
     ctx.quadraticCurveTo(x + w * 0.57, y + h * 0.12, cx, y);
     ctx.closePath();
     ctx.fill();
-    const wins = part.id === 'cabin' ? 2 : 1;
+    const wins = part.rows >= 3 ? 2 : 1;
     for (let i = 0; i < wins; i++) {
       const wy = y + h * (wins === 1 ? 0.62 : 0.5 + i * 0.22);
       ctx.fillStyle = '#7fd2f2';
@@ -236,7 +646,7 @@ export function paintPart(
     return;
   }
 
-  if (part.kind === 'tank') {
+  if (art === 'tank' || art === 'ribbed' || art === 'balloon') {
     ctx.fillStyle = tube(ctx, x, w, WHITE);
     ctx.fillRect(x, y, w, h);
     seams(ctx, x, y, w, h, Math.max(2, part.rows * 2));
@@ -248,10 +658,10 @@ export function paintPart(
     return;
   }
 
-  if (part.kind === 'solid') {
+  if (art === 'solid') {
     // Fuel and engine in one casing: a pointed cap, a long body and a small nozzle. A double or a
     // triple is drawn as the two or three tubes it actually is, strapped side by side.
-    const n = part.id === 'srb-t' ? 3 : part.id === 'srb-d' ? 2 : 1;
+    const n = part.tubes ?? 1;
     const tw = w / n;
     for (let i = 0; i < n; i++) {
       const tx = x + i * tw, tcx = tx + tw / 2;
@@ -280,7 +690,7 @@ export function paintPart(
     return;
   }
 
-  if (part.kind === 'fin') {
+  if (art === 'fin') {
     // A fin bolted to the left of the rocket sweeps left and a fin on the right sweeps right, so
     // `side` says which way this one is leaning. In the middle of nothing it grows both ways, the
     // way it does on the shelf.
@@ -299,8 +709,8 @@ export function paintPart(
     return;
   }
 
-  if (part.kind === 'truss') {
-    if (part.id === 'adapter') {
+  if (art === 'truss' || art === 'taper') {
+    if (art === 'taper') {
       // A taper: exactly as wide at the foot as the thing under it and as wide at the shoulder as
       // the thing on top, so a rocket narrows instead of stepping down in ledges.
       // on the shelf there is nothing above or below it, so it shows what it is for
@@ -346,23 +756,16 @@ export function paintPart(
   }
 
   // an engine: a short body and one or more bells
-  const bells = part.id === 'engine-x' ? 3 : part.id === 'engine-w' ? 5 : 1;
-  const bellTop = part.id === 'engine-v' ? 0.3 : 0.46;
-  ctx.fillStyle = tube(ctx, x, w, part.id === 'engine-n' ? '#bfc6cf' : WHITE);
+  const bells = part.bells ?? 1;
+  const bellTop = part.exhaust >= 3900 ? 0.3 : 0.46;
+  ctx.fillStyle = tube(ctx, x, w, WHITE);
   roundRectPath(ctx, x, y, w, h * (bellTop + 0.04), w * 0.04);
   ctx.fill();
-  if (part.id === 'engine-n') {
-    // the one engine that looks different, because it is
-    ctx.fillStyle = '#e2b03a';
-    ctx.fillRect(x, y + h * 0.14, w, h * 0.08);
-    ctx.fillStyle = 'rgba(40,44,52,0.7)';
-    for (let i = 0; i < 3; i++) ctx.fillRect(x + w * (0.2 + i * 0.25), y + h * 0.15, w * 0.06, h * 0.06);
-  }
   const bw = (w * 0.94) / bells;
   for (let i = 0; i < bells; i++) {
     const bx = x + w * 0.03 + i * bw + bw / 2;
     const top = y + h * bellTop;
-    const flare = part.id === 'engine-v' ? 0.62 : 0.46;
+    const flare = part.exhaust >= 3900 ? 0.62 : 0.46;
     ctx.fillStyle = tube(ctx, bx - bw * flare, bw * flare * 2, DARK);
     ctx.beginPath();
     ctx.moveTo(bx - bw * 0.2, top);

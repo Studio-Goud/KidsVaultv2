@@ -58,6 +58,12 @@ export interface Part {
    * a cylinder leaves this at one.
    */
   bulk: number;
+  /** which drawing this part uses; defaults to something sensible for its kind */
+  art?: string;
+  /** how many nozzles an engine shows */
+  bells?: number;
+  /** how many casings a strap-on booster is made of */
+  tubes?: number;
   /** one line about what it is for */
   note: string;
   noteNl: string;
@@ -85,160 +91,565 @@ const P = (p: Partial<Part> & Pick<Part, 'id' | 'kind' | 'group' | 'name' | 'nam
  * the nuclear engine pushes less than the big one and beats everything. NASA built and fired that
  * engine in the sixties and its exhaust really was about twice as fast as the best chemical one.
  */
+/**
+ * A hundred and three parts, and every number in them follows a rule.
+ *
+ * A tank's fuel is its volume: 2.75 tonnes per unit of width squared times height, which is why a
+ * wide tank holds so much more than a tall thin one and why the air hates it for exactly the same
+ * reason. Its empty mass is four per cent of what it carries plus a lump for the plumbing, except
+ * for the shapes where that is not true: a sphere is the lightest skin for a volume, a balloon
+ * tank is thinner still, a pressure tank is thicker.
+ *
+ * An engine is given a thrust and an exhaust speed, both real, and the burn rate falls out of
+ * them. Thrust gets you off the ground; exhaust speed decides how far you end up going, which is
+ * why the quiet vacuum engine beats the loud turbo and why the nuclear engine beats everything.
+ * NASA built and fired that one in the sixties.
+ *
+ * `bulk` is how much of the circle a part's width implies the air actually meets: a row of three
+ * tubes is three discs, not one enormous one, and a solar panel is a sheet.
+ */
 export const PARTS: Part[] = [
-  // ---- what rides on top
+  // ---- what rides on top, and what caps a column
+  P({
+    id: 'nose-xs', kind: 'nose', group: 'top', name: 'Tiny cone', nameNl: 'Puntje',
+    rows: 1, w: 0.62, dry: 0.05, sharp: 1,
+    note: 'For a slim booster. Weighs almost nothing.',
+    noteNl: 'Voor een smalle booster. Weegt bijna niets.',
+    art: 'cone',
+  }),
   P({
     id: 'nose', kind: 'nose', group: 'top', name: 'Nose cone', nameNl: 'Neuskegel',
     rows: 1, w: 1, dry: 0.1, sharp: 1,
     note: 'Almost weightless, and the air slides off it. Put one on every column.',
     noteNl: 'Bijna geen gewicht, en de lucht glijdt eraf. Zet er een op elke kolom.',
+    art: 'cone',
   }),
   P({
-    id: 'probe', kind: 'pod', group: 'top', name: 'Probe', nameNl: 'Sonde',
-    rows: 1, w: 0.7, dry: 0.25, sharp: 0.8,
-    note: 'The lightest thing you can send. Nothing rides home in it.',
-    noteNl: 'Het lichtste wat je kunt versturen. Er komt niemand mee terug.',
+    id: 'nose-l', kind: 'nose', group: 'top', name: 'Wide cone', nameNl: 'Brede kegel',
+    rows: 2, w: 1.4, dry: 0.22, sharp: 1,
+    note: 'Caps a wide stack without a step.',
+    noteNl: 'Sluit een brede stapel af zonder richel.',
+    art: 'cone',
   }),
   P({
-    id: 'capsule', kind: 'pod', group: 'top', name: 'Capsule', nameNl: 'Capsule',
-    rows: 2, w: 0.9, dry: 0.8, sharp: 0.9,
-    note: 'Room for one. Never falls away - it is what you are sending.',
-    noteNl: 'Plek voor een. Valt nooit af: het is wat je verstuurt.',
+    id: 'nose-xl', kind: 'nose', group: 'top', name: 'Huge cone', nameNl: 'Reuzekegel',
+    rows: 2, w: 1.8, dry: 0.36, sharp: 1,
+    note: 'For the very widest tanks.',
+    noteNl: 'Voor de allerbreedste tanks.',
+    art: 'cone',
   }),
   P({
-    id: 'cabin', kind: 'pod', group: 'top', name: 'Big cabin', nameNl: 'Grote cabine',
-    rows: 3, w: 1.1, dry: 2.2, sharp: 0.7,
-    note: 'Room for a crew, and it weighs what a crew weighs.',
-    noteNl: 'Plek voor een bemanning, en het weegt wat een bemanning weegt.',
+    id: 'nose-sharp', kind: 'nose', group: 'top', name: 'Needle cone', nameNl: 'Naaldkegel',
+    rows: 2, w: 1, dry: 0.16, sharp: 1,
+    note: 'Long and pointed. The best nose in the game, and you feel it.',
+    noteNl: 'Lang en spits. De beste neus in het spel, en dat merk je.',
+    art: 'needle',
+  }),
+  P({
+    id: 'nose-blunt', kind: 'nose', group: 'top', name: 'Blunt cap', nameNl: 'Stompe kap',
+    rows: 1, w: 1, dry: 0.07, sharp: 0.55,
+    note: 'Cheap and short. Better than a flat lid, worse than a cone.',
+    noteNl: 'Goedkoop en kort. Beter dan een platte deksel, slechter dan een kegel.',
+    art: 'blunt',
+  }),
+  P({
+    id: 'fairing-s', kind: 'nose', group: 'top', name: 'Small fairing', nameNl: 'Kleine neuskap',
+    rows: 2, w: 1.15, dry: 0.4, sharp: 0.85,
+    note: 'A shell over something slightly too wide.',
+    noteNl: 'Een kap over iets dat net iets te breed is.',
+    art: 'fairing',
   }),
   P({
     id: 'fairing', kind: 'nose', group: 'top', name: 'Fairing', nameNl: 'Neuskap',
     rows: 2, w: 1.38, dry: 0.6, sharp: 0.85,
     note: 'A wide shell to hide something fat under. Falls away with the stage.',
     noteNl: 'Een brede kap om iets diks onder te verstoppen. Valt met de trap mee af.',
+    art: 'fairing',
+  }),
+  P({
+    id: 'fairing-l', kind: 'nose', group: 'top', name: 'Big fairing', nameNl: 'Grote neuskap',
+    rows: 3, w: 1.75, dry: 1.0, sharp: 0.85,
+    note: 'Room for a whole lander inside it.',
+    noteNl: 'Er past een hele lander in.',
+    art: 'fairing',
+  }),
+  P({
+    id: 'heatshield', kind: 'nose', group: 'top', name: 'Heat shield', nameNl: 'Hitteschild',
+    rows: 1, w: 1.4, dry: 0.7, sharp: 0.35, bulk: 1,
+    note: 'A blunt dish of ablative tiles. Heavy, and it does not cut the air.',
+    noteNl: 'Een stompe schaal van hittetegels. Zwaar, en snijdt de lucht niet.',
+    art: 'shield',
+  }),
+  P({
+    id: 'probe', kind: 'pod', group: 'top', name: 'Probe', nameNl: 'Sonde',
+    rows: 1, w: 0.7, dry: 0.25, sharp: 0.8,
+    note: 'The lightest thing you can send. Nothing rides home in it.',
+    noteNl: 'Het lichtste wat je kunt versturen. Er komt niemand mee terug.',
+    art: 'probe',
+  }),
+  P({
+    id: 'probe-l', kind: 'pod', group: 'top', name: 'Big probe', nameNl: 'Grote sonde',
+    rows: 1, w: 1, dry: 0.5, sharp: 0.75,
+    note: 'More instruments, more mass.',
+    noteNl: 'Meer instrumenten, meer massa.',
+    art: 'probe',
+  }),
+  P({
+    id: 'sat', kind: 'pod', group: 'top', name: 'Satellite', nameNl: 'Satelliet',
+    rows: 1, w: 0.9, dry: 0.6, sharp: 0.5,
+    note: 'A box with a dish. It wants to be left somewhere high.',
+    noteNl: 'Een kast met een schotel. Wil ergens hoog achterblijven.',
+    art: 'sat',
+  }),
+  P({
+    id: 'telescope', kind: 'pod', group: 'top', name: 'Telescope', nameNl: 'Telescoop',
+    rows: 2, w: 1, dry: 1.4, sharp: 0.6,
+    note: 'A mirror in a tube, for looking further than anyone has.',
+    noteNl: 'Een spiegel in een koker, om verder te kijken dan wie ook.',
+    art: 'scope',
+  }),
+  P({
+    id: 'capsule', kind: 'pod', group: 'top', name: 'Capsule', nameNl: 'Capsule',
+    rows: 2, w: 0.9, dry: 0.8, sharp: 0.9,
+    note: 'Room for one. Never falls away - it is what you are sending.',
+    noteNl: 'Plek voor een. Valt nooit af: het is wat je verstuurt.',
+    art: 'capsule',
+  }),
+  P({
+    id: 'capsule-l', kind: 'pod', group: 'top', name: 'Three-seat capsule', nameNl: 'Driezitscapsule',
+    rows: 2, w: 1.2, dry: 1.6, sharp: 0.85,
+    note: 'Room for three, and it weighs like it.',
+    noteNl: 'Plek voor drie, en zo voelt het ook.',
+    art: 'capsule',
+  }),
+  P({
+    id: 'cabin', kind: 'pod', group: 'top', name: 'Big cabin', nameNl: 'Grote cabine',
+    rows: 3, w: 1.1, dry: 2.2, sharp: 0.7,
+    note: 'Room for a crew, and it weighs what a crew weighs.',
+    noteNl: 'Plek voor een bemanning, en het weegt wat een bemanning weegt.',
+    art: 'cabin',
+  }),
+  P({
+    id: 'station', kind: 'pod', group: 'top', name: 'Station module', nameNl: 'Stationmodule',
+    rows: 3, w: 1.35, dry: 3.6, sharp: 0.55,
+    note: 'A room to live in, up there. Very heavy.',
+    noteNl: 'Een kamer om daarboven in te wonen. Heel zwaar.',
+    art: 'station',
+  }),
+  P({
+    id: 'lander', kind: 'pod', group: 'top', name: 'Lander', nameNl: 'Lander',
+    rows: 2, w: 1.15, dry: 1.8, sharp: 0.5,
+    note: 'Legs and a hatch, for setting down on something.',
+    noteNl: 'Poten en een luik, om op iets neer te zetten.',
+    art: 'lander',
+  }),
+  P({
+    id: 'rover', kind: 'pod', group: 'top', name: 'Rover', nameNl: 'Rover',
+    rows: 1, w: 1.25, dry: 0.9, sharp: 0.3, bulk: 0.7,
+    note: 'Wheels for somewhere else. Flat, wide and awkward in the air.',
+    noteNl: 'Wielen voor ergens anders. Plat, breed en lastig in de lucht.',
+    art: 'rover',
+  }),
+  P({
+    id: 'cargo', kind: 'pod', group: 'top', name: 'Cargo bay', nameNl: 'Laadruim',
+    rows: 2, w: 1.2, dry: 1.1, sharp: 0.4,
+    note: 'An empty hold. Honest about it: it is mass and nothing else.',
+    noteNl: 'Een leeg ruim. Eerlijk gezegd: het is massa en verder niets.',
+    art: 'cargo',
+  }),
+  P({
+    id: 'shuttle', kind: 'pod', group: 'top', name: 'Space shuttle', nameNl: 'Spaceshuttle',
+    rows: 4, w: 1.5, dry: 6, sharp: 0.55, bulk: 0.56,
+    note: 'Rides on the side of the tank, the way the real one did. Its engines go under the tank.',
+    noteNl: 'Gaat aan de zijkant van de tank mee, zoals de echte. De motoren zet je onder de tank.',
+    art: 'shuttle',
+  }),
+  P({
+    id: 'shuttle-s', kind: 'pod', group: 'top', name: 'Mini shuttle', nameNl: 'Minishuttle',
+    rows: 3, w: 1.2, dry: 3, sharp: 0.55, bulk: 0.56,
+    note: 'A small winged body. Lighter than the big one and just as awkward.',
+    noteNl: 'Een klein gevleugeld lijf. Lichter dan de grote en net zo lastig.',
+    art: 'shuttle',
   }),
 
-  // ---- tanks
+  // ---- tanks: fuel is volume, and volume is width squared times height
+  P({
+    id: 'tank-t1', kind: 'tank', group: 'tank', name: 'Thin tank 1', nameNl: 'Smalle tank 1',
+    rows: 1, w: 0.62, fuel: 1.06, dry: 0.09,
+    note: '1.06 tonnes of fuel, 1 rows tall.',
+    noteNl: '1,06 ton brandstof, 1 rijen hoog.',
+  }),
+  P({
+    id: 'tank-t2', kind: 'tank', group: 'tank', name: 'Thin tank 2', nameNl: 'Smalle tank 2',
+    rows: 2, w: 0.62, fuel: 2.11, dry: 0.13,
+    note: '2.11 tonnes of fuel, 2 rows tall.',
+    noteNl: '2,11 ton brandstof, 2 rijen hoog.',
+  }),
+  P({
+    id: 'tank-thin', kind: 'tank', group: 'tank', name: 'Thin tank 3', nameNl: 'Smalle tank 3',
+    rows: 3, w: 0.62, fuel: 3.17, dry: 0.18,
+    note: '3.17 tonnes of fuel, 3 rows tall.',
+    noteNl: '3,17 ton brandstof, 3 rijen hoog.',
+  }),
+  P({
+    id: 'tank-t4', kind: 'tank', group: 'tank', name: 'Thin tank 4', nameNl: 'Smalle tank 4',
+    rows: 4, w: 0.62, fuel: 4.23, dry: 0.22,
+    note: '4.23 tonnes of fuel, 4 rows tall.',
+    noteNl: '4,23 ton brandstof, 4 rijen hoog.',
+  }),
   P({
     id: 'tank-xs', kind: 'tank', group: 'tank', name: 'Tiny tank', nameNl: 'Minitank',
-    rows: 1, w: 1, dry: 0.1, fuel: 2,
-    note: 'Two tonnes. Good for topping a stage up to the height you want.',
-    noteNl: 'Twee ton. Handig om een trap net zo hoog te maken als je wilt.',
+    rows: 1, w: 1, fuel: 2.75, dry: 0.16,
+    note: '2.75 tonnes of fuel, 1 rows tall.',
+    noteNl: '2,75 ton brandstof, 1 rijen hoog.',
   }),
   P({
     id: 'tank-s', kind: 'tank', group: 'tank', name: 'Small tank', nameNl: 'Kleine tank',
-    rows: 2, w: 1, dry: 0.2, fuel: 4.5,
-    note: 'Four and a half tonnes of fuel.',
-    noteNl: 'Vierenhalve ton brandstof.',
+    rows: 2, w: 1, fuel: 5.5, dry: 0.27,
+    note: '5.5 tonnes of fuel, 2 rows tall.',
+    noteNl: '5,5 ton brandstof, 2 rijen hoog.',
   }),
   P({
     id: 'tank-m', kind: 'tank', group: 'tank', name: 'Medium tank', nameNl: 'Middeltank',
-    rows: 3, w: 1, dry: 0.32, fuel: 7.5,
-    note: 'Seven and a half tonnes, in the same width.',
-    noteNl: 'Zevenenhalve ton, in dezelfde breedte.',
+    rows: 3, w: 1, fuel: 8.25, dry: 0.38,
+    note: '8.25 tonnes of fuel, 3 rows tall.',
+    noteNl: '8,25 ton brandstof, 3 rijen hoog.',
   }),
   P({
     id: 'tank-l', kind: 'tank', group: 'tank', name: 'Big tank', nameNl: 'Grote tank',
-    rows: 4, w: 1, dry: 0.45, fuel: 11,
-    note: 'Eleven tonnes. Tall rather than fat, which the air likes.',
-    noteNl: 'Elf ton. Lang in plaats van dik, en dat vindt de lucht prettig.',
+    rows: 4, w: 1, fuel: 11.0, dry: 0.49,
+    note: '11.0 tonnes of fuel, 4 rows tall.',
+    noteNl: '11,0 ton brandstof, 4 rijen hoog.',
   }),
   P({
-    id: 'tank-w', kind: 'tank', group: 'tank', name: 'Wide tank', nameNl: 'Brede tank',
-    rows: 3, w: 1.4, dry: 0.7, fuel: 16,
-    note: 'Sixteen tonnes in three rows - and a much bigger hole through the air.',
-    noteNl: 'Zestien ton in drie rijen, maar ook een veel groter gat door de lucht.',
+    id: 'tank-xl', kind: 'tank', group: 'tank', name: 'Tall tank', nameNl: 'Lange tank',
+    rows: 5, w: 1, fuel: 13.75, dry: 0.6,
+    note: '13.75 tonnes of fuel, 5 rows tall.',
+    noteNl: '13,75 ton brandstof, 5 rijen hoog.',
   }),
   P({
-    id: 'tank-thin', kind: 'tank', group: 'tank', name: 'Slim tank', nameNl: 'Smalle tank',
-    rows: 3, w: 0.62, dry: 0.16, fuel: 3.2,
-    note: 'Narrow and slippery. Made for hanging beside the core.',
-    noteNl: 'Smal en glad. Gemaakt om naast de kern te hangen.',
+    id: 'tank-xxl', kind: 'tank', group: 'tank', name: 'Giant tank', nameNl: 'Reuzetank',
+    rows: 6, w: 1, fuel: 16.5, dry: 0.71,
+    note: '16.5 tonnes of fuel, 6 rows tall.',
+    noteNl: '16,5 ton brandstof, 6 rijen hoog.',
+  }),
+  P({
+    id: 'tank-w2', kind: 'tank', group: 'tank', name: 'Wide tank 2', nameNl: 'Brede tank 2',
+    rows: 2, w: 1.4, fuel: 10.78, dry: 0.48,
+    note: '10.78 tonnes of fuel, 2 rows tall.',
+    noteNl: '10,78 ton brandstof, 2 rijen hoog.',
+  }),
+  P({
+    id: 'tank-w', kind: 'tank', group: 'tank', name: 'Wide tank 3', nameNl: 'Brede tank 3',
+    rows: 3, w: 1.4, fuel: 16.17, dry: 0.7,
+    note: '16.17 tonnes of fuel, 3 rows tall.',
+    noteNl: '16,17 ton brandstof, 3 rijen hoog.',
+  }),
+  P({
+    id: 'tank-w4', kind: 'tank', group: 'tank', name: 'Wide tank 4', nameNl: 'Brede tank 4',
+    rows: 4, w: 1.4, fuel: 21.56, dry: 0.91,
+    note: '21.56 tonnes of fuel, 4 rows tall.',
+    noteNl: '21,56 ton brandstof, 4 rijen hoog.',
+  }),
+  P({
+    id: 'tank-w5', kind: 'tank', group: 'tank', name: 'Wide tank 5', nameNl: 'Brede tank 5',
+    rows: 5, w: 1.4, fuel: 26.95, dry: 1.13,
+    note: '26.95 tonnes of fuel, 5 rows tall.',
+    noteNl: '26,95 ton brandstof, 5 rijen hoog.',
+  }),
+  P({
+    id: 'tank-h3', kind: 'tank', group: 'tank', name: 'Huge tank 3', nameNl: 'Kolostank 3',
+    rows: 3, w: 1.8, fuel: 26.73, dry: 1.12,
+    note: '26.73 tonnes of fuel, 3 rows tall.',
+    noteNl: '26,73 ton brandstof, 3 rijen hoog.',
+  }),
+  P({
+    id: 'tank-h4', kind: 'tank', group: 'tank', name: 'Huge tank 4', nameNl: 'Kolostank 4',
+    rows: 4, w: 1.8, fuel: 35.64, dry: 1.48,
+    note: '35.64 tonnes of fuel, 4 rows tall.',
+    noteNl: '35,64 ton brandstof, 4 rijen hoog.',
+  }),
+  P({
+    id: 'tank-h5', kind: 'tank', group: 'tank', name: 'Huge tank 5', nameNl: 'Kolostank 5',
+    rows: 5, w: 1.8, fuel: 44.55, dry: 1.83,
+    note: '44.55 tonnes of fuel, 5 rows tall.',
+    noteNl: '44,55 ton brandstof, 5 rijen hoog.',
+  }),
+  P({
+    id: 'tank-ball', kind: 'tank', group: 'tank', name: 'Round tank', nameNl: 'Bolle tank',
+    rows: 2, w: 1.25, fuel: 8.59, dry: 0.28,
+    note: 'A sphere holds the most for its skin, so it is the lightest tank there is.',
+    noteNl: 'Een bol houdt het meeste vast voor zijn huid, dus het is de lichtste tank die er is.',
+    art: 'ball',
+  }),
+  P({
+    id: 'tank-thinwall', kind: 'tank', group: 'tank', name: 'Balloon tank', nameNl: 'Ballontank',
+    rows: 4, w: 1, fuel: 11.0, dry: 0.27,
+    note: 'Skin as thin as a drink can, and only strong when it is full.',
+    noteNl: 'Een wand zo dun as een blikje, en alleen sterk als hij vol is.',
+    art: 'balloon',
+  }),
+  P({
+    id: 'tank-heavy', kind: 'tank', group: 'tank', name: 'Pressure tank', nameNl: 'Druktank',
+    rows: 3, w: 1, fuel: 10.06, dry: 0.83,
+    note: 'Thick walls, packed tight. More fuel and more dead metal.',
+    noteNl: 'Dikke wanden, strak gevuld. Meer brandstof en meer dood metaal.',
+    art: 'ribbed',
+  }),
+  P({
+    id: 'tank-long', kind: 'tank', group: 'tank', name: 'Needle tank', nameNl: 'Naaldtank',
+    rows: 6, w: 0.62, fuel: 6.34, dry: 0.3,
+    note: 'Six rows of almost nothing. Slippery and not much use on its own.',
+    noteNl: 'Zes rijen van bijna niets. Glad, en in zijn eentje niet veel waard.',
+    art: 'tank',
   }),
 
-  // ---- engines
+  // ---- engines: thrust and exhaust speed are given, the burn rate falls out of them
+  P({
+    id: 'engine-v0', kind: 'engine', group: 'engine', name: 'Vernier', nameNl: 'Stuurmotortje',
+    rows: 1, w: 0.5, burn: 0.0106, exhaust: 2450, dry: 0.06,
+    note: 'A thimble of thrust for nudging something small.',
+    noteNl: 'Een vingerhoed duwkracht om iets kleins te verzetten.',
+    art: 'bell',
+  }),
   P({
     id: 'engine-xs', kind: 'engine', group: 'engine', name: 'Tiny engine', nameNl: 'Minimotor',
-    rows: 1, w: 0.7, dry: 0.2, burn: 0.036, exhaust: 2400,
+    rows: 1, w: 0.7, burn: 0.0358, exhaust: 2400, dry: 0.2,
     note: 'Barely lifts itself. Useful on top, where there is nothing left to lift.',
     noteNl: 'Tilt zichzelf amper op. Handig bovenin, waar niets meer te tillen valt.',
+    art: 'bell',
   }),
   P({
     id: 'engine-s', kind: 'engine', group: 'engine', name: 'Small engine', nameNl: 'Kleine motor',
-    rows: 1, w: 1, dry: 0.5, burn: 0.102, exhaust: 2600,
-    note: 'The one to start with. Lifts about forty tonnes of nothing else.',
+    rows: 1, w: 1, burn: 0.1019, exhaust: 2600, dry: 0.5,
+    note: 'The one to start with. Lifts about forty tonnes and nothing else.',
     noteNl: 'Om mee te beginnen. Tilt ongeveer veertig ton en verder niets.',
+    art: 'bell',
+  }),
+  P({
+    id: 'engine-m', kind: 'engine', group: 'engine', name: 'Medium engine', nameNl: 'Middenmotor',
+    rows: 1, w: 1.02, burn: 0.2214, exhaust: 2800, dry: 0.85,
+    note: 'Twice the small one, and only two thirds heavier.',
+    noteNl: 'Twee keer de kleine, en maar twee derde zwaarder.',
+    art: 'bell',
   }),
   P({
     id: 'engine-l', kind: 'engine', group: 'engine', name: 'Big engine', nameNl: 'Grote motor',
-    rows: 1, w: 1.06, dry: 1.3, burn: 0.33, exhaust: 3050,
+    rows: 1, w: 1.06, burn: 0.3298, exhaust: 3050, dry: 1.3,
     note: 'Four times the push of the small one, and nearly three times the weight.',
     noteNl: 'Vier keer zoveel duw als de kleine, en bijna drie keer zo zwaar.',
+    art: 'bell',
   }),
   P({
     id: 'engine-x', kind: 'engine', group: 'engine', name: 'Three engines', nameNl: 'Drie motoren',
-    rows: 2, w: 1.3, dry: 2.8, burn: 0.93, exhaust: 2950, bulk: 0.9,
-    note: 'Brute force off the pad. Drinks the tank in seconds.',
-    noteNl: 'Botte kracht bij het opstijgen. Drinkt de tank in seconden leeg.',
+    rows: 2, w: 1.3, burn: 0.9302, exhaust: 2950, dry: 2.8, bulk: 0.9,
+    note: 'Brute force off the pad. Drinks the tank in a hurry.',
+    noteNl: 'Botte kracht bij het opstijgen. Drinkt de tank snel leeg.',
+    art: 'bell', bells: 3,
   }),
   P({
     id: 'engine-w', kind: 'engine', group: 'engine', name: 'Nine engines', nameNl: 'Negen motoren',
-    rows: 2, w: 1.45, dry: 7, burn: 2.58, exhaust: 2980, bulk: 0.85,
+    rows: 2, w: 1.45, burn: 2.5799, exhaust: 2980, dry: 7.0, bulk: 0.85,
     note: 'A whole first stage in one piece. It will lift anything you can build.',
     noteNl: 'Een hele eerste trap in een stuk. Tilt alles op wat je kunt bouwen.',
+    art: 'bell', bells: 5,
+  }),
+  P({
+    id: 'engine-w2', kind: 'engine', group: 'engine', name: 'Thirty engines', nameNl: 'Dertig motoren',
+    rows: 3, w: 1.8, burn: 8.0, exhaust: 3000, dry: 20.0, bulk: 0.8,
+    note: 'Absurd, and real: the biggest rocket ever built lights thirty-three at once.',
+    noteNl: 'Absurd, en echt: de grootste raket ooit ontsteekt er drieëndertig tegelijk.',
+    art: 'bell', bells: 7,
+  }),
+  P({
+    id: 'engine-m2', kind: 'engine', group: 'engine', name: 'Methane engine', nameNl: 'Methaanmotor',
+    rows: 2, w: 1.05, burn: 0.2667, exhaust: 3300, dry: 1.15,
+    note: 'Burns methane. Cleaner, and the exhaust comes out faster than kerosene.',
+    noteNl: 'Verbrandt methaan. Schoner, en de uitlaat gaat er sneller uit dan bij kerosine.',
+    art: 'bell',
+  }),
+  P({
+    id: 'engine-m3', kind: 'engine', group: 'engine', name: 'Big methane engine', nameNl: 'Grote methaanmotor',
+    rows: 2, w: 1.2, burn: 0.6866, exhaust: 3350, dry: 2.6, bulk: 0.92,
+    note: 'A stack of the same idea. Strong and efficient at once.',
+    noteNl: 'Een stapel van hetzelfde idee. Sterk en zuinig tegelijk.',
+    art: 'bell', bells: 2,
   }),
   P({
     id: 'engine-h', kind: 'engine', group: 'engine', name: 'Hydrogen engine', nameNl: 'Waterstofmotor',
-    rows: 2, w: 1.1, dry: 1.5, burn: 0.252, exhaust: 4400,
+    rows: 2, w: 1.1, burn: 0.252, exhaust: 4400, dry: 1.5,
     note: 'Burns hydrogen, so the exhaust comes out fast. Strong and efficient at once.',
     noteNl: 'Verbrandt waterstof, dus de uitlaat gaat er snel uit. Sterk en zuinig tegelijk.',
+    art: 'bell',
+  }),
+  P({
+    id: 'engine-h2', kind: 'engine', group: 'engine', name: 'Big hydrogen engine', nameNl: 'Grote waterstofmotor',
+    rows: 2, w: 1.3, burn: 0.5057, exhaust: 4350, dry: 3.1, bulk: 0.9,
+    note: 'Two of them in one casing. The workhorse of the big launchers.',
+    noteNl: 'Twee in een behuizing. Het werkpaard van de grote draagraketten.',
+    art: 'bell', bells: 2,
+  }),
+  P({
+    id: 'engine-a', kind: 'engine', group: 'engine', name: 'Aerospike', nameNl: 'Aerospike',
+    rows: 2, w: 1.15, burn: 0.3194, exhaust: 3600, dry: 1.9,
+    note: 'No bell at all. Works as well low down as it does high up, which no normal engine does.',
+    noteNl: 'Helemaal geen klok. Werkt laag net zo goed als hoog, en dat doet geen gewone motor.',
+    art: 'spike',
+  }),
+  P({
+    id: 'engine-a2', kind: 'engine', group: 'engine', name: 'Big aerospike', nameNl: 'Grote aerospike',
+    rows: 2, w: 1.4, burn: 0.7123, exhaust: 3650, dry: 4.1, bulk: 0.9,
+    note: 'The same trick, larger. Heavy for its push and worth it.',
+    noteNl: 'Dezelfde truc, groter. Zwaar voor zijn duw en dat is hij waard.',
+    art: 'spike', bells: 2,
   }),
   P({
     id: 'engine-v', kind: 'engine', group: 'engine', name: 'Vacuum engine', nameNl: 'Vacuummotor',
-    rows: 2, w: 1, dry: 0.5, burn: 0.102, exhaust: 4000,
+    rows: 2, w: 1, burn: 0.102, exhaust: 4000, dry: 0.5,
     note: 'A big soft bell, made for the emptiness. Quiet, and it goes furthest.',
     noteNl: 'Een grote zachte klok, gemaakt voor de leegte. Stil, en komt het verst.',
+    art: 'bell',
+  }),
+  P({
+    id: 'engine-v2', kind: 'engine', group: 'engine', name: 'Big vacuum engine', nameNl: 'Grote vacuummotor',
+    rows: 3, w: 1.25, burn: 0.2458, exhaust: 4150, dry: 1.4,
+    note: 'The same, with a bell you could sit in.',
+    noteNl: 'Dezelfde, met een klok waar je in kunt zitten.',
+    art: 'bell',
   }),
   P({
     id: 'engine-n', kind: 'engine', group: 'engine', name: 'Nuclear engine', nameNl: 'Kernmotor',
-    rows: 2, w: 1.06, dry: 1.2, burn: 0.084, exhaust: 8000,
+    rows: 2, w: 1.06, burn: 0.084, exhaust: 8000, dry: 1.2,
     note: 'Heats the fuel with a reactor. Twice the exhaust speed of anything chemical.',
     noteNl: 'Verhit de brandstof met een reactor. Twee keer zo snelle uitlaat als alles chemisch.',
+    art: 'reactor',
+  }),
+  P({
+    id: 'engine-n2', kind: 'engine', group: 'engine', name: 'Big nuclear engine', nameNl: 'Grote kernmotor',
+    rows: 3, w: 1.25, burn: 0.1829, exhaust: 8200, dry: 2.9,
+    note: 'A bigger reactor. Nothing chemical will ever catch it.',
+    noteNl: 'Een grotere reactor. Niets chemisch haalt hem ooit in.',
+    art: 'reactor',
+  }),
+  P({
+    id: 'engine-t', kind: 'engine', group: 'engine', name: 'Turbo', nameNl: 'Turbo',
+    rows: 1, w: 0.9, burn: 0.4091, exhaust: 2200, dry: 0.7,
+    note: 'Runs the pumps far past sensible. Enormous push, and it drinks the tank.',
+    noteNl: 'Laat de pompen ver voorbij verstandig draaien. Enorme duw, en hij zuipt de tank leeg.',
+    art: 'turbo',
+  }),
+  P({
+    id: 'engine-t2', kind: 'engine', group: 'engine', name: 'Big turbo', nameNl: 'Grote turbo',
+    rows: 2, w: 1.15, burn: 1.1163, exhaust: 2150, dry: 1.7,
+    note: 'The same recklessness, bigger. Wonderful for the first ten seconds.',
+    noteNl: 'Dezelfde roekeloosheid, groter. Heerlijk voor de eerste tien seconden.',
+    art: 'turbo',
+  }),
+  P({
+    id: 'engine-sep', kind: 'engine', group: 'engine', name: 'Separation motor', nameNl: 'Scheidingsmotor',
+    rows: 1, w: 0.42, burn: 0.02, exhaust: 2000, dry: 0.05,
+    note: 'A puff to shove a spent stage clear. That is all it is for.',
+    noteNl: 'Een pufje om een lege trap weg te duwen. Daar is hij voor.',
+    art: 'bell',
+  }),
+  P({
+    id: 'engine-rcs', kind: 'engine', group: 'engine', name: 'Thruster block', nameNl: 'Stuurblok',
+    rows: 1, w: 0.55, burn: 0.0179, exhaust: 2900, dry: 0.12,
+    note: 'Four small nozzles. Not for going anywhere, for pointing.',
+    noteNl: 'Vier kleine tuitjes. Niet om ergens te komen, om te richten.',
+    art: 'rcs', bells: 4,
   }),
 
-  // ---- strap-on boosters: an engine and its fuel in one piece
+  // ---- strap-on boosters: fuel and engine in one casing
+  P({
+    id: 'srb-xs', kind: 'solid', group: 'booster', name: 'Pocket booster', nameNl: 'Zakbooster',
+    rows: 1, w: 0.6, fuel: 2.2, burn: 0.0816, exhaust: 2450, dry: 0.16, sharp: 0.7, bulk: 1.0,
+    note: 'A stubby can of solid fuel. Lights once and is over quickly.',
+    noteNl: 'Een kort blikje vaste brandstof. Gaat een keer aan en is zo voorbij.',
+  }),
   P({
     id: 'srb-s', kind: 'solid', group: 'booster', name: 'Single booster', nameNl: 'Enkele booster',
-    rows: 2, w: 0.64, dry: 0.35, fuel: 5, burn: 0.279, exhaust: 2500, sharp: 0.7,
+    rows: 2, w: 0.64, fuel: 5, burn: 0.2792, exhaust: 2500, dry: 0.35, sharp: 0.7, bulk: 1.0,
     note: 'Fuel and engine in one. Lights once, burns hard, cannot be turned off.',
     noteNl: 'Brandstof en motor in een. Gaat een keer aan, brandt hard, kan niet uit.',
   }),
   P({
-    id: 'srb-l', kind: 'solid', group: 'booster', name: 'Big booster', nameNl: 'Grote booster',
-    rows: 4, w: 0.74, dry: 0.75, fuel: 12, burn: 0.585, exhaust: 2550, sharp: 0.7,
-    note: 'Twelve tonnes of solid fuel. Two of these will shift almost anything.',
-    noteNl: 'Twaalf ton vaste brandstof. Twee hiervan krijgen bijna alles in beweging.',
-  }),
-
-  P({
     id: 'srb-d', kind: 'solid', group: 'booster', name: 'Double booster', nameNl: 'Dubbele booster',
-    rows: 3, w: 1.34, dry: 0.75, fuel: 11, burn: 0.585, exhaust: 2500, sharp: 0.7, bulk: 0.5,
+    rows: 3, w: 1.34, fuel: 11, burn: 0.5852, exhaust: 2500, dry: 0.75, sharp: 0.7, bulk: 0.5,
     note: 'Two strapped together. Twice the push and twice the air to push through.',
     noteNl: 'Twee aan elkaar. Twee keer zoveel duw en twee keer zoveel lucht om doorheen te duwen.',
+    tubes: 2,
   }),
   P({
     id: 'srb-t', kind: 'solid', group: 'booster', name: 'Triple booster', nameNl: 'Drievoudige booster',
-    rows: 4, w: 1.96, dry: 1.5, fuel: 22, burn: 1.1, exhaust: 2500, sharp: 0.7, bulk: 0.34,
+    rows: 4, w: 1.96, fuel: 22, burn: 1.1, exhaust: 2500, dry: 1.5, sharp: 0.7, bulk: 0.333,
     note: 'Three in a row. Enormous off the pad, and enormously wide.',
     noteNl: 'Drie op een rij. Enorm bij het opstijgen, en enorm breed.',
+    tubes: 3,
+  }),
+  P({
+    id: 'srb-l', kind: 'solid', group: 'booster', name: 'Big booster', nameNl: 'Grote booster',
+    rows: 4, w: 0.74, fuel: 12, burn: 0.5851, exhaust: 2550, dry: 0.75, sharp: 0.7, bulk: 1.0,
+    note: 'Twelve tonnes of solid fuel. Two of these will shift almost anything.',
+    noteNl: 'Twaalf ton vaste brandstof. Twee hiervan krijgen bijna alles in beweging.',
+  }),
+  P({
+    id: 'srb-ld', kind: 'solid', group: 'booster', name: 'Big double', nameNl: 'Grote dubbele',
+    rows: 5, w: 1.5, fuel: 26, burn: 1.2157, exhaust: 2550, dry: 1.6, sharp: 0.7, bulk: 0.5,
+    note: 'A pair of the big ones. The stack leaves in a hurry.',
+    noteNl: 'Een paar van de grote. De stapel vertrekt met haast.',
+    tubes: 2,
+  }),
+  P({
+    id: 'srb-lt', kind: 'solid', group: 'booster', name: 'Big triple', nameNl: 'Grote drievoudige',
+    rows: 6, w: 2.2, fuel: 40, burn: 1.8431, exhaust: 2550, dry: 2.5, sharp: 0.7, bulk: 0.333,
+    note: 'Three big ones. There is nothing subtle about it.',
+    noteNl: 'Drie grote. Er is niets subtiels aan.',
+    tubes: 3,
+  }),
+  P({
+    id: 'srb-xl', kind: 'solid', group: 'booster', name: 'Monster booster', nameNl: 'Monsterbooster',
+    rows: 6, w: 0.95, fuel: 26, burn: 1.1538, exhaust: 2600, dry: 1.6, sharp: 0.7, bulk: 1.0,
+    note: 'One casing, six rows tall. The kind that stands beside a shuttle.',
+    noteNl: 'Een casing, zes rijen hoog. Het soort dat naast een shuttle staat.',
+  }),
+  P({
+    id: 'lrb-s', kind: 'solid', group: 'booster', name: 'Liquid strap-on', nameNl: 'Vloeibare aanbouw',
+    rows: 4, w: 0.8, fuel: 11, burn: 0.2951, exhaust: 3050, dry: 0.9, sharp: 0.7, bulk: 1.0,
+    note: 'A little rocket bolted to the side, burning proper fuel. Gentler and it lasts.',
+    noteNl: 'Een raketje aan de zijkant, met echte brandstof. Rustiger, en het houdt aan.',
+  }),
+  P({
+    id: 'lrb-l', kind: 'solid', group: 'booster', name: 'Big liquid strap-on', nameNl: 'Grote vloeibare aanbouw',
+    rows: 6, w: 1.0, fuel: 22, burn: 0.5484, exhaust: 3100, dry: 1.7, sharp: 0.7, bulk: 1.0,
+    note: 'The same, twice over. Half a rocket in its own right.',
+    noteNl: 'Dezelfde, twee keer. Op zichzelf al een halve raket.',
+  }),
+  P({
+    id: 'srb-sep', kind: 'solid', group: 'booster', name: 'Kick motor', nameNl: 'Schopmotor',
+    rows: 1, w: 0.7, fuel: 1.2, burn: 0.1103, exhaust: 2900, dry: 0.12, sharp: 0.7, bulk: 1.0,
+    note: 'A short hard shove for the very top of a rocket.',
+    noteNl: 'Een korte harde zet voor het allerbovenste van een raket.',
   }),
 
-  // ---- fins and odds and ends
+  // ---- wings, structure and the things you put on because you want to
+  P({
+    id: 'fin-xs', kind: 'fin', group: 'extra', name: 'Tail fins', nameNl: 'Staartvinnen',
+    rows: 1, w: 1.05, dry: 0.06,
+    note: 'Three little blades. Enough for a small rocket.',
+    noteNl: 'Drie kleine bladen. Genoeg voor een kleine raket.',
+  }),
   P({
     id: 'fin-s', kind: 'fin', group: 'extra', name: 'Small fins', nameNl: 'Kleine vinnen',
     rows: 1, w: 1.35, dry: 0.15,
     note: 'Keeps the nose pointing up in the thick air. Costs a little speed.',
     noteNl: 'Houdt de neus omhoog in de dikke lucht. Kost een beetje snelheid.',
+  }),
+  P({
+    id: 'fin-m', kind: 'fin', group: 'extra', name: 'Swept fins', nameNl: 'Gepijlde vinnen',
+    rows: 2, w: 1.5, dry: 0.26,
+    note: 'Longer and raked back. Steadier, and the air notices.',
+    noteNl: 'Langer en naar achteren gepijld. Rustiger, en de lucht merkt het.',
   }),
   P({
     id: 'fin-l', kind: 'fin', group: 'extra', name: 'Big fins', nameNl: 'Grote vinnen',
@@ -247,24 +658,161 @@ export const PARTS: Part[] = [
     noteNl: 'Houdt een wiebelige raket kaarsrecht, en de lucht laat je ervoor betalen.',
   }),
   P({
+    id: 'fin-grid', kind: 'fin', group: 'extra', name: 'Grid fins', nameNl: 'Roostervinnen',
+    rows: 1, w: 1.25, dry: 0.32,
+    note: 'A waffle of little blades. Enormous grip on the air and enormous drag.',
+    noteNl: 'Een wafel van kleine bladen. Enorme grip op de lucht en enorme weerstand.',
+    art: 'grid',
+  }),
+  P({
+    id: 'wing-s', kind: 'fin', group: 'extra', name: 'Small wing', nameNl: 'Kleine vleugel',
+    rows: 2, w: 1.6, dry: 0.3,
+    note: 'A flat plate out to one side. It steadies and it drags.',
+    noteNl: 'Een plat vlak opzij. Het stabiliseert en het remt.',
+    art: 'wing',
+  }),
+  P({
+    id: 'wing-l', kind: 'fin', group: 'extra', name: 'Big wing', nameNl: 'Grote vleugel',
+    rows: 3, w: 2.0, dry: 0.7,
+    note: 'A proper wing. Wonderful on a plane, questionable on a rocket.',
+    noteNl: 'Een echte vleugel. Prachtig op een vliegtuig, twijfelachtig op een raket.',
+    art: 'wing',
+  }),
+  P({
+    id: 'airbrake', kind: 'fin', group: 'extra', name: 'Air brake', nameNl: 'Remklep',
+    rows: 1, w: 1.15, dry: 0.2,
+    note: 'A flap that stands out into the airflow on purpose.',
+    noteNl: 'Een klep die expres in de luchtstroom gaat staan.',
+    art: 'brake',
+  }),
+  P({
     id: 'adapter', kind: 'truss', group: 'extra', name: 'Taper', nameNl: 'Verloopstuk',
     rows: 1, w: 1.1, dry: 0.12,
     note: 'Takes the width of whatever is under it and narrows to whatever is on top.',
     noteNl: 'Neemt de breedte van wat eronder staat en loopt af naar wat erop staat.',
+    art: 'taper',
   }),
   P({
-    id: 'shuttle', kind: 'pod', group: 'top', name: 'Space shuttle', nameNl: 'Spaceshuttle',
-    rows: 4, w: 1.5, dry: 6, sharp: 0.55, bulk: 0.56,
-    note: 'Rides on the side of the tank, the way the real one did. Heavy, and the wings catch air. Its engines go under the tank.',
-    noteNl: 'Gaat aan de zijkant van de tank mee, zoals de echte. Zwaar, en de vleugels vangen lucht. De motoren zet je onder de tank.',
+    id: 'adapter-l', kind: 'truss', group: 'extra', name: 'Tall taper', nameNl: 'Lang verloopstuk',
+    rows: 2, w: 1.2, dry: 0.2,
+    note: 'The same, over two rows, so the change is gentler.',
+    noteNl: 'Hetzelfde, over twee rijen, zodat de overgang zachter is.',
+    art: 'taper',
   }),
   P({
     id: 'truss', kind: 'truss', group: 'extra', name: 'Girder', nameNl: 'Vakwerk',
     rows: 2, w: 0.42, dry: 0.08,
     note: 'Open framework. Weighs next to nothing and holds things apart.',
     noteNl: 'Open frame. Weegt bijna niets en houdt dingen uit elkaar.',
+    art: 'truss',
+  }),
+  P({
+    id: 'truss-l', kind: 'truss', group: 'extra', name: 'Long girder', nameNl: 'Lang vakwerk',
+    rows: 4, w: 0.42, dry: 0.14,
+    note: 'Four rows of almost nothing at all.',
+    noteNl: 'Vier rijen van bijna helemaal niets.',
+    art: 'truss',
+  }),
+  P({
+    id: 'strut', kind: 'truss', group: 'extra', name: 'Strut', nameNl: 'Steun',
+    rows: 1, w: 0.4, dry: 0.04,
+    note: 'A short brace. Mostly it is there to make a joint look solid.',
+    noteNl: 'Een korte schoor. Vooral om een verbinding stevig te laten lijken.',
+    art: 'strut',
+  }),
+  P({
+    id: 'decoupler', kind: 'truss', group: 'extra', name: 'Decoupler', nameNl: 'Ontkoppelaar',
+    rows: 1, w: 1.05, dry: 0.1,
+    note: 'A ring of little charges. Press the button and whatever is under it goes.',
+    noteNl: 'Een ring met kleine ladingen. Druk op de knop en wat eronder zit gaat weg.',
+    art: 'ring',
+  }),
+  P({
+    id: 'decoupler-l', kind: 'truss', group: 'extra', name: 'Wide decoupler', nameNl: 'Brede ontkoppelaar',
+    rows: 1, w: 1.45, dry: 0.18,
+    note: 'The same ring, for a wide stack.',
+    noteNl: 'Dezelfde ring, voor een brede stapel.',
+    art: 'ring',
+  }),
+  P({
+    id: 'leg', kind: 'truss', group: 'extra', name: 'Landing leg', nameNl: 'Landingspoot',
+    rows: 1, w: 1.3, dry: 0.22, bulk: 0.55,
+    note: 'A foot to stand on somewhere else. Up here it is mass.',
+    noteNl: 'Een voet om ergens anders op te staan. Hierboven is het massa.',
+    art: 'leg',
+  }),
+  P({
+    id: 'leg-l', kind: 'truss', group: 'extra', name: 'Big landing leg', nameNl: 'Grote landingspoot',
+    rows: 2, w: 1.6, dry: 0.45, bulk: 0.55,
+    note: 'A bigger foot for a heavier thing.',
+    noteNl: 'Een grotere voet voor iets zwaarders.',
+    art: 'leg',
+  }),
+  P({
+    id: 'chute', kind: 'truss', group: 'extra', name: 'Parachute', nameNl: 'Parachute',
+    rows: 1, w: 0.9, dry: 0.12,
+    note: 'Folded silk. It weighs almost nothing and it is a promise.',
+    noteNl: 'Opgevouwen zijde. Weegt bijna niets en is een belofte.',
+    art: 'chute',
+  }),
+  P({
+    id: 'chute-l', kind: 'truss', group: 'extra', name: 'Big parachute', nameNl: 'Grote parachute',
+    rows: 1, w: 1.15, dry: 0.28,
+    note: 'Enough canopy for a capsule.',
+    noteNl: 'Genoeg doek voor een capsule.',
+    art: 'chute',
+  }),
+  P({
+    id: 'solar', kind: 'truss', group: 'extra', name: 'Solar panel', nameNl: 'Zonnepaneel',
+    rows: 1, w: 1.5, dry: 0.16, bulk: 0.4,
+    note: 'Wings of glass that fold out up there. Flat, wide and no help at all on the way up.',
+    noteNl: 'Glazen vleugels die daarboven uitklappen. Plat, breed, en onderweg omhoog geen enkele hulp.',
+    art: 'solar',
+  }),
+  P({
+    id: 'solar-l', kind: 'truss', group: 'extra', name: 'Big solar array', nameNl: 'Groot zonnepaneel',
+    rows: 2, w: 1.9, dry: 0.34, bulk: 0.4,
+    note: 'Two long wings. Beautiful, and pure cargo.',
+    noteNl: 'Twee lange vleugels. Prachtig, en pure vracht.',
+    art: 'solar',
+  }),
+  P({
+    id: 'antenna', kind: 'truss', group: 'extra', name: 'Antenna', nameNl: 'Antenne',
+    rows: 1, w: 0.85, dry: 0.08, bulk: 0.5,
+    note: 'A dish for talking home.',
+    noteNl: 'Een schotel om naar huis te praten.',
+    art: 'dish',
+  }),
+  P({
+    id: 'light', kind: 'truss', group: 'extra', name: 'Lamp', nameNl: 'Lamp',
+    rows: 1, w: 0.55, dry: 0.03,
+    note: 'A light on the side. It changes nothing and it looks right.',
+    noteNl: 'Een lamp aan de zijkant. Verandert niets en het staat goed.',
+    art: 'lamp',
+  }),
+  P({
+    id: 'camera', kind: 'truss', group: 'extra', name: 'Camera', nameNl: 'Camera',
+    rows: 1, w: 0.5, dry: 0.04,
+    note: 'Points back at the rocket. Somebody has to film it.',
+    noteNl: 'Kijkt naar de raket. Iemand moet het filmen.',
+    art: 'camera',
+  }),
+  P({
+    id: 'ladder', kind: 'truss', group: 'extra', name: 'Ladder', nameNl: 'Ladder',
+    rows: 2, w: 0.45, dry: 0.05,
+    note: 'Rungs up the side. For getting in, and for getting out again.',
+    noteNl: 'Sporten langs de zijkant. Om in te stappen, en om er weer uit te komen.',
+    art: 'ladder',
+  }),
+  P({
+    id: 'flag', kind: 'truss', group: 'extra', name: 'Flag', nameNl: 'Vlag',
+    rows: 1, w: 0.6, dry: 0.02,
+    note: 'Nobody needs it. Everybody puts one on.',
+    noteNl: 'Niemand heeft hem nodig. Iedereen zet er een op.',
+    art: 'flag',
   }),
 ];
+
 
 export const partById = (id: string): Part => PARTS.find(p => p.id === id) ?? PARTS[0];
 
@@ -286,6 +834,15 @@ export interface Placed {
   col: number;
   /** the row its foot stands on; it fills upward from there */
   row: number;
+  /**
+   * Seconds after lift-off before this engine lights, set in the workshop.
+   *
+   * Real rockets do this all the time: the strap-on boosters of an Ariane light with the core, a
+   * second set lights a minute later, and an upper stage waits until the first one has finished.
+   * Here it is the difference between all your thrust in the first ten seconds and a rocket that
+   * keeps pushing.
+   */
+  delay?: number;
 }
 
 export type Design = Placed[];
@@ -459,6 +1016,8 @@ export function collapse(design: Design): void {
 
 export interface Stage {
   col: number;
+  /** seconds after lift-off before this stage's engine lights */
+  delay: number;
   /** index in the design of the engine that drives it */
   engine: number;
   /** everything that falls away when it is spent */
@@ -499,7 +1058,7 @@ export function stagesByColumn(design: Design): Map<number, Stage[]> {
       const p = partById(design[i].id);
       if (p.kind === 'pod') continue;                    // payload never drops
       if (p.kind === 'engine' || p.kind === 'solid') {
-        cur = { col, engine: i, parts: [i], thrust: p.burn * p.exhaust, burn: p.burn, fuel: p.fuel };
+        cur = { col, delay: Math.max(0, design[i].delay ?? 0), engine: i, parts: [i], thrust: p.burn * p.exhaust, burn: p.burn, fuel: p.fuel };
         stages.push(cur);
         continue;
       }
@@ -635,13 +1194,27 @@ export const totalMass = (design: Design): number =>
 /** What fires at lift-off: the bottom stage of every column that has one. */
 export function padThrust(design: Design): number {
   let n = 0;
-  for (const list of stagesByColumn(design).values()) if (list.length && list[0].fuel > 0) n += list[0].thrust;
+  for (const list of stagesByColumn(design).values()) {
+    if (list.length && list[0].fuel > 0 && list[0].delay <= 0) n += list[0].thrust;
+  }
+  return n;
+}
+
+/** Everything that will ever fire, whether it lights now or in a minute. */
+export function totalThrust(design: Design): number {
+  let n = 0;
+  for (const list of stagesByColumn(design).values()) for (const s of list) if (s.fuel > 0) n += s.thrust;
   return n;
 }
 
 export const G0 = 9.81;
 export const padWeight = (design: Design): number => totalMass(design) * G0;
 export const canLift = (design: Design): boolean => padThrust(design) > padWeight(design) * 1.02;
+
+/** The delays a child can pick, in seconds. Enough choice to matter, few enough to tap. */
+export const DELAYS = [0, 3, 6, 10, 15, 25, 40];
+export const clampDelay = (d: number): number =>
+  DELAYS.reduce((best, x) => (Math.abs(x - d) < Math.abs(best - d) ? x : best), 0);
 
 /** A rocket needs something to burn, something to burn it with, and something to send. */
 export function isFlyable(design: Design): boolean {
@@ -811,8 +1384,11 @@ export function buildProblem(design: Design, nl: boolean): string | null {
       : 'Nothing is riding along. Put a capsule or a probe on it.';
   }
   if (padThrust(design) <= 0) {
-    return nl ? 'Geen motor die kan branden. Zet een motor onder een tank.'
-      : 'No engine can fire. Put an engine under a tank.';
+    return totalThrust(design) > 0
+      ? (nl ? 'Alle motoren staan op wachten. Er moet er een op 0 seconden.'
+        : 'Every engine is set to wait. One of them has to light at zero.')
+      : (nl ? 'Geen motor die kan branden. Zet een motor onder een tank.'
+        : 'No engine can fire. Put an engine under a tank.');
   }
   if (!canLift(design)) {
     return nl ? 'Te zwaar om op te tillen.' : 'Too heavy to lift.';
@@ -993,7 +1569,9 @@ export function cleanDesign(raw: unknown): Design | null {
     const { id, col, row } = item as Record<string, unknown>;
     if (typeof id !== 'string' || !PARTS.some(p => p.id === id)) return null;
     if (typeof col !== 'number' || typeof row !== 'number') return null;
+    const delay = (item as Record<string, unknown>).delay;
     const p: Placed = { id, col: Math.round(col), row: Math.round(row) };
+    if (typeof delay === 'number' && isFinite(delay) && delay > 0) p.delay = clampDelay(delay);
     if (!inGrid(p)) return null;
     if (out.some(q => clash(p, q))) return null;
     out.push(p);

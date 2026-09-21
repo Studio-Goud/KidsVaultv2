@@ -34,11 +34,20 @@ line that gets shorter in the harder missions.
 Practises ordering, comparing, predicting motion and the solar system. Age 5 and up.
 
 ### Moonshot (`moonshot.html`)
-A workshop, a grid, and a launch button. Twenty-eight parts - nose cones, probes, capsules, a crew
-cabin, a fairing, a space shuttle, six tanks from two tonnes to sixteen, eight engines from a toy
-to a nuclear one, four solid boosters in single, double and triple, two sets of fins, a taper and a
-girder - and every one of them is on the shelf from the first second. Nothing is locked, nothing is
-earned, nothing costs anything.
+A workshop, a grid, and a launch button. A hundred and three parts - cones and fairings and heat
+shields, probes and satellites and telescopes, capsules and cabins and a station module, landers
+and rovers and a space shuttle, twenty-one tanks from a needle to a giant, twenty-two engines from
+a vernier thruster to thirty at once to a nuclear reactor, eleven strap-on boosters in single,
+double and triple, fins and grid fins and wings and airbrakes, tapers and girders and decouplers,
+and legs and parachutes and solar panels and a flag - and every one of them is on the shelf from
+the first second. Nothing is locked, nothing is earned, nothing costs anything.
+
+Every number follows a rule rather than a guess. A tank's fuel is its volume: 2.75 tonnes per unit
+of width squared times height, which is why a wide tank holds so much more than a tall thin one and
+why the air hates it for exactly the same reason. Its empty mass is four per cent of what it
+carries, except where the shape changes that - a sphere is the lightest skin for a volume, a
+balloon tank is thinner still, a pressure tank is thicker. An engine is given a thrust and an
+exhaust speed, both real, and its burn rate falls out of them.
 
 You put parts where you want them. Drag one out of the tray and the grid lights up every cell it
 could legally go in; drop it and it bolts on. Drag one that is already on the rocket to move it, or
@@ -76,6 +85,13 @@ the air thins out exponentially and stops both pushing back and holding you stra
 is dead weight until it goes, and exhaust speed - not thrust - decides how far you end up. One grid
 column is 1.8 m, which is what makes a two-row tank hold exactly the four and a half tonnes it says
 it holds. The only thing bent for a child is the clock: tanks empty in seconds rather than minutes.
+
+Each engine can be told to wait. Tap one on the rocket and pick how many seconds after lift-off it
+lights: a second pair of boosters a minute in, an upper stage that holds until the first one is
+done. Real rockets stagger their ignitions constantly, and here it is the difference between
+spending all your thrust in the first ten seconds and a rocket that keeps pushing. In flight there
+is a button to let go of something early - the boosters, or the stage, or, if you have put a
+decoupler on, exactly where the decoupler is.
 
 Before you launch you say where you are going. Tapping the chip in the corner opens the whole list
 - up with the birds, through the clouds, above the aeroplanes, the edge of the air, round the
