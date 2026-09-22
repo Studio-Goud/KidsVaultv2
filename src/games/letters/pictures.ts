@@ -175,13 +175,15 @@ export const PICTURES: Record<string, (g: Ctx) => void> = {
     col(g, '#f0d79b'); circle(g, 50, 46, 3.2); circle(g, 50, 60, 3.2); circle(g, 50, 74, 3.2);
   },
   mes: g => {
-    col(g, '#b3bcc1'); poly(g, [[8, 84], [16, 76], [70, 22], [80, 32], [26, 86], [14, 90]]);
-    col(g, '#eef3f6'); poly(g, [[8, 84], [16, 76], [70, 22], [74, 26], [18, 82]]);
-    col(g, '#8a9aa3'); poly(g, [[26, 86], [80, 32], [74, 26], [20, 80]]);
-    col(g, WOOD_D); box(g, 62, 4, 30, 22, 7); g.save(); g.translate(77, 15); g.rotate(-0.78);
-    g.translate(-77, -15); col(g, WOOD_D); box(g, 62, 4, 32, 22, 7);
-    col(g, WOOD); box(g, 62, 4, 32, 9, 4);
-    col(g, '#6f4a20'); circle(g, 70, 15, 2.6); circle(g, 86, 15, 2.6); g.restore();
+    // A knife lying flat, blade to the left, because a diagonal blade with a lump on the end is a
+    // spade. The handle used to be drawn twice - once turned and once not - and the stray one was
+    // the potato everybody saw.
+    col(g, '#b3bcc1'); poly(g, [[64, 32], [20, 40], [4, 52], [22, 64], [64, 66]]);
+    col(g, '#eef3f6'); poly(g, [[64, 34], [22, 42], [8, 52], [64, 49]]);
+    col(g, '#dfe7ec'); poly(g, [[8, 52], [22, 64], [64, 66], [64, 57]]);
+    col(g, WOOD_D); box(g, 62, 38, 34, 24, 8);
+    col(g, WOOD); box(g, 62, 39, 34, 9, 5);
+    col(g, '#6f4a20'); circle(g, 72, 52, 2.6); circle(g, 86, 52, 2.6);
   },
   zak: g => {
     col(g, '#d9a96a'); poly(g, [[20, 34], [80, 34], [74, 84], [26, 84]]);
@@ -209,14 +211,14 @@ export const PICTURES: Record<string, (g: Ctx) => void> = {
     col(g, '#2a2118'); circle(g, 47, 68, 1.6); circle(g, 53, 68, 1.6);
   },
   net: g => {
-    stroke(g, [[76, 82], [58, 50]], 7, WOOD_D);
-    ring(g, 44, 40, 26, 6, '#cfd8dd');
-    g.save(); g.beginPath(); g.arc(44, 40, 24, 0, TAU); g.clip();
-    for (let i = -3; i < 4; i++) {
-      stroke(g, [[44 + i * 12 - 26, 14], [44 + i * 12 + 26, 66]], 2, 'rgba(120,140,150,0.75)');
-      stroke(g, [[44 + i * 12 - 26, 66], [44 + i * 12 + 26, 14]], 2, 'rgba(120,140,150,0.75)');
-    }
-    g.restore();
+    // A net between two posts. It used to be a hoop with strings across it, which every child
+    // reads as a racket, and a racket is not what the word says.
+    col(g, GREY_D); box(g, 10, 22, 7, 68, 3); box(g, 83, 22, 7, 68, 3);
+    col(g, '#eef3f6'); box(g, 15, 24, 70, 8, 2);
+    col(g, 'rgba(230,240,245,0.5)'); box(g, 15, 32, 70, 38, 0);
+    for (let i = 0; i <= 9; i++) stroke(g, [[17 + i * 7.5, 32], [17 + i * 7.5, 70]], 2, '#cfd8dd');
+    for (let i = 0; i <= 5; i++) stroke(g, [[15, 33 + i * 7.4], [85, 33 + i * 7.4]], 2, '#cfd8dd');
+    col(g, '#cfe3b4'); box(g, 0, 88, 100, 12, 0);
   },
   pot: g => {
     col(g, '#7fb3a0'); box(g, 22, 36, 56, 50, 10);
@@ -599,15 +601,16 @@ const DUO: Record<string, (g: Ctx) => void> = {
     col(g, '#f6c445'); circle(g, 84, 14, 10);
   },
   buik: g => {
-    col(g, '#f0b429'); box(g, 26, 18, 48, 18, 8);
-    col(g, SKIN); circle(g, 50, 14, 13);
-    col(g, SKIN); ell(g, 50, 58, 28, 26);
-    col(g, '#f6bd78'); ell(g, 50, 60, 20, 19);
-    col(g, SKIN_D); circle(g, 50, 62, 4.5);
-    ring(g, 50, 62, 6.5, 2, '#d9a273');
-    col(g, SKIN); ell(g, 20, 62, 11, 8, -0.4); ell(g, 80, 62, 11, 8, 0.4);
-    col(g, '#3f7fbf'); box(g, 22, 82, 56, 16, 7);
-    col(g, '#2b5f94'); box(g, 22, 82, 56, 6, 3);
+    // A belly: a round middle with a navel in it, between a chest and a waistband. The yellow ring
+    // that used to sit on top of it was explaining nothing.
+    col(g, SKIN); box(g, 30, 10, 40, 26, 12);
+    col(g, SKIN); ell(g, 50, 56, 30, 27);
+    col(g, '#f6bd78'); ell(g, 50, 58, 22, 20);
+    col(g, SKIN_D); circle(g, 50, 60, 5);
+    ring(g, 50, 60, 7.5, 2.2, '#d9a273');
+    col(g, SKIN); circle(g, 22, 44, 8); circle(g, 78, 44, 8);
+    col(g, '#3f7fbf'); box(g, 22, 80, 56, 18, 7);
+    col(g, '#2f6392'); box(g, 22, 80, 56, 6, 3);
   },
   boek: g => {
     col(g, '#c05a44'); poly(g, [[6, 26], [50, 34], [94, 26], [94, 80], [50, 88], [6, 80]]);
@@ -685,14 +688,19 @@ const DUO: Record<string, (g: Ctx) => void> = {
     g.quadraticCurveTo(62, 14, 74, 16); g.closePath(); g.fill();
   },
   reus: g => {
-    col(g, '#4a8f6d'); box(g, 26, 34, 48, 40, 10);
-    box(g, 30, 70, 16, 26, 6); box(g, 54, 70, 16, 26, 6);
-    box(g, 14, 36, 14, 10, 5); box(g, 72, 36, 14, 10, 5);
-    col(g, SKIN); circle(g, 50, 20, 15);
-    col(g, '#8a4424'); g.beginPath(); g.arc(50, 18, 16, Math.PI, TAU); g.fill();
-    eye(g, 44, 21, 3.2); eye(g, 56, 21, 3.2);
-    col(g, '#3f7fbf'); box(g, 4, 76, 10, 20, 4);
-    col(g, SKIN); circle(g, 9, 68, 6);
+    // A giant is only a giant next to something. The small one at his feet is the whole word.
+    col(g, '#4a8f6d'); box(g, 30, 30, 46, 40, 10);
+    box(g, 34, 66, 15, 26, 6); box(g, 57, 66, 15, 26, 6);
+    box(g, 18, 32, 14, 10, 5); box(g, 74, 32, 14, 10, 5);
+    col(g, SKIN); circle(g, 53, 16, 15);
+    col(g, '#8a4424'); g.beginPath(); g.arc(53, 14, 16, Math.PI, TAU); g.fill();
+    eye(g, 47, 17, 3.2); eye(g, 59, 17, 3.2);
+    col(g, SKIN); circle(g, 22, 40, 6); circle(g, 86, 40, 6);
+    // and the ordinary person, a third of his size, standing where a child would stand
+    col(g, '#3f7fbf'); box(g, 6, 74, 11, 18, 4);
+    col(g, SKIN); circle(g, 11.5, 66, 6);
+    col(g, '#2a2118'); g.beginPath(); g.arc(11.5, 65, 6.4, Math.PI, TAU); g.fill();
+    col(g, '#cfe3b4'); box(g, 0, 92, 100, 8, 0);
   },
   leeuw: g => {
     col(g, '#c9743f'); circle(g, 50, 52, 34);
@@ -821,12 +829,18 @@ const EIIJ: Record<string, (g: Ctx) => void> = {
     col(g, WATER_D); curve(g, 4, 86, 22, 92, 40, 86, 3, WATER_D); curve(g, 58, 90, 76, 84, 94, 90, 3, WATER_D);
   },
   eik: g => {
+    // An oak photographs and draws exactly like any other tree, so the acorn has to carry the word.
+    // It sits in front, big enough to be the thing you notice first.
     col(g, '#cfe3b4'); box(g, 0, 82, 100, 18, 0);
-    col(g, WOOD_D); box(g, 44, 46, 12, 40, 3);
-    stroke(g, [[50, 60], [34, 48]], 5, WOOD_D); stroke(g, [[50, 56], [66, 44]], 5, WOOD_D);
-    col(g, '#3f8f4a'); circle(g, 50, 34, 24); circle(g, 28, 44, 15); circle(g, 72, 44, 15);
-    col(g, LEAF); circle(g, 44, 28, 12); circle(g, 62, 32, 10);
-    col(g, '#b98a54'); ell(g, 76, 66, 6, 8); col(g, '#8a5a28'); ell(g, 76, 60, 6.5, 4);
+    col(g, WOOD_D); box(g, 40, 42, 12, 42, 3);
+    stroke(g, [[46, 56], [30, 44]], 5, WOOD_D); stroke(g, [[46, 52], [62, 40]], 5, WOOD_D);
+    col(g, '#3f8f4a'); circle(g, 46, 30, 22); circle(g, 26, 40, 14); circle(g, 66, 40, 13);
+    col(g, LEAF); circle(g, 40, 24, 11); circle(g, 58, 28, 9);
+    col(g, '#c79a5e'); ell(g, 78, 74, 13, 16);
+    col(g, '#a8763c'); ell(g, 78, 74, 9, 12);
+    col(g, '#8a5a28'); g.beginPath(); g.ellipse(78, 62, 14, 8, 0, Math.PI, TAU); g.fill();
+    col(g, '#6f4a20'); box(g, 75, 50, 6, 8, 3);
+    for (let i = -2; i <= 2; i++) stroke(g, [[78 + i * 5, 62], [78 + i * 5, 58]], 2, '#6f4a20');
   },
   reis: g => {
     col(g, '#a0522d'); box(g, 14, 34, 72, 50, 6);
@@ -838,17 +852,22 @@ const EIIJ: Record<string, (g: Ctx) => void> = {
     col(g, '#e0594a'); box(g, 24, 66, 14, 10, 2);
   },
   plein: g => {
-    col(g, '#cfd8dd'); box(g, 0, 40, 100, 60, 0);
-    col(g, '#b9c2c7');
-    for (let i = 0; i < 6; i++) stroke(g, [[i * 20 - 10, 100], [i * 20 + 6, 40]], 1.6, '#b9c2c7');
-    for (let i = 0; i < 4; i++) stroke(g, [[0, 46 + i * 15], [100, 46 + i * 15]], 1.6, '#b9c2c7');
-    col(g, SKY); box(g, 0, 0, 100, 40, 0);
-    col(g, '#e8dfc8'); box(g, 6, 12, 24, 30, 2); box(g, 70, 8, 26, 34, 2);
-    col(g, '#9fd8f2'); box(g, 10, 18, 7, 8, 1); box(g, 20, 18, 7, 8, 1); box(g, 76, 14, 7, 8, 1); box(g, 86, 14, 7, 8, 1);
-    col(g, '#4f9dc4'); ell(g, 50, 74, 22, 9);
-    col(g, '#7fc0e0'); ell(g, 50, 72, 16, 6);
-    col(g, '#cfd8dd'); box(g, 47, 54, 6, 18, 3);
-    col(g, '#9fd8f2'); circle(g, 50, 50, 6);
+    // A square with a fountain in it. It used to be mostly a wide blue-grey field, which reads as
+    // a swimming pool, so the paving is warm now and the houses stand around it.
+    col(g, SKY); box(g, 0, 0, 100, 44, 0);
+    col(g, '#e8dfc8'); box(g, 2, 14, 26, 30, 2); box(g, 36, 8, 26, 36, 2); box(g, 70, 16, 28, 28, 2);
+    col(g, '#b4543f');
+    poly(g, [[0, 16], [15, 4], [30, 16]]); poly(g, [[34, 10], [49, 0], [64, 10]]); poly(g, [[68, 18], [84, 6], [100, 18]]);
+    col(g, '#9fd8f2');
+    box(g, 7, 24, 7, 8, 1); box(g, 17, 24, 7, 8, 1); box(g, 41, 18, 7, 8, 1);
+    box(g, 51, 18, 7, 8, 1); box(g, 75, 26, 7, 8, 1); box(g, 86, 26, 7, 8, 1);
+    col(g, '#ddd2ba'); box(g, 0, 44, 100, 56, 0);
+    for (let i = 0; i <= 5; i++) stroke(g, [[i * 20, 100], [i * 20, 44]], 1.4, 'rgba(160,145,115,0.55)');
+    for (let i = 0; i <= 3; i++) stroke(g, [[0, 52 + i * 14], [100, 52 + i * 14]], 1.4, 'rgba(160,145,115,0.55)');
+    col(g, '#cfd8dd'); ell(g, 50, 82, 26, 11);
+    col(g, '#4f9dc4'); ell(g, 50, 81, 20, 8);
+    col(g, '#cfd8dd'); box(g, 47, 60, 6, 20, 3); ell(g, 50, 60, 9, 4);
+    col(g, '#9fd8f2'); circle(g, 50, 54, 5); circle(g, 42, 60, 3); circle(g, 58, 60, 3);
   },
   dweil: g => {
     col(g, WOOD_D); box(g, 46, 6, 8, 46, 4);
@@ -1002,17 +1021,19 @@ const AUOU: Record<string, (g: Ctx) => void> = {
     col(g, '#e0594a'); ell(g, 74, 92, 10, 4);
   },
   klauw: g => {
-    col(g, '#d9a96a'); box(g, 44, 8, 14, 34, 6);
-    g.beginPath(); g.moveTo(50, 36); g.quadraticCurveTo(22, 46, 12, 70);
-    g.quadraticCurveTo(24, 66, 34, 56); g.quadraticCurveTo(40, 50, 50, 48); g.fill();
-    g.beginPath(); g.moveTo(50, 36); g.quadraticCurveTo(78, 46, 88, 70);
-    g.quadraticCurveTo(76, 66, 66, 56); g.quadraticCurveTo(60, 50, 50, 48); g.fill();
-    g.beginPath(); g.moveTo(50, 40); g.quadraticCurveTo(48, 68, 50, 88);
-    g.quadraticCurveTo(58, 68, 56, 40); g.fill();
+    // A bird's foot, gripping. The talons are the word: black, curved and longer than looks polite.
+    col(g, '#d9a96a');
+    stroke(g, [[50, 12], [50, 46]], 13, '#d9a96a');
+    stroke(g, [[50, 46], [22, 62]], 12, '#d9a96a');
+    stroke(g, [[50, 46], [78, 62]], 12, '#d9a96a');
+    stroke(g, [[50, 46], [50, 78]], 12, '#d9a96a');
+    col(g, '#c2914f');
+    for (const [x, y] of [[36, 54], [64, 54], [50, 62]]) circle(g, x, y, 5);
     col(g, '#2a2118');
-    poly(g, [[12, 70], [4, 84], [18, 74]]); poly(g, [[88, 70], [96, 84], [82, 74]]);
-    poly(g, [[50, 88], [46, 98], [56, 92]]);
-    col(g, '#c2914f'); box(g, 44, 8, 14, 8, 4);
+    curve(g, 22, 62, 12, 70, 14, 84, 7, '#2a2118');
+    curve(g, 78, 62, 88, 70, 86, 84, 7, '#2a2118');
+    curve(g, 50, 78, 50, 88, 42, 96, 7, '#2a2118');
+    col(g, '#c2914f'); box(g, 43, 10, 14, 9, 4);
   },
   dauw: g => {
     col(g, LEAF_D); stroke(g, [[4, 88], [26, 74]], 4, LEAF_D);
@@ -1105,12 +1126,20 @@ const AUOU: Record<string, (g: Ctx) => void> = {
     col(g, 'rgba(255,255,255,0.3)'); box(g, 36, 26, 28, 5, 2); box(g, 36, 38, 28, 5, 2);
   },
   mouw: g => {
-    col(g, '#4f9dc4'); poly(g, [[30, 14], [56, 14], [58, 40], [30, 44]]);
-    g.beginPath(); g.moveTo(56, 16); g.quadraticCurveTo(84, 26, 86, 60);
-    g.lineTo(64, 66); g.quadraticCurveTo(60, 40, 52, 34); g.closePath(); g.fill();
-    col(g, '#3d85aa'); box(g, 62, 58, 26, 10, 3);
-    col(g, SKIN); circle(g, 78, 76, 12);
-    col(g, '#3d85aa'); poly(g, [[30, 44], [58, 40], [58, 50], [30, 54]]);
+    // Fourth go, and the lesson is that a sleeve alone is never a sleeve: cut off the garment and
+    // it becomes a dagger, a suitcase or a megaphone depending on how it tapers. So the jumper is
+    // here, in a quiet colour, and one sleeve is picked out with an arm coming through it. The
+    // picture says "this bit" rather than "a blue shape".
+    col(g, '#9fb4bf'); box(g, 26, 20, 36, 50, 8);
+    col(g, '#8aa3b0'); g.beginPath(); g.arc(44, 20, 10, 0, Math.PI); g.fill();
+    col(g, '#9fb4bf'); poly(g, [[26, 22], [12, 30], [18, 48], [26, 44]]);
+    // the sleeve the word is about: brighter, bigger, with a cuff and a bare arm out of the end
+    col(g, SKIN); stroke(g, [[78, 66], [92, 84]], 14, SKIN);
+    col(g, SKIN); circle(g, 93, 86, 10);
+    col(g, '#4f9dc4'); poly(g, [[60, 20], [86, 44], [72, 72], [48, 50]]);
+    col(g, 'rgba(255,255,255,0.25)'); poly(g, [[61, 23], [82, 44], [74, 54], [53, 34]]);
+    col(g, '#2f6f92'); g.save(); g.translate(78, 64); g.rotate(-0.72);
+    box(g, -13, -7, 26, 14, 6); g.restore();
   },
 };
 Object.assign(PICTURES, AUOU);
@@ -1394,14 +1423,19 @@ const CLUSTER: Record<string, (g: Ctx) => void> = {
     col(g, WATER_D); curve(g, 8, 84, 26, 90, 44, 84, 3, WATER_D); curve(g, 58, 88, 74, 82, 94, 88, 3, WATER_D);
   },
   angst: g => {
-    col(g, '#f6c445'); circle(g, 50, 50, 34);
-    col(g, '#e8a90e'); ring(g, 50, 50, 33, 2, '#e8a90e');
-    col(g, '#ffffff'); ell(g, 38, 42, 8, 10); ell(g, 62, 42, 8, 10);
-    col(g, '#2a2118'); circle(g, 38, 44, 4); circle(g, 62, 44, 4);
-    ell(g, 50, 68, 10, 13);
-    col(g, '#8a2f24'); ell(g, 50, 72, 6, 7);
-    col(g, '#c98a2c'); stroke(g, [[28, 28], [42, 32]], 3, '#c98a2c'); stroke(g, [[72, 28], [58, 32]], 3, '#c98a2c');
-    col(g, '#7fc0e0'); ell(g, 22, 56, 4, 7); ell(g, 78, 60, 3.4, 6);
+    // Fear, and not as a yellow emoji: everything else in this book is drawn, so this is a face in
+    // the same skin and the same ink as the rest, with its eyes too wide and its mouth open.
+    col(g, SKIN); circle(g, 50, 52, 30);
+    col(g, '#8a4424'); g.beginPath(); g.arc(50, 46, 31, Math.PI, TAU); g.fill();
+    col(g, SKIN_D); g.beginPath(); g.ellipse(50, 74, 12, 15, 0, 0, TAU); g.fill();
+    col(g, '#5a2018'); ell(g, 50, 74, 10, 13);
+    col(g, '#ffffff'); ell(g, 39, 48, 8, 9); ell(g, 61, 48, 8, 9);
+    col(g, '#2a2118'); circle(g, 39, 49, 3.4); circle(g, 61, 49, 3.4);
+    stroke(g, [[29, 34], [42, 38]], 3, '#8a4424'); stroke(g, [[71, 34], [58, 38]], 3, '#8a4424');
+    // two cold drops, which is how a drawing says the feeling rather than the face
+    col(g, '#7fc0e0');
+    g.beginPath(); g.moveTo(20, 40); g.quadraticCurveTo(14, 50, 20, 54); g.quadraticCurveTo(26, 50, 20, 40); g.fill();
+    g.beginPath(); g.moveTo(81, 46); g.quadraticCurveTo(76, 55, 81, 59); g.quadraticCurveTo(86, 55, 81, 46); g.fill();
   },
   herfst: g => {
     col(g, '#e8a13c'); g.beginPath(); g.moveTo(50, 10);
