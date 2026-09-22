@@ -24,6 +24,7 @@ import { makeRng } from '../../util/rng';
 import { safeArea, uiScale } from '../../util/ui';
 import { haptic, unlockAudio } from '../../util/audio';
 import { persist, save } from '../../util/storage';
+import { countFinished } from '../../platform/clock';
 import { t } from '../../i18n';
 import { edgeKey } from './figures';
 import { bleedEdges, chunkyButton, easeInOut, glassPanel } from '../../render/look';
@@ -379,6 +380,8 @@ export class NightWatch {
       if (p.made) this.seenMade.push(p.id);
       this.hand = EMPTY_HAND;
       this.pointer = null;
+      // a figure drawn back is a thing played to its end, and the overview counts those
+      countFinished();
       this.setPhase('solved');
       return;
     }

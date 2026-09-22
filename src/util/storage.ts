@@ -165,6 +165,17 @@ export const persist = (): void => writeSave(save);
 export function levelProgress(id: string): LevelProgress {
   return save.levels[id] ?? { best: 0, stars: 0, completed: false };
 }
+/**
+ * Somebody wants to know when a thing is played to its end.
+ *
+ * The day's tally lives in `src/platform/clock.ts`, which reads this file, so this file cannot
+ * read it back. One callback instead, registered when the clock starts, which every page does.
+ * Nothing is registered on a page with no child profile, and then finishing something costs one
+ * null check.
+ */
+let onFinished: (() => void) | null = null;
+export function whenFinished(fn: () => void): void { onFinished = fn; }
+
 export function recordLevelResult(id: string, landed: number, stars: number, completed: boolean): LevelProgress {
   const cur = levelProgress(id);
   const next: LevelProgress = {
@@ -174,6 +185,9 @@ export function recordLevelResult(id: string, landed: number, stars: number, com
   };
   save.levels[id] = next;
   persist();
+  // a thing played to its end, every time it is played to its end - not only the first time.
+  // What a parent is being shown is what happened today, not a list of firsts.
+  if (completed && onFinished) onFinished();
   return next;
 }
 

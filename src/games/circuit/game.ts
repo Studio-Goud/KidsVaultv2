@@ -21,6 +21,7 @@ import { clamp, TAU, type Vec } from '../../util/math';
 import { uiScale, safeArea } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { persist, save } from '../../util/storage';
+import { countFinished } from '../../platform/clock';
 import {
   bleedEdges, chunkyButton, drawStar, glassPanel, grainOver, handCursor, hexA,
   Particles, Shake, vignette,
@@ -599,6 +600,8 @@ export class Circuit {
     const q = this.quiz();
     if (set.size !== before && isSolved(q, set) && !this.isDone(this.puzzle)) {
       this.markSolved(q.id);
+      // a puzzle out is a thing played to its end, and the parent's overview counts those
+      countFinished();
       this.cheerOpen = true;
       bench.solved();
       const cb = this.bands();

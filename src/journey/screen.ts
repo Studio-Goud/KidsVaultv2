@@ -27,6 +27,7 @@ import { unlockAudio } from '../util/audio';
 import { persist, save } from '../util/storage';
 import { NL, T } from '../util/lang';
 import { speakLine } from '../platform/voice';
+import { countFinished } from '../platform/clock';
 import { bleedEdges, chunkyButton, glassPanel, heading, hexA, vignette } from '../render/look';
 import { drawCraft } from './craft';
 import { credit, drawPicture, loadPictures } from './picture';
@@ -65,6 +66,8 @@ export class JourneyScreen {
   /** how bright the engine is: it comes up when you set off and dies away when you stop */
   private burn = 0;
   private arrive = 0;
+  /** the end has been counted for this ride; pressing "again" starts a new one */
+  private counted = false;
 
   constructor(private canvas: HTMLCanvasElement, private j: Journey) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
@@ -176,6 +179,8 @@ export class JourneyScreen {
       this.remember();
     }
     this.arrive = Math.max(0, this.arrive - dt * 1.6);
+    // a journey ridden to its end is a thing played to its end, once per ride
+    if (this.trip.done && !this.counted) { this.counted = true; countFinished(); }
     const want = this.trip.going && !this.trip.held && !this.trip.done ? 1 : 0;
     this.burn += (want - this.burn) * Math.min(1, dt * 4);
     const line = this.trip.done
@@ -222,7 +227,7 @@ export class JourneyScreen {
     }
     if (id === 'more') { this.trip = tellMore(this.j, this.trip); return; }
     if (id === 'on') { this.trip = onward(this.j, this.trip); return; }
-    if (id === 'again') { this.trip = { ...begin(), seen: this.trip.seen }; this.said = ''; return; }
+    if (id === 'again') { this.trip = { ...begin(), seen: this.trip.seen }; this.said = ''; this.counted = false; return; }
   }
 
   // ---------- drawing ----------

@@ -19,6 +19,7 @@ import { clamp, TAU, type Vec } from '../../util/math';
 import { uiScale, safeArea } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { persist, save } from '../../util/storage';
+import { countFinished } from '../../platform/clock';
 import {
   bleedEdges, chunkyButton, drawStar, easeOutBack, glassPanel, handCursor, heading,
   outlinedText, Particles, Shake, vignette,
@@ -1019,6 +1020,8 @@ export class Moonshot {
     } else {
       rocket.land();
     }
+    // a flight flown to its end, record or not: that is the thing the parent's overview counts
+    countFinished();
     this.phase = 'done'; this.phaseT = 0;
   }
 

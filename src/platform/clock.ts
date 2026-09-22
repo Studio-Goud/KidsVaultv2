@@ -2,7 +2,7 @@ import { drawGuide } from './guide';
 import { dayKey, cleanUsed, isLastGo, limitsFor, spend, spent, type Child } from './session';
 import { playingChild } from './who';
 import { NL, T } from '../util/lang';
-import { persist, save } from '../util/storage';
+import { persist, save, whenFinished } from '../util/storage';
 
 /**
  * The part of the promise that is kept rather than written down.
@@ -65,6 +65,8 @@ export function dayIsDone(): boolean {
  */
 export function startClock(opts: { onDone?: () => void } = {}): void {
   child = playing();
+  // every game that records a finished level now tells the day's tally about it
+  whenFinished(countFinished);
   if (!child) return;
   if (dayIsDone()) { close(opts.onDone); return; }
 

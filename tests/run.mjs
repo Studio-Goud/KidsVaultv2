@@ -3180,6 +3180,28 @@ const group = name => console.log(`\n${name}`);
   is('test_solar_route_stops_at_every_planet_and_the_sun', SOLAR.stops.length, 11);
 }
 
+// ---------------------------------------------------------------- what the parent is shown
+
+{
+  const { recordLevelResult, whenFinished } = await bundle('src/util/storage.ts', 'storage.mjs');
+  group('Het dagtotaal - wat een ouder te zien krijgt');
+
+  // the day's tally lives in the clock, which reads storage, so storage cannot read it back: one
+  // callback instead, registered when the clock starts. Without this wiring the parent's screen
+  // said "0 dingen afgemaakt" for ever, whatever the child did.
+  let rung = 0;
+  whenFinished(() => { rung++; });
+  recordLevelResult('test:a', 10, 3, false);
+  is('test_tally_a_level_left_unfinished_is_not_counted', rung, 0);
+  recordLevelResult('test:a', 10, 3, true);
+  is('test_tally_a_level_played_to_its_end_is_counted', rung, 1);
+  recordLevelResult('test:a', 10, 3, true);
+  is('test_tally_playing_it_again_is_counted_again', rung, 2);
+  is('test_tally_a_finished_level_stays_finished', recordLevelResult('test:a', 1, 0, false).completed, true);
+  is('test_tally_the_best_result_is_the_one_that_is_kept',
+    [recordLevelResult('test:a', 1, 0, false).best, recordLevelResult('test:a', 1, 0, false).stars], [10, 3]);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);
