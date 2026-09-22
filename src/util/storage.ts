@@ -25,7 +25,7 @@ export interface SaveData {
    * tables of seven are. One number for "number" cannot hold both splitting ten and the tables.
    */
   topics: Record<string, Record<string, { level: number; seen: number; streak: number; slump: number }>>;
-  /** Millstream's village: what you have earned, what you have built, what each valley has paid */
+  /** Watermolen's village: what you have earned, what you have built, what each valley has paid */
   mill: { grain: number; built: string[]; paid: Record<string, number> };
   /** Moonshot: how far the best flight got, on the ladder and in kilometres, and the rocket on the pad */
   moon: { best: number; target: number; topKm: number; design: Array<{ id: string; col: number; row: number; delay?: number; hold?: string[] }> };

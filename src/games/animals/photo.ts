@@ -1,7 +1,7 @@
 /**
  * The photographs.
  *
- * Orbit ships its eleven planets with the app, because there are eleven of them. There are a few
+ * Planetarium ships its eleven planets with the app, because there are eleven of them. There are a few
  * thousand animals, so theirs stay on Wikimedia Commons and are fetched as they are needed. That
  * changes two things and nothing else: a picture can be late, and a picture can fail.
  *

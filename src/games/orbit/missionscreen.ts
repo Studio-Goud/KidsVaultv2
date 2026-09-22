@@ -1,5 +1,5 @@
 /**
- * The Missions tab of Orbit: mission control, on a phone.
+ * The Missions tab of Planetarium: mission control, on a phone.
  *
  * Pick a mission, drag from Earth to set the push, watch the dotted line bend round the sun and the
  * ring that says where the target will be, then launch and hope. Later missions shorten the line

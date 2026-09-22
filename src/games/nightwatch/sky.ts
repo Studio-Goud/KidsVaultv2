@@ -1,5 +1,5 @@
 /**
- * Night Watch's rules, with no canvas anywhere in them.
+ * Nachtwacht's rules, with no canvas anywhere in them.
  *
  * The game used to own six rounds and eight hand-drawn figures, and when you had seen the eighth
  * there was nothing above it. The figures are the good part - a child can name a hare, and naming
@@ -471,7 +471,7 @@ function chain(pts: ReadonlyArray<readonly [number, number]>, f: Field): Array<[
 // ---------------------------------------------------------------- what to ask next
 
 /**
- * The two skills Night Watch leans on, read as one.
+ * The two skills Nachtwacht leans on, read as one.
  *
  * Holding the shape is the work, so visual memory carries most of the weight; seeing that a figure
  * is the same figure turned round is pattern, and it carries the rest. The slump is the worse of

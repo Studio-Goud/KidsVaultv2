@@ -1,5 +1,5 @@
 /**
- * Tidepool: creatures come in with the tide, and you sort them into pools. The catch is the rule.
+ * Getijdenpoel: creatures come in with the tide, and you sort them into pools. The catch is the rule.
  * First it is colour. Then, without warning, it is shape. Then how many spots. The creature in your
  * hand has not changed; what matters about it has.
  *

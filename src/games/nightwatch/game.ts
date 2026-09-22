@@ -1,5 +1,5 @@
 /**
- * Night Watch - the sky shows a figure, the lines go out, and you draw it back.
+ * Nachtwacht - the sky shows a figure, the lines go out, and you draw it back.
  *
  * That is still the whole game. Two things about it have changed.
  *

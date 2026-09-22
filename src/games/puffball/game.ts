@@ -1,5 +1,5 @@
 /**
- * Puffball - the counting game that is shaped like Bomberman.
+ * Stuifzwam - the counting game that is shaped like Bomberman.
  *
  * You walk a grid, put down a puffball, and get out of its way. It reaches a number of squares you
  * can read off its cap, and while it swells those exact squares light up with a dot apiece, so the
@@ -907,7 +907,7 @@ export class Puffball {
     ctx.fillRect(0, 0, this.w, this.h);
 
     ctx.textAlign = 'center';
-    heading(ctx, 'Puffball', this.w / 2, 60 * u, this.fontU('900', 26), '#ffffff');
+    heading(ctx, 'Stuifzwam', this.w / 2, 60 * u, this.fontU('900', 26), '#ffffff');
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.font = this.fontU('700', 12.5);
     ctx.fillText(T('Count the squares, then step away.', 'Tel de vakjes en stap dan weg.'), this.w / 2, 84 * u);

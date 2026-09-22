@@ -1,5 +1,5 @@
 /**
- * Dino Dig - the excavation game in Braambos.
+ * Opgraving - the excavation game in Braambos.
  *
  * You are given a slab of rock with a real fossil inside it and a bag of tools. The rock is not
  * uniform: soft sand comes away under a brush, packed clay needs a chisel, and stone only yields

@@ -205,7 +205,7 @@ export class Moonshot {
     // nothing about how it got there; three example rockets that build themselves do.
     this.design = cleanDesign(save.moon?.design) ?? [];
     this.target = clamp(save.moon?.target ?? 7, 1, LADDER.length - 1);
-    // the same NASA frames Orbit uses, prepared the same way
+    // the same NASA frames Planetarium uses, prepared the same way
     for (const m of LADDER) if (m.photo) void loadPhoto(m.photo, m.photoIn ?? 'planets');
     (window as unknown as { __moon?: Moonshot }).__moon = this;
     const loop = (ms: number): void => {
@@ -2442,7 +2442,7 @@ export class Moonshot {
 
     let cy = y + 36 * u;
     if (photo) {
-      // the real thing, the same NASA frame Orbit shows
+      // the real thing, the same NASA frame Planetarium shows
       const pr = 36 * u;
       ctx.save();
       ctx.beginPath(); ctx.arc(this.w / 2, cy + pr, pr, 0, TAU); ctx.clip();

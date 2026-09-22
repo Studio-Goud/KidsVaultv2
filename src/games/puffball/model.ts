@@ -1,5 +1,5 @@
 /**
- * Puffball: the board, the rules, and what the game is actually teaching.
+ * Stuifzwam: the board, the rules, and what the game is actually teaching.
  *
  * The shape of it is Bomberman's, because that shape is good: a grid, something you put down that
  * goes off after a moment, a cross of effect, walls you cannot pass and pots you can clear, and the

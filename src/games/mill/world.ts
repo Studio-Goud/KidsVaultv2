@@ -1,5 +1,5 @@
 /**
- * The valley of Millstream: the ground, the water on top of it, and what the water has to reach.
+ * The valley of Watermolen: the ground, the water on top of it, and what the water has to reach.
  *
  * The land is a height field. Water sits on top of it as a depth per cell, and every step it moves
  * towards whichever neighbour has the lowest total height, ground plus water together. That one

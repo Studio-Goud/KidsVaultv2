@@ -53,7 +53,7 @@ upgrades are never a tab of their own. After a failed mission you get a replay a
 what went wrong.
 Practises dividing attention, planning ahead, holding back and spatial reasoning. Age 6 and up.
 
-### Night Watch (`nightwatch.html`)
+### Nachtwacht (`nightwatch.html`)
 The sky shows a figure in the stars, the lines go out, and you draw it back from memory. One press
 draws the lot: the line follows your finger, every star it runs through locks with a click, a tick
 under the thumb and a small ring of light, and the note climbs a rung per star. Pulling back over
@@ -80,7 +80,7 @@ either, and `tests/run.mjs` checks them at four screen sizes.
 Practises visual working memory and pattern, and the difficulty follows those two skills rather than
 a level number. Age 5 and up.
 
-### Orbit (`orbit.html`)
+### Planetarium (`orbit.html`)
 Four tabs. Puzzle: put the eight planets in order by distance, size, day length and temperature, in
 real NASA photographs. Explore: eleven worlds - the sun, the eight planets, and the dwarf planets
 Ceres and Pluto - and ten moons, with their day, year, temperature and size. To scale: distance and size on one strip. Missions: launch a probe from Earth (or from a
@@ -153,7 +153,7 @@ decoupler on, exactly where the decoupler is.
 Before you launch you say where you are going. Tapping the chip in the corner opens the whole list
 - up with the birds, through the clouds, above the aeroplanes, the edge of the air, round the
 Earth, past the satellites, the Moon, away from the Earth, Venus, Mars, Jupiter, Saturn, Uranus,
-Neptune, and out past the planets - each with the photograph Orbit uses and the speed it really
+Neptune, and out past the planets - each with the photograph Planetarium uses and the speed it really
 takes. Those speeds are not invented. Everything past the Moon costs escape velocity, 11.19 km/s,
 with however fast you want to still be going once you are clear of the Earth added on top, which
 is why Venus and Mars sit a hundred metres a second apart and Jupiter is nearly three thousand
@@ -231,14 +231,14 @@ switching a big one.
 Practises cause and effect, reading a circuit, series against parallel, and finding your own
 mistake. Age 6 and up.
 
-### Dino Dig (`dig.html`)
+### Opgraving (`dig.html`)
 Excavate real fossils (Smithsonian, NASA and Wikimedia public domain photographs) with brush, chisel,
 hammer and scribe, each with its own reach, bite and risk, before the daylight runs out. Ten species
 across the Triassic, Jurassic and Cretaceous; every find goes into a museum with a timeline and a
 size comparison against a person.
 Practises fine motor control, patience, tool choice and deep time. Age 5 and up.
 
-### Puffball (`puffball.html`)
+### Stuifzwam (`puffball.html`)
 Put down a puffball, count how far it reaches, and be somewhere else when it pops. It is
 Bomberman's shape - a grid, a fuse, a cross of effect, pots to clear and moles to catch - with the
 counting brought to the front: the reach is a number on the cap, and when the puffball goes down
@@ -249,7 +249,7 @@ Pick-ups raise the reach, so the comparison has to be made again. Nobody is hurt
 sits down dizzy. Eight nights.
 Practises counting squares, comparing two numbers and planning a way out. Age 5 and up.
 
-### Millstream (`mill.html`)
+### Watermolen (`mill.html`)
 Dig channels and raise banks so the spring water reaches the fields and turns the mill wheels. Eight
 valleys with rocks, slopes and multiple targets; the water is a real flow simulation, so a channel
 that is too steep floods and one that is too shallow stalls.
@@ -273,12 +273,12 @@ nothing is for sale - the village is a record of how well it was played, not a r
 opening the app.
 Practises spatial reasoning, planning ahead, cause and effect and saving up. Age 5 and up.
 
-### Tidepool (`tidepool.html`)
+### Getijdenpoel (`tidepool.html`)
 Sort what the tide brings into the right pools by colour, kind, size or spots. Then the rule changes
 without warning, and creatures that fit the old rule but not the new one are the trap. Eight tides.
 Practises cognitive flexibility and rule switching. Age 4 and up.
 
-### Market Day (`market.html`)
+### Marktdag (`market.html`)
 Customers come to your stall with an order in pictures and a numeral: three apples, two pears and a
 plum, six strawberries shared fairly between two baskets, or a basket that already has two carrots
 and a customer who wants five. Eight market days, up to twelve customers with a patience ring.
@@ -415,7 +415,7 @@ Practises keeping a beat, long against short, hearing high from low, playing a p
 two things at once, and writing something down and hearing it again. Age 4 and up.
 
 ### Rekenrijk (`numbers.html`)
-Market Day counts to about ten and stops. This is the ladder after that, and the rule the whole
+Marktdag counts to about ten and stops. This is the ladder after that, and the rule the whole
 thing is built on is that every sum is something you can see and move. There is no screen in this
 game where a row of symbols sits with an empty box at the end and nothing else to go on: seven is
 seven beads on a rack, eight plus five is eight apples in a ten-frame and five waiting beside it,

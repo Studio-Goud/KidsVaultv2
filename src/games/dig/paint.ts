@@ -5,7 +5,7 @@
  * its own against a photograph: badlands under a high sun, a trench cut into the ground with the
  * spoil piled at its edge, and rock over the bone that looks like sediment rather than like a grid
  * of squares. The rock is painted into a small offscreen image and blown up soft, the same trick
- * the valley in Millstream uses, so taking it off feels like brushing rather than deleting cells.
+ * the valley in Watermolen uses, so taking it off feels like brushing rather than deleting cells.
  */
 
 import { clamp, TAU } from '../../util/math';

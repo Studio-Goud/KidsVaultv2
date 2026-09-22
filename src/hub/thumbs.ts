@@ -57,7 +57,7 @@ export function drawPlaneThumb(c: HTMLCanvasElement): void {
   ctx.restore();
 }
 
-/** A constellation on a night sky, in Night Watch's palette. */
+/** A constellation on a night sky, in Nachtwacht's palette. */
 export function drawStarsThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;
@@ -89,9 +89,9 @@ export function drawStarsThumb(c: HTMLCanvasElement): void {
   }
 }
 
-/** A green valley with a stream cut through it and a wheel, in Millstream's palette. */
+/** A green valley with a stream cut through it and a wheel, in Watermolen's palette. */
 /**
- * Millstream: the spring at the top, a channel cut down the slope, a field and the mill.
+ * Watermolen: the spring at the top, a channel cut down the slope, a field and the mill.
  * Drawn in the game's own light - sun from the top left, a shadow under everything.
  */
 export function drawValleyThumb(c: HTMLCanvasElement): void {
@@ -210,7 +210,7 @@ export function drawValleyThumb(c: HTMLCanvasElement): void {
   }
 }
 
-/** Tidepool: the tide above, the sand below, and a crab on its way to a pool. */
+/** Getijdenpoel: the tide above, the sand below, and a crab on its way to a pool. */
 export function drawTideThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;
@@ -291,7 +291,7 @@ export function drawTideThumb(c: HTMLCanvasElement): void {
   ctx.beginPath(); ctx.arc(cx - r * 0.3, cy - r * 0.76, r * 0.1, 0, TAU); ctx.arc(cx + r * 0.38, cy - r * 0.76, r * 0.1, 0, TAU); ctx.fill();
 }
 
-/** Market Day: the awning, the counter, a basket and three apples on an order card. */
+/** Marktdag: the awning, the counter, a basket and three apples on an order card. */
 export function drawMarketThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;
@@ -386,7 +386,7 @@ export function drawMarketThumb(c: HTMLCanvasElement): void {
   apple(cardX + cardW * 0.78, cardY + cardH * 0.48, w * 0.032);
 }
 
-/** Dino Dig: the trench, half the rock brushed off, and a bone coming clear. */
+/** Opgraving: the trench, half the rock brushed off, and a bone coming clear. */
 export function drawDigThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;
@@ -454,7 +454,7 @@ export function drawDigThumb(c: HTMLCanvasElement): void {
   ctx.restore();
 }
 
-/** Puffball: a puffball about to go off, the squares it will reach marked, and a pot in the way. */
+/** Stuifzwam: a puffball about to go off, the squares it will reach marked, and a pot in the way. */
 export function drawPuffThumb(c: HTMLCanvasElement): void {
   const ctx = fit(c);
   const w = c.clientWidth || 120, h = c.clientHeight || 90;

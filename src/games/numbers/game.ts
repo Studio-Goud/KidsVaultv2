@@ -1,7 +1,7 @@
 /**
  * Rekenrijk - arithmetic you can pick up, in Braambos.
  *
- * Market Day counts to about ten and stops. This is the ladder after that, and the rule it is
+ * Marktdag counts to about ten and stops. This is the ladder after that, and the rule it is
  * built on is that every sum is something you can see and move. There is no screen in this game
  * where a row of symbols sits with an empty box at the end and nothing else to go on: the numbers
  * are beads on a rack, apples in a crate, counters in a ten-frame, rods and cubes on a tray, a peg

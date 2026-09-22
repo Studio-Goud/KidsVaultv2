@@ -1,7 +1,7 @@
 /**
  * Missions: launching probes at planets that will not sit still.
  *
- * This is the part of Orbit that is a game rather than a picture. You are mission control. Earth
+ * This is the part of Planetarium that is a game rather than a picture. You are mission control. Earth
  * is moving, the target is moving, and a probe you push off Earth keeps Earth's speed and falls
  * round the sun on its own path. So you cannot aim at where Mars is; you aim at where Mars will be,
  * and you lean on the sun's pull to bend you there. Going outward means going faster than Earth.

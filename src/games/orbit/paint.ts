@@ -1,5 +1,5 @@
 /**
- * The space Orbit is played in.
+ * The space Planetarium is played in.
  *
  * The planets are NASA photographs, so the background has to be dark and deep enough not to argue
  * with them: a graded black, a wash of milky way, and stars in the colours and sizes stars come in,

@@ -1,5 +1,5 @@
 /**
- * Millstream - the water game in Braambos.
+ * Watermolen - the water game in Braambos.
  *
  * A spring at the top of a valley. Fields that need watering, wheels that need turning, houses
  * that must stay dry, and the sea at the bottom eating anything you let past. You never touch the
@@ -981,7 +981,7 @@ export class Millstream {
     ctx.fillRect(0, 0, this.w, this.h);
 
     ctx.textAlign = 'center';
-    heading(ctx, 'Millstream', this.w / 2, 60 * u, this.font('900', 26), '#123047');
+    heading(ctx, 'Watermolen', this.w / 2, 60 * u, this.font('900', 26), '#123047');
     ctx.fillStyle = 'rgba(18,48,71,0.7)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Dig, and the water finds its way.', 'Graaf, en het water vindt zijn weg.'), this.w / 2, 84 * u);

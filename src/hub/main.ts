@@ -39,7 +39,7 @@ const GAMES: Game[] = [
   },
   {
     href: './nightwatch.html',
-    title: 'Night Watch',
+    title: 'Nachtwacht',
     line: 'The sky shows a figure in the stars. The lines fade. Draw it back.',
     lineNl: 'De hemel toont een figuur in de sterren. De lijnen vervagen. Teken hem terug.',
     practises: 'Visual working memory',
@@ -49,7 +49,7 @@ const GAMES: Game[] = [
   },
   {
     href: './orbit.html',
-    title: 'Orbit',
+    title: 'Planetarium',
     line: 'Order the planets, explore them in NASA photographs, and launch probes to reach them.',
     lineNl: 'Zet de planeten op volgorde, verken ze in NASA-opnamen en lanceer sondes om ze te bereiken.',
     practises: 'Ordering, comparing sizes, predicting motion, knowing the solar system',
@@ -79,7 +79,7 @@ const GAMES: Game[] = [
   },
   {
     href: './mill.html',
-    title: 'Millstream',
+    title: 'Watermolen',
     line: 'Dig channels, and the water finds its own way to the fields and the mill. Build a village with what the valleys pay.',
     lineNl: 'Graaf geulen, en het water vindt zelf zijn weg naar de akkers en de molen. Bouw een dorp van wat de valleien opleveren.',
     practises: 'Spatial reasoning, planning ahead, cause and effect, saving up',
@@ -89,7 +89,7 @@ const GAMES: Game[] = [
   },
   {
     href: './tidepool.html',
-    title: 'Tidepool',
+    title: 'Getijdenpoel',
     line: 'Sort what the tide brings into the right pools. Then the rule changes.',
     lineNl: 'Sorteer wat het tij brengt in de juiste poelen. Dan verandert de regel.',
     practises: 'Cognitive flexibility, switching rules',
@@ -99,7 +99,7 @@ const GAMES: Game[] = [
   },
   {
     href: './market.html',
-    title: 'Market Day',
+    title: 'Marktdag',
     line: 'Fill the basket with exactly what they asked for, share it fairly, and ring the bell.',
     lineNl: 'Vul de mand met precies wat ze vroegen, deel eerlijk, en bel.',
     practises: 'Counting out, sharing equally, how many more',
@@ -109,7 +109,7 @@ const GAMES: Game[] = [
   },
   {
     href: './puffball.html',
-    title: 'Puffball',
+    title: 'Stuifzwam',
     line: 'Put down a puffball, count how far it reaches, and be somewhere else when it pops.',
     lineNl: 'Zet een stuifzwam neer, tel hoe ver hij komt, en sta ergens anders als hij plooft.',
     practises: 'Counting squares, comparing two numbers, planning a way out',
@@ -119,7 +119,7 @@ const GAMES: Game[] = [
   },
   {
     href: './dig.html',
-    title: 'Dino Dig',
+    title: 'Opgraving',
     line: 'Brush the dirt from a real fossil and work out whose bones these are.',
     lineNl: 'Borstel het zand van een echt fossiel en bedenk van wie deze botten zijn.',
     practises: 'Patience, recognising a whole from its parts',

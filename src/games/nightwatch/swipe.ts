@@ -1,7 +1,7 @@
 /**
  * What one finger means, with no canvas and no events in it.
  *
- * Night Watch used to want a separate drag per line: press a star, pull to the next, let go, press
+ * Nachtwacht used to want a separate drag per line: press a star, pull to the next, let go, press
  * again. That is four gestures for a four-line figure and it does not feel like drawing anything.
  * A child draws a constellation the way they draw a shape - one press, one movement through every
  * star, one release - so that is what this works out: which star a point is on, and what happens to

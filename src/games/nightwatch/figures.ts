@@ -1,5 +1,5 @@
 /**
- * Night Watch figures.
+ * Nachtwacht figures.
  *
  * Every figure is a small set of stars and the lines between them, in a 0..1 square.
  * They are hand placed rather than generated, because a constellation only reads as an

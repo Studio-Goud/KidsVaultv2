@@ -1,5 +1,5 @@
 /**
- * The dinosaurs of Dino Dig.
+ * The dinosaurs of Opgraving.
  *
  * Each animal is described as a set of parts rather than as a traced outline: a body, a neck, a
  * head of a particular kind, a tail and legs. The same description drives both the skeleton in the

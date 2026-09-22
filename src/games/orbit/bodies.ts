@@ -1,5 +1,5 @@
 /**
- * The solar system as Orbit draws it.
+ * The solar system as Planetarium draws it.
  *
  * Colours are taken from what the planets actually look like through a telescope or from a probe,
  * not from the primary-colour set children's books tend to use. Diameters are real, in kilometres,

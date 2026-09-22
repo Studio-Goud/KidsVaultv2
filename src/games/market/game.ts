@@ -1,5 +1,5 @@
 /**
- * Market Day - the counting game in Braambos.
+ * Marktdag - the counting game in Braambos.
  *
  * You keep a fruit stall. Customers come up one at a time with an order card: pictures and a
  * numeral, never a sum. You tap crates to fill the basket, take fruit out again if you overshoot,
@@ -643,7 +643,7 @@ export class MarketDay {
     ctx.fillRect(0, 0, this.w, this.h);
 
     ctx.textAlign = 'center';
-    heading(ctx, 'Market Day', this.w / 2, 60 * u, this.font('900', 26), '#123047');
+    heading(ctx, 'Marktdag', this.w / 2, 60 * u, this.font('900', 26), '#123047');
     ctx.fillStyle = 'rgba(18,48,71,0.7)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Fill the basket. Ring the bell.', 'Vul de mand. Bel.'), this.w / 2, 84 * u);

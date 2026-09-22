@@ -1,5 +1,5 @@
 /**
- * The sky Night Watch is played under.
+ * The sky Nachtwacht is played under.
  *
  * The game itself is bright points on dark, which is right - anything busy would compete with the
  * figure the child is trying to hold in mind. So the work here is depth rather than decoration: a

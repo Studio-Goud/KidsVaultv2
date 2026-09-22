@@ -1,5 +1,5 @@
 /**
- * How Puffball is drawn.
+ * How Stuifzwam is drawn.
  *
  * The board is a grid, and a grid drawn honestly is a chessboard. So the floor is moss with a
  * grain to it, the pillars are stones with a lit top and a shaded side, and the pots are clay with
@@ -283,7 +283,7 @@ export function paintPop(ctx: Ctx, px: number, py: number, cell: number, age: nu
 
 // ---------------------------------------------------------------- the characters
 
-/** The player: a hedgehog with a lantern, the same one who shops in Market Day. */
+/** The player: a hedgehog with a lantern, the same one who shops in Marktdag. */
 export function paintHedgehog(ctx: Ctx, cx: number, cy: number, r: number, facing: number, walk: number, dazed: number, t: number): void {
   ctx.save();
   ctx.translate(cx, cy);
@@ -301,7 +301,7 @@ export function paintHedgehog(ctx: Ctx, cx: number, cy: number, r: number, facin
   }
   // Spines. Flat and all one colour they read as a brown smudge at the size a board square
   // allows, so they are graded against the house light and laid in two rows: a dark back row
-  // and a shorter lit row in front of it, the way the same animal is drawn in Market Day.
+  // and a shorter lit row in front of it, the way the same animal is drawn in Marktdag.
   const quills = (from: number, to: number, tone: string | CanvasGradient, jitter: number, i0 = 0, i1 = 13): void => {
     ctx.fillStyle = tone;
     for (let i = i0; i <= i1; i++) {
