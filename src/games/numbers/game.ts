@@ -39,6 +39,7 @@ import {
 import {
   cleanTopics, nextStep, pickNext, recordTopic, topicOf, type Topics,
 } from '../../platform/skill';
+import { masteryRing, nextRing } from '../../platform/progress';
 import { numberWord, sumSymbols, sumWords } from './numberwords';
 import {
   apple, appleSlot, arrayGeo, arrayHandle, bead, crate, crateFront, cube, drawArray, drawCrateOfApples,
@@ -1614,30 +1615,9 @@ export class Numbers {
       // A ring that fills as this subject gets firm. It is not a score and there is nothing to
       // collect: it is the answer to "how am I doing at the tables", drawn where the question is.
       const m = this.topics[L.id];
-      if (open && m && m.seen > 0) {
-        const rx = x + cw - 20 * u, ry = y + 20 * u, rr = 11 * u;
-        ctx.save();
-        ctx.lineWidth = 3.4 * u;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = 'rgba(12,32,52,0.28)';
-        ctx.beginPath(); ctx.arc(rx, ry, rr, 0, TAU); ctx.stroke();
-        ctx.strokeStyle = '#4fbf7a';
-        ctx.beginPath(); ctx.arc(rx, ry, rr, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(m.level, 0, 1));
-        ctx.stroke();
-        ctx.restore();
-      }
-
+      if (open && m && m.seen > 0) masteryRing(ctx, x + cw - 20 * u, y + 20 * u, 11 * u, m.level, u);
       // and a slow gold breath around the one to do next, which is an invitation, not an order
-      if (open && L.id === suggest) {
-        ctx.save();
-        ctx.strokeStyle = hexA('#f0a92c', 0.7 + Math.sin(this.t * 2.1) * 0.3);
-        ctx.lineWidth = 4.5 * u;
-        ctx.shadowColor = 'rgba(240,169,44,0.5)';
-        ctx.shadowBlur = 10 * u;
-        ctx.beginPath(); ctx.roundRect(x - 3 * u, y - 3 * u, cw + 6 * u, chh + 6 * u, 19 * u);
-        ctx.stroke();
-        ctx.restore();
-      }
+      if (open && L.id === suggest) nextRing(ctx, x, y, cw, chh, 19 * u, this.t, u);
 
       if (!open) {
         ctx.save();

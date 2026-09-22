@@ -237,12 +237,23 @@ export function cleanTopics(raw: unknown, allowed: readonly string[]): Topics {
  * that has been left alone longest. An untouched subject counts as ready, because you cannot get
  * better at something you have never tried.
  */
+export const READY = 0.55;
+
 export function pickNext(t: Topics, ids: readonly string[]): string | null {
   let best: string | null = null, bestScore = -Infinity;
   for (const id of ids) {
     const m = t[id];
-    // never seen: the most interesting thing there is, but behind anything still half-learnt
-    const score = !m || m.seen === 0 ? 0.45 : 1 - Math.abs(m.level - 0.55) - Math.min(0.2, m.seen / 200);
+    // never tried: worth a lot, but behind anything a child is still in the middle of learning
+    if (!m || m.seen === 0) { if (0.45 > bestScore) { bestScore = 0.45; best = id; } continue; }
+    // How far from the middle of learning this is. Past it counts double, because there is less
+    // left to find out there - but not endlessly, or a subject a child has finished would come
+    // last behind one they cannot do at all.
+    const gap = m.level > READY
+      ? Math.min(0.55, (m.level - READY) * 2.4)
+      : (READY - m.level) * 1.9;
+    // and between two equals, the one that has been left alone longest
+    const worn = Math.min(0.25, m.seen / 120);
+    const score = 1 - gap - worn;
     if (score > bestScore) { bestScore = score; best = id; }
   }
   return best;

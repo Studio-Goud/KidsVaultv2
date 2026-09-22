@@ -2308,6 +2308,11 @@ const group = name => console.log(`\n${name}`);
     is('test_next_subject_prefers_the_half_learnt_to_the_untried',
       pickNext(book, ['edge', 'fresh']), 'edge');
     is('test_next_subject_of_nothing_is_nothing', pickNext(book, []), null);
+    // a subject just aced hands over to something new rather than asking for a tenth go
+    is('test_next_subject_a_freshly_aced_one_gives_way_to_an_untried_one',
+      pickNext({ aced: { level: 0.78, seen: 6, streak: 6, slump: 0 } }, ['aced', 'new']), 'new');
+    is('test_next_subject_a_subject_in_the_middle_of_being_learnt_holds_on',
+      pickNext({ mid: { level: 0.5, seen: 8, streak: 1, slump: 0 } }, ['mid', 'new']), 'mid');
   }
 }
 
@@ -2346,6 +2351,45 @@ const group = name => console.log(`\n${name}`);
     }), true);
   is('test_dial_the_tables_are_given_longer_than_a_sum_to_ten',
     parMsFor(levelById('tafels')) > parMsFor(levelById('erbij')), true);
+}
+
+// ---------------------------------------------------------------- Klokkijken: how many times to offer
+
+{
+  const { LEVELS, optionsFor, parMsFor, makeQuestion, rngFor, isRight } =
+    await bundle('src/games/clock/model.ts', 'clockdial.mjs');
+  group('Klokkijken — the dial on a level');
+  const asking = LEVELS.filter(L => L.kinds.some(k => k !== 'set'));
+
+  is('test_clock_dial_a_child_new_to_this_gets_three', asking.every(L => optionsFor(L, 0) === 3), true);
+  is('test_clock_dial_a_child_sure_of_this_gets_the_full_set',
+    asking.every(L => optionsFor(L, 1) === L.options), true);
+  is('test_clock_dial_never_goes_below_three', LEVELS.every(L => optionsFor(L, -3) >= 3), true);
+  is('test_clock_dial_never_goes_past_what_the_level_asked_for',
+    LEVELS.every(L => optionsFor(L, 3) <= L.options), true);
+
+  // a smaller set is still a real question: the right time is in it, exactly once
+  is('test_clock_dial_a_smaller_set_still_contains_the_time',
+    asking.every(L => {
+      const rng = rngFor(L, 7);
+      for (let i = 0; i < 14; i++) {
+        const q = makeQuestion(L, rng, i, [], 3);
+        if (q.kind === 'set') continue;
+        if (q.options.length !== 3) return false;
+        if (!isRight(q, q.options[q.answer])) return false;
+        if (q.options.filter(o => isRight(q, o)).length !== 1) return false;
+      }
+      return true;
+    }), true);
+  is('test_clock_dial_setting_the_hands_has_no_buttons_to_thin_out',
+    (() => {
+      const L = LEVELS.find(x => x.id === 'setit');
+      const rng = rngFor(L, 2);
+      for (let i = 0; i < 8; i++) if (makeQuestion(L, rng, i, [], 3).options.length !== 0) return false;
+      return true;
+    })(), true);
+  is('test_clock_dial_working_out_how_much_later_is_given_longest',
+    parMsFor(LEVELS.find(L => L.id === 'later')) > parMsFor(LEVELS.find(L => L.id === 'hours')), true);
 }
 
 rmSync(out, { recursive: true, force: true });

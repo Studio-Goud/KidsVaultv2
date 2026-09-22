@@ -181,16 +181,39 @@ export function distractors(t: Time, level: Level, rng: () => number): Time[] {
  * from twelve hours will repeat, and a level that asks half past nine three times feels broken
  * even though it is only chance, so a repeat is rolled again.
  */
-export function makeQuestion(level: Level, rng: () => number, index: number, avoid: Time[] = []): Question {
+export function makeQuestion(
+  level: Level, rng: () => number, index: number, avoid: Time[] = [], options = level.options,
+): Question {
   for (let tries = 0; tries < 24; tries++) {
-    const q = rollQuestion(level, rng, index);
+    const q = rollQuestion(level, rng, index, options);
     const asked = q.kind === 'elapsed' ? (q.from ?? q.t) : q.t;
     if (!avoid.some(a => sameTime(a, asked))) return q;
   }
-  return rollQuestion(level, rng, index);
+  return rollQuestion(level, rng, index, options);
 }
 
-function rollQuestion(level: Level, rng: () => number, index: number): Question {
+/**
+ * How many clock faces or times to put under a question.
+ *
+ * Three is the floor - two would make guessing a strategy - and a child who is sure of this level
+ * gets the full set it was written with, where the near-misses worth offering all fit. Setting the
+ * hands has no buttons at all, so the dial never touches it.
+ *
+ * The times themselves do not get easier. A level about the quarters stays about the quarters.
+ */
+export function optionsFor(level: Level, difficulty: number): number {
+  const d = difficulty < 0 ? 0 : difficulty > 1 ? 1 : difficulty;
+  return Math.max(3, Math.min(level.options, Math.round(3 + d * (level.options - 3))));
+}
+
+/** How long this level ought to take per question, in milliseconds. */
+export function parMsFor(level: Level): number {
+  if (level.kinds.includes('elapsed')) return 12000;
+  if (level.kinds.includes('set')) return 11000;
+  return level.snap === 1 ? 9000 : 7000;
+}
+
+function rollQuestion(level: Level, rng: () => number, index: number, count: number): Question {
   const kind = level.kinds[index % level.kinds.length];
   if (kind === 'set') {
     const t = someTime(level, rng);
@@ -208,12 +231,12 @@ function rollQuestion(level: Level, rng: () => number, index: number): Question 
     // on the start time, so both are offered
     const pool = [t, ...wrong.slice(0, 2), plusMinutes(from.h, from.m, plus === 60 ? 30 : 60)]
       .filter((x, i, a) => a.findIndex(y => sameTime(x, y)) === i);
-    const options = shuffle(pool.slice(0, level.options), rng);
+    const options = shuffle(pool.slice(0, count), rng);
     return { kind, t, from, plus, options, answer: options.findIndex(o => sameTime(o, t)) };
   }
   const t = someTime(level, rng);
   const wrong = distractors(t, level, rng);
-  const options = shuffle([t, ...wrong.slice(0, level.options - 1)], rng);
+  const options = shuffle([t, ...wrong.slice(0, count - 1)], rng);
   return { kind, t, options, answer: options.findIndex(o => sameTime(o, t)) };
 }
 

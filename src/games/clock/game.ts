@@ -31,9 +31,13 @@ import {
   spoken,
 } from './dutchtime';
 import {
-  isRight, LEVELS, makeQuestion, rngFor, starsFor, teachLine,
+  isRight, LEVELS, makeQuestion, optionsFor, parMsFor, rngFor, starsFor, teachLine,
   type Level, type Question, type Time,
 } from './model';
+import {
+  cleanTopics, nextStep, pickNext, recordTopic, topicOf, type Topics,
+} from '../../platform/skill';
+import { masteryRing, nextRing } from '../../platform/progress';
 import { dialRadius, drawClockFace, drawDigital, drawRoom, HOUR_LEN, MINUTE_LEN } from './paint';
 import { clocksfx } from './clocksfx';
 
@@ -98,6 +102,17 @@ export class Clock {
   private earned = 0;
   /** the last few times this level asked about, so it does not ask twice in a row */
   private recent: Time[] = [];
+  /**
+   * How firm the ground is under each of the nine levels.
+   *
+   * Reading the quarters and working out how much later are not two sizes of the same thing, so
+   * each keeps its own footing and each is asked at its own difficulty.
+   */
+  private topics: Topics = {};
+  /** 0 to 1: how hard this run should be, which here means how many times to choose between */
+  private diff = 0.3;
+  /** when this question became readable, for judging how long the answer took */
+  private askedAt = 0;
 
   private fb: 'none' | 'right' | 'wrong' = 'none';
   private fbT = 0;
@@ -117,6 +132,7 @@ export class Clock {
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
+    this.topics = cleanTopics(save.topics?.clock, LEVELS.map(l => l.id));
     this.resize();
     window.addEventListener('resize', () => this.resize());
     canvas.addEventListener('pointerdown', e => this.onDown(e));
@@ -167,6 +183,8 @@ export class Clock {
       streak: this.streak,
       stars: this.earned,
       minuteNumbers: save.clock.minuteNumbers,
+      diff: Number(this.diff.toFixed(3)),
+      mastery: Number((this.topics[this.level.id]?.level ?? 0).toFixed(3)),
       clock: { x: Math.round(L.clock.cx), y: Math.round(L.clock.cy), r: Math.round(L.clock.r) },
       buttons: this.hits.map(b => ({ id: b.id, x: Math.round(b.x + b.w / 2), y: Math.round(b.y + b.h / 2) })),
     };
@@ -308,6 +326,7 @@ export class Clock {
   private start(i: number): void {
     this.levelIndex = clamp(i, 0, LEVELS.length - 1);
     this.level = LEVELS[this.levelIndex];
+    this.diff = nextStep(topicOf(this.topics, this.level.id)).difficulty;
     this.attempt++;
     this.rng = rngFor(this.level, this.attempt);
     this.round = 0;
@@ -326,7 +345,8 @@ export class Clock {
   private say(text: string, secs = 3.5): void { this.note = text; this.noteT = secs; }
 
   private nextQuestion(): void {
-    this.q = makeQuestion(this.level, this.rng, this.round, this.recent);
+    this.q = makeQuestion(this.level, this.rng, this.round, this.recent, optionsFor(this.level, this.diff));
+    this.askedAt = this.t;
     this.recent.push(this.q.kind === 'elapsed' ? (this.q.from ?? this.q.t) : this.q.t);
     if (this.recent.length > 4) this.recent.shift();
     this.fb = 'none';
@@ -369,6 +389,25 @@ export class Clock {
       this.shake.add(0.5);
       clocksfx.wrong();
     }
+    this.noteAttempt(ok);
+  }
+
+  /**
+   * What just happened, told to the engine that decides what comes next.
+   *
+   * Plain facts only - right or wrong, how long it took, whether the ring of fives was up - and
+   * nothing about the child. The one thing that comes back is how many times to offer next run.
+   */
+  private noteAttempt(correct: boolean): void {
+    this.topics = recordTopic(this.topics, this.level.id, {
+      correct,
+      ms: Math.round(Math.max(0, this.t - this.askedAt) * 1000),
+      parMs: parMsFor(this.level),
+      hints: save.clock.minuteNumbers ? 1 : 0,
+      tries: 1,
+    });
+    save.topics = { ...save.topics, clock: this.topics };
+    persist();
   }
 
   private advance(): void {
@@ -895,6 +934,10 @@ export class Clock {
       ctx.scale(squeeze, squeeze);
       ctx.translate(-this.w / 2, -listTop);
     }
+    // the one worth doing now: nearest the edge of what this child can already read, never the
+    // one they are worst at
+    const suggest = pickNext(this.topics, LEVELS.filter((_, i) => this.unlocked(i)).map(L => L.id));
+
     LEVELS.forEach((L, i) => {
       const col = i % cols, row = Math.floor(i / cols);
       const x = x0 + col * (cw + pad), y = listTop + row * (chh + pad);
@@ -939,6 +982,10 @@ export class Clock {
       for (let sI = 0; sI < 3; sI++) {
         drawStar(ctx, x + cw / 2 + (sI - 1) * 18 * u, y + art + 32 * u, 7.5 * u, sI < p.stars);
       }
+
+      const m = this.topics[L.id];
+      if (open && m && m.seen > 0) masteryRing(ctx, x + cw - 20 * u, y + 20 * u, 11 * u, m.level, u);
+      if (open && L.id === suggest) nextRing(ctx, x, y, cw, chh, 19 * u, this.t, u);
 
       if (!open) {
         ctx.save();
