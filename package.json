@@ -13,7 +13,8 @@
     "words": "node scripts/letterwords.mjs",
     "cap:sync": "npm run build && npx cap sync",
     "cap:android": "npm run cap:sync && npx cap open android",
-    "cap:ios": "npm run cap:sync && npx cap open ios"
+    "cap:ios": "npm run cap:sync && npx cap open ios",
+    "sheet": "node scripts/picturesheet.mjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
