@@ -25,6 +25,18 @@ export interface SaveData {
    * tables of seven are. One number for "number" cannot hold both splitting ten and the tables.
    */
   topics: Record<string, Record<string, { level: number; seen: number; streak: number; slump: number }>>;
+  /**
+   * The parent's half of the app: who is playing, how long they may, what is on offer, and the
+   * code on the door. See `src/platform/session.ts` and `src/platform/gate.ts`.
+   */
+  family: {
+    children: Array<{ id: string; name: string; years: number; domains: string[]; limits: { perDay: number; perSitting: number } | null; warn: boolean }>;
+    /** whose turn it is; empty when nobody has been chosen yet */
+    playing: string;
+    /** minutes and finished things, per child, for today */
+    used: Record<string, { date: string; minutes: number; finished: number }>;
+    gate: { code: string; wrong: number; until: number };
+  };
   /** Watermolen's village: what you have earned, what you have built, what each valley has paid */
   mill: { grain: number; built: string[]; paid: Record<string, number> };
   /** Moonshot: how far the best flight got, on the ladder and in kilometres, and the rocket on the pad */
@@ -65,6 +77,7 @@ const defaults = (): SaveData => ({
   levels: {}, sound: true, radio: true, music: true, haptics: true, lang: 'auto', tutorialSeen: false,
   coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false, buildHintSeen: false,
   taught: [], skills: {}, topics: {},
+  family: { children: [], playing: '', used: {}, gate: { code: '', wrong: 0, until: 0 } },
   mill: { grain: 0, built: [], paid: {} },
   moon: { best: 0, target: 7, topKm: 0, design: [] },
   clock: { minuteNumbers: false },
@@ -103,6 +116,7 @@ export function loadSave(): SaveData {
     // missing a field inside it, so it is filled in rather than trusted whole
     return {
       ...d, ...got,
+      family: { ...d.family, ...(got.family ?? {}) },
       mill: { ...d.mill, ...(got.mill ?? {}) },
       moon: { ...d.moon, ...(got.moon ?? {}) },
       clock: { ...d.clock, ...(got.clock ?? {}) },

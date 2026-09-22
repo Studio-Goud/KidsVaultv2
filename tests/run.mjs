@@ -2901,6 +2901,129 @@ const group = name => console.log(`\n${name}`);
     clipFor({ nl: [{ id: 'a', file: 'nl/a.mp3', secs: 1 }], en: [] }, 'en', 'a'), null);
 }
 
+// ---------------------------------------------------------------- A day, a sitting, a limit
+
+{
+  const S = await bundle('src/platform/session.ts', 'session.mjs');
+  const { limitsForAge, limitIsGuidance, dayKey, useToday, limitsFor, leftToday, roomFor,
+    isLastGo, spent, spend, finished, allows, cleanChild, cleanUsed } = S;
+  group('Platform — the day');
+
+  const kid = (over = {}) => ({ id: 'a', name: 'Kind', years: 5, domains: [], limits: null, warn: false, ...over });
+  const TODAY = '2026-09-22';
+  const used = (over = {}) => ({ date: TODAY, minutes: 0, finished: 0, ...over });
+
+  // the guidance, and where it stops being guidance
+  is('test_limits_a_three_year_old_gets_the_shortest_day', limitsForAge(3), { perDay: 30, perSitting: 10 });
+  is('test_limits_a_five_year_old_gets_the_hour', limitsForAge(5), { perDay: 60, perSitting: 15 });
+  is('test_limits_never_shrink_as_a_child_grows',
+    [2,3,4,5,6,7,8,9,10].every((a, i, all) => i === 0 || limitsForAge(a).perDay >= limitsForAge(all[i-1]).perDay), true);
+  is('test_limits_a_sitting_is_always_shorter_than_a_day',
+    [2,4,6,8,10].every(a => limitsForAge(a).perSitting < limitsForAge(a).perDay), true);
+  is('test_limits_say_where_the_evidence_stops',
+    [2,4,6].every(a => limitIsGuidance(a)) && [7,8,10].every(a => !limitIsGuidance(a)), true);
+
+  // a day is a date, so midnight needs no timer
+  is('test_day_is_written_as_a_date', dayKey(new Date(2026, 8, 22)), '2026-09-22');
+  is('test_day_pads_a_single_digit', dayKey(new Date(2026, 0, 5)), '2026-01-05');
+  is('test_day_yesterdays_tally_is_todays_empty_one',
+    useToday(used({ date: '2026-09-21', minutes: 29 }), TODAY), { date: TODAY, minutes: 0, finished: 0 });
+  is('test_day_todays_tally_is_kept', useToday(used({ minutes: 12 }), TODAY).minutes, 12);
+
+  // what is left
+  is('test_left_a_fresh_day_is_the_whole_allowance', leftToday(used(), kid(), TODAY), 60);
+  is('test_left_counts_down', leftToday(used({ minutes: 25 }), kid(), TODAY), 35);
+  is('test_left_never_goes_negative', leftToday(used({ minutes: 400 }), kid(), TODAY), 0);
+  is('test_left_a_parents_own_limit_wins',
+    leftToday(used(), kid({ limits: { perDay: 20, perSitting: 10 } }), TODAY), 20);
+
+  // room for one more: a twelve minute game is not offered when four minutes are left
+  is('test_room_a_long_game_is_refused_at_the_end_of_the_day',
+    roomFor(used({ minutes: 56 }), kid(), TODAY, 12), false);
+  is('test_room_a_short_game_still_fits', roomFor(used({ minutes: 56 }), kid(), TODAY, 3), true);
+  is('test_room_nothing_fits_once_the_day_is_spent', roomFor(used({ minutes: 60 }), kid(), TODAY, 1), false);
+
+  // the last go is announced early enough to be enjoyed, not in its final seconds
+  is('test_last_go_is_not_announced_at_the_start', isLastGo(used(), kid(), TODAY, 5), false);
+  is('test_last_go_is_announced_with_a_whole_game_left',
+    isLastGo(used({ minutes: 45 }), kid(), TODAY, 5), true);
+  is('test_last_go_is_not_announced_once_there_is_nothing_left',
+    isLastGo(used({ minutes: 60 }), kid(), TODAY, 5), false);
+  is('test_spent_is_the_end_of_the_day', spent(used({ minutes: 60 }), kid(), TODAY), true);
+  is('test_spent_is_not_the_end_a_minute_before', spent(used({ minutes: 59 }), kid(), TODAY), false);
+
+  // counting
+  is('test_spend_adds_minutes', spend(used({ minutes: 10 }), TODAY, 5).minutes, 15);
+  is('test_spend_ignores_a_negative_minute', spend(used({ minutes: 10 }), TODAY, -5).minutes, 10);
+  is('test_spend_on_a_new_day_starts_from_nothing',
+    spend(used({ date: '2026-09-21', minutes: 30 }), TODAY, 5).minutes, 5);
+  is('test_finished_counts_things_played_to_their_end', finished(used(), TODAY).finished, 1);
+
+  // what a parent switched off
+  is('test_domains_an_empty_choice_means_everything', allows(kid(), ['ruimte']), true);
+  is('test_domains_a_chosen_subject_is_offered', allows(kid({ domains: ['ruimte'] }), ['ruimte']), true);
+  is('test_domains_an_unchosen_subject_is_not', allows(kid({ domains: ['ruimte'] }), ['taal']), false);
+  is('test_domains_one_match_is_enough', allows(kid({ domains: ['taal'] }), ['ruimte', 'taal']), true);
+
+  // saves that have been got at
+  is('test_clean_a_child_without_an_id_is_not_a_child', cleanChild({ years: 5 }), null);
+  is('test_clean_nonsense_is_not_a_child', cleanChild('kaas'), null);
+  is('test_clean_an_age_outside_the_app_is_pulled_in', cleanChild({ id: 'a', years: 99 }).years, 10);
+  is('test_clean_an_age_below_the_app_is_pulled_in', cleanChild({ id: 'a', years: 0 }).years, 2);
+  is('test_clean_a_missing_age_is_the_middle', cleanChild({ id: 'a' }).years, 5);
+  is('test_clean_an_absurd_limit_is_pulled_in',
+    cleanChild({ id: 'a', limits: { perDay: 9999, perSitting: 9999 } }).limits, { perDay: 240, perSitting: 60 });
+  is('test_clean_a_used_record_of_nonsense_opens_empty', cleanUsed('kaas'), { date: '', minutes: 0, finished: 0 });
+  is('test_clean_negative_minutes_become_none', cleanUsed({ minutes: -20 }).minutes, 0);
+}
+
+// ---------------------------------------------------------------- The door to the parent's app
+
+{
+  const G = await bundle('src/platform/gate.ts', 'gate.mjs');
+  const { scramble, looksLikePin, tooEasy, TOO_EASY, needsSetup, waitingFor, tryPin, setPin,
+    cleanGate, FRESH_GATE, TRIES, COOLDOWN } = G;
+  group('Platform — the parent gate');
+
+  is('test_gate_a_new_app_has_no_code_yet', needsSetup(FRESH_GATE), true);
+  is('test_gate_four_digits_is_a_code', looksLikePin('4071'), true);
+  is('test_gate_three_digits_is_not', looksLikePin('407'), false);
+  is('test_gate_letters_are_not', looksLikePin('abcd'), false);
+  is('test_gate_a_code_with_a_space_is_not', looksLikePin('40 1'), false);
+
+  is('test_gate_the_obvious_codes_are_refused', TOO_EASY.every(p => tooEasy(p)), true);
+  is('test_gate_a_thought_about_code_is_allowed', tooEasy('4071'), false);
+  is('test_gate_choosing_an_obvious_code_fails', setPin(FRESH_GATE, '1234').why, 'tooEasy');
+  is('test_gate_choosing_three_digits_fails', setPin(FRESH_GATE, '407').why, 'malformed');
+
+  // the code is never stored as itself
+  is('test_gate_the_code_is_not_kept_in_the_open', setPin(FRESH_GATE, '4071').state.code.includes('4071'), false);
+  is('test_gate_the_same_code_scrambles_the_same_way', scramble('4071'), scramble('4071'));
+  is('test_gate_different_codes_scramble_differently', scramble('4071') === scramble('4072'), false);
+
+  const set = setPin(FRESH_GATE, '4071').state;
+  is('test_gate_a_code_is_set', needsSetup(set), false);
+  is('test_gate_the_right_code_opens_the_door', tryPin(set, '4071', 100).ok, true);
+  is('test_gate_the_wrong_code_does_not', tryPin(set, '4072', 100).ok, false);
+  is('test_gate_a_malformed_try_is_told_apart_from_a_wrong_one', tryPin(set, 'abc', 100).why, 'malformed');
+
+  // wrong tries in a row close the door for a while
+  {
+    let g = set;
+    for (let i = 0; i < TRIES; i++) g = tryPin(g, '0001', 100).state;
+    is('test_gate_five_wrong_tries_close_the_door', waitingFor(g, 100), COOLDOWN);
+    is('test_gate_a_closed_door_refuses_even_the_right_code', tryPin(g, '4071', 100).why, 'waiting');
+    is('test_gate_the_door_opens_again_after_the_wait', tryPin(g, '4071', 100 + COOLDOWN).ok, true);
+    is('test_gate_one_right_try_clears_the_count', tryPin(set, '4071', 100).state.wrong, 0);
+  }
+  is('test_gate_four_wrong_tries_do_not_close_it',
+    (() => { let g = set; for (let i = 0; i < TRIES - 1; i++) g = tryPin(g, '0001', 100).state;
+      return waitingFor(g, 100); })(), 0);
+
+  is('test_gate_a_save_of_nonsense_opens_with_no_code', cleanGate('kaas'), FRESH_GATE);
+  is('test_gate_a_negative_wait_is_no_wait', cleanGate({ until: -50 }).until, 0);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);
