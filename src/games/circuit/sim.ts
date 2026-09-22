@@ -530,7 +530,7 @@ export interface PartState {
   faces?: number[];
 }
 
-export type FaultKind = 'nosource' | 'flat' | 'fuse' | 'short' | 'switchoff' | 'ledback' | 'gap' | 'loose';
+export type FaultKind = 'nosource' | 'flat' | 'fuse' | 'short' | 'switchoff' | 'ledback' | 'gap' | 'loose' | 'stray';
 
 export interface Fault {
   kind: FaultKind;
@@ -736,6 +736,12 @@ export function faultOf(board: Board, sim: Sim, net?: Net): Fault | null {
   const dangling = (i: number, l: string): boolean => nn.pins[nn.nodeOf.get(`${i}:${l}`)!] === 1;
   const alone = src.find(i => dangling(i, 'A') && dangling(i, 'B'));
   if (alone !== undefined) return { kind: 'loose', at: alone };
+  // A wire is joined along the faces the line was drawn through, which is what lets a circuit run
+  // back past itself without shorting out. Put one down with a tap rather than a stroke and it is
+  // joined through nothing at all: it looks like wire, it behaves like a gap, and the child has no
+  // way of knowing why. So it says so, and says what to do instead.
+  const stray = board.findIndex((p, i) => p.id === 'wire' && (nn.joinedFaces.get(i) ?? []).length === 0);
+  if (stray >= 0) return { kind: 'stray', at: stray };
   if (!ends.length) return null;
 
   // otherwise point at a loose end the current has already reached, and not at the battery itself
@@ -754,6 +760,9 @@ export function faultLine(f: Fault, nl: boolean): string {
       return nl ? 'De batterij zit nog nergens aan vast.' : 'The battery is not joined to anything yet.';
     case 'gap':
       return nl ? 'Hier zit een gat in de kring.' : 'There is a gap in the loop here.';
+    case 'stray':
+      return nl ? 'Deze draad zit nergens aan vast. Trek de lijn met je vinger van het ene deel naar het andere.'
+        : 'This wire is joined to nothing. Drag the line with your finger from one part to the next.';
     case 'switchoff':
       return nl ? 'Deze schakelaar staat uit.' : 'This switch is off.';
     case 'ledback':

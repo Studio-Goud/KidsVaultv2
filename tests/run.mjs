@@ -1735,6 +1735,26 @@ const group = name => console.log(`\n${name}`);
     return last ?? solve(board, false);
   };
 
+  group('Stroomkring — a wire put down with a tap');
+  // a wire is joined along the faces the line was drawn through, so one tapped down on its own is
+  // joined to nothing: it looks like wire and behaves like a gap, and the game has to say which
+  {
+    const tapped = [put('battery', 2, 2), put('bulb', 6, 2), put('wire', 3, 2), put('wire', 4, 2)];
+    const f = faultOf(tapped, solve(tapped, false));
+    is('test_stray_a_tapped_wire_is_named_as_stray', f.kind, 'stray');
+    is('test_stray_it_points_at_the_first_unjoined_wire', tapped[f.at].id, 'wire');
+    is('test_stray_the_dutch_line_says_to_drag_the_line',
+      faultLine(f, true).includes('met je vinger'), true);
+    is('test_stray_the_english_line_says_to_drag_the_line',
+      faultLine(f, false).includes('Drag the line'), true);
+    const drawn = loop('bulb');
+    is('test_stray_a_drawn_loop_is_never_stray', faultOf(drawn, solve(drawn, false)), null);
+    const half = [put('battery', 2, 2), put('bulb', 6, 2)];
+    line(half, [[3, 2], [4, 2], [5, 2]]);
+    is('test_stray_a_half_drawn_loop_is_a_gap_and_not_stray',
+      faultOf(half, solve(half, false)).kind, 'gap');
+  }
+
   group('Stroomkring — the parts themselves');
   is('test_parts_there_are_fourteen_of_them', PARTS.length, 14);
   is('test_parts_ids_are_unique', new Set(PARTS.map(p => p.id)).size, PARTS.length);

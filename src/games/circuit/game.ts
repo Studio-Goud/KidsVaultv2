@@ -315,7 +315,16 @@ export class Circuit {
       bar = { x: 8 * u, y: this.h - barH - 8 * u, w: this.w - 16 * u, h: barH };
       const rows = n > 7 ? 2 : 1;
       const room = bar.y - 8 * u - top;
-      const trayH = clamp(room * 0.28, rows === 2 ? 140 * u : 92 * u, rows === 2 ? 208 * u : 168 * u);
+      // The bench is nine cells across, so on a tall phone its height is decided by the width and
+      // there is room left over underneath it. That room used to sit there as a band of nothing
+      // between the bench and the shelf; the shelf takes it now, which makes the parts bigger to
+      // pick up - the thing a child's finger actually needs.
+      const benchH = ((availWGuess: number): number => {
+        const uu = clamp(Math.min((availWGuess - inset * 2) / COLS, (room - headH - footH - inset * 2) / ROWS), 14, 72 * u);
+        return ROWS * uu + headH + footH + inset * 2;
+      })(this.w - 16 * u);
+      const spare = Math.max(0, room - benchH - 18 * u);
+      const trayH = clamp(room * 0.28 + spare * 0.5, rows === 2 ? 140 * u : 92 * u, rows === 2 ? 260 * u : 200 * u);
       tray = { x: 0, y: bar.y - trayH - 8 * u, w: this.w, h: trayH };
       availW = this.w - 16 * u;
       availH = tray.y - 8 * u - top;
@@ -327,7 +336,10 @@ export class Circuit {
     const panelH = Math.min(availH, ROWS * unit + headH + footH + inset * 2);
     const panel = {
       x: wide ? 8 * u + (availW - panelW) / 2 : this.w / 2 - panelW / 2,
-      y: top + Math.min(Math.max(0, (availH - panelH) / 2), 40 * u),
+      // the bench sits in the middle of what room it has: nine cells across means its height is
+      // settled by the width, and pinning it to the top left the leftover as one hole above the
+      // shelf rather than as a margin at either end
+      y: top + Math.max(0, (availH - panelH) / 2),
       w: panelW, h: panelH,
     };
     return { wide, chip, goal, panel, headH, footH, tray, trayDown: wide, bar, unit };
@@ -375,11 +387,13 @@ export class Circuit {
     if (even * rows >= Math.ceil(n / pages)) cols = even;
     const per = Math.max(1, cols * rows);
     // a cell no bigger than a hand, and the block of them centred in what room there is
-    const cell = Math.min(alongW / cols, 112 * u);
-    const rowH = Math.min(alongH / rows, 92 * u);
+    const cell = Math.min(alongW / cols, 132 * u);
+    const rowH = Math.min(alongH / rows, 122 * u);
     return {
       cols, rows, per, pages, page: clamp(this.page, 0, pages - 1), cell, rowH,
-      offX: (alongW - cols * cell) / 2, offY: (alongH - rows * rowH) / 2,
+      // the parts sit at the top of the shelf; what room is left over collects underneath them,
+      // where it reads as the edge of the shelf rather than as a hole above the parts
+      offX: (alongW - cols * cell) / 2, offY: Math.min((alongH - rows * rowH) / 2, 8 * u),
     };
   }
 
