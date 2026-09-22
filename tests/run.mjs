@@ -278,6 +278,58 @@ const group = name => console.log(`\n${name}`);
   is('test_walk_mole_given_a_direction_prefers_it', stepDirections(false, left, right), [left, right]);
 }
 
+// ---------------------------------------------------------------- Moonshot: the three example rockets
+
+{
+  const { EXAMPLES, buildOrder } = await bundle('src/games/moonshot/examples.ts', 'examples.mjs');
+  const d = await bundle('src/games/moonshot/design.ts', 'exdesign.mjs');
+  group('Moonshot — rockets that explain themselves');
+
+  is('test_examples_there_are_three', EXAMPLES.length, 3);
+  is('test_examples_every_one_is_named_in_both_languages',
+    EXAMPLES.every(e => e.name && e.nameNl && e.why && e.whyNl), true);
+
+  // Every example has to survive the same rules a child's own rocket does: each part legal where
+  // it stands, the whole thing in one piece, and something the launch button will accept.
+  const placeable = e => {
+    const built = [];
+    for (const p of e.parts) { if (!d.canPlace(built, p)) return false; built.push(p); }
+    return true;
+  };
+  is('test_examples_every_part_is_legally_placed', EXAMPLES.every(placeable), true);
+  is('test_examples_every_one_is_a_single_piece', EXAMPLES.every(e => d.isOnePiece(e.parts)), true);
+  is('test_examples_every_one_will_fly', EXAMPLES.every(e => d.isFlyable(e.parts)), true);
+  is('test_examples_none_has_anything_wrong_with_it',
+    EXAMPLES.every(e => d.buildProblem(e.parts, false) === null), true);
+  is('test_examples_every_one_lifts_off_the_pad', EXAMPLES.every(e => d.canLift(e.parts)), true);
+
+  // and they have to be three different lessons, not three sizes of the same one
+  const tops = EXAMPLES.map(e => d.forecast(e.parts).topKm);
+  is('test_examples_every_one_actually_leaves_the_ground',
+    EXAMPLES.every(e => !d.forecast(e.parts).stuck), true);
+  is('test_examples_the_little_one_still_gets_past_the_air', tops[0] > 100, true);
+  is('test_examples_dropping_a_stage_beats_carrying_it', tops[1] > tops[0] * 3, true);
+  is('test_examples_the_boosters_push_hardest_off_the_pad',
+    d.padThrust(EXAMPLES[2].parts) > d.padThrust(EXAMPLES[0].parts) * 3, true);
+
+  // the order it goes on is the order a person builds one: middle column first, from the ground up
+  const order = buildOrder(EXAMPLES[2]);
+  is('test_build_order_starts_at_the_bottom_of_the_middle', [order[0].col, order[0].row], [4, 0]);
+  is('test_build_order_never_puts_a_part_under_one_already_placed',
+    order.every((p, i) => i === 0 || p.col !== order[i - 1].col || p.row > order[i - 1].row), true);
+  is('test_build_order_keeps_every_part', order.length, EXAMPLES[2].parts.length);
+  is('test_build_order_does_the_middle_before_the_sides',
+    order.findIndex(p => p.col !== 4) > order.findLastIndex(p => p.col === 4), true);
+
+  // each step of the build has to stand on its own, or the rocket falls over halfway through
+  is('test_build_order_each_step_is_still_one_piece',
+    EXAMPLES.every(e => {
+      const so_far = [];
+      for (const p of buildOrder(e)) { so_far.push(p); if (!d.isOnePiece(so_far)) return false; }
+      return true;
+    }), true);
+}
+
 // ---------------------------------------------------------------- Moonshot: where it can get to
 
 {

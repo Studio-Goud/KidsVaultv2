@@ -1702,6 +1702,127 @@ export const LADDER: Milestone[] = [
   },
 ];
 
+/**
+ * Fly the rocket before it flies, and say where it gets to.
+ *
+ * "More weight means you need more push" is a sentence. A child does not learn from a sentence;
+ * they learn from watching the arc on the launch pad get shorter the moment they bolt something
+ * heavy on. So nothing here is a score out of ten and nothing is a guess: this is the same
+ * integration the flight itself runs - the same gravity, the same air, the same drag from the same
+ * shape, the same stages dropping when they run dry - run flat out in a few milliseconds with the
+ * rocket held straight up.
+ *
+ * It is a forecast rather than a promise, because in the real flight a child steers and the air
+ * shoves. That is the honest version and it is the useful one: it tells you what the rocket you
+ * built is capable of, and leaves the flying to the flying.
+ */
+export interface Forecast {
+  /** metres per second when the last engine quits - the number the ladder is measured in */
+  speed: number;
+  /** how high it coasts to afterwards, in kilometres */
+  topKm: number;
+  /** how high it is when the engines stop, in metres */
+  burnoutM: number;
+  /** seconds of burning, all stages together */
+  burnSeconds: number;
+  /** the worst squeeze the air gives it, in pascals, and how high that happens */
+  maxQ: number;
+  maxQatM: number;
+  /** how far up the ladder that speed reaches */
+  rung: number;
+  /** true if it never left the pad at all */
+  stuck: boolean;
+  /** the climb, as points of [seconds, metres], thinned enough to draw */
+  arc: Array<[number, number]>;
+}
+
+const DEAD: Forecast = {
+  speed: 0, topKm: 0, burnoutM: 0, burnSeconds: 0, maxQ: 0, maxQatM: 0, rung: 0, stuck: true, arc: [],
+};
+
+export function forecast(design: Design): Forecast {
+  if (!design.length || !isFlyable(design)) return DEAD;
+
+  const burns = [...stagesByColumn(design)]
+    .filter(([, list]) => list.length)
+    .map(([col, stages]) => ({ col, stages, idx: 0, fuel: stages[0].fuel }));
+  if (!burns.length) return DEAD;
+
+  const dropped = new Set<number>();
+  const live = (b: typeof burns[number]): Stage | null => (b.idx < b.stages.length ? b.stages[b.idx] : null);
+
+  let t = 0, alt = 0, v = 0, maxQ = 0, maxQatM = 0;
+  const arc: Array<[number, number]> = [[0, 0]];
+  const dt = 0.05;
+  const LIMIT = 900;                      // seconds; nothing sensible burns for a quarter of an hour
+
+  const massNow = (): number => {
+    let m = 0;
+    design.forEach((p, i) => {
+      if (dropped.has(i)) return;
+      const part = partById(p.id);
+      m += part.dry + stowedMass(p);
+      if (part.fuel > 0) {
+        // a tank still on the rocket carries whatever its stage has left
+        const b = burns.find(x => x.stages.some(st => st.parts.includes(i)));
+        const st = b ? live(b) : null;
+        m += st && st.parts.includes(i) ? Math.max(0, b!.fuel) * (part.fuel / Math.max(0.001, st.fuel)) : part.fuel;
+      }
+    });
+    return Math.max(0.001, m);
+  };
+
+  let burning = true;
+  while (burning && t < LIMIT) {
+    const firing = burns.filter(b => live(b) && b.fuel > 0 && t >= live(b)!.delay);
+    const thrust = firing.reduce((n, b) => n + live(b)!.thrust, 0);
+    const m = massNow() * 1000;
+    let a = -gravityAt(alt);
+    if (thrust > 0) {
+      a += (thrust * 1000) / m;
+      for (const b of firing) b.fuel = Math.max(0, b.fuel - live(b)!.burn * dt);
+    }
+    if (v > 1) {
+      const q = 0.5 * densityAt(alt) * v * v;
+      if (q > maxQ) { maxQ = q; maxQatM = alt; }
+      a -= (q * shapeOf(design, dropped).drag) / m;
+    }
+    v += a * dt;
+    alt = Math.max(0, alt + v * dt);
+    if (alt <= 0 && v < 0) v = 0;
+    t += dt;
+    if (arc.length < 400 && (arc.length < 2 || t - arc[arc.length - 1][0] > 0.35)) arc.push([t, alt]);
+
+    // a stage that has run dry lets go, and anything no longer bolted to the payload goes with it
+    for (const b of burns) {
+      if (b.fuel > 0 || !live(b) || t < live(b)!.delay) continue;
+      for (const i of live(b)!.parts) dropped.add(i);
+      b.idx++;
+      b.fuel = live(b)?.fuel ?? 0;
+    }
+    const keep = stillAttached(design, dropped);
+    design.forEach((_, i) => { if (!dropped.has(i) && !keep.has(i)) dropped.add(i); });
+    for (const b of burns) {
+      if (live(b) && live(b)!.parts.some(i => dropped.has(i))) { b.idx = b.stages.length; b.fuel = 0; }
+    }
+    burning = burns.some(b => live(b) && b.fuel > 0);
+  }
+
+  const up = Math.max(0, v);
+  const topKm = coastHeight(up, alt / 1000);
+  arc.push([t, alt]);
+  return {
+    speed: up,
+    topKm: isFinite(topKm) ? topKm : rungFor(up).rung.km,
+    burnoutM: alt,
+    burnSeconds: t,
+    maxQ, maxQatM,
+    rung: rungFor(up).index,
+    stuck: alt < 12,
+    arc,
+  };
+}
+
 export function rungFor(speed: number): { rung: Milestone; index: number } {
   let index = 0;
   for (let i = 0; i < LADDER.length; i++) if (speed >= LADDER[i].speed) index = i;

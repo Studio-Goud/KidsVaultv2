@@ -26,15 +26,16 @@ import {
 import {
   airAt, buildProblem, canLift, canPlace, clash, cleanDesign, clampDelay, coastHeight, collapse, COLS,
   deadWeight, DELAYS, densityAt,
-  gravityAt, GROUPS, holdFree, isFlyable, kitOf, kmLabel, LADDER, MAX_PARTS, missionOf, nextRung, padThrust,
+  forecast, gravityAt, GROUPS, holdFree, isFlyable, kitOf, kmLabel, LADDER, MAX_PARTS, missionOf, nextRung, padThrust,
   padWeight, partById, partsIn, ROWS, rungFor, shapeHint, shapeOf, slipperiness, stagesByColumn,
-  STARTER, STOWABLE, stillAttached, stowedMass, topRow, totalMass, totalThrust,
-  type Design, type Group, type Milestone, type Mission, type Part, type Placed, type Stage,
+  STOWABLE, stillAttached, stowedMass, topRow, totalMass, totalThrust,
+  type Design, type Forecast, type Group, type Milestone, type Mission, type Part, type Placed, type Stage,
 } from './design';
 import {
   designBounds, paintBalloon, paintBirds, paintCloud, paintDesign, paintEarthBelow, paintFlame,
   paintGrain, paintPad, paintPart, paintSatellite, paintStars, paintTower, skyTone,
 } from './paint';
+import { buildOrder, EXAMPLES } from './examples';
 import { drawPhoto, loadPhoto, planetPhoto, moonPhoto, type PlanetPhoto } from '../orbit/photo';
 import { engineSound, rocket } from './rocketsfx';
 
@@ -141,6 +142,12 @@ export class Moonshot {
   private history: Design[] = [];
   /** where the grid was last drawn, so a finger can be turned back into a cell */
   private cam = { ox: 0, oy: 0, unit: 24 };
+  /** whether the build view has been framed once, so the first frame lands rather than glides */
+  private camSet = false;
+  /** an example rocket putting itself together, one part at a time */
+  private raise: { parts: Placed[]; i: number; t: number } | null = null;
+  /** how high each example gets, worked out once from the same forecast the rail uses */
+  private egKm: number[] = [];
 
   // the flight
   private burns: Burn[] = [];
@@ -171,6 +178,11 @@ export class Moonshot {
   private fresh = false;
 
   private mission: Mission | null = null;
+  /** what the rocket on the pad would do, worked out again whenever it changes */
+  private cast: Forecast | null = null;
+  private castKey = '';
+  /** the mark on the doorframe, easing to where the forecast says, so a change is a movement */
+  private castShown = 0;
   private flash = 0;
   private maxQ = 0;
   private qCalled = false;
@@ -189,7 +201,9 @@ export class Moonshot {
     canvas.addEventListener('pointercancel', () => this.cancelDrag());
     window.addEventListener('keydown', e => this.onKey(e, true));
     window.addEventListener('keyup', e => this.onKey(e, false));
-    this.design = cleanDesign(save.moon?.design) ?? STARTER.map(p => ({ ...p }));
+    // A fresh pad is left empty on purpose. A rocket that is already standing there teaches
+    // nothing about how it got there; three example rockets that build themselves do.
+    this.design = cleanDesign(save.moon?.design) ?? [];
     this.target = clamp(save.moon?.target ?? 7, 1, LADDER.length - 1);
     // the same NASA frames Orbit uses, prepared the same way
     for (const m of LADDER) if (m.photo) void loadPhoto(m.photo, m.photoIn ?? 'planets');
@@ -253,6 +267,22 @@ export class Moonshot {
   }
 
   // ---------- what is kept ----------
+
+  /**
+   * What this rocket would do, if it flew now.
+   *
+   * Worked out from the same physics the flight uses, and only when the rocket has actually
+   * changed - it costs about ten milliseconds, which is nothing once a second and far too much
+   * sixty times a second.
+   */
+  private forecastNow(): Forecast | null {
+    const key = this.design.map(p => `${p.id}@${p.col},${p.row}:${p.delay ?? 0}:${(p.hold ?? []).join('|')}`).join(';');
+    if (key !== this.castKey) {
+      this.castKey = key;
+      this.cast = this.design.length ? forecast(this.design) : null;
+    }
+    return this.cast;
+  }
 
   private best(): number { return save.moon?.best ?? 0; }
   /** The highest a rocket of yours has ever got, in kilometres. Zero until one has flown. */
@@ -366,7 +396,9 @@ export class Moonshot {
    */
   private camera(b: Bands): { ox: number; oy: number; unit: number } {
     const u = this.u();
-    const bd = designBounds(this.design);
+    // While an example is putting itself together, frame the rocket it is going to be. Otherwise
+    // the view snaps tighter with every part that lands and the thing being built never sits still.
+    const bd = designBounds(this.raise ? this.raise.parts : this.design);
     const c0 = Math.max(0, bd.c0 - 1), c1 = Math.min(COLS - 1, bd.c1 + 1);
     const cols = Math.max(3, c1 - c0 + 1);
     const rows = Math.max(5, Math.min(ROWS, bd.r1 + 1));
@@ -727,9 +759,11 @@ export class Moonshot {
     });
     if (best >= 0) {
       const cut = this.design[best];
+      // what goes over the side has to be seen going, or the bottom of the rocket just vanishes
+      const gone: number[] = [];
       this.design.forEach((p, i) => {
         if (this.dropped.has(i)) return;
-        if (p.col === cut.col && p.row <= cut.row) this.dropped.add(i);
+        if (p.col === cut.col && p.row <= cut.row) { this.dropped.add(i); gone.push(i); }
       });
       for (const b of this.burns) {
         const s = this.live(b);
@@ -737,6 +771,12 @@ export class Moonshot {
       }
       rocket.stage();
       this.shake.add(0.6);
+      if (gone.length) {
+        this.debris.push({
+          y: 0, vy: -this.vUp * 0.12 - 9, spin: (Math.random() - 0.5) * 2.2, a: 0, parts: gone, age: 0,
+        });
+        this.separationPuff();
+      }
       this.shed();
       return;
     }
@@ -777,6 +817,19 @@ export class Moonshot {
       }
       return;
     }
+    // an example rocket going up part by part, slowly enough to watch each piece land
+    const r = this.raise;
+    if (r) {
+      r.t += dt;
+      while (r.t > 0.17 && r.i < r.parts.length) {
+        r.t -= 0.17;
+        this.design.push({ ...r.parts[r.i] });
+        r.i++;
+        rocket.clunk();
+      }
+      if (r.i >= r.parts.length) { this.raise = null; this.remember(); }
+    }
+
     if (this.phase === 'fly' || this.phase === 'coast') this.easeCamera(dt);
     if (this.phase === 'fly') {
       // Warping the burn must not coarsen the integration, or the rocket flies a different flight
@@ -987,6 +1040,17 @@ export class Moonshot {
       this.say(`${NL() ? m.nameNl : m.name} - ${m.speed} m/s ${T('when the fuel runs out', 'als de brandstof op is')}`);
       return;
     }
+    if (hit.startsWith('eg:')) {
+      const e = EXAMPLES[Number(hit.slice(3))];
+      if (!e) return;
+      this.push();
+      this.design = [];
+      this.raise = { parts: buildOrder(e), i: 0, t: 0 };
+      this.castShown = 0;
+      this.say(NL() ? e.whyNl : e.why, 6);
+      rocket.tap();
+      return;
+    }
     if (hit.startsWith('tray:')) { this.startDrag(hit.slice(5), -1, p); return; }
     if (hit.startsWith('part:')) {
       const i = Number(hit.slice(5));
@@ -1151,7 +1215,18 @@ export class Moonshot {
   private drawBuild(): void {
     const ctx = this.ctx, u = this.u();
     const b = this.bands();
-    this.cam = this.camera(b);
+    // The view follows the rocket instead of cutting to it: bolt on a tall tank and everything
+    // glides out to make room, which is the zoom a child would have asked for and never has to.
+    const want = this.camera(b);
+    const c = this.cam;
+    const far = !this.camSet || Math.abs(want.unit - c.unit) > c.unit * 0.6 || this.phase !== 'build';
+    const k = far ? 1 : 0.18;
+    this.camSet = true;
+    this.cam = {
+      ox: c.ox + (want.ox - c.ox) * k,
+      oy: c.oy + (want.oy - c.oy) * k,
+      unit: c.unit + (want.unit - c.unit) * k,
+    };
 
     const sky = ctx.createLinearGradient(0, 0, 0, this.h);
     sky.addColorStop(0, '#16223a');
@@ -1161,6 +1236,8 @@ export class Moonshot {
     ctx.fillRect(0, 0, this.w, this.h);
 
     this.drawGrid(b);
+    this.drawForecastRail(b);
+    this.drawExamples(b);
     this.drawTargetChip(b);
     this.drawReadouts(b);
     this.drawTabs(b);
@@ -1552,13 +1629,13 @@ export class Moonshot {
     ctx.restore();
 
     // one line: whatever is wrong with it, or what the air makes of the shape
-    const trouble = this.design.length ? buildProblem(this.design, NL()) : null;
+    const trouble = this.design.length && !this.raise ? buildProblem(this.design, NL()) : null;
     ctx.textAlign = 'center';
     ctx.font = this.font('800', 11);
     ctx.fillStyle = trouble ? 'rgba(240, 178, 122, 0.95)' : 'rgba(226,238,252,0.66)';
     ctx.fillText(
       this.design.length ? (trouble ?? shapeHint(sh, NL()))
-        : T('Drag a part onto the pad to start.', 'Sleep een onderdeel op het platform om te beginnen.'),
+        : T('Tap a rocket, or drag parts up yourself.', 'Tik op een raket, of sleep zelf onderdelen omhoog.'),
       this.w / 2, y + b.readH - 4 * u, this.w - 20 * u,
     );
     ctx.textAlign = 'left';
@@ -2033,6 +2110,155 @@ export class Moonshot {
    * scale, because that is the only way those two fit on one phone, and the gold line across it is
    * the highest you have ever been - which is the whole reason to go again.
    */
+  /**
+   * The doorframe, on the launch pad.
+   *
+   * This is the whole answer to "I cannot tell how these things affect each other". Down the right
+   * of the workshop runs the same rail the flight draws - birds, aeroplanes, the edge of the air,
+   * the space station, the Moon - and on it sits one green mark: where *this* rocket would get to.
+   *
+   * Bolt something heavy on and the mark slides down while you watch. Put a nose cone on and it
+   * creeps up. Add a booster and it jumps. Nothing is explained and nothing is scored; the rocket
+   * is flown, in a few milliseconds, with the same gravity and the same air as the real flight,
+   * and the answer is drawn where a child is already looking. Cause and effect, at the speed of a
+   * finger.
+   */
+  /**
+   * Three finished rockets on an empty pad.
+   *
+   * Tapping one does not paste it in. The rocket builds itself from the ground up while the
+   * forecast rail climbs beside it, which is the only way a child finds out that the engine goes
+   * at the bottom without anybody telling them. The height on each card comes from the same
+   * forecast the rail uses, so the promise on the card is the rocket's own.
+   */
+  private drawExamples(b: Bands): void {
+    if (this.design.length || this.raise || this.picking) return;
+    const ctx = this.ctx, u = this.u();
+    if (!this.egKm.length) this.egKm = EXAMPLES.map(e => forecast(e.parts).topKm);
+
+    const pad = 12 * u, gap = 8 * u;
+    const cw = (this.w - pad * 2 - gap * (EXAMPLES.length - 1)) / EXAMPLES.length;
+    const bandTop = b.gridTop + 14 * u, bandBot = b.gridBottom - 10 * u;
+    const ch = Math.min(bandBot - bandTop, cw * 2.15);
+    if (ch < 90 * u) return;
+    const y = bandTop + (bandBot - bandTop - ch) / 2;
+
+    EXAMPLES.forEach((e, k) => {
+      const x = pad + k * (cw + gap);
+      // a slow breath, each card a beat behind the last, so they read as three things to press
+      const grow = 1 + Math.sin(this.t * 1.6 - k * 0.7) * 0.012;
+      ctx.save();
+      ctx.translate(x + cw / 2, y + ch / 2);
+      ctx.scale(grow, grow);
+      ctx.translate(-(x + cw / 2), -(y + ch / 2));
+      glassPanel(ctx, x, y, cw, ch, 16 * u, 0.93);
+
+      // the rocket, standing on the floor of the card
+      const pvTop = y + 10 * u, pvBot = y + ch * 0.68;
+      const bd = designBounds(e.parts);
+      const wide = bd.c1 - bd.c0 + 1, tall = bd.r1 - bd.r0;
+      const unit = Math.min((cw - 16 * u) / (wide + 0.8), (pvBot - pvTop) / (tall + 0.4));
+      const ox = x + cw / 2 - (bd.c0 + wide / 2) * unit;
+      paintDesign(ctx, e.parts, ox, pvBot, unit, this.t, { centre: (bd.c0 + bd.c1) / 2 });
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#12233b';
+      ctx.font = this.font('900', 11);
+      ctx.fillText(NL() ? e.nameNl : e.name, x + cw / 2, y + ch * 0.79, cw - 10 * u);
+
+      // how high it gets, in green, because that is the number the rail is about to show
+      ctx.fillStyle = '#2e7d4f';
+      ctx.font = this.font('900', 11.5);
+      ctx.fillText(kmLabel(this.egKm[k], NL()), x + cw / 2, y + ch * 0.93, cw - 10 * u);
+      ctx.restore();
+
+      this.hits.push({ id: `eg:${k}`, x, y, w: cw, h: ch });
+    });
+    ctx.textAlign = 'left';
+  }
+
+  private drawForecastRail(b: Bands): void {
+    if (!this.design.length) return;                  // an empty pad has nothing to predict
+    const f = this.forecastNow();
+    const ctx = this.ctx, u = this.u();
+    const x = this.w - 15 * u;
+    const y0 = b.gridBottom - 8 * u;
+    const y1 = b.gridTop + 26 * u;
+    if (y0 - y1 < 90 * u) return;                     // no room for a rail worth reading
+    const TOP = 384400000;
+    const at = (m: number): number =>
+      y0 + (y1 - y0) * clamp(Math.log10(Math.max(m, 100) / 100) / Math.log10(TOP / 100), 0, 1);
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(180, 210, 255, 0.22)';
+    ctx.lineWidth = 2 * u;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+
+    const marks: Array<[number, string, string]> = [
+      [1000, 'birds', 'vogels'],
+      [10000, 'planes', 'vliegtuigen'],
+      [100000, 'edge of the air', 'rand van de lucht'],
+      [420000, 'station', 'station'],
+      [384400000, 'the Moon', 'de Maan'],
+    ];
+    const reach = f ? f.topKm * 1000 : 0;
+
+    // where this rocket's mark sits, worked out before the rungs are lettered: two bits of writing
+    // on top of each other read as neither, so a rung gives up its name when the mark is over it
+    const want = f && !f.stuck ? at(reach) : y0;
+    this.castShown = this.castShown === 0 ? want : this.castShown + (want - this.castShown) * 0.14;
+    const y = this.castShown;
+    const labelY = clamp(y - 11 * u, y1 + 4 * u, y0 - 4 * u);
+
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.font = this.font('800', 8);
+    for (const [m, en, nl] of marks) {
+      const my = at(m);
+      const made = reach >= m;
+      ctx.strokeStyle = made ? 'rgba(142, 232, 173, 0.8)' : 'rgba(180, 210, 255, 0.3)';
+      ctx.lineWidth = 1.5 * u;
+      ctx.beginPath(); ctx.moveTo(x - 4 * u, my); ctx.lineTo(x + 4 * u, my); ctx.stroke();
+      if (Math.abs(my - labelY) < 11 * u || Math.abs(my - y) < 9 * u) continue;
+      ctx.fillStyle = made ? 'rgba(142, 232, 173, 0.9)' : 'rgba(180, 210, 255, 0.45)';
+      ctx.fillText(T(en, nl), x - 7 * u, my, this.w * 0.3);
+    }
+
+    // your best ever, in gold, so the thing to beat is on the same rail as the thing you are building
+    const bestM = this.bestKm() * 1000;
+    if (bestM > 500) {
+      const by = at(bestM);
+      ctx.strokeStyle = '#ffd86b';
+      ctx.lineWidth = 2 * u;
+      ctx.setLineDash([3 * u, 3 * u]);
+      ctx.beginPath(); ctx.moveTo(x - 8 * u, by); ctx.lineTo(x + 8 * u, by); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // and where this rocket gets to, eased rather than jumped, because the movement is the point
+    const grey = !f || f.stuck;
+    ctx.fillStyle = grey ? 'rgba(240, 178, 122, 0.9)' : '#8ee8ad';
+    ctx.beginPath();
+    ctx.moveTo(x - 10 * u, y);
+    ctx.lineTo(x - 3 * u, y - 5 * u);
+    ctx.lineTo(x - 3 * u, y + 5 * u);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, 3.2 * u, 0, TAU); ctx.fill();
+
+    // one line naming what that mark means, because a mark on a rail is not yet a place
+    const label = grey
+      ? T('it stays on the pad', 'hij blijft op het platform')
+      : kmLabel(f.topKm, NL());
+    ctx.textAlign = 'right';
+    ctx.font = this.font('900', 9.5);
+    ctx.fillStyle = grey ? '#f0b27a' : '#8ee8ad';
+    ctx.fillText(label, x - 7 * u, labelY, this.w * 0.34);
+    ctx.restore();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+  }
+
   private drawTape(): void {
     const ctx = this.ctx, u = this.u();
     // Upright there is a clear strip down the right-hand edge. Turned sideways there is not - the
