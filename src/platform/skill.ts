@@ -192,3 +192,58 @@ export function cleanBook(raw: unknown): Book {
   }
   return out;
 }
+
+/**
+ * The same ground, measured per subject rather than per skill.
+ *
+ * A child can be sure of splitting ten and shaky on the tables of seven, and one number for
+ * "number" cannot hold both. So a game that teaches several things keeps a book of its own, keyed
+ * by whatever it calls them, and the engine works exactly the same on it. The skill book stays
+ * what it is: one line per thing the whole platform trains, for deciding which game to offer next.
+ */
+export type Topics = Record<string, Mastery>;
+
+export const topicOf = (t: Topics, id: string): Mastery => t[id] ?? { ...FRESH };
+
+export function recordTopic(t: Topics, id: string, a: Attempt): Topics {
+  return { ...t, [id]: updateMastery(topicOf(t, id), a) };
+}
+
+/** A saved topic book, keeping only the subjects the game still has. */
+export function cleanTopics(raw: unknown, allowed: readonly string[]): Topics {
+  const out: Topics = {};
+  if (!raw || typeof raw !== 'object') return out;
+  for (const id of allowed) {
+    const m = (raw as Record<string, unknown>)[id];
+    if (!m || typeof m !== 'object') continue;
+    const { level, seen, streak, slump } = m as Record<string, unknown>;
+    if (typeof level !== 'number' || !isFinite(level)) continue;
+    out[id] = {
+      level: clamp01(level),
+      seen: typeof seen === 'number' && isFinite(seen) ? Math.max(0, Math.round(seen)) : 0,
+      streak: typeof streak === 'number' && isFinite(streak) ? Math.max(0, Math.round(streak)) : 0,
+      slump: typeof slump === 'number' && isFinite(slump) ? Math.max(0, Math.round(slump)) : 0,
+    };
+  }
+  return out;
+}
+
+/**
+ * Which of these subjects is worth doing next.
+ *
+ * Not the weakest one - that is where a child fails, and being sent to what you are worst at every
+ * single time is how a game teaches you to dislike it. Not the strongest either. The one nearest
+ * the edge: firm enough to stand on, soft enough to still be learning, and among equals the one
+ * that has been left alone longest. An untouched subject counts as ready, because you cannot get
+ * better at something you have never tried.
+ */
+export function pickNext(t: Topics, ids: readonly string[]): string | null {
+  let best: string | null = null, bestScore = -Infinity;
+  for (const id of ids) {
+    const m = t[id];
+    // never seen: the most interesting thing there is, but behind anything still half-learnt
+    const score = !m || m.seen === 0 ? 0.45 : 1 - Math.abs(m.level - 0.55) - Math.min(0.2, m.seen / 200);
+    if (score > bestScore) { bestScore = score; best = id; }
+  }
+  return best;
+}

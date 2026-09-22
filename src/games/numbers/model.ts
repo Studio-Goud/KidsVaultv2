@@ -295,17 +295,39 @@ export const keyOf = (q: Question): string => `${q.op}:${q.a}:${q.b}`;
  * tables of two will repeat, and a level that asks 5 × 2 three times reads as broken even though
  * it is only chance, so a repeat is rolled again.
  */
-export function makeQuestion(level: Level, rng: () => number, index: number, avoid: string[] = []): Question {
-  let q = roll(level, rng, index);
-  for (let tries = 0; tries < 30 && avoid.includes(keyOf(q)); tries++) q = roll(level, rng, index);
+export function makeQuestion(
+  level: Level, rng: () => number, index: number, avoid: string[] = [], options = level.options,
+): Question {
+  let q = roll(level, rng, index, options);
+  for (let tries = 0; tries < 30 && avoid.includes(keyOf(q)); tries++) q = roll(level, rng, index, options);
   return q;
 }
 
-function roll(level: Level, rng: () => number, index: number): Question {
+/**
+ * How many buttons to put under a question.
+ *
+ * Two is a coin toss and five is a wall of numbers, so the ends are where the count has to stay
+ * away from. A child who has just got here gets three - enough that guessing is not a strategy,
+ * few enough to read at a glance - and one who is sure of this gets the level's full set, where
+ * the near-misses that make the level worth doing all fit.
+ *
+ * The sums do not get bigger. The level decides what it is about, and it keeps deciding.
+ */
+export function optionsFor(level: Level, difficulty: number): number {
+  const d = difficulty < 0 ? 0 : difficulty > 1 ? 1 : difficulty;
+  return Math.max(3, Math.min(level.options, Math.round(3 + d * (level.options - 3))));
+}
+
+/** How long this level's sums ought to take, in milliseconds, for judging a good answer. */
+export function parMsFor(level: Level): number {
+  return level.op === 'times' ? 9000 : level.stage === 'line' ? 8000 : 6500;
+}
+
+function roll(level: Level, rng: () => number, index: number, options: number): Question {
   const base = rollSum(level, rng, index);
   const wrong = distractors(base, rng);
-  const options = shuffle([base.answer, ...wrong.slice(0, Math.max(0, level.options - 1))], rng);
-  return { ...base, options, correct: options.indexOf(base.answer) };
+  const shown = shuffle([base.answer, ...wrong.slice(0, Math.max(0, options - 1))], rng);
+  return { ...base, options: shown, correct: shown.indexOf(base.answer) };
 }
 
 type Bare = SumOnly;

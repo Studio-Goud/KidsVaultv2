@@ -33,9 +33,12 @@ import {
   heading, hexA, outlinedText, Particles, Shake, vignette,
 } from '../../render/look';
 import {
-  inRule, keyOf, LEVELS, makeQuestion, rngFor, starsFor, targetOf, teachLine,
+  inRule, keyOf, LEVELS, makeQuestion, optionsFor, parMsFor, rngFor, starsFor, targetOf, teachLine,
   type Level, type Question,
 } from './model';
+import {
+  cleanTopics, nextStep, pickNext, recordTopic, topicOf, type Topics,
+} from '../../platform/skill';
 import { numberWord, sumSymbols, sumWords } from './numberwords';
 import {
   apple, appleSlot, arrayGeo, arrayHandle, bead, crate, crateFront, cube, drawArray, drawCrateOfApples,
@@ -91,6 +94,18 @@ export class Numbers {
   private round = 0;
   private q: Question = makeQuestion(LEVELS[0], rngFor(LEVELS[0], 0), 0);
   private recent: string[] = [];
+  /**
+   * How firm the ground is under each of the nine subjects, and what that says to ask next.
+   *
+   * The levels are not a staircase - splitting ten and the tables of seven are different things,
+   * not harder and easier versions of one thing - so each keeps its own footing, and a child who
+   * is sure of one and shaky on another is offered the right next question in both.
+   */
+  private topics: Topics = {};
+  /** 0 to 1: how hard this run of the level should be, which here means how many buttons */
+  private diff = 0.3;
+  /** how many goes this question has taken, for judging how it went */
+  private tries = 0;
 
   /** what the child has done to the objects */
   private split = 0;
@@ -138,6 +153,7 @@ export class Numbers {
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
+    this.topics = cleanTopics(save.topics?.numbers, LEVELS.map(l => l.id));
     this.resize();
     window.addEventListener('resize', () => this.resize());
     canvas.addEventListener('pointerdown', e => this.onDown(e));
@@ -177,6 +193,8 @@ export class Numbers {
       options: this.q.options.slice(),
       correct: this.q.correct,
       inRule: inRule(this.level, this.q),
+      diff: Number(this.diff.toFixed(3)),
+      mastery: Number((this.topics[this.level.id]?.level ?? 0).toFixed(3)),
       sum: sumSymbols(this.q.op, this.q.a, this.q.b, this.q.answer),
       wordsNl: sumWords(this.q.op, this.q.a, this.q.b, this.q.answer, true),
       wordsEn: sumWords(this.q.op, this.q.a, this.q.b, this.q.answer, false),
@@ -471,6 +489,7 @@ export class Numbers {
   private start(i: number): void {
     this.levelIndex = clamp(i, 0, LEVELS.length - 1);
     this.level = LEVELS[this.levelIndex];
+    this.diff = nextStep(topicOf(this.topics, this.level.id)).difficulty;
     this.attempt++;
     this.rng = rngFor(this.level, this.attempt);
     this.round = 0;
@@ -491,7 +510,8 @@ export class Numbers {
   private say(text: string, secs = 3.5): void { this.note = text; this.noteT = secs; }
 
   private nextQuestion(): void {
-    this.q = makeQuestion(this.level, this.rng, this.round, this.recent);
+    this.q = makeQuestion(this.level, this.rng, this.round, this.recent, optionsFor(this.level, this.diff));
+    this.tries = 0;
     this.recent.push(keyOf(this.q));
     if (this.recent.length > 4) this.recent.shift();
     this.fb = 'none';
@@ -521,6 +541,7 @@ export class Numbers {
     this.given = index;
     this.lastSecs = Math.max(0, this.t - this.askedAt);
     const L = this.layout();
+    this.tries++;
     if (value === this.q.answer) {
       this.fb = 'right';
       this.fbT = RIGHT_FOR;
@@ -543,6 +564,28 @@ export class Numbers {
       // the objects now make the right answer themselves
       this.settle();
     }
+    this.noteAttempt(value === this.q.answer);
+  }
+
+  /**
+   * What just happened, told to the engine that decides what comes next.
+   *
+   * It is told the plain facts - right or wrong, how long it took, how many goes - and nothing
+   * about the child. What comes back is one number for how hard the next run of this subject
+   * should be, and the only thing that number touches here is how many answers are on offer.
+   */
+  private noteAttempt(correct: boolean): void {
+    this.topics = recordTopic(this.topics, this.level.id, {
+      correct,
+      ms: Math.round(this.lastSecs * 1000),
+      parMs: parMsFor(this.level),
+      // the objects on the table are the whole game, so using them is not taking help; asking for
+      // every object to wear its number is
+      hints: save.numbers.countOn ? 1 : 0,
+      tries: this.tries,
+    });
+    save.topics = { ...save.topics, numbers: this.topics };
+    persist();
   }
 
   /** Put the objects where the right answer says they should be, for the correction. */
@@ -1525,6 +1568,11 @@ export class Numbers {
       ctx.scale(squeeze, squeeze);
       ctx.translate(-this.w / 2, -listTop);
     }
+    // Which one is worth doing now. Not the weakest - being sent to what you are worst at every
+    // time is how a game teaches a child to dislike it - but the one nearest the edge of what they
+    // can already do, and only among the ones they are allowed into.
+    const suggest = pickNext(this.topics, LEVELS.filter((_, i) => this.unlocked(i)).map(L => L.id));
+
     LEVELS.forEach((L, i) => {
       const col = i % cols, row = Math.floor(i / cols);
       const x = x0 + col * (cw + pad), y = listTop + row * (chh + pad);
@@ -1561,6 +1609,34 @@ export class Numbers {
       ctx.fillText(nameOf(L), x + cw / 2, y + art + 14 * u, cw - 14 * u);
       for (let sI = 0; sI < 3; sI++) {
         drawStar(ctx, x + cw / 2 + (sI - 1) * 18 * u, y + art + 31 * u, 7.5 * u, sI < p.stars);
+      }
+
+      // A ring that fills as this subject gets firm. It is not a score and there is nothing to
+      // collect: it is the answer to "how am I doing at the tables", drawn where the question is.
+      const m = this.topics[L.id];
+      if (open && m && m.seen > 0) {
+        const rx = x + cw - 20 * u, ry = y + 20 * u, rr = 11 * u;
+        ctx.save();
+        ctx.lineWidth = 3.4 * u;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(12,32,52,0.28)';
+        ctx.beginPath(); ctx.arc(rx, ry, rr, 0, TAU); ctx.stroke();
+        ctx.strokeStyle = '#4fbf7a';
+        ctx.beginPath(); ctx.arc(rx, ry, rr, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(m.level, 0, 1));
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // and a slow gold breath around the one to do next, which is an invitation, not an order
+      if (open && L.id === suggest) {
+        ctx.save();
+        ctx.strokeStyle = hexA('#f0a92c', 0.7 + Math.sin(this.t * 2.1) * 0.3);
+        ctx.lineWidth = 4.5 * u;
+        ctx.shadowColor = 'rgba(240,169,44,0.5)';
+        ctx.shadowBlur = 10 * u;
+        ctx.beginPath(); ctx.roundRect(x - 3 * u, y - 3 * u, cw + 6 * u, chh + 6 * u, 19 * u);
+        ctx.stroke();
+        ctx.restore();
       }
 
       if (!open) {

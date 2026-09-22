@@ -2197,7 +2197,8 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- The platform: how hard to make it next
 
 {
-  const { scoreOf, updateMastery, nextStep, knobsFor, record, masteryOf, cleanBook, FRESH, SWEET_SPOT, SKILLS } =
+  const { scoreOf, updateMastery, nextStep, knobsFor, record, masteryOf, cleanBook, FRESH, SWEET_SPOT, SKILLS,
+    cleanTopics, recordTopic, topicOf, pickNext } =
     await bundle('src/platform/skill.ts', 'skill.mjs');
 
   /** one attempt, written the way a game reports one */
@@ -2281,6 +2282,70 @@ const group = name => console.log(`\n${name}`);
     cleanBook({ number: { level: 9, seen: 3 } }).number.level, 1);
   is('test_book_every_skill_name_is_unique', new Set(SKILLS).size, SKILLS.length);
   is('test_book_the_sweet_spot_is_four_out_of_five', SWEET_SPOT > 0.7 && SWEET_SPOT < 0.85, true);
+
+  group('Platform — a book per subject');
+  is('test_topics_an_untouched_subject_starts_fresh', topicOf({}, 'tafels').level, FRESH.level);
+  is('test_topics_recording_one_leaves_the_others_alone',
+    Object.keys(recordTopic({ erbij: { ...FRESH } }, 'tafels', go())).sort(), ['erbij', 'tafels']);
+  is('test_topics_a_subject_the_game_no_longer_has_is_dropped',
+    Object.keys(cleanTopics({ erbij: { level: 0.5 }, gone: { level: 0.5 } }, ['erbij'])), ['erbij']);
+  is('test_topics_a_corrupt_save_opens_empty', cleanTopics('nonsense', ['erbij']), {});
+  is('test_topics_a_level_out_of_range_is_pulled_back_in',
+    cleanTopics({ erbij: { level: -4, seen: 2 } }, ['erbij']).erbij.level, 0);
+
+  // what to do next: not the worst thing, and not the thing already mastered
+  {
+    const book = {
+      easy: { ...FRESH, level: 0.97, seen: 40 },
+      edge: { ...FRESH, level: 0.55, seen: 12 },
+      wall: { ...FRESH, level: 0.04, seen: 30 },
+    };
+    is('test_next_subject_is_the_one_nearest_the_edge', pickNext(book, ['easy', 'edge', 'wall']), 'edge');
+    is('test_next_subject_never_sends_a_child_to_the_wall',
+      pickNext(book, ['easy', 'wall']) !== 'wall', true);
+    is('test_next_subject_prefers_something_untried_to_something_finished',
+      pickNext(book, ['easy', 'fresh']), 'fresh');
+    is('test_next_subject_prefers_the_half_learnt_to_the_untried',
+      pickNext(book, ['edge', 'fresh']), 'edge');
+    is('test_next_subject_of_nothing_is_nothing', pickNext(book, []), null);
+  }
+}
+
+// ---------------------------------------------------------------- Rekenrijk: how many answers to offer
+
+{
+  const { LEVELS, optionsFor, parMsFor, makeQuestion, rngFor, inRule, levelById } =
+    await bundle('src/games/numbers/model.ts', 'numdial.mjs');
+  group('Rekenrijk — the dial on a level');
+
+  const tafels = levelById('tafels');
+  is('test_options_a_child_new_to_this_gets_three', optionsFor(tafels, 0), 3);
+  is('test_options_a_child_sure_of_this_gets_the_full_set', optionsFor(tafels, 1), tafels.options);
+  is('test_options_never_goes_below_three', LEVELS.every(L => optionsFor(L, -5) >= 3), true);
+  is('test_options_never_goes_past_what_the_level_asked_for',
+    LEVELS.every(L => optionsFor(L, 5) <= L.options), true);
+  is('test_options_never_shrink_as_a_child_gets_surer',
+    LEVELS.every(L => [0, 0.25, 0.5, 0.75, 1].every((d, i, a) =>
+      i === 0 || optionsFor(L, d) >= optionsFor(L, a[i - 1]))), true);
+
+  // fewer buttons must not mean an easier sum: the level decides what it is about, and keeps deciding
+  is('test_dial_a_smaller_set_still_asks_the_level_s_own_sums',
+    LEVELS.every(L => {
+      const rng = rngFor(L, 3);
+      for (let i = 0; i < 12; i++) if (!inRule(L, makeQuestion(L, rng, i, [], 3))) return false;
+      return true;
+    }), true);
+  is('test_dial_a_smaller_set_still_contains_the_answer',
+    LEVELS.every(L => {
+      const rng = rngFor(L, 5);
+      for (let i = 0; i < 12; i++) {
+        const q = makeQuestion(L, rng, i, [], 3);
+        if (q.options.length !== 3 || q.options[q.correct] !== q.answer) return false;
+      }
+      return true;
+    }), true);
+  is('test_dial_the_tables_are_given_longer_than_a_sum_to_ten',
+    parMsFor(levelById('tafels')) > parMsFor(levelById('erbij')), true);
 }
 
 rmSync(out, { recursive: true, force: true });
