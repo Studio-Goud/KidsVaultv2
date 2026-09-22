@@ -619,11 +619,23 @@ export class CachedLayer {
  */
 export function bleedEdges(
   ctx: Ctx, canvas: HTMLCanvasElement, w: number, dpr: number, top: number, bottom: number, h: number,
+  left = 0, right = 0,
 ): void {
-  if (top <= 0 && bottom <= 0) return;
+  if (top <= 0 && bottom <= 0 && left <= 0 && right <= 0) return;
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  const cw = canvas.width;
+  const cw = canvas.width, ch = canvas.height;
+  // The sides go first, so the strips above and below pick up the columns that have just been
+  // filled. A phone on its side wears its notch on one of these edges.
+  if (left > 0) {
+    const col = Math.round(left * dpr);
+    if (col > 0) ctx.drawImage(canvas, col, 0, 1, ch, 0, 0, col, ch);
+  }
+  if (right > 0) {
+    const x = Math.round((left + w) * dpr);
+    const band = Math.round(right * dpr);
+    if (x - 1 >= 0 && band > 0) ctx.drawImage(canvas, x - 1, 0, 1, ch, x, 0, band, ch);
+  }
   if (top > 0) {
     const row = Math.round(top * dpr);
     ctx.drawImage(canvas, 0, row, cw, 1, 0, 0, cw, row);

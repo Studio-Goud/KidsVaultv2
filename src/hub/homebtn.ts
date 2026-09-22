@@ -5,7 +5,21 @@
  * text you had to be able to read before you could get out of them. It is a round button with a
  * house on it now, in the same corner, the same size, in every game on the site.
  */
+/**
+ * Put the forced insets on the page as well, so the buttons the stylesheet places and the chrome
+ * the canvas draws are measured against the same edge during an audit.
+ */
+function applyForcedInsets(): void {
+  const f = (window as unknown as { __insets?: Record<string, number> }).__insets;
+  if (!f) return;
+  const r = document.documentElement.style;
+  for (const [k, v] of [['--sat', f.top], ['--sab', f.bottom], ['--sal', f.left], ['--sar', f.right]] as const) {
+    r.setProperty(k, `${v ?? 0}px`);
+  }
+}
+
 export function addHomeButton(): void {
+  applyForcedInsets();
   const nl = (navigator.language || 'en').toLowerCase().startsWith('nl');
   const a = document.createElement('a');
   a.className = 'homebtn';

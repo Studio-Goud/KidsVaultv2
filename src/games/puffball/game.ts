@@ -99,6 +99,10 @@ export class Puffball {
   private fullH = 0;
   private st = 0;
   private sb = 0;
+  /** the notch and the home bar when the phone is on its side, which live left and right */
+  private sl = 0;
+  private sr = 0;
+  private fullW = 0;
   private t = 0;
   private raf = 0;
 
@@ -155,7 +159,7 @@ export class Puffball {
       this.t = now;
       this.update(dt);
       this.draw();
-      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h);
+      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h, this.sl, this.sr);
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
@@ -194,11 +198,14 @@ export class Puffball {
     const safe = safeArea();
     this.st = safe.top;
     this.sb = safe.bottom;
+    this.sl = safe.left;
+    this.sr = safe.right;
     this.fullH = Math.max(1, window.innerHeight);
-    this.w = Math.max(1, window.innerWidth);
+    this.fullW = Math.max(1, window.innerWidth);
+    this.w = Math.max(1, this.fullW - this.sl - this.sr);
     this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    this.canvas.width = Math.round(this.w * this.dpr);
+    this.canvas.width = Math.round(this.fullW * this.dpr);
     this.canvas.height = Math.round(this.fullH * this.dpr);
   }
 
@@ -548,7 +555,7 @@ export class Puffball {
   private at(e: PointerEvent): Vec {
     const r = this.canvas.getBoundingClientRect();
     // draw() shifts everything down past the notch, so a tap comes back up by the same amount
-    return { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
+    return { x: e.clientX - r.left - this.sl, y: e.clientY - r.top - this.st };
   }
 
   private hitAt(p: Vec): string | null {
@@ -607,7 +614,7 @@ export class Puffball {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.translate(0, this.st);
+    ctx.translate(this.sl, this.st);
     this.hits = [];
     const night = ctx.createLinearGradient(0, 0, 0, this.h);
     night.addColorStop(0, '#20364a');

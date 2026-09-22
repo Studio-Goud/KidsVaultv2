@@ -53,6 +53,10 @@ export class Orbit {
   private fullH = 0;
   private st = 0;
   private sb = 0;
+  /** the notch and the home bar when the phone is on its side, which live left and right */
+  private sl = 0;
+  private sr = 0;
+  private fullW = 0;
   private t = 0;
   private raf = 0;
 
@@ -131,11 +135,14 @@ export class Orbit {
     const safe = safeArea();
     this.st = safe.top;
     this.sb = safe.bottom;
+    this.sl = safe.left;
+    this.sr = safe.right;
     this.fullH = Math.max(1, window.innerHeight);
-    this.w = Math.max(1, window.innerWidth);
+    this.fullW = Math.max(1, window.innerWidth);
+    this.w = Math.max(1, this.fullW - this.sl - this.sr);
     this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    this.canvas.width = Math.round(this.w * this.dpr);
+    this.canvas.width = Math.round(this.fullW * this.dpr);
     this.canvas.height = Math.round(this.fullH * this.dpr);
     this.stars = starField(this.w, this.fullH).map(s => ({ ...s, y: s.y - this.st }));
     if (this.want.length) this.layout();
@@ -278,7 +285,7 @@ export class Orbit {
   private onDown(e: PointerEvent): void {
     const r = this.canvas.getBoundingClientRect();
     // draw() shifts everything down past the notch, so a tap comes back up by the same amount
-    const p = { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
+    const p = { x: e.clientX - r.left - this.sl, y: e.clientY - r.top - this.st };
     unlockAudio();
     const hit = hitAt(this.hits, p);
     if (hit && hit.startsWith('tab:')) {
@@ -338,8 +345,9 @@ export class Orbit {
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     // deep space, painted once: a graded dark, a band of far stars, nebulae, a few near stars.
     // It runs edge to edge, under the notch and the home bar; only the chrome keeps clear of them.
-    paintSpace(ctx, this.w, this.fullH);
-    ctx.translate(0, this.st);
+    // The full width, not the safe width, or a phone on its side shows a bare strip down one edge.
+    paintSpace(ctx, this.fullW, this.fullH);
+    ctx.translate(this.sl, this.st);
     // the twinkling few on top, which do move
     for (const s of this.stars) {
       ctx.globalAlpha = s.a * (0.6 + 0.4 * Math.sin(this.t * 0.8 + s.p));

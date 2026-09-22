@@ -101,6 +101,10 @@ export class Rhythm {
   private fullH = 0;
   private st = 0;
   private sb = 0;
+  /** the notch and the home bar when the phone is on its side, which live left and right */
+  private sl = 0;
+  private sr = 0;
+  private fullW = 0;
   private t = 0;
   private raf = 0;
 
@@ -170,7 +174,7 @@ export class Rhythm {
       this.t = now;
       this.update(dt);
       this.draw();
-      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h);
+      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h, this.sl, this.sr);
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
@@ -705,11 +709,14 @@ export class Rhythm {
     const safe = safeArea();
     this.st = safe.top;
     this.sb = safe.bottom;
+    this.sl = safe.left;
+    this.sr = safe.right;
     this.fullH = Math.max(1, window.innerHeight);
-    this.w = Math.max(1, window.innerWidth);
+    this.fullW = Math.max(1, window.innerWidth);
+    this.w = Math.max(1, this.fullW - this.sl - this.sr);
     this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    this.canvas.width = Math.round(this.w * this.dpr);
+    this.canvas.width = Math.round(this.fullW * this.dpr);
     this.canvas.height = Math.round(this.fullH * this.dpr);
   }
 
@@ -764,7 +771,7 @@ export class Rhythm {
 
   private at(e: PointerEvent): Vec {
     const r = this.canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
+    return { x: e.clientX - r.left - this.sl, y: e.clientY - r.top - this.st };
   }
 
   private hitAt(p: Vec): string | null {
@@ -847,7 +854,7 @@ export class Rhythm {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.translate(0, this.st);
+    ctx.translate(this.sl, this.st);
     this.hits = [];
     drawRoom(ctx, this.w, this.h, this.t);
     if (this.phase === 'home') { this.drawHome(); vignette(ctx, this.w, this.h, 0.22); return; }

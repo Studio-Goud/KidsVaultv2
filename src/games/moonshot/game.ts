@@ -117,6 +117,10 @@ export class Moonshot {
   private fullH = 0;
   private st = 0;
   private sb = 0;
+  /** the notch and the home bar when the phone is on its side, which live left and right */
+  private sl = 0;
+  private sr = 0;
+  private fullW = 0;
   private t = 0;
 
   private phase: Phase = 'build';
@@ -214,7 +218,7 @@ export class Moonshot {
       this.t = now;
       this.update(dt);
       this.draw();
-      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h);
+      bleedEdges(this.ctx, this.canvas, this.w, this.dpr, this.st, this.sb, this.h, this.sl, this.sr);
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
@@ -336,11 +340,14 @@ export class Moonshot {
     const safe = safeArea();
     this.st = safe.top;
     this.sb = safe.bottom;
+    this.sl = safe.left;
+    this.sr = safe.right;
     this.fullH = Math.max(1, window.innerHeight);
-    this.w = Math.max(1, window.innerWidth);
+    this.fullW = Math.max(1, window.innerWidth);
+    this.w = Math.max(1, this.fullW - this.sl - this.sr);
     this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    this.canvas.width = Math.round(this.w * this.dpr);
+    this.canvas.width = Math.round(this.fullW * this.dpr);
     this.canvas.height = Math.round(this.fullH * this.dpr);
   }
 
@@ -1011,7 +1018,7 @@ export class Moonshot {
   private at(e: PointerEvent): Vec {
     const r = this.canvas.getBoundingClientRect();
     // draw() shifts everything down past the notch, so a tap comes back up by the same amount
-    return { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
+    return { x: e.clientX - r.left - this.sl, y: e.clientY - r.top - this.st };
   }
 
   private hitAt(p: Vec): string | null {
@@ -1204,7 +1211,7 @@ export class Moonshot {
   private draw(): void {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.translate(0, this.st);
+    ctx.translate(this.sl, this.st);
     this.hits = [];
     if (this.phase === 'build') { this.drawBuild(); return; }
     this.drawFlight();
@@ -1272,14 +1279,22 @@ export class Moonshot {
    * a child building for Mars is building for 11570 m/s and can see on the launch button whether
    * the thing on the pad is going to manage it.
    */
+  /** How much room the target chip takes, so anything sharing its band can keep out of the way. */
+  private chipW(): number {
+    const ctx = this.ctx, u = this.u();
+    const m = LADDER[this.target];
+    ctx.font = this.font('900', 12.5);
+    const wTxt = Math.max(ctx.measureText(NL() ? m.nameNl : m.name).width, ctx.measureText(`${m.speed} m/s`).width);
+    return Math.min(this.w * 0.52, wTxt + 58 * u);
+  }
+
   private drawTargetChip(b: Bands): void {
     const ctx = this.ctx, u = this.u();
     const m = LADDER[this.target];
     const h = 46 * u;
     ctx.font = this.font('900', 12.5);
     const name = NL() ? m.nameNl : m.name;
-    const wTxt = Math.max(ctx.measureText(name).width, ctx.measureText(`${m.speed} m/s`).width);
-    const w = Math.min(this.w * 0.52, wTxt + 58 * u);
+    const w = this.chipW();
     const x = 10 * u, y = b.gridTop + 2 * u;
     glassPanel(ctx, x, y, w, h, 14 * u, 0.9);
     const r = 15 * u, cx = x + 10 * u + r, cy = y + h / 2;
@@ -1938,6 +1953,9 @@ export class Moonshot {
       for (const b of this.burns) {
         const s = this.live(b);
         if (!s || b.fuel <= 0) continue;
+        // A column can lose its parts to `shed` while its burn still points at a live stage, and
+        // the flame was then drawn at an engine that was already falling through the sky.
+        if (this.dropped.has(s.engine)) continue;
         const e = this.design[s.engine];
         const part = partById(e.id);
         paintFlame(ctx, ox + (e.col + 0.5) * unit, oy - e.row * unit, part.w * unit * 0.5, 1, spread, this.t + e.col * 0.3);
@@ -1977,16 +1995,34 @@ export class Moonshot {
     }
     ctx.restore();
 
-    // spent stages tumbling away
+    ctx.restore();
+
+    /**
+     * Spent stages tumbling away.
+     *
+     * Two things were wrong here at once and they made each other worse. The stage was drawn
+     * inside the rocket's own frame, which had already been moved to the middle of the screen and
+     * leaned over by however much the child was steering - so adding the screen position again put
+     * the wreckage up and to one side of the rocket it had just fallen off. And every part of it
+     * was drawn at the same point, so a two-tank stage came out as two tanks in the same place.
+     *
+     * It is drawn in screen coordinates now, and the parts keep the positions they had on the
+     * rocket, so what falls away is the shape of the thing that fell away.
+     */
     for (const d of this.debris) {
+      const parts = d.parts.map(i => this.design[i]).filter(Boolean);
+      if (!parts.length) continue;
+      const midCol = parts.reduce((a, p) => a + p.col + 0.5, 0) / parts.length;
+      const midRow = parts.reduce((a, p) => a + p.row, 0) / parts.length;
       ctx.save();
       ctx.globalAlpha = clamp(1 - d.age / 6, 0, 1) * 0.9;
-      ctx.translate(cx + Math.sin(d.a) * 20 * u, ry - d.y * 0.6);
+      ctx.translate(cx + Math.sin(d.a) * 18 * u, ry - d.y * 0.6);
       ctx.rotate(d.a);
-      for (const i of d.parts) paintPart(ctx, partById(this.design[i].id), 0, 0, unit * 0.9, this.t);
+      for (const p of parts) {
+        paintPart(ctx, partById(p.id), (p.col + 0.5 - midCol) * unit, (midRow - p.row) * unit, unit, this.t);
+      }
       ctx.restore();
     }
-    ctx.restore();
 
     this.ps.draw(ctx);
     if (this.flash > 0.01) {
@@ -2136,15 +2172,26 @@ export class Moonshot {
     const ctx = this.ctx, u = this.u();
     if (!this.egKm.length) this.egKm = EXAMPLES.map(e => forecast(e.parts).topKm);
 
-    const pad = 12 * u, gap = 8 * u;
-    const cw = (this.w - pad * 2 - gap * (EXAMPLES.length - 1)) / EXAMPLES.length;
-    const bandTop = b.gridTop + 14 * u, bandBot = b.gridBottom - 10 * u;
-    const ch = Math.min(bandBot - bandTop, cw * 2.15);
-    if (ch < 90 * u) return;
-    const y = bandTop + (bandBot - bandTop - ch) / 2;
+    const gap = 8 * u;
+    const bandTop = b.gridTop + 10 * u, bandBot = b.gridBottom - 8 * u;
+    const room = bandBot - bandTop;
+    if (room < 56 * u) return;                        // no room for a card worth pressing
+
+    // Turned sideways the band is a letterbox, and a card shaped for a rocket standing up does not
+    // fit in it: the rocket lies along the left of a wide card with its name beside it. In that
+    // shape the cards share the band with the target chip and the two round buttons in the
+    // corners, so they start after the one and stop before the others.
+    const rough = (this.w - 24 * u - gap * 2) / EXAMPLES.length;
+    const wide = room < rough * 1.5;
+    const left = wide ? this.chipW() + 18 * u : 12 * u;
+    const right = wide ? 122 * u : 12 * u;
+    const cw = (this.w - left - right - gap * (EXAMPLES.length - 1)) / EXAMPLES.length;
+    if (cw < 90 * u) return;
+    const ch = Math.min(room, wide ? room : cw * 2.15);
+    const y = bandTop + (room - ch) / 2;
 
     EXAMPLES.forEach((e, k) => {
-      const x = pad + k * (cw + gap);
+      const x = left + k * (cw + gap);
       // a slow breath, each card a beat behind the last, so they read as three things to press
       const grow = 1 + Math.sin(this.t * 1.6 - k * 0.7) * 0.012;
       ctx.save();
@@ -2153,23 +2200,30 @@ export class Moonshot {
       ctx.translate(-(x + cw / 2), -(y + ch / 2));
       glassPanel(ctx, x, y, cw, ch, 16 * u, 0.93);
 
-      // the rocket, standing on the floor of the card
-      const pvTop = y + 10 * u, pvBot = y + ch * 0.68;
+      // the rocket, standing on the floor of the card, or down its left side when it is a wide one
+      const pvTop = y + 8 * u;
+      const pvBot = wide ? y + ch - 8 * u : y + ch * 0.68;
+      const pvW = wide ? cw * 0.42 : cw;
+      const pvMid = wide ? x + pvW / 2 : x + cw / 2;
       const bd = designBounds(e.parts);
-      const wide = bd.c1 - bd.c0 + 1, tall = bd.r1 - bd.r0;
-      const unit = Math.min((cw - 16 * u) / (wide + 0.8), (pvBot - pvTop) / (tall + 0.4));
-      const ox = x + cw / 2 - (bd.c0 + wide / 2) * unit;
+      const cols = bd.c1 - bd.c0 + 1, tall = bd.r1 - bd.r0;
+      const unit = Math.min((pvW - 14 * u) / (cols + 0.8), (pvBot - pvTop) / (tall + 0.4));
+      const ox = pvMid - (bd.c0 + cols / 2) * unit;
       paintDesign(ctx, e.parts, ox, pvBot, unit, this.t, { centre: (bd.c0 + bd.c1) / 2 });
 
+      const tx = wide ? x + pvW + (cw - pvW) / 2 : x + cw / 2;
+      const tw = wide ? cw - pvW - 8 * u : cw - 10 * u;
       ctx.textAlign = 'center';
       ctx.fillStyle = '#12233b';
       ctx.font = this.font('900', 11);
-      ctx.fillText(NL() ? e.nameNl : e.name, x + cw / 2, y + ch * 0.79, cw - 10 * u);
+      const lines = wrap(ctx, NL() ? e.nameNl : e.name, tw);
+      const nameY = wide ? y + ch * 0.44 - (lines.length - 1) * 7 * u : y + ch * 0.79;
+      lines.forEach((ln, i) => ctx.fillText(ln, tx, nameY + i * 14 * u, tw));
 
       // how high it gets, in green, because that is the number the rail is about to show
       ctx.fillStyle = '#2e7d4f';
       ctx.font = this.font('900', 11.5);
-      ctx.fillText(kmLabel(this.egKm[k], NL()), x + cw / 2, y + ch * 0.93, cw - 10 * u);
+      ctx.fillText(kmLabel(this.egKm[k], NL()), tx, wide ? y + ch * 0.72 : y + ch * 0.93, tw);
       ctx.restore();
 
       this.hits.push({ id: `eg:${k}`, x, y, w: cw, h: ch });

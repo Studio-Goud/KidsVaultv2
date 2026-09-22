@@ -71,6 +71,10 @@ export class AnimalBook {
   private fullH = 0;
   private st = 0;
   private sb = 0;
+  /** the notch and the home bar when the phone is on its side, which live left and right */
+  private sl = 0;
+  private sr = 0;
+  private fullW = 0;
   private t = 0;
   private raf = 0;
 
@@ -298,7 +302,7 @@ export class AnimalBook {
 
   private point(e: PointerEvent): { x: number; y: number } {
     const r = this.canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top - this.st };
+    return { x: e.clientX - r.left - this.sl, y: e.clientY - r.top - this.st };
   }
 
   private onDown(e: PointerEvent): void {
@@ -348,11 +352,14 @@ export class AnimalBook {
     const safe = safeArea();
     this.st = safe.top;
     this.sb = safe.bottom;
+    this.sl = safe.left;
+    this.sr = safe.right;
     this.fullH = Math.max(1, window.innerHeight);
-    this.w = Math.max(1, window.innerWidth);
+    this.fullW = Math.max(1, window.innerWidth);
+    this.w = Math.max(1, this.fullW - this.sl - this.sr);
     this.h = Math.max(1, this.fullH - this.st - this.sb);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    this.canvas.width = Math.round(this.w * this.dpr);
+    this.canvas.width = Math.round(this.fullW * this.dpr);
     this.canvas.height = Math.round(this.fullH * this.dpr);
   }
 
@@ -379,9 +386,9 @@ export class AnimalBook {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.fillStyle = PAPER;
-    ctx.fillRect(0, 0, this.w, this.fullH);
+    ctx.fillRect(0, 0, this.fullW, this.fullH);   // the whole canvas, insets included
     ctx.save();
-    ctx.translate(0, this.st);
+    ctx.translate(this.sl, this.st);
     this.hits = [];
     if (this.view === 'loading') this.drawLoading();
     else if (this.view === 'shelves') this.drawShelves();
