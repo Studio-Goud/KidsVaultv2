@@ -12,6 +12,7 @@ export default defineConfig({
       // Braambos ships one bundle per game; the shell that ties them together comes later.
       input: {
         hub: resolve(__dirname, 'index.html'),
+        parents: resolve(__dirname, 'parents.html'),
         cloudhopper: resolve(__dirname, 'cloudhopper.html'),
         nightwatch: resolve(__dirname, 'nightwatch.html'),
         orbit: resolve(__dirname, 'orbit.html'),

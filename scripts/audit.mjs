@@ -30,7 +30,7 @@ const OUT = process.env.AUDIT_DIR ?? '.cache/audit';
 
 /** Every page, and the handle its game hangs on the window for its own state. */
 const PAGES = [
-  ['index', null], ['cloudhopper', '__wh'], ['moonshot', '__moon'], ['nightwatch', '__nw'],
+  ['index', null], ['parents', null], ['cloudhopper', '__wh'], ['moonshot', '__moon'], ['nightwatch', '__nw'],
   ['orbit', '__orbit'], ['circuit', '__circuit'], ['mill', '__mill'], ['tidepool', '__tide'],
   ['market', '__market'], ['puffball', '__puff'], ['dig', '__dig'], ['clock', '__clock'],
   ['atlas', '__atlas'], ['animals', '__animals'], ['letters', '__letters'], ['rhythm', '__rhythm'],

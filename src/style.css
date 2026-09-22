@@ -381,3 +381,62 @@ html.page canvas { touch-action: auto; }
 /* one step back sits beside the way home, same size, same corner */
 .backbtn { right: calc(var(--sar) + 64px); padding: 0; font-family: inherit; }
 .homebtn svg { display: block; width: 24px; height: 24px; }
+
+/* --- the parent's half of the app --- */
+/* Deliberately plainer than the child's: this is a page for somebody who can read, on a phone,
+   probably standing up, probably once a month. Big rows, no decoration, nothing to learn. */
+#parents {
+  min-height: 100vh; padding: calc(var(--sat) + 18px) 16px calc(var(--sab) + 28px);
+  display: flex; flex-direction: column; align-items: center; gap: 14px; box-sizing: border-box;
+  background: linear-gradient(180deg, #eef4f8 0%, #e3edf4 100%);
+}
+#parents .sheet { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 14px; }
+#parents h1 { margin: 0; font-size: 22px; font-weight: 900; color: var(--ink); }
+#parents h2 { margin: 0 0 2px; font-size: 15px; font-weight: 900; color: var(--ink); }
+#parents .panel {
+  background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 8px 22px rgba(20,50,80,0.1);
+  display: flex; flex-direction: column; gap: 12px;
+}
+#parents .note { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink); opacity: .78; }
+#parents .quiet { font-size: 11.5px; opacity: .6; }
+
+/* a row of label and control, which is most of this screen */
+#parents .line { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+#parents .line label { font-size: 14px; font-weight: 700; color: var(--ink); }
+#parents input[type=text], #parents input[type=number], #parents select {
+  font: inherit; font-size: 15px; padding: 9px 11px; border-radius: 10px; min-width: 0;
+  border: 2px solid #cfdce8; background: #fff; color: var(--ink);
+}
+#parents input:focus, #parents select:focus { outline: none; border-color: #4aa3e0; }
+#parents input[type=range] { flex: 1; min-width: 0; }
+
+/* the code on the door: four big boxes, nothing else on the screen */
+#parents .pin { display: flex; gap: 10px; justify-content: center; }
+#parents .pin input {
+  width: 54px; height: 62px; text-align: center; font-size: 26px; font-weight: 900;
+  border-radius: 12px; border: 2px solid #cfdce8; background: #fff;
+}
+#parents .bad { color: #b4402c; font-weight: 800; font-size: 13px; margin: 0; text-align: center; }
+
+/* one child */
+#parents .kid {
+  display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px;
+  border: 2px solid #dde7ef; background: #fbfdff; cursor: pointer; text-align: left; width: 100%;
+  font: inherit; color: inherit;
+}
+#parents .kid.on { border-color: #43c592; background: #f2fcf7; }
+#parents .kid .who { flex: 1; min-width: 0; }
+#parents .kid .who b { display: block; font-size: 15px; }
+#parents .kid .who span { font-size: 12px; opacity: .7; }
+
+/* the subjects, as things to switch on and off */
+#parents .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+#parents .chip {
+  font: inherit; font-size: 13px; font-weight: 800; padding: 7px 12px; border-radius: 999px;
+  border: 2px solid #cfdce8; background: #fff; color: #44637f; cursor: pointer;
+}
+#parents .chip.on { border-color: #43c592; background: rgba(67,197,146,0.16); color: #23694c; }
+
+/* what a child has been doing, in plain words and no league table */
+#parents .bar { height: 10px; border-radius: 999px; background: #e3ecf3; overflow: hidden; }
+#parents .bar i { display: block; height: 100%; background: #4fbf7a; }
