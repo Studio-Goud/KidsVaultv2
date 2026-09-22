@@ -32,6 +32,7 @@ import {
 } from './sim';
 import { centreOf, paintFlow, paintPart, paintWire, wireArms } from './paint';
 import { bench, buzzHum, coilHum, motorHum } from './sfx';
+import { Coach, type Beat } from '../../platform/coach';
 
 type Ctx = CanvasRenderingContext2D;
 interface Rect { x: number; y: number; w: number; h: number }
@@ -127,6 +128,8 @@ export class Circuit {
   private note = '';
   private noteT = 0;
   private idle = 0;
+  private coach = new Coach();
+  private teach = false;
   private history: Board[] = [];
   private cheer = 0;
   /** which of the bench's open challenges the goal card is up to */
@@ -156,6 +159,9 @@ export class Circuit {
     this.puzzle = clamp(Math.round(slice?.puzzle ?? 0), 0, PUZZLES.length - 1);
     this.sim = solve(this.board());
     (window as unknown as { __circuit?: Circuit }).__circuit = this;
+    // the bench has to have been laid out once before the coach can point at anything on it, so
+    // the lesson waits for the first frame rather than starting in the constructor
+    this.teach = this.puzzle === 0 && !save.taught.includes('circuit');
 
     const loop = (ms: number): void => {
       const now = ms / 1000;
@@ -515,6 +521,10 @@ export class Circuit {
 
   private update(dt: number): void {
     this.idle += dt;
+    if (this.teach && this.cam.unit > 0) { this.teach = false; this.coach.start(this.coachScript(), false); }
+    this.coach.update(dt);
+    // a child who has sat and looked at it for a while has lost the thread, not lost interest
+    if (!this.coach.busy) { this.coach.trouble('idle', dt); this.coach.offer(this.stuckHint()); }
     this.noteT = Math.max(0, this.noteT - dt);
     this.ps.update(dt);
     this.shake.update(dt);
@@ -613,6 +623,10 @@ export class Circuit {
   private onDown(e: PointerEvent): void {
     unlockAudio();
     this.idle = 0;
+    // while the hand is still demonstrating, a tap means "yes, I have seen it" and skips ahead;
+    // once it has handed over, the tap is the child's own and goes to the game as usual
+    if (this.coach.busy && !this.coach.listening) { if (this.coach.did()) this.taught(); return; }
+    if (this.coach.listening) { if (this.coach.did()) this.taught(); }
     const p = this.at(e);
     const hit = this.hitAt(p);
     this.held = hit;
@@ -772,6 +786,11 @@ export class Circuit {
     this.pressed = -1;
   }
 
+  /** Never teach the same game twice. */
+  private taught(): void {
+    if (!save.taught.includes('circuit')) { save.taught.push('circuit'); persist(); }
+  }
+
   private goTo(i: number): void {
     this.extra = -1;
     this.puzzle = clamp(i, 0, PUZZLES.length - 1);
@@ -781,6 +800,8 @@ export class Circuit {
     this.page = 0;
     this.history = [];
     this.sim = solve(this.board());
+    // the very first puzzle shows itself off once, and only once, ever
+    if (this.puzzle === 0) this.coach.start(this.coachScript(), save.taught.includes('circuit'));
     bench.tap();
     this.remember();
   }
@@ -791,6 +812,62 @@ export class Circuit {
   }
 
   // ---------- drawing ----------
+
+  /**
+   * The first minute, without a word of explaining.
+   *
+   * A child who has never seen a circuit does not know that the orange things are wire or that a
+   * line has to come back to where it started. Telling them that is useless; showing them takes
+   * four seconds. The hand draws the wire out of the battery and into the lamp, the lamp comes on,
+   * and then it hands over. After that the coach only ever comes back when a child is plainly
+   * stuck, and never twice for the same game.
+   */
+  private coachScript(): Beat[] {
+    const cellOf = (col: number, row: number): { x: number; y: number; r: number } => ({
+      x: this.cam.ox + (col + 0.5) * this.cam.unit,
+      y: this.cam.oy + (row + 0.5) * this.cam.unit,
+      r: this.cam.unit * 0.62,
+    });
+    const trayWire = (): { x: number; y: number; r: number } | null => {
+      const h = this.hits.find(x => x.id === 'tray:wire');
+      return h ? { x: h.x + h.w / 2, y: h.y + h.h / 2, r: Math.min(h.w, h.h) * 0.5 } : null;
+    };
+    const partSpot = (id: string) => (): { x: number; y: number; r: number } | null => {
+      const i = this.board().findIndex(q => q.id === id);
+      return i < 0 ? null : cellOf(this.board()[i].col, this.board()[i].row);
+    };
+    return [
+      { act: 'watch', hold: 2.2, at: partSpot('battery'),
+        say: 'This is the battery. The push comes from here.',
+        sayNl: 'Dit is de batterij. Hier komt de duw vandaan.' },
+      { act: 'watch', hold: 2.2, at: partSpot('bulb'),
+        say: 'And this is the lamp. It wants the push to reach it.',
+        sayNl: 'En dit is het lampje. Daar moet de duw naartoe.' },
+      { act: 'drag', at: trayWire, to: partSpot('bulb'),
+        say: 'Take the wire and draw a line from one to the other.',
+        sayNl: 'Pak de draad en trek een lijn van het een naar het ander.' },
+    ];
+  }
+
+  /** The hand, brought back for one beat when a child has plainly lost the thread. */
+  private stuckHint(): Beat | null {
+    const f = this.sim?.fault;
+    if (!f) return null;
+    const at = (): { x: number; y: number; r: number } | null => {
+      const p = this.board()[f.at];
+      return p ? { x: this.cam.ox + (p.col + 0.5) * this.cam.unit, y: this.cam.oy + (p.row + 0.5) * this.cam.unit, r: this.cam.unit * 0.7 } : null;
+    };
+    if (f.kind === 'switchoff') {
+      return { act: 'tap', at, say: 'Tap the switch to close it.', sayNl: 'Tik op de schakelaar om hem aan te zetten.' };
+    }
+    if (f.kind === 'ledback') {
+      return { act: 'tap', at, say: 'Tap the LED to turn it round.', sayNl: 'Tik op de led om hem om te draaien.' };
+    }
+    if (f.kind === 'gap' || f.kind === 'loose' || f.kind === 'stray') {
+      return { act: 'drag', at, to: at, say: 'Draw the line on from here.', sayNl: 'Trek de lijn hiervandaan verder.' };
+    }
+    return null;
+  }
 
   private draw(): void {
     const ctx = this.ctx;
@@ -816,6 +893,7 @@ export class Circuit {
     if (this.cheer > 0.01) this.drawCheer(b);
     if (this.picking) { this.hits = []; this.drawPicker(); }
     vignette(ctx, this.w, this.h, 0.22, '4, 12, 22');
+    this.coach.draw(ctx, this.w, this.h, this.u(), NL(), (weight, size) => this.font(weight, size));
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
   }

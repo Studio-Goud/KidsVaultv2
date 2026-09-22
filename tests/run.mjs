@@ -2142,6 +2142,95 @@ const group = name => console.log(`\n${name}`);
   }
 }
 
+// ---------------------------------------------------------------- The platform: how hard to make it next
+
+{
+  const { scoreOf, updateMastery, nextStep, knobsFor, record, masteryOf, cleanBook, FRESH, SWEET_SPOT, SKILLS } =
+    await bundle('src/platform/skill.ts', 'skill.mjs');
+
+  /** one attempt, written the way a game reports one */
+  const go = (over = {}) => ({ correct: true, ms: 3000, parMs: 5000, hints: 0, tries: 1, ...over });
+  /** put a run of attempts through a fresh skill and hand back where it ended up */
+  const run = (list) => list.reduce((m, a) => updateMastery(m, a), { ...FRESH });
+
+  group('Platform — how well one answer went');
+  is('test_score_a_wrong_answer_is_worth_nothing', scoreOf(go({ correct: false })), 0);
+  is('test_score_quick_and_clean_is_the_top_mark', scoreOf(go({ ms: 1000 })), 1);
+  is('test_score_slow_but_right_is_worth_less_than_quick',
+    scoreOf(go({ ms: 9000 })) < scoreOf(go({ ms: 1000 })), true);
+  is('test_score_help_taken_is_worth_less_than_none',
+    scoreOf(go({ hints: 1 })) < scoreOf(go({ hints: 0 })), true);
+  is('test_score_third_go_is_worth_less_than_first',
+    scoreOf(go({ tries: 3 })) < scoreOf(go({ tries: 1 })), true);
+  is('test_score_never_leaves_the_nought_to_one_range',
+    [go(), go({ ms: 60000 }), go({ hints: 9 }), go({ tries: 9 })].every(a => scoreOf(a) >= 0 && scoreOf(a) <= 1), true);
+
+  group('Platform — the ground under a skill');
+  is('test_mastery_starts_barely_above_nothing', FRESH.level < 0.15, true);
+  is('test_mastery_a_clean_run_climbs', run([go(), go(), go(), go(), go()]).level > FRESH.level, true);
+  is('test_mastery_a_run_of_misses_falls',
+    run([go({ correct: false }), go({ correct: false }), go({ correct: false })]).level < FRESH.level, true);
+  is('test_mastery_counts_every_answer', run([go(), go({ correct: false }), go()]).seen, 3);
+  is('test_mastery_a_streak_is_clean_answers_in_a_row', run([go(), go(), go()]).streak, 3);
+  is('test_mastery_help_breaks_the_streak', run([go(), go(), go({ hints: 1 })]).streak, 0);
+  is('test_mastery_a_wrong_answer_breaks_the_streak', run([go(), go(), go({ correct: false })]).streak, 0);
+  is('test_mastery_a_right_answer_clears_the_slump', run([go({ correct: false }), go()]).slump, 0);
+  is('test_mastery_never_leaves_the_nought_to_one_range',
+    run(Array(40).fill(go())).level <= 1 && run(Array(40).fill(go({ correct: false }))).level >= 0, true);
+  // the point of the whole thing: four right out of five leaves a child where they are
+  {
+    const steady = [go(), go(), go(), go({ correct: false }), go(), go(), go(), go({ correct: false }), go(), go()];
+    const m = run(steady);
+    is('test_mastery_answering_at_the_sweet_spot_holds_roughly_still',
+      Math.abs(m.level - FRESH.level) < 0.3, true);
+  }
+
+  group('Platform — what to ask next');
+  is('test_step_two_wrong_in_a_row_builds_a_bridge_rather_than_starting_over',
+    nextStep(run([go(), go(), go({ correct: false }), go({ correct: false })])).move, 'bridge');
+  is('test_step_a_bridge_is_easier_than_where_the_child_is',
+    (() => { const m = { ...FRESH, level: 0.5, slump: 2 };
+      return nextStep(m).difficulty < m.level; })(), true);
+  is('test_step_a_bridge_at_the_very_bottom_cannot_go_below_it',
+    nextStep({ ...FRESH, level: 0, slump: 2 }).difficulty, 0);
+  is('test_step_three_quick_clean_answers_stretch_rather_than_creep',
+    nextStep(run([go({ ms: 900 }), go({ ms: 900 }), go({ ms: 900 })]),
+      [go({ ms: 900 }), go({ ms: 900 }), go({ ms: 900 })]).move, 'stretch');
+  // right, but slowly: that is a child keeping up rather than one running ahead
+  is('test_step_a_good_but_unhurried_run_goes_up',
+    nextStep({ ...FRESH, level: 0.4 }, [go({ ms: 6000 }), go({ ms: 6000 }), go({ ms: 6000 }), go({ ms: 6000 })]).move, 'up');
+  is('test_step_a_mixed_run_holds',
+    nextStep({ ...FRESH, level: 0.5 }, [go(), go({ correct: false }), go(), go({ correct: false })]).move, 'hold');
+  is('test_step_difficulty_never_leaves_the_nought_to_one_range',
+    [0, 0.5, 1].every(l => { const s = nextStep({ ...FRESH, level: l, streak: 9 }, [go(), go(), go()]);
+      return s.difficulty >= 0 && s.difficulty <= 1; }), true);
+
+  group('Platform — one dial, many knobs');
+  const cap = { elements: 9, steps: 5 };
+  is('test_knobs_the_gentlest_setting_puts_one_thing_on_screen', knobsFor(0, cap).elements, 1);
+  is('test_knobs_the_gentlest_setting_is_one_step', knobsFor(0, cap).steps, 1);
+  is('test_knobs_the_gentlest_setting_has_no_near_misses', knobsFor(0, cap).distractors, 0);
+  is('test_knobs_the_hardest_setting_fills_the_screen', knobsFor(1, cap).elements, cap.elements);
+  is('test_knobs_the_hardest_setting_takes_every_step', knobsFor(1, cap).steps, cap.steps);
+  is('test_knobs_things_on_screen_never_go_down_as_it_gets_harder',
+    [0, 0.2, 0.4, 0.6, 0.8, 1].every((d, i, a) => i === 0 || knobsFor(d, cap).elements >= knobsFor(a[i - 1], cap).elements), true);
+  is('test_knobs_no_near_misses_at_all_at_the_very_start', knobsFor(0.15, cap).distractors, 0);
+  is('test_knobs_near_misses_arrive_later_than_more_things',
+    knobsFor(0.25, cap).distractors < 0.1 && knobsFor(0.25, cap).elements > 1, true);
+  is('test_knobs_speed_only_ever_rises', knobsFor(1, cap).speed > knobsFor(0, cap).speed, true);
+
+  group('Platform — the book of skills');
+  is('test_book_an_unseen_skill_starts_fresh', masteryOf({}, 'number').level, FRESH.level);
+  is('test_book_recording_leaves_the_other_skills_alone',
+    Object.keys(record({ language: { ...FRESH } }, 'number', go())).sort(), ['language', 'number']);
+  is('test_book_a_corrupt_save_opens_empty', cleanBook('nonsense'), {});
+  is('test_book_a_half_written_skill_is_dropped', cleanBook({ number: { level: 'x' } }), {});
+  is('test_book_a_level_out_of_range_is_pulled_back_in',
+    cleanBook({ number: { level: 9, seen: 3 } }).number.level, 1);
+  is('test_book_every_skill_name_is_unique', new Set(SKILLS).size, SKILLS.length);
+  is('test_book_the_sweet_spot_is_four_out_of_five', SWEET_SPOT > 0.7 && SWEET_SPOT < 0.85, true);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);

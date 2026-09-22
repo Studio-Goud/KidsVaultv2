@@ -14,6 +14,32 @@ that goes back to Bramblewood, and, beside it, a chevron that goes back exactly 
 of a level to the level list, out of a flight to the workshop, out of the museum to the dig. The
 chevron hides itself when there is nothing to go back to.
 
+## The platform under the games
+
+`src/platform/` holds the things that were about to be built six times over.
+
+**`coach.ts` - the game shows itself off.** A child who cannot read yet learns what a game is by
+watching someone do it once. A game hands the coach a short script - point here, a hand taps, now
+you try - and it dims everything except the one place that matters, draws a hand doing the gesture,
+waits for the child to copy it, and gets out of the way. There is nothing to read and nothing to
+dismiss. It runs once per game, ever, and it comes back only when a child is plainly stuck: three
+wrong answers in a row, or nine seconds of nothing at all. Help that arrives when you are not stuck
+is noise.
+
+**`skill.ts` - how hard the next thing should be.** Every game used to own a ladder of nine levels,
+hand-cut, with nothing at the top. That is right for a valley of water and wrong for the things a
+child gets steadily better at. So a game stops deciding how hard to be and says instead what it
+asked and how it went - right or wrong, how long it took against how long it ought to take, how
+much help was taken, how many goes. Out of that comes one number per skill for how firm the ground
+is, and one number back for how hard to make the next question, which each game turns into its own
+knobs: how many things on screen, how fast, how much to hold in mind, how many steps, how near the
+wrong answers sit.
+
+Two rules it is built on. It aims for about four right out of five, because much more than that is
+a chore and much less is a wall. And a wrong answer is never a reason to go back to the beginning -
+it is a reason to put a smaller step in between. It never decides what a child *is*: there is no
+clever and no slow in it. The only question it answers is what to ask next.
+
 ## The games
 
 ### Cloudhopper (`cloudhopper.html`)

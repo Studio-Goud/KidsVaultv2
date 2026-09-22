@@ -16,6 +16,10 @@ export interface SaveData {
   wxOpen: boolean;
   /** the tower has pointed out the build button once */
   buildHintSeen: boolean;
+  /** which games have shown themselves off once; the coach never teaches the same game twice */
+  taught: string[];
+  /** how firm the ground is under each skill, which is what decides how hard the next question is */
+  skills: Record<string, { level: number; seen: number; streak: number; slump: number }>;
   /** Millstream's village: what you have earned, what you have built, what each valley has paid */
   mill: { grain: number; built: string[]; paid: Record<string, number> };
   /** Moonshot: how far the best flight got, on the ladder and in kilometres, and the rocket on the pad */
@@ -55,6 +59,7 @@ const LEGACY_KEY = 'wolkenhaven.save.v2';
 const defaults = (): SaveData => ({
   levels: {}, sound: true, radio: true, music: true, haptics: true, lang: 'auto', tutorialSeen: false,
   coins: 0, upgrades: {}, levelsPlayed: 0, lastAdAt: 0, totalLanded: 0, wxOpen: false, buildHintSeen: false,
+  taught: [], skills: {},
   mill: { grain: 0, built: [], paid: {} },
   moon: { best: 0, target: 7, topKm: 0, design: [] },
   clock: { minuteNumbers: false },
