@@ -7,6 +7,7 @@ import {
   limitsForAge, useToday, type Child, type Used,
 } from '../platform/session';
 import { cleanGate, needsSetup, setPin, tryPin, waitingFor, type GateState } from '../platform/gate';
+import { QUESTIONS, domainsWithCounts } from './faq';
 import { NL, T } from '../util/lang';
 import { persist, save } from '../util/storage';
 
@@ -139,6 +140,7 @@ function askForCode(): void {
     panel(T('For grown-ups', 'Voor ouders'),
       el('p', 'note', T('Type the four-digit code you chose.', 'Typ de code van vier cijfers die je hebt gekozen.')),
       boxes, bad),
+    faqLink(askForCode),
     homeLink(),
   );
 }
@@ -185,6 +187,7 @@ function chooseCode(): void {
           'This keeps your child out of the settings. Nothing here is sent anywhere; the code stays on this device.',
           'Hiermee houd je je kind uit de instellingen. Er gaat niets weg van dit toestel; de code blijft hier.')),
         boxes, bad),
+      faqLink(() => draw(line)),
       homeLink(),
     );
   };
@@ -230,6 +233,7 @@ function overview(): void {
         'A code stops the everyday thing: a child wandering in here and turning off their own time limit. It is not a safe. A determined ten-year-old on a desktop computer can get past it.',
         'Een code houdt het alledaagse tegen: een kind dat hier binnenloopt en zijn eigen tijdslimiet uitzet. Het is geen kluis. Een vastberaden tienjarige op een computer komt erlangs.')),
       button(T('Change the code', 'Code wijzigen'), 'secondary', () => { writeGate({ code: '', wrong: 0, until: 0 }); chooseCode(); })),
+    faqLink(overview),
     homeLink(),
   );
 }
@@ -403,6 +407,61 @@ function subscriptionPanel(): HTMLElement {
     el('p', 'note quiet', T(
       'Billing is not built yet. When it is, it runs through the App Store or Google Play, so cancelling is where you cancel everything else.',
       'Het afrekenen is nog niet gebouwd. Straks loopt het via de App Store of Google Play, zodat opzeggen gaat waar je alles opzegt.')));
+}
+
+/**
+ * The questions page.
+ *
+ * It sits in front of the code rather than behind it, because it is the page a parent who has not
+ * decided about this app yet needs to read, and asking them for a code they have not chosen would
+ * be a strange way to answer "what is this for".
+ */
+function faqScreen(back: () => void): void {
+  const kids: HTMLElement[] = [
+    panel(T('Questions', 'Vragen'),
+      el('p', 'note', T(
+        'Everything below is as it really is. Where something is not built yet or not known, it says so.',
+        'Alles hieronder staat er zoals het werkelijk is. Waar iets nog niet gebouwd of niet bekend is, staat dat erbij.'))),
+  ];
+
+  for (const q of QUESTIONS) {
+    const d = el('details', 'q');
+    const sum = el('summary');
+    sum.textContent = NL() ? q.qNl : q.q;
+    d.appendChild(sum);
+    const body = el('div', 'body');
+    for (const para of (NL() ? q.aNl : q.a)) body.appendChild(el('p', 'note', '')).textContent = para;
+    d.appendChild(body);
+    kids.push(d);
+  }
+
+  // the subjects, built from the catalogue rather than typed out again, so this cannot drift
+  const subjects = el('details', 'q');
+  const sum = el('summary');
+  sum.textContent = T('Which subjects are in here, and what each one is for',
+    'Welke onderwerpen erin zitten, en waar elk voor is');
+  subjects.appendChild(sum);
+  const ul = el('ul', 'skills');
+  for (const row of domainsWithCounts()) {
+    const li = el('li');
+    const b = el('b'); b.textContent = `${row.name} · ${row.n}`;
+    const sp = el('span'); sp.textContent = row.note;
+    li.appendChild(b); li.appendChild(sp);
+    ul.appendChild(li);
+  }
+  const body = el('div', 'body');
+  body.appendChild(ul);
+  subjects.appendChild(body);
+  kids.push(subjects);
+
+  kids.push(button(T('Back', 'Terug'), 'quiet', back));
+  show(...kids, homeLink());
+}
+
+/** The link to the questions, which every door on this screen carries. */
+function faqLink(back: () => void): HTMLElement {
+  return button(T('Why does this app exist?', 'Waarom bestaat deze app?'), 'quiet',
+    () => faqScreen(back));
 }
 
 function homeLink(): HTMLElement {

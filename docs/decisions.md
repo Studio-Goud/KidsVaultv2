@@ -102,3 +102,88 @@ kreet. Als het product groeit is dit iets om door iemand met merkenrechtkennis t
 tik op hem herhaalt wat hij zei. Dat laatste is het "tik op de gids = herhaal" uit fase 2, en het
 doet met opzet niets anders: een kind dat de uitleg miste, mag hem niet verliezen door erom te
 vragen.
+
+---
+
+## 2026-09-22 — De eenvoudigste vorm, voor twee en drie
+
+De catalogus zei `from: 2` bij twee dingen en het klopte bij geen van beide. Opgraving stond erop
+en had vier stukken gereedschap, een regel over hard en zacht gesteente, daglicht dat opraakt, bot
+dat breekt en aan het eind een meerkeuzevraag. Dat is een spel voor zes, met het label van twee.
+
+**Besluit: een onderdeel mag een tweede, eenvoudigere vorm hebben, en die vorm wordt gekozen op de
+leeftijd die de ouder invult.** Niet een kleiner spel maar hetzelfde spel met de regels eruit.
+Voor Opgraving: het gesteente is overal zacht, de kwast is het enige gereedschap en kan per
+definitie niets breken, het daglicht raakt niet op, en er wordt niets gevraagd.
+
+Drie dingen die daarbij horen en die voor het volgende spel net zo gelden (`src/platform/who.ts`):
+
+1. **De grens ligt op drie jaar en hij staat op één plek.** Als hij verschuift, verschuift hij
+   overal tegelijk.
+2. **Geen profiel is geen eenvoudige vorm.** Een volwassene die de app koud opent krijgt het hele
+   spel. De andere kant op gokken zou iedereen die binnenkomt begroeten met een spel waar het spel
+   uit is.
+3. **Dit is wat het ouderscherm eindelijk doet.** Tot nu toe was de leeftijd daar alleen een getal
+   waar een tijdslimiet uit volgde. Nu verandert hij het spel zelf, en dat is het eerste
+   commerciële argument voor dat scherm dat geen belofte is maar een functie.
+
+Dit sluit de kloof niet. Van de achttien dingen passen er nu drie bij een tweejarige in plaats van
+twee. Het volgende dat deze behandeling verdient is Klankhuis, dat in zijn vrije stand al bijna
+goed is.
+
+---
+
+## 2026-09-22 — De ontdekreis is een formaat, geen spel
+
+Fase 5 uit de opdracht: stap in, druk op start, het ding brengt je, en bij elke halte vertelt de
+gids iets waar je op kunt doorvragen. Gevraagd werd één reis; gebouwd is een motor met twee.
+
+**Besluit: het is data, niet code.** Een reis is een lijst haltes met kleuren, plaatjes, een schaal
+en een voertuig; al het gedrag staat één keer in `src/journey/`. De diepzee kostte daardoor geen
+regel motor, en dat was de hele toets: de tijd van de dino's, het lichaam en een fabriek zijn nu
+elk een databestand.
+
+Drie keuzes die erin zitten en die ik apart wil kunnen terugvinden:
+
+1. **Tijdens het rijden staat er geen enkele knop op het scherm.** Een kind dat moet blijven
+   drukken om vooruit te komen speelt een spel, en daar is de hub vol mee. Wat de rijtijd doet is
+   de volgende wereld laten opkomen.
+2. **Elk been duurt even lang, ongeacht de echte afstand.** Neptunus ligt dertig keer zo ver als de
+   aarde. Een kind dat daar dertig keer zo lang op wacht legt de telefoon neer. De meter langs de
+   zijkant vertelt de echte schaal wel, stuksgewijs.
+3. **In het overzicht zit niets op slot.** Ook een halte waar je nooit geweest bent mag open. Het
+   is een boek, en een boek mag je in het midden opendoen. Wat het overzicht wél laat zien is welke
+   je gehad hebt, want dat is het enige wat een kind eraan vraagt.
+
+Bij elke foto staat vanaf nu de fotograaf en de licentie, op het scherm waar hij groot te zien is.
+Dat is geen nettigheid: een deel van wat het dierenboek en de duik gebruiken is CC BY-SA, en die
+licentie vraagt erom.
+
+Volledige beschrijving: `docs/journeys.md`.
+
+---
+
+## 2026-09-22 — De ouderpagina staat vóór de code, niet erachter
+
+De vragenlijst uit fase 6 zit in het ouderscherm, maar níét achter de pincode. De code houdt een
+kind uit de instellingen; de vragen zijn geen instelling. En het is de pagina die een ouder die nog
+niet besloten heeft moet kunnen lezen — daar om een code vragen die ze nog niet gekozen hebben is
+een merkwaardig antwoord op "waar is dit voor".
+
+**Wat er niet in staat, en niet in mag komen:** "pedagogisch goedgekeurd". Niemand met een
+pedagogische opleiding heeft deze app gezien. De vraag staat er letterlijk in, met dat antwoord.
+De volledige lijst van wat er getoetst zou moeten worden staat in `docs/claims.md`, en die lijst is
+eerlijk over hoe groot hij is: elf van de achttien onderdelen zeggen iets te oefenen op grond van
+mijn inschatting en niets anders.
+
+De regel die overal geldt en waar dit uit volgt: **"oefent" mag, "leert" niet.**
+
+---
+
+## 2026-09-22 — Open: `reads` in de catalogus klopt niet meer
+
+Alle vijftien spellen praten sinds deze week, dus `speaks` is bijgewerkt en nagemeten. `reads` is
+dat niet: die vlag stamt uit de tijd dat niets hardop ging, en is nu waarschijnlijk te pessimistisch.
+Er staat nu bij dat hij niet nagekeken is, en niemand mag hem citeren tot dat wel zo is. Dit is de
+eerste van de open posten omdat hij goedkoop is: het is achttien keer kijken wat er op het scherm
+staat dat gelezen moet worden.
