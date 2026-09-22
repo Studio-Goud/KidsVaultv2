@@ -2874,6 +2874,33 @@ const group = name => console.log(`\n${name}`);
     [3, 4, 5, 6, 7, 8].every(a => coverage(a) >= coverage(2)), true);
 }
 
+// ---------------------------------------------------------------- The voice
+
+{
+  const { cleanManifest, clipFor } = await bundle('src/platform/voice.ts', 'voice.mjs');
+  group('Platform — the voice');
+
+  const good = { nl: [{ id: 'a', file: 'nl/a.mp3', secs: 1.2 }], en: [{ id: 'a', file: 'en/a.mp3', secs: 1.1 }] };
+  is('test_voice_a_good_manifest_survives', cleanManifest(good), good);
+  is('test_voice_nothing_recorded_is_not_an_error', cleanManifest({ nl: [], en: [] }), { nl: [], en: [] });
+  is('test_voice_a_missing_manifest_opens_empty', cleanManifest(null), { nl: [], en: [] });
+  is('test_voice_nonsense_opens_empty', cleanManifest('kaas'), { nl: [], en: [] });
+  is('test_voice_a_row_without_a_file_is_dropped',
+    cleanManifest({ nl: [{ id: 'a' }], en: [] }).nl, []);
+  is('test_voice_a_row_without_an_id_is_dropped',
+    cleanManifest({ nl: [{ file: 'a.mp3' }], en: [] }).nl, []);
+  is('test_voice_a_line_recorded_twice_keeps_the_first',
+    cleanManifest({ nl: [{ id: 'a', file: 'one.mp3' }, { id: 'a', file: 'two.mp3' }], en: [] }).nl[0].file, 'one.mp3');
+  is('test_voice_a_length_that_makes_no_sense_becomes_nothing',
+    cleanManifest({ nl: [{ id: 'a', file: 'a.mp3', secs: -3 }], en: [] }).nl[0].secs, 0);
+
+  is('test_voice_a_recorded_line_is_found', clipFor(good, 'nl', 'a').file, 'nl/a.mp3');
+  is('test_voice_each_language_has_its_own_recording', clipFor(good, 'en', 'a').file, 'en/a.mp3');
+  is('test_voice_a_line_nobody_recorded_falls_back', clipFor(good, 'nl', 'b'), null);
+  is('test_voice_a_line_recorded_in_one_language_only_falls_back_in_the_other',
+    clipFor({ nl: [{ id: 'a', file: 'nl/a.mp3', secs: 1 }], en: [] }, 'en', 'a'), null);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);
