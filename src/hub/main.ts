@@ -9,6 +9,8 @@ import '../style.css';
 import { drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
 import { NL, T } from '../util/lang';
 import { CATALOG, type Entry } from '../platform/catalog';
+import { lastGoNow, startClock } from '../platform/clock';
+import { drawGuide } from '../platform/guide';
 
 
 
@@ -100,3 +102,36 @@ grid.className = 'gamegrid';
 for (const g of CATALOG) grid.appendChild(card(g));
 root.appendChild(grid);
 root.appendChild(promise());
+
+/**
+ * "This is your last one today."
+ *
+ * Announced here, on the shelf, where a child is choosing - not in the middle of a game, and not
+ * as a clock counting down. It is the whole of the researched ending: a last go that is known to
+ * be the last, played to its own end.
+ */
+if (lastGoNow()) {
+  const say = document.createElement('div');
+  say.className = 'card lastgo';
+  say.innerHTML = `<canvas width="120" height="120"></canvas><p>${T(
+    'This is your last one today. Pick a good one!',
+    'Dit wordt je laatste spelletje van vandaag. Kies maar een leuke!')}</p>`;
+  root.insertBefore(say, root.firstChild?.nextSibling ?? null);
+  const c = say.querySelector('canvas') as HTMLCanvasElement;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = 120 * dpr; c.height = 120 * dpr;
+    let t = 0;
+    const paint = (): void => {
+      t += 0.016;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, 120, 120);
+      drawGuide(ctx, 60, 112, 104, { pose: 'watch', t });
+      requestAnimationFrame(paint);
+    };
+    paint();
+  }
+}
+
+startClock();
