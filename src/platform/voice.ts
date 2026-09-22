@@ -161,8 +161,11 @@ function speakOut(text: string, rate: number): void {
   if (!s || !v || !text) return;
   try {
     const u = new SpeechSynthesisUtterance(text);
-    u.voice = v;
     u.lang = v.lang;
+    // Setting the voice is the part that can be refused - not every engine accepts every voice
+    // object - and losing the whole line over it would be the wrong trade. The language alone
+    // already gets a Dutch reading out of most machines.
+    try { u.voice = v; } catch { /* the language will have to do */ }
     // a child needs it slower than an adult does, and slower again when something is being
     // taken apart rather than read out
     u.rate = Math.max(0.5, Math.min(1.2, 0.92 * rate));
@@ -177,6 +180,24 @@ function speakOut(text: string, rate: number): void {
  * A missing or broken manifest is not an error: it means nothing has been recorded yet, which is
  * exactly where the app is today.
  */
+let lastLine = '';
+
+/**
+ * Say a line of instruction, once.
+ *
+ * Games keep their instruction in one place - a note with a countdown on it - and call it from
+ * wherever the instruction changes, sometimes more than once for the same words. This speaks a
+ * line when it is new and stays quiet when it is not, so a child hears it rather than a stutter.
+ */
+export function speakLine(text: string, id: string | null = null): void {
+  if (!text || text === lastLine) return;
+  lastLine = text;
+  say(id, text);
+}
+
+/** Forget what was last said, so the same words spoken again are spoken again. */
+export function forgetLine(): void { lastLine = ''; }
+
 export function loadVoice(): void {
   if (typeof fetch !== 'function') return;
   fetch('./voice/clips.json')

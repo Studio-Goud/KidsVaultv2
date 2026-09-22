@@ -34,6 +34,7 @@ import { centreOf, paintFlow, paintPart, paintWire, wireArms } from './paint';
 import { bench, buzzHum, coilHum, motorHum } from './sfx';
 import { Coach, type Beat } from '../../platform/coach';
 import { NL, T } from '../../util/lang';
+import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 interface Rect { x: number; y: number; w: number; h: number }
@@ -252,7 +253,13 @@ export class Circuit {
     this.remember();
   }
 
-  private say(text: string, secs = 4): void { this.note = text; this.noteT = secs; }
+  private say(text: string, secs = 4): void {
+    this.note = text;
+    this.noteT = secs;
+    // audio-first: the note is the game's instruction, so it is heard as well as read.
+    // Today that is the machine's own voice; a recording slots in without touching this.
+    speakLine(text);
+  }
 
   // ---------- layout ----------
 

@@ -43,6 +43,7 @@ import {
   rung, tapRing,
 } from './paint';
 import { NL, T } from '../../util/lang';
+import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'home' | 'levels' | 'play' | 'won';
@@ -423,7 +424,13 @@ export class Rhythm {
     return this.round.blanks.includes(i);
   }
 
-  private say(text: string, secs = 3.5): void { this.note = text; this.noteT = secs; }
+  private say(text: string, secs = 3.5): void {
+    this.note = text;
+    this.noteT = secs;
+    // audio-first: the note is the game's instruction, so it is heard as well as read.
+    // Today that is the machine's own voice; a recording slots in without touching this.
+    speakLine(text);
+  }
 
   // ---------------------------------------------------------------- the run of a round
 

@@ -11,6 +11,7 @@ import { NL, T } from '../util/lang';
 import { CATALOG, type Entry } from '../platform/catalog';
 import { lastGoNow, startClock } from '../platform/clock';
 import { drawGuide } from '../platform/guide';
+import { loadVoice } from '../platform/voice';
 
 
 
@@ -134,4 +135,5 @@ if (lastGoNow()) {
   }
 }
 
+loadVoice();
 startClock();

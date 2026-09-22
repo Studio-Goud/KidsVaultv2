@@ -31,6 +31,7 @@ import {
 } from '../../render/look';
 import { paintBadlands, paintExposedDial, paintSunDial, paintTool, paintTrench, RockPainter } from './paint';
 import { NL, T } from '../../util/lang';
+import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'dig' | 'ask' | 'wrong' | 'reveal' | 'failed' | 'museum';
@@ -229,7 +230,13 @@ export class DinoDig {
       'Begin rustig. Zacht gesteente gaat er met een kwast af.'));
   }
 
-  private say(text: string, secs = 4): void { this.note = text; this.noteT = secs; }
+  private say(text: string, secs = 4): void {
+    this.note = text;
+    this.noteT = secs;
+    // audio-first: the note is the game's instruction, so it is heard as well as read.
+    // Today that is the machine's own voice; a recording slots in without touching this.
+    speakLine(text);
+  }
 
   private unlocked(t: Tool): boolean { return foundCount() >= t.unlockAt; }
 

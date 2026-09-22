@@ -26,6 +26,7 @@ import {
   type Basket, type Customer, type Fruit, type Level, type Order,
 } from './model';
 import { NL, T } from '../../util/lang';
+import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won' | 'failed';
@@ -167,7 +168,13 @@ export class MarketDay {
     this.nextCustomer();
   }
 
-  private say(text: string, secs = 3): void { this.note = text; this.noteT = secs; }
+  private say(text: string, secs = 3): void {
+    this.note = text;
+    this.noteT = secs;
+    // audio-first: the note is the game's instruction, so it is heard as well as read.
+    // Today that is the machine's own voice; a recording slots in without touching this.
+    speakLine(text);
+  }
 
   private nextCustomer(): void {
     this.index++;

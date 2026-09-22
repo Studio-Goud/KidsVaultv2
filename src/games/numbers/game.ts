@@ -49,6 +49,7 @@ import {
 } from './paint';
 import { numbersfx } from './numbersfx';
 import { NL, T } from '../../util/lang';
+import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won';
@@ -514,7 +515,13 @@ export class Numbers {
     this.say(NL() ? this.level.hintNl : this.level.hint, 6);
   }
 
-  private say(text: string, secs = 3.5): void { this.note = text; this.noteT = secs; }
+  private say(text: string, secs = 3.5): void {
+    this.note = text;
+    this.noteT = secs;
+    // audio-first: the note is the game's instruction, so it is heard as well as read.
+    // Today that is the machine's own voice; a recording slots in without touching this.
+    speakLine(text);
+  }
 
   private nextQuestion(): void {
     this.q = makeQuestion(this.level, this.rng, this.round, this.recent, optionsFor(this.level, this.diff));
