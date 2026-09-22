@@ -71,6 +71,17 @@ function card(g: Entry): HTMLElement {
   return a;
 }
 
+/**
+ * The card that is addressed to a parent, and the way in to their own screen.
+ *
+ * The link lives here and not in a corner of the shelf, because this is the paragraph a grown-up
+ * who has picked up the phone is already reading. Before it existed the only way into the parent
+ * screen was the closing overlay at the end of a day - which needs a child profile, which can only
+ * be made in the parent screen. There was no door.
+ *
+ * It is not hidden from the child either. It does not need to be: what is behind it is behind a
+ * code, and a shelf of games is more interesting than a settings page to everyone under ten.
+ */
 function promise(): HTMLElement {
   const d = document.createElement('div');
   d.className = 'card promise';
@@ -89,7 +100,10 @@ function promise(): HTMLElement {
       <li><b>${T('We say what we do not know', 'We zeggen wat we niet weten')}</b><span>${T(
         'Each game states what it practises, and where the evidence stops.',
         'Elk spel vertelt wat het oefent, en waar het bewijs ophoudt.')}</span></li>
-    </ul>`;
+    </ul>
+    <a class="parentlink" href="./parents.html">${T(
+      'For grown-ups: time limits, subjects, and the questions parents ask',
+      'Voor ouders: tijdslimiet, onderwerpen, en de vragen die ouders stellen')}</a>`;
   return d;
 }
 
