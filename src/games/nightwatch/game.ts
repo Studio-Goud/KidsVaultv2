@@ -35,6 +35,7 @@ import {
 } from './sky';
 import { EMPTY_HAND, lift, move, press, runLength, starAt, type Hand } from './swipe';
 import { cleanBook, masteryOf, record, type Attempt, type Book } from '../../platform/skill';
+import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'showing' | 'turning' | 'drawing' | 'wrong' | 'solved' | 'missed' | 'rest';
@@ -243,6 +244,7 @@ export class NightWatch {
   }
 
   private update(dt: number): void {
+    speakLine(this.headline());
     this.phaseT += dt;
     this.shake = Math.max(0, this.shake - dt * 3);
     const p = this.plan.puzzle;
@@ -395,6 +397,25 @@ export class NightWatch {
   }
 
   /** A hand-made figure has a name. A made-up one gets its own counts, which is honest. */
+  /**
+   * The one line that says what to do now.
+   *
+   * It was worked out inside the drawing, which meant it could be read and never heard. It is its
+   * own method now so that it can be spoken as well, and so the guide in the corner can say it
+   * again.
+   */
+  private headline(): string {
+    const p = this.plan.puzzle;
+    if (this.phase === 'showing') return t('nwLook');
+    if (this.phase === 'turning') return p.mirror ? t('nwMirrors') : t('nwTurns');
+    if (this.phase === 'wrong') return t('nwNotQuite');
+    if (this.phase === 'solved' || this.phase === 'missed') return this.nameOf(p);
+    return t('nwDraw');
+  }
+
+  /** The last thing the game said, so the guide in the corner can say it again. */
+  spoken(): string { return this.headline(); }
+
   private nameOf(p: Plan['puzzle']): string {
     if (p.made) return t('nwLook') === 'Kijk goed' ? p.nameNl : p.name;
     return `${p.stars.length} ${t('nwStars')}, ${p.edges.length} ${t('nwLines')}`;
@@ -573,12 +594,7 @@ export class NightWatch {
 
     const p = this.plan.puzzle;
     const turning = this.phase === 'turning';
-    const head =
-      this.phase === 'showing' ? t('nwLook') :
-      turning ? (p.mirror ? t('nwMirrors') : t('nwTurns')) :
-      this.phase === 'wrong' ? t('nwNotQuite') :
-      this.phase === 'solved' || this.phase === 'missed' ? this.nameOf(p) :
-      t('nwDraw');
+    const head = this.headline();
     const headSize = short ? 17 * u : 22 * u;
     // The way home and the way back are two round buttons in the top right corner, 46 across with
     // 10 of margin. On a narrow screen a centred heading reaches them, so it starts below them

@@ -3,10 +3,12 @@ import { addBackButton, addHomeButton } from '../../hub/homebtn';
 import { NightWatch } from './game';
 import { startClock } from '../../platform/clock';
 import { loadVoice } from '../../platform/voice';
+import { addGuideButton } from '../../hub/guidebtn';
 
 const canvas = document.getElementById('sky') as HTMLCanvasElement;
 const game = new NightWatch(canvas);
 addHomeButton();
 addBackButton({ back: () => game.back(), canBack: () => game.canBack() });
 loadVoice();
+addGuideButton({ line: () => game.spoken() });
 startClock();

@@ -27,6 +27,7 @@ import {
   clipBox, compareToChild, facts, groupById, joinNames, scaleBar, search, shapeOf, shelf, sizeLabel,
   type Animal, type GroupId,
 } from './rules';
+import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type View = 'loading' | 'shelves' | 'grid' | 'detail' | 'search';
@@ -86,6 +87,8 @@ export class AnimalBook {
   private loadMsg = '';
 
   private view: View = 'loading';
+  /** the last thing said out loud, for the guide in the corner */
+  private said = '';
   private group: GroupId | null = null;
   /** a continent the book has been opened at, from a link like `animals.html#af` */
   private place: string | null = null;
@@ -198,6 +201,9 @@ export class AnimalBook {
     this.act(id);
     return true;
   }
+
+  /** The last thing the book said, so the guide in the corner can say it again. */
+  spoken(): string { return this.said; }
 
   canBack(): boolean { return this.view === 'grid' || this.view === 'detail' || this.view === 'search'; }
 
@@ -489,6 +495,10 @@ export class AnimalBook {
 
   /** The strip along the top of every screen: where you are, and how much of the book you have seen. */
   private header(title: string, sub: string): number {
+    // The strip says where you are, which is the only instruction this book has. It is spoken the
+    // first time it appears, so a child who cannot read still knows which shelf they are on.
+    this.said = title;
+    speakLine(title);
     const ctx = this.ctx;
     const u = this.u();
     const h = 62 * u;

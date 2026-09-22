@@ -22,6 +22,7 @@ import { chunkyButton } from '../../render/look';
 import { paintSpace } from './paint';
 import { orbit as osfx } from './orbitsfx';
 import { NL, T } from '../../util/lang';
+import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
@@ -467,10 +468,25 @@ export class Orbit {
     this.hits.push(...this.drawTabs());
   }
 
+  /**
+   * The question, and which set of planets it is about.
+   *
+   * Written out as one sentence rather than two lines, because that is how it has to be heard: a
+   * child who cannot read gets "Which comes next? The four rocky planets, nearest the sun first."
+   */
+  spoken(): string {
+    const r = ROUNDS[this.round];
+    const ask = this.phase === 'roundDone' ? T('That is the order', 'Dat is de volgorde')
+      : this.phase === 'wrong' ? T('Not that one yet', 'Die nog even niet')
+        : T('Which comes next?', 'Welke komt hierna?');
+    return `${ask} ${NL() ? r.titleNl : r.title}.`;
+  }
+
   private drawChrome(): void {
     const ctx = this.ctx;
     ctx.textAlign = 'center';
     const r = ROUNDS[this.round];
+    speakLine(this.spoken());
     ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('900', 19);
     ctx.fillText(
       this.phase === 'roundDone' ? T('That is the order', 'Dat is de volgorde')
