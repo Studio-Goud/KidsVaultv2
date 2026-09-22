@@ -1,5 +1,6 @@
 import { drawGuide } from './guide';
-import { dayKey, cleanChild, cleanUsed, isLastGo, limitsFor, spend, spent, type Child } from './session';
+import { dayKey, cleanUsed, isLastGo, limitsFor, spend, spent, type Child } from './session';
+import { playingChild } from './who';
 import { NL, T } from '../util/lang';
 import { persist, save } from '../util/storage';
 
@@ -30,12 +31,8 @@ let carried = 0;
 let timer: number | null = null;
 let closed = false;
 
-function playing(): Child | null {
-  const id = save.family?.playing;
-  if (!id) return null;
-  const row = (save.family.children ?? []).find(c => c.id === id);
-  return row ? cleanChild(row) : null;
-}
+// who is playing lives in who.ts, because the age decides more than the clock does
+const playing = playingChild;
 
 const usedNow = (id: string): ReturnType<typeof cleanUsed> => cleanUsed(save.family.used?.[id]);
 

@@ -3024,6 +3024,57 @@ const group = name => console.log(`\n${name}`);
   is('test_gate_a_negative_wait_is_no_wait', cleanGate({ until: -50 }).until, 0);
 }
 
+// ---------------------------------------------------------------- the simplest shape, for a toddler
+
+{
+  const { SIMPLE_UPTO, simpleFor } = await bundle('src/platform/who.ts', 'who.mjs');
+  const { TOOLS, buildSite, soften, strike } = await bundle('src/games/dig/site.ts', 'digsite.mjs');
+  group('Braambos - the simple shape of a game');
+
+  is('test_simple_a_two_year_old_gets_the_simple_shape', simpleFor(2), true);
+  is('test_simple_the_oldest_toddler_gets_it_too', simpleFor(SIMPLE_UPTO), true);
+  is('test_simple_a_four_year_old_gets_the_whole_game', simpleFor(SIMPLE_UPTO + 1), false);
+  is('test_simple_nobody_filled_in_gets_the_whole_game', simpleFor(null), false);
+
+  // the hardest site in the game, which is the one a brush cannot touch
+  const rock = () => buildSite(20, 14, 977, 1, null);
+  const brush = TOOLS[0];
+  const hardestIn = site => Math.max(...site.hard);
+  is('test_dig_hard_rock_is_beyond_the_brush', hardestIn(rock()) > brush.maxHard, true);
+  is('test_dig_softening_brings_it_all_within_the_brush', hardestIn(soften(rock())) <= brush.maxHard, true);
+
+  // what that means with a finger on the slab: a stroke that moved nothing now moves rock
+  const blocked = () => {
+    const site = rock();
+    let stuck = 0;
+    for (let y = 0; y < site.rows; y++) for (let x = 0; x < site.cols; x++) {
+      if (strike(site, brush, x + 0.5, y + 0.5, () => 0.5).blocked) stuck++;
+    }
+    return stuck;
+  };
+  is('test_dig_a_brush_on_hard_rock_is_stopped_somewhere', blocked() > 0, true);
+  const stuckSoft = (() => {
+    const site = soften(rock());
+    let stuck = 0;
+    for (let y = 0; y < site.rows; y++) for (let x = 0; x < site.cols; x++) {
+      if (strike(site, brush, x + 0.5, y + 0.5, () => 0.5).blocked) stuck++;
+    }
+    return stuck;
+  })();
+  is('test_dig_a_brush_on_soft_rock_is_never_stopped', stuckSoft, 0);
+  // softening only ever takes hardness away, so the grain of the rock underneath is still the
+  // grain of that site rather than one flat slab
+  is('test_dig_softening_never_makes_a_cell_harder',
+    (() => { const a = rock(), b = soften(rock());
+      for (let i = 0; i < a.hard.length; i++) if (b.hard[i] > a.hard[i]) return false;
+      return true; })(), true);
+  is('test_dig_softening_leaves_rock_the_brush_already_moved_alone',
+    (() => { const a = rock(), b = soften(rock());
+      for (let i = 0; i < a.hard.length; i++) if (a.hard[i] < brush.maxHard * 0.9 && a.hard[i] !== b.hard[i]) return false;
+      return true; })(), true);
+  is('test_dig_the_brush_can_never_break_bone', brush.risk, 0);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);

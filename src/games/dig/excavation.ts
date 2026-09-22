@@ -23,7 +23,7 @@ import { bodyPath, bones, drawCrest } from './anatomy';
 import { DINOS, ERAS, type Dino } from './dinos';
 import { dig } from './digsfx';
 import { drawFossil, fossilPhoto, FOSSILS, loadAllFossils } from './fossilphoto';
-import { buildSite, MAX_DEPTH, progress, starsFor, strike, TOOLS, toolById, type Site, type Tool } from './site';
+import { buildSite, MAX_DEPTH, progress, soften, starsFor, strike, TOOLS, toolById, type Site, type Tool } from './site';
 import {
   bleedEdges, breathe, chunkyButton, drawStar as drawStarGem, easeOutBack, glassPanel, heading,
   outlinedText,
@@ -32,6 +32,7 @@ import {
 import { paintBadlands, paintExposedDial, paintSunDial, paintTool, paintTrench, RockPainter } from './paint';
 import { NL, T } from '../../util/lang';
 import { speakLine } from '../../platform/voice';
+import { simpleNow } from '../../platform/who';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'dig' | 'ask' | 'wrong' | 'reveal' | 'failed' | 'museum';
@@ -87,6 +88,15 @@ export class DinoDig {
   private cardPop = 0;
   private rng = makeRng(1);
   private grain = new ValueNoise(3);
+  /**
+   * The toddler shape of the game, for a child of three or under (`src/platform/who.ts`).
+   *
+   * Opgraving is the first thing in the app a two-year-old can do, so it is the one that has to
+   * give way. In this shape the rock is all soft, the brush is the only tool, the daylight never
+   * runs out, nothing can break, and there is no question at the end: the fossil comes clear, the
+   * guide says whose it is, and you go again. One gesture, no rules, nothing to lose.
+   */
+  private easy = simpleNow();
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
@@ -127,12 +137,14 @@ export class DinoDig {
     const p = this.site ? progress(this.site) : { exposed: 0, chipped: 0 };
     return {
       phase: this.phase, site: this.siteIndex, answer: this.dino.id, tool: this.tool.id,
+      easy: this.easy, note: this.note, noteT: Math.round(this.noteT * 10) / 10,
       stamina: Math.round(this.stamina * 100) / 100,
       exposed: Math.round(p.exposed * 100) / 100, chipped: p.chipped,
       boneCount: this.site?.boneCount ?? 0,
       options: this.options.map(o => o.id),
       buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
       found: foundCount(),
+      slab: (() => { const b = this.slab(); return { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.w), h: Math.round(b.h) }; })(),
     };
   }
 
@@ -214,6 +226,7 @@ export class DinoDig {
     const cols = 28, rows = Math.max(12, Math.round(cols * (slab.h / slab.w)));
     this.site = buildSite(cols, rows, this.dino.id.length * 977 + this.siteIndex * 13,
       this.dino.hardness, fossilPhoto(this.dino.id) ?? null);
+    if (this.easy) soften(this.site);
     this.rockArt.touch();
     this.rng = makeRng(this.siteIndex * 4099 + 11);
     this.grain = new ValueNoise(this.siteIndex * 7 + 5);
@@ -226,8 +239,11 @@ export class DinoDig {
     this.options = [this.dino, ...others]
       .sort((a, b) => ((a.id.charCodeAt(0) + this.siteIndex) % 7) - ((b.id.charCodeAt(0) + this.siteIndex) % 7));
     this.phase = 'dig'; this.phaseT = 0;
-    this.say(T('Start gently. Soft rock comes away with a brush.',
-      'Begin rustig. Zacht gesteente gaat er met een kwast af.'));
+    this.say(this.easy
+      ? T('Rub the rock with your finger. Something is hiding underneath.',
+        'Wrijf over de steen met je vinger. Er zit iets onder.')
+      : T('Start gently. Soft rock comes away with a brush.',
+        'Begin rustig. Zacht gesteente gaat er met een kwast af.'));
   }
 
   /** The last thing the game said, so the guide in the corner can say it again. */
@@ -252,7 +268,12 @@ export class DinoDig {
     if (this.phase === 'wrong' && this.phaseT > 0.8) { this.wrongId = null; this.phase = 'ask'; }
     if (this.phase === 'dig' && this.site) {
       const p = progress(this.site);
-      if (this.stamina <= 0) {
+      if (this.easy) {
+        // Nothing runs out and nothing breaks, so the only end is finishing it. The bar is lower
+        // than the full game's: a toddler rubs in patches, and the last handful of cells in a
+        // corner is not a lesson, it is a wall.
+        if (p.exposed >= 0.88) this.finish(p);
+      } else if (this.stamina <= 0) {
         this.phase = p.exposed >= 0.55 ? 'ask' : 'failed';
         this.phaseT = 0;
         if (this.phase === 'failed') dig.tired();
@@ -309,18 +330,31 @@ export class DinoDig {
     if (id === 'next') { this.startSite(this.siteIndex + 1); dig.tap(); return; }
     if (this.phase !== 'ask') return;
     if (id === this.dino.id) {
-      const p = progress(this.site!);
-      const stars = starsFor(p.exposed, p.chipped, this.site!.boneCount);
-      this.earned = stars;
-      recordLevelResult(saveKey(this.dino), Math.round(p.exposed * 100), stars, true);
-      save.coins = Math.max(0, Math.round(save.coins + 20 + stars * 15)); persist();
-      this.phase = 'reveal'; this.phaseT = 0;
+      this.finish(progress(this.site!));
       dig.correct();
     } else {
       this.wrongId = id;
       this.phase = 'wrong'; this.phaseT = 0;
       this.shake = 1;
       dig.wrong();
+    }
+  }
+
+  /** The fossil is out and it is yours: written down, paid for, and put on the card. */
+  private finish(p: { exposed: number; chipped: number }): void {
+    const stars = starsFor(p.exposed, p.chipped, this.site!.boneCount);
+    this.earned = stars;
+    recordLevelResult(saveKey(this.dino), Math.round(p.exposed * 100), stars, true);
+    save.coins = Math.max(0, Math.round(save.coins + 20 + stars * 15)); persist();
+    this.phase = 'reveal'; this.phaseT = 0; this.cardPop = 0;
+    if (this.easy) {
+      // no card to read, so the whole reward is what is heard and what is seen moving
+      dig.complete();
+      const slab = this.slab();
+      this.ps.spawn('spark', slab.x + slab.w / 2, slab.y + slab.h / 2, 26,
+        { colour: '#ffe9a8', speed: 240, size: 9 * this.u(), max: 1.1, spread: 6.28 });
+      this.say(T('A ' + nameOf(this.dino) + '. You dug it out yourself.',
+        'Een ' + nameOf(this.dino) + '. Die heb jij opgegraven.'), 7);
     }
   }
 
@@ -338,7 +372,7 @@ export class DinoDig {
     if (r.removed > 0 || r.chipped) this.rockArt.touch();
     if (r.removed === 0) {
       // a swing that moves nothing still costs a little daylight - the sun does not wait
-      this.stamina = Math.max(0, this.stamina - this.tool.cost * 0.4);
+      if (!this.easy) this.stamina = Math.max(0, this.stamina - this.tool.cost * 0.4);
       if (r.chipped) {
         // struck bone that was already bare, which is the one mistake with no excuse
         dig.crack(); this.shake = 0.85;
@@ -351,7 +385,7 @@ export class DinoDig {
       }
       return;
     }
-    this.stamina = Math.max(0, this.stamina - this.tool.cost);
+    if (!this.easy) this.stamina = Math.max(0, this.stamina - this.tool.cost);
     // dust and grit coming off under the tool, so a stroke is something you can see working
     const grit = this.tool.id === 'brush' ? 'rgba(226, 205, 165, 0.9)' : 'rgba(150, 126, 94, 0.95)';
     this.ps.spawn(this.tool.id === 'brush' ? 'dust' : 'crumb', p.x, p.y,
@@ -496,7 +530,9 @@ export class DinoDig {
     ctx.textAlign = 'center';
 
     const head =
-      this.phase === 'dig' ? T('Get the rock off', 'Haal het gesteente eraf') :
+      this.phase === 'dig' ? (this.easy
+        ? T('Rub the rock away', 'Wrijf de steen weg')
+        : T('Get the rock off', 'Haal het gesteente eraf')) :
       this.phase === 'ask' ? T('Which one is this?', 'Welke is dit?') :
       this.phase === 'wrong' ? T('Look again', 'Kijk nog eens') :
       this.phase === 'failed' ? T('The light went', 'Het licht was op') :
@@ -504,7 +540,9 @@ export class DinoDig {
     heading(ctx, head, this.w / 2, this.headY(), this.font('900', 19), '#4a3823');
 
     if (this.phase === 'dig') this.drawMeters(p.exposed, p.chipped);
-    if (this.phase === 'reveal') this.drawCard();
+    // the card is a paragraph of facts, a timeline and a scale bar: nothing there is for a
+    // three-year-old, so in the simple shape the name in the heading is the whole of it
+    if (this.phase === 'reveal' && !this.easy) this.drawCard();
     if (this.phase === 'failed') {
       ctx.fillStyle = 'rgba(74,56,35,0.7)'; ctx.font = this.font('700', 12.5);
       ctx.fillText(T('Too much is still buried. Spend the brush where the rock is soft.',
@@ -513,16 +551,21 @@ export class DinoDig {
       this.button('retry', T('Dig again', 'Opnieuw graven'), this.w / 2, slab.y + slab.h + 46 * u, 210 * u, 48 * u, true);
     }
 
-    if (this.noteT > 0 && this.phase === 'dig') {
+    // in the simple shape the note carries the ending too, because there is no card to carry it
+    if (this.noteT > 0 && (this.phase === 'dig' || (this.easy && this.phase === 'reveal'))) {
       ctx.save();
       ctx.globalAlpha = clamp(this.noteT, 0, 1);
-      ctx.font = this.font('800', 11.5);
+      // at the end of a simple dig the note is the whole reward, so it is bigger and it goes in
+      // the clear band under the slab - above the dials it would sit across the trench rim
+      const end = this.easy && this.phase === 'reveal';
+      const size = end ? 14 : 11.5, bh = (end ? 34 : 28) * u;
+      ctx.font = this.font('800', size);
       const tw = Math.min(this.w - 32 * u, ctx.measureText(this.note).width + 30 * u);
-      const ny = this.dialY() + 30 * u;
-      glassPanel(ctx, this.w / 2 - tw / 2, ny, tw, 28 * u, 14 * u, 0.94);
+      const ny = end ? Math.min(slab.y + slab.h + 26 * u, this.h - 108 * u) : this.dialY() + 30 * u;
+      glassPanel(ctx, this.w / 2 - tw / 2, ny, tw, bh, bh / 2, 0.94);
       ctx.fillStyle = '#4a3823';
       ctx.textAlign = 'center';
-      ctx.fillText(this.note, this.w / 2, ny + 19 * u, tw - 22 * u);
+      ctx.fillText(this.note, this.w / 2, ny + bh * 0.67, tw - 22 * u);
       ctx.restore();
     }
 
@@ -546,9 +589,11 @@ export class DinoDig {
       });
     }
     if (this.phase === 'reveal') {
-      this.button('next', T('Next site', 'Volgende vindplaats'), this.w / 2, this.h - 36 * u, 220 * u, 46 * u, true);
+      this.button('next', this.easy ? T('One more', 'Nog een') : T('Next site', 'Volgende vindplaats'),
+        this.w / 2, this.h - 36 * u, 220 * u, 46 * u, true);
     }
-    if (this.phase === 'dig') this.drawTools();
+    // one tool means no belt to choose from, and the bottom of the screen stays empty
+    if (this.phase === 'dig' && !this.easy) this.drawTools();
 
     // a thumb-sized target: this is the button a small child presses to get out
     const mw = 94 * u, mh = 44 * u;
@@ -592,8 +637,10 @@ export class DinoDig {
   private drawMeters(exposed: number, chipped: number): void {
     const ctx = this.ctx, u = this.u();
     const r = 21 * u, y = this.dialY();
-    paintExposedDial(ctx, this.w / 2 - 32 * u, y, r, exposed, u);
-    paintSunDial(ctx, this.w / 2 + 32 * u, y, r, clamp(this.stamina, 0, 1), u);
+    // the sun is the clock you can run out of, and in the simple shape there is none, so the one
+    // dial left - how much is out of the rock - stands in the middle on its own
+    paintExposedDial(ctx, this.w / 2 - (this.easy ? 0 : 32 * u), y, r, exposed, u);
+    if (!this.easy) paintSunDial(ctx, this.w / 2 + 32 * u, y, r, clamp(this.stamina, 0, 1), u);
     if (chipped > 0) {
       ctx.textAlign = 'left';
       outlinedText(ctx, String(chipped), this.w / 2 + 62 * u, y + 5 * u, this.font('900', 13), '#c1462f', 'rgba(255,255,255,0.9)', 4);

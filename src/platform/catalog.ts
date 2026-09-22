@@ -12,8 +12,17 @@
  *
  * Two fields in here are about the state of the code rather than the child, and they are the
  * honest kind of metadata: `reads` says the thing still cannot be played without reading, and
- * `speaks` says it talks. Fourteen of the sixteen read and one speaks. Those two numbers are the
- * roadmap, and keeping them in the catalogue means nobody has to take my word for it.
+ * `speaks` says it talks. Keeping them in the catalogue means nobody has to take my word for it.
+ *
+ * `speaks` is now true for all fifteen new games and false for Cloudhopper, which is the one that
+ * predates the guide. That number is checked: every one of them calls `speakLine` and every one
+ * was heard saying its line in a browser.
+ *
+ * **`reads` has not been re-checked since they started speaking**, and today it is probably
+ * pessimistic: a game that says its instruction out loud may no longer need to be read at all.
+ * Going through them one at a time and proving it is a job of its own, and until it is done these
+ * flags mean "was true when it was written", not "is true now". Nothing reads them yet, so the
+ * cost of that is only that I would be quoting a stale number. See `docs/decisions.md`.
  */
 
 /** What an experience is about. A thing can be about more than one. */
@@ -59,7 +68,7 @@ export const CATALOG: Entry[] = [
     practises: 'Patience, recognising a whole from its parts',
     practisesNl: 'Geduld, het geheel herkennen aan de delen',
     from: 2, to: 8, domains: ['dinos', 'natuur'], nature: 'beide', minutes: [2, 6],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'rhythm', title: 'Klankhuis',
@@ -68,7 +77,7 @@ export const CATALOG: Entry[] = [
     practises: 'Holding a beat, long against short, hearing high from low',
     practisesNl: 'De tel vasthouden, lang tegen kort, hoog van laag horen',
     from: 2, to: 9, domains: ['muziek'], nature: 'beide', minutes: [2, 8],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'tidepool', title: 'Getijdenpoel',
@@ -77,7 +86,7 @@ export const CATALOG: Entry[] = [
     practises: 'Thinking flexibly, switching rule',
     practisesNl: 'Denkflexibiliteit, van regel wisselen',
     from: 3, to: 7, domains: ['vormen', 'natuur'], nature: 'beide', minutes: [3, 6],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'market', title: 'Marktdag',
@@ -86,7 +95,7 @@ export const CATALOG: Entry[] = [
     practises: 'Counting out, sharing fairly, how many more',
     practisesNl: 'Uittellen, eerlijk delen, hoeveel erbij',
     from: 3, to: 7, domains: ['rekenen'], nature: 'beide', minutes: [3, 7],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'nightwatch', title: 'Nachtwacht',
@@ -95,7 +104,7 @@ export const CATALOG: Entry[] = [
     practises: 'Visual working memory',
     practisesNl: 'Visueel werkgeheugen',
     from: 3, to: 10, domains: ['ruimte', 'vormen'], nature: 'beide', minutes: [3, 8],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'animals', title: 'Dierenboek',
@@ -104,7 +113,7 @@ export const CATALOG: Entry[] = [
     practises: 'Looking closely, comparing sizes, sorting into groups, looking something up',
     practisesNl: 'Goed kijken, groottes vergelijken, in groepen indelen, iets opzoeken',
     from: 3, to: 10, domains: ['dieren', 'natuur'], nature: 'leren', minutes: [2, 15],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'mill', title: 'Watermolen',
@@ -113,7 +122,7 @@ export const CATALOG: Entry[] = [
     practises: 'Spatial reasoning, thinking ahead, cause and effect, saving up',
     practisesNl: 'Ruimtelijk inzicht, vooruitdenken, oorzaak en gevolg, sparen',
     from: 4, to: 9, domains: ['natuur', 'techniek'], nature: 'beide', minutes: [4, 10],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'letters', title: 'Letterbos',
@@ -131,7 +140,7 @@ export const CATALOG: Entry[] = [
     practises: 'Ordering, comparing sizes, predicting motion, knowing the solar system',
     practisesNl: 'Ordenen, groottes vergelijken, beweging voorspellen, het zonnestelsel kennen',
     from: 4, to: 10, domains: ['ruimte'], nature: 'leren', minutes: [4, 12],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'puffball', title: 'Stuifzwam',
@@ -140,7 +149,7 @@ export const CATALOG: Entry[] = [
     practises: 'Counting squares, comparing two numbers, planning a way out',
     practisesNl: 'Vakjes tellen, twee getallen vergelijken, een uitweg plannen',
     from: 5, to: 9, domains: ['rekenen', 'spel'], nature: 'beide', minutes: [3, 8],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'numbers', title: 'Rekenrijk',
@@ -149,7 +158,7 @@ export const CATALOG: Entry[] = [
     practises: 'Splitting to ten, adding and taking away, over the ten, the tables',
     practisesNl: 'Splitsen tot 10, erbij en eraf, over het tiental, tientallen, de tafels',
     from: 5, to: 9, domains: ['rekenen'], nature: 'leren', minutes: [4, 10],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'clock', title: 'Klokkijken',
@@ -158,7 +167,7 @@ export const CATALOG: Entry[] = [
     practises: 'Reading both clocks, saying the time in Dutch, counting on in minutes',
     practisesNl: 'De analoge en digitale klok lezen, de tijd in het Nederlands zeggen, minuten doortellen',
     from: 5, to: 9, domains: ['tijd'], nature: 'leren', minutes: [4, 10],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'circuit', title: 'Stroomkring',
@@ -167,7 +176,7 @@ export const CATALOG: Entry[] = [
     practises: 'Cause and effect, reading a circuit, series against parallel, finding your own mistake',
     practisesNl: 'Oorzaak en gevolg, een schakeling lezen, serie tegen parallel, je eigen fout vinden',
     from: 6, to: 10, domains: ['techniek'], nature: 'leren', minutes: [5, 15],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'moonshot', title: 'Moonshot',
@@ -176,7 +185,7 @@ export const CATALOG: Entry[] = [
     practises: 'Weighing things up, cause and effect, shape against speed',
     practisesNl: 'Afwegen, oorzaak en gevolg, vorm tegen snelheid',
     from: 6, to: 10, domains: ['ruimte', 'techniek'], nature: 'beide', minutes: [5, 20],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'atlas', title: 'Wereldatlas',
@@ -185,7 +194,7 @@ export const CATALOG: Entry[] = [
     practises: 'Where things are, reading a map, the Netherlands, Europe and the world',
     practisesNl: 'Waar dingen liggen, kaartlezen, Nederland, Europa en de wereld',
     from: 6, to: 10, domains: ['aardrijkskunde'], nature: 'leren', minutes: [5, 12],
-    reads: true, speaks: false,
+    reads: true, speaks: true,
   },
   {
     id: 'cloudhopper', title: 'Cloudhopper',
@@ -194,7 +203,7 @@ export const CATALOG: Entry[] = [
     practises: 'Dividing attention, planning ahead, holding back',
     practisesNl: 'Aandacht verdelen, vooruit plannen, impuls remmen',
     from: 7, to: 10, domains: ['spel', 'techniek'], nature: 'beide', minutes: [5, 20],
-    reads: true, speaks: false,
+    reads: true, speaks: false,   // the one that predates the guide
   },
 ];
 

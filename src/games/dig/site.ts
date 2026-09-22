@@ -134,6 +134,24 @@ export function buildSite(cols: number, rows: number, seed: number, hardness: nu
   return { cols, rows, depth, hard, bone, chip: new Uint8Array(n), boneCount };
 }
 
+/**
+ * Take the stone out of a site: nothing is harder than the brush can move.
+ *
+ * This is the toddler shape of the game (see `src/platform/who.ts`). The whole rule of Opgraving -
+ * hard rock needs a heavy tool, a heavy tool breaks bone - is a rule, and a two-year-old cannot
+ * hold one. Rather than explain it worse, it is removed: the rock is all soft, the brush is the
+ * only tool, and a finger dragged over the slab clears it. What is left is the part that worked
+ * without the rule, which is watching something appear under your hand.
+ */
+export function soften(site: Site): Site {
+  // a hair under what the brush can move, not exactly it: hardness is stored as float32, and the
+  // float32 nearest 0.34 is a shade above 0.34, which the tool check reads as too hard. It is the
+  // same rock either way, and this way nothing is ever refused.
+  const cap = TOOLS[0].maxHard * 0.99;
+  for (let i = 0; i < site.hard.length; i++) if (site.hard[i] > cap) site.hard[i] = cap;
+  return site;
+}
+
 export interface StrokeResult {
   removed: number;
   chipped: number;
