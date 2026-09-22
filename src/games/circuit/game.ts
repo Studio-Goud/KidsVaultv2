@@ -629,11 +629,14 @@ export class Circuit {
   private onDown(e: PointerEvent): void {
     unlockAudio();
     this.idle = 0;
+    const p = this.at(e);
+    // a tap on Braam means "say that again", and nothing else: it must not skip the lesson, or a
+    // child who did not catch the line would lose it by asking for it
+    if (this.coach.tappedGuide(p.x, p.y)) return;
     // while the hand is still demonstrating, a tap means "yes, I have seen it" and skips ahead;
     // once it has handed over, the tap is the child's own and goes to the game as usual
     if (this.coach.busy && !this.coach.listening) { if (this.coach.did()) this.taught(); return; }
     if (this.coach.listening) { if (this.coach.did()) this.taught(); }
-    const p = this.at(e);
     const hit = this.hitAt(p);
     this.held = hit;
     if (!hit) { this.cancel(); return; }

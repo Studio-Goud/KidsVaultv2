@@ -19,6 +19,8 @@
 import {
   easeInOut, easeOutCubic, glassPanel, handCursor, hexA, roundRectPath, type Ctx,
 } from '../render/look';
+import { drawGuide } from './guide';
+import { say } from './voice';
 
 /** A place on the screen the coach can point at. Worked out at the moment it is needed. */
 export type Spot = { x: number; y: number; r?: number } | { x: number; y: number; w: number; h: number };
@@ -61,6 +63,10 @@ export class Coach {
   private nudgeT = 0;
   private idle = 0;
   private wrongs = 0;
+  /** the last line said out loud, so it is spoken once and not sixty times a second */
+  private spoken = '';
+  /** where the guide was last drawn, so tapping him can repeat what he said */
+  private guideAt: { x: number; y: number; r: number } | null = null;
 
   /** Is the coach on screen? A game should not act on taps while it is. */
   get busy(): boolean { return !this.done || this.nudge !== null; }
@@ -83,6 +89,20 @@ export class Coach {
    *
    * Returns true when that closes the lesson, so a game can save "this one has been taught".
    */
+  /**
+   * Did that tap land on the guide?
+   *
+   * Tapping him repeats what he said, and that is the only way back to an instruction a child did
+   * not catch. It deliberately does not advance the lesson.
+   */
+  tappedGuide(px: number, py: number): boolean {
+    const g = this.guideAt;
+    if (!g) return false;
+    if (Math.hypot(px - g.x, py - g.y) > g.r) return false;
+    if (this.spoken) say(null, this.spoken);
+    return true;
+  }
+
   did(): boolean {
     this.nudge = null;
     this.idle = 0; this.wrongs = 0;
@@ -206,14 +226,34 @@ export class Coach {
       const y = h < 560 * u
         ? 8 * u
         : near > h * 0.5 ? h * 0.12 : h * 0.8;
-      const x = w / 2 - tw / 2;
-      glassPanel(ctx, x, y, tw, 44 * u, 16 * u, 0.95);
+      // Braam stands to the left of what he is saying. He is the answer to the one pillar of
+      // learning the whole market is worst at - somebody who responds - and he is why the line is
+      // heard rather than read.
+      const guide = 52 * u;
+      const boxW = Math.min(w - 24 * u, tw + guide);
+      const x = w / 2 - boxW / 2 + guide;
+      glassPanel(ctx, x, y, boxW - guide, 44 * u, 16 * u, 0.95);
       ctx.fillStyle = '#12233b';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(words, w / 2, y + 22 * u, tw - 24 * u);
+      ctx.fillText(words, x + (boxW - guide) / 2, y + 22 * u, boxW - guide - 24 * u);
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
+
+      // He stands on the foot of the panel, except where that would put his ears off the top of
+      // the screen - which is what a sideways phone does, since the line goes to the top there.
+      const tall = 56 * u;
+      const gx = x - guide * 0.55;
+      const gy = Math.max(y + 46 * u, tall + 4 * u);
+      drawGuide(ctx, gx, gy, tall, { pose: 'talk', t: this.t, saying: this.t });
+      this.guideAt = { x: gx, y: gy - tall * 0.5, r: tall * 0.55 };
+
+      // said once, when the line changes. Today that is the machine's own voice; the same call
+      // plays a recording the moment one exists.
+      if (this.spoken !== words) {
+        this.spoken = words;
+        say(null, words);
+      }
     }
     ctx.restore();
   }

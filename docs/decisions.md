@@ -73,3 +73,32 @@ Voor de volledigheid, omdat het elke keuze hierna stuurt:
    verloren gaat.
 4. **Eerlijkheid is de marketing.** De belofte-kaart op de hub is nu al het beste verkooppraatje
    dat er staat, juist omdat er staat wat we *niet* weten. Geen enkele claim die niet waar is.
+
+---
+
+## 2026-09-22 — De gids is een stokstaartje
+
+> "Die maar een dier als mascotte ofzo? Stokstaartje"
+
+Gekozen, en het is een betere keuze dan hij op het eerste gezicht lijkt:
+
+- **De houding ís de functie.** Een stokstaartje staat rechtop en kijkt rond. Dat is wat een gids
+  doet, en een kind leest die pose als "kijk hier" voordat er iets gezegd is.
+- **Het silhouet houdt stand op duimformaat**: rechtop lijf, donker oogmasker, spitse snuit. Drie
+  dingen, en meer heeft een klein plaatje niet.
+- **Het is een echt dier**, in een app met een encyclopedie van 3744 echte soorten. De gids hoeft
+  geen verzonnen tekenfilmfiguur te zijn, en dat past bij "we zeggen wat we niet weten".
+- **"Stokstaartje" is te zeggen door een tweejarige.**
+
+**Zijn naam is Braam.** Braambos → Braam: twee letters van de app-naam, kort, en niet aan een
+geslacht gebonden. Het staat als één constante in `src/platform/guide.ts`, dus hernoemen is één
+regel.
+
+**Eén ding om in de gaten te houden:** de bekendste stokstaart in kindermedia is Timon uit The Lion
+King. Braam is met opzet niet zijn evenbeeld — andere verhoudingen, eigen palet, geen kleren, geen
+kreet. Als het product groeit is dit iets om door iemand met merkenrechtkennis te laten bekijken.
+
+**Waar hij nu staat:** naast elke regel die de coach uitspreekt, met zijn mond mee bewegend, en een
+tik op hem herhaalt wat hij zei. Dat laatste is het "tik op de gids = herhaal" uit fase 2, en het
+doet met opzet niets anders: een kind dat de uitleg miste, mag hem niet verliezen door erom te
+vragen.
