@@ -10,7 +10,7 @@
  * a synthesised room behind the lot so the notes have somewhere to ring.
  *
  * The room is a ConvolverNode fed an impulse response made out of decaying noise. There is no
- * audio file anywhere in Bramblewood and there is not going to be one.
+ * audio file anywhere in Braambos and there is not going to be one.
  *
  * Everything is scheduled against `AudioContext.currentTime` at an absolute moment, never with
  * setTimeout and never off a frame. The frame reads the audio clock, not the other way round.

@@ -10,7 +10,7 @@
  * What it deliberately is not: there is no clock, no crop that rots while you are at school, and
  * nothing to buy. A valley pays exactly once, and pays a little more only if you come back and do
  * it better. So the village is a record of how well you played, not a reason to keep opening the
- * app. Bramblewood promises parents a session with an end in it, and that promise costs nothing
+ * app. Braambos promises parents a session with an end in it, and that promise costs nothing
  * here - the six buildings all together are within reach of a child who does eight valleys well.
  */
 

@@ -323,7 +323,7 @@ canvas.full { position: fixed; inset: 0; width: 100%; height: 100%; display: blo
 .skills span { font-size: 13px; line-height: 1.5; color: var(--ink); opacity: .78; }
 @media (min-width: 760px) { .skills { grid-template-columns: repeat(2, 1fr); } }
 
-/* --- Bramblewood home --- */
+/* --- Braambos home --- */
 /* the games pin a canvas and lock scrolling; the home page is a page, and must scroll */
 html.page, html.page body {
   overflow: auto; height: auto; min-height: 100%;

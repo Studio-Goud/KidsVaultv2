@@ -38,7 +38,7 @@ const CACHE = join(ROOT, '.cache', 'letters');
 const OUT = join(ROOT, 'public', 'letters', 'photos.json');
 const FRESH = process.argv.includes('--fresh');
 
-const UA = 'BramblewoodLetterbos/1.0 (a children\'s reading game; contact ricardovanrijn2@gmail.com)';
+const UA = 'BraambosLetterbos/1.0 (a children\'s reading game; contact ricardovanrijn2@gmail.com)';
 
 // ---------------------------------------------------------------- what a photograph is allowed to be
 

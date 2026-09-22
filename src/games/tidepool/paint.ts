@@ -3,7 +3,7 @@
  *
  * The game is about what you notice, so everything a child has to notice has to be drawn properly:
  * a crab that is plainly a crab, a jellyfish you can see through, spots that count themselves. The
- * shore around them is built from the same light as the rest of Bramblewood - sun from the top
+ * shore around them is built from the same light as the rest of Braambos - sun from the top
  * left, a shadow under everything, and no flat fill anywhere.
  */
 

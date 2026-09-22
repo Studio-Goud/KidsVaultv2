@@ -1,5 +1,5 @@
 /**
- * Stroomkring - the twelfth game in Bramblewood, and Moonshot's nearest relation.
+ * Stroomkring - the twelfth game in Braambos, and Moonshot's nearest relation.
  *
  * A bench with a grid on it, a shelf of real parts, and a circuit that is solved forty times a
  * second whether anybody is watching or not. You drag a battery and a bulb onto the board, draw a

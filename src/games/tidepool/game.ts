@@ -1,5 +1,5 @@
 /**
- * Tidepool - the sorting game in Bramblewood.
+ * Tidepool - the sorting game in Braambos.
  *
  * Creatures drift in from the sea. Pools wait along the shore. A sign says what the pools mean
  * today: colour, or shape, or size, or how many spots. You drag each creature to its pool before

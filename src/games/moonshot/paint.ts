@@ -1063,7 +1063,7 @@ export function paintEarthBelow(ctx: Ctx, w: number, h: number, altM: number, u:
   ctx.restore();
 }
 
-/** A soft grain over the whole frame, the same one the rest of Bramblewood uses. */
+/** A soft grain over the whole frame, the same one the rest of Braambos uses. */
 export const paintGrain = (ctx: Ctx, w: number, h: number): void => grainOver(ctx, 0, 0, w, h, 0.045);
 
 export { breathe };

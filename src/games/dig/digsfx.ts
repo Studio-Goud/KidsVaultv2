@@ -1,7 +1,7 @@
 /**
  * The sound of a dig.
  *
- * Built on the same WebAudio context Cloudhopper uses, so one tap anywhere in Bramblewood unlocks
+ * Built on the same WebAudio context Cloudhopper uses, so one tap anywhere in Braambos unlocks
  * sound everywhere. Every sound is synthesised: a brush is filtered noise, a chisel is a short
  * click with a pitched ring, a hammer is a thud, and breaking a bone is the one sound in the game
  * that is meant to make you wince.

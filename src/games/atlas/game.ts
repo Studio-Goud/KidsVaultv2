@@ -1,5 +1,5 @@
 /**
- * Wereldatlas - the map, in Bramblewood.
+ * Wereldatlas - the map, in Braambos.
  *
  * A drawn map and pieces you drag onto it. Pick up Friesland, put it down where Friesland is, and
  * it clicks home; put it on Drenthe and it springs back, Friesland lights up where it really was,

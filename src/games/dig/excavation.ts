@@ -1,5 +1,5 @@
 /**
- * Dino Dig - the excavation game in Bramblewood.
+ * Dino Dig - the excavation game in Braambos.
  *
  * You are given a slab of rock with a real fossil inside it and a bag of tools. The rock is not
  * uniform: soft sand comes away under a brush, packed clay needs a chisel, and stone only yields
@@ -162,7 +162,7 @@ export class DinoDig {
    * under the tool belt; now the height leads and the width follows it.
    */
   /**
-   * On a narrow screen the Museum button sits at the top left and the way back to Bramblewood at
+   * On a narrow screen the Museum button sits at the top left and the way back to Braambos at
    * the top right, and a heading centred between them runs straight through both. So there it
    * gets a row of its own and everything under it moves down; on a wide screen it fits beside
    * them as before.

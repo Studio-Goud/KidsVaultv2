@@ -21,7 +21,7 @@ export function toggleWeatherDetail(): void { save.wxOpen = !save.wxOpen; persis
 
 /**
  * A round button with weight to it: a lip underneath, a lit face, and a sliver of light across
- * the top, the same three things look.ts gives every chunky button in the rest of Bramblewood.
+ * the top, the same three things look.ts gives every chunky button in the rest of Braambos.
  * Cloudhopper's two round buttons used to be flat discs with a hairline ring, which is what made
  * them the only untouchable-looking buttons in the product.
  */

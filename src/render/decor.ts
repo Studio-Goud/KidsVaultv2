@@ -9,7 +9,7 @@ type Ctx = CanvasRenderingContext2D;
 /**
  * A shadow on the ground. The offset follows the house light in look.ts - a sun almost overhead
  * and a touch to the left - rather than the forty-five degrees this used to use, which is what
- * made Cloudhopper's islands read as a different picture book from the rest of Bramblewood.
+ * made Cloudhopper's islands read as a different picture book from the rest of Braambos.
  */
 function shadowEllipse(ctx: Ctx, x: number, y: number, rx: number, ry: number, pal: Palette): void {
   const ox = x - LIGHT.x * rx * 0.36, oy = y - LIGHT.y * ry * 0.34;
@@ -22,7 +22,7 @@ export function drawTree(ctx: Ctx, x: number, y: number, r: number, pal: Palette
   ctx.fillRect(x - r * 0.14, y - r * 0.1, r * 0.28, r * 0.5);
   const cols = [pal.treeA, pal.treeB, pal.treeC];
   const baseCol = cols[variant % 3];
-  // foliage is lumpy everywhere else in Bramblewood, so it is lumpy here too
+  // foliage is lumpy everywhere else in Braambos, so it is lumpy here too
   const sd = variant * 7 + 1;
   ctx.fillStyle = shade(baseCol, -0.18);
   blobPath(ctx, x, y - r * 0.15, r * 1.02, sd, 0.16); ctx.fill();

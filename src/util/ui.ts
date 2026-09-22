@@ -15,7 +15,7 @@ export function uiScale(w: number, h: number): number {
  * How much of the screen the phone itself has taken: the notch and status bar at the top, the
  * home indicator at the bottom. Every page sets `viewport-fit=cover`, so the art runs edge to
  * edge under them - but nothing a child has to read or press may. Cloudhopper's renderer has
- * read these since the beginning; this is the same numbers for the rest of Bramblewood.
+ * read these since the beginning; this is the same numbers for the rest of Braambos.
  */
 export interface SafeArea { top: number; bottom: number; left: number; right: number }
 

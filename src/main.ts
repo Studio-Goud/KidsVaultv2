@@ -47,9 +47,9 @@ function makeDemoWorld(): World {
   return w;
 }
 
-/** The tower takes the name of the field: a real airport uses its own, the archipelago uses Bramblewood. */
+/** The tower takes the name of the field: a real airport uses its own, the archipelago uses Braambos. */
 function towerName(): string {
-  return world.level.port ? world.level.port.name : 'Bramblewood';
+  return world.level.port ? world.level.port.name : 'Braambos';
 }
 
 function onWorldEvent(e: GameEvent): void {

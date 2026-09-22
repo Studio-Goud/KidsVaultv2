@@ -4,7 +4,7 @@
  * Nothing here is loud. A game about holding a shape in your head is a game you play quietly, so
  * the palette is cold and bell-like: a soft chime under the finger when a star is picked up, a
  * note that climbs as the figure is drawn, and a wide, slow shimmer when it is right. Wrong is a
- * low fall rather than a buzz - nothing in Bramblewood tells a child off.
+ * low fall rather than a buzz - nothing in Braambos tells a child off.
  */
 
 import { audioContext } from '../../util/audio';

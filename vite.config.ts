@@ -9,7 +9,7 @@ export default defineConfig({
     assetsInlineLimit: 0,
     sourcemap: false,
     rollupOptions: {
-      // Bramblewood ships one bundle per game; the shell that ties them together comes later.
+      // Braambos ships one bundle per game; the shell that ties them together comes later.
       input: {
         hub: resolve(__dirname, 'index.html'),
         cloudhopper: resolve(__dirname, 'cloudhopper.html'),

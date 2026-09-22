@@ -1,7 +1,7 @@
 /**
  * The checks that can be run without a browser.
  *
- * Most of Bramblewood is canvas and thumbs, and the honest way to test that is `tests/regression.md`
+ * Most of Braambos is canvas and thumbs, and the honest way to test that is `tests/regression.md`
  * plus a phone. But the *rules* underneath - when a runway is clear, how a rocket cuts into stages,
  * what the air makes of a shape - are plain functions over plain data, and those should never be
  * allowed to break quietly.

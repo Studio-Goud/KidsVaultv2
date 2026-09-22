@@ -3,7 +3,7 @@ import { hexA } from '../render/look';
 type Ctx = CanvasRenderingContext2D;
 
 /**
- * What progress looks like, everywhere in Bramblewood.
+ * What progress looks like, everywhere in Braambos.
  *
  * Six games with six ideas of what "doing well" looks like is how a collection stays a collection.
  * These two marks are the whole vocabulary, and they are deliberately not points, coins, badges or

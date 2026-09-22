@@ -1,5 +1,5 @@
 /**
- * Rekenrijk - arithmetic you can pick up, in Bramblewood.
+ * Rekenrijk - arithmetic you can pick up, in Braambos.
  *
  * Market Day counts to about ten and stops. This is the ladder after that, and the rule it is
  * built on is that every sum is something you can see and move. There is no screen in this game

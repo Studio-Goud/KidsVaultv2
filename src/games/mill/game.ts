@@ -1,5 +1,5 @@
 /**
- * Millstream - the water game in Bramblewood.
+ * Millstream - the water game in Braambos.
  *
  * A spring at the top of a valley. Fields that need watering, wheels that need turning, houses
  * that must stay dry, and the sea at the bottom eating anything you let past. You never touch the

@@ -894,7 +894,7 @@ export const EU_COUNTRIES: Feature[] = [
 /**
  * The continents, with the same codes and the same outlines the animal book uses.
  *
- * The rings come straight out of `animals/worldmap.ts`, because Bramblewood should not have two
+ * The rings come straight out of `animals/worldmap.ts`, because Braambos should not have two
  * different Africas in it.
  */
 export const CONTINENT_INFO: Array<{

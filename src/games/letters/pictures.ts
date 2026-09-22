@@ -3,7 +3,7 @@
  *
  * A reading game that has to name the picture for you has already failed, so each of these has to
  * be recognisable to a four year old at the size of a stamp: one clear silhouette, strong colour,
- * the light from the top left like everywhere else in Bramblewood, and no detail that only works
+ * the light from the top left like everywhere else in Braambos, and no detail that only works
  * large. Nothing is fetched. Nothing is a photograph. They are all canvas paths.
  *
  * Every drawing works inside a hundred by hundred box and the caller places it, the way

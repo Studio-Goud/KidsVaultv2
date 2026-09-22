@@ -1,5 +1,5 @@
 /**
- * Bramblewood, the front door.
+ * Braambos, the front door.
  *
  * One page that holds every game in the world, says in a line what each one practises, and carries
  * the promise the whole thing rests on: no advertising, no tracking, and a session that ends.
@@ -244,7 +244,7 @@ function promise(): HTMLElement {
 const root = document.getElementById('hub')!;
 const head = document.createElement('div');
 head.className = 'logo';
-head.innerHTML = `<div class="word">Bramblewood</div><div class="tag">${T(
+head.innerHTML = `<div class="word">Braambos</div><div class="tag">${T(
   'Games that practise something real', 'Spellen die iets echts oefenen')}</div>`;
 root.appendChild(head);
 

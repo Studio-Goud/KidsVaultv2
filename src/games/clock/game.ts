@@ -1,5 +1,5 @@
 /**
- * Klokkijken - reading the clock, in Bramblewood.
+ * Klokkijken - reading the clock, in Braambos.
  *
  * A clock on a schoolroom wall, and a ladder of nine levels that goes exactly where a school goes:
  * whole hours, the half hour, the quarters, five minutes at a time, setting the hands yourself,

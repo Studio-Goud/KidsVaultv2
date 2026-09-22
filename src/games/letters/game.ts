@@ -1,5 +1,5 @@
 /**
- * Letterbos - building words out of sounds, in Bramblewood.
+ * Letterbos - building words out of sounds, in Braambos.
  *
  * Every other reading game asks a child to *recognise* a word. This one asks them to *make* one:
  * a picture appears, the game says what it is and then says it again in pieces - /m/ /aa/ /n/ -
