@@ -255,6 +255,9 @@ export class Millstream {
     return (nl ? `Breng het water naar ${list}.` : `Get the water to ${list}.`) + dry;
   }
 
+  /** The last thing the game said, so the guide in the corner can say it again. */
+  spoken(): string { return this.note; }
+
   private say(text: string, secs = 4): void {
     this.note = text;
     this.noteT = secs;

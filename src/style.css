@@ -466,3 +466,14 @@ html.page canvas { touch-action: auto; }
 }
 .lastgo canvas { width: 60px; height: 60px; flex: none; }
 .lastgo p { margin: 0; font-size: 14.5px; font-weight: 800; color: #6a4a12; }
+
+/* Braam in the opposite corner from the way home: tap him and he says it again */
+.guidebtn {
+  position: fixed; left: calc(var(--sal) + 10px); bottom: calc(var(--sab) + 10px); z-index: 30;
+  display: grid; place-items: center; width: 46px; height: 46px; padding: 0;
+  border-radius: 50%; border: 0; cursor: pointer; font-family: inherit;
+  background: rgba(255,255,255,0.9); box-shadow: 0 6px 16px rgba(10,30,60,0.22);
+  transition: transform 0.12s ease;
+}
+.guidebtn:active { transform: scale(0.94); }
+.guidebtn canvas { width: 46px; height: 46px; display: block; }

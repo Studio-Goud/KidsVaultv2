@@ -253,6 +253,9 @@ export class Circuit {
     this.remember();
   }
 
+  /** The last thing the game said, so the guide in the corner can say it again. */
+  spoken(): string { return this.note; }
+
   private say(text: string, secs = 4): void {
     this.note = text;
     this.noteT = secs;

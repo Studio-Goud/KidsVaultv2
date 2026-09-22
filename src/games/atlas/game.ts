@@ -310,6 +310,9 @@ export class Atlas {
     this.say(NL() ? this.level.hintNl : this.level.hint, 6);
   }
 
+  /** The last thing the game said, so the guide in the corner can say it again. */
+  spoken(): string { return this.note; }
+
   private say(text: string, secs = 3.5): void {
     this.note = text;
     this.noteT = secs;

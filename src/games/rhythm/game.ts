@@ -424,6 +424,9 @@ export class Rhythm {
     return this.round.blanks.includes(i);
   }
 
+  /** The last thing the game said, so the guide in the corner can say it again. */
+  spoken(): string { return this.note; }
+
   private say(text: string, secs = 3.5): void {
     this.note = text;
     this.noteT = secs;
