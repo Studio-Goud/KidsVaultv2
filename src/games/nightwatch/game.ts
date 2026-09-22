@@ -397,6 +397,24 @@ export class NightWatch {
 
   private font(weight: string, size: number): string { return `${weight} ${Math.round(size)}px Nunito, system-ui, sans-serif`; }
 
+  /**
+   * The same words, at the biggest size that still fits the width given.
+   *
+   * A line of sky lore is a sentence somebody wrote, not a number, and Dutch is longer than English
+   * about as often as not. Rather than trust that every one of them is short enough on a 320 pixel
+   * phone, each is measured and stepped down until it fits. It leaves the font alone when it
+   * already does, which is nearly always.
+   */
+  private fit(text: string, weight: string, size: number, maxW: number): string {
+    let s = size;
+    for (let i = 0; i < 14 && s > 8; i++) {
+      this.ctx.font = this.font(weight, s);
+      if (this.ctx.measureText(text).width <= maxW) break;
+      s *= 0.93;
+    }
+    return this.font(weight, s);
+  }
+
   private applyTurn(ctx: Ctx): void {
     const p = this.plan.puzzle;
     if (!p.turn && !p.mirror) return;
@@ -513,11 +531,14 @@ export class NightWatch {
       const lit = reveal && s.fig !== null;
       const tw = 0.75 + 0.25 * Math.sin(this.t * 1.7 + s.twinkle);
       const r = s.r * (lit ? 1.5 : 1) * tw;
-      const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, r * 5);
-      glow.addColorStop(0, lit ? 'rgba(200,240,255,0.85)' : 'rgba(180,210,255,0.45)');
+      // A lit star may spread; an unlit one may not. At the top of the dial thirty stars sit a
+      // fingertip apart, and a halo five radii wide turned that sky into one milky smear.
+      const halo = r * (lit ? 4.6 : 3.4);
+      const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, halo);
+      glow.addColorStop(0, lit ? 'rgba(200,240,255,0.85)' : 'rgba(180,210,255,0.4)');
       glow.addColorStop(1, 'rgba(120,160,255,0)');
       ctx.fillStyle = glow;
-      ctx.beginPath(); ctx.arc(s.x, s.y, r * 5, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(s.x, s.y, halo, 0, TAU); ctx.fill();
       // the pop: a ring thrown off the moment the star locks under the finger
       const pop = this.pops.get(i);
       if (pop !== undefined) {
@@ -552,20 +573,25 @@ export class NightWatch {
       this.phase === 'solved' || this.phase === 'missed' ? this.nameOf(p) :
       t('nwDraw');
     const headSize = short ? 17 * u : 22 * u;
-    // the way home and the way back sit in the top right corner, so the heading starts under them
-    const headY = Math.max(56 * u + headSize * 0.8, top * 0.55);
+    // The way home and the way back are two round buttons in the top right corner, 46 across with
+    // 10 of margin. On a narrow screen a centred heading reaches them, so it starts below them
+    // instead; on a wide one it never gets near, and sitting that low would look like a mistake.
+    const roomy = this.w >= 560 * u;
+    const headY = roomy
+      ? Math.max(headSize * 1.1, top * 0.42)
+      : Math.max(62 * u + headSize * 0.95, top * 0.55);
     ctx.fillStyle = this.phase === 'solved' ? '#9df7c4' : this.phase === 'missed' ? '#ffd79a' : '#eaf2ff';
-    ctx.font = this.font('900', headSize);
+    ctx.font = this.fit(head, '900', headSize, this.w - 28 * u);
     ctx.fillText(head, this.w / 2, headY);
 
-    const dotsY = top - 7 * u;
+    const dotsY = Math.max(top - 7 * u, headY + 16 * u);
     if (dotsY - headY >= 30 * u) {
       const line = (this.phase === 'solved' || this.phase === 'missed') && p.lore
         ? t(p.lore)
         : this.phase === 'drawing' ? t(this.drawn.length ? 'nwConnect' : 'nwSwipe') : '';
       if (line) {
         ctx.fillStyle = 'rgba(220,235,255,0.6)';
-        ctx.font = this.font('700', Math.min(13 * u, this.w / 30));
+        ctx.font = this.fit(line, '700', Math.min(13 * u, this.w / 28), this.w - 32 * u);
         ctx.fillText(line, this.w / 2, headY + 22 * u);
       }
     }
@@ -584,7 +610,7 @@ export class NightWatch {
       const x = this.w / 2 - bw / 2, y = this.h - foot + (foot - bh) / 2;
       const face = chunkyButton(ctx, x, y, bw, bh, { tone: '#2f4a86' });
       ctx.fillStyle = '#eaf2ff';
-      ctx.font = this.font('900', Math.min(14 * u, bw / 13));
+      ctx.font = this.fit(t('nwShowAgain'), '900', Math.min(14 * u, bw / 13), bw - 22 * u);
       ctx.textAlign = 'center';
       ctx.fillText(t('nwShowAgain'), this.w / 2, face.y + bh * 0.63);
       this.hits.push({ id: 'peek', x, y, w: bw, h: bh });
@@ -611,18 +637,19 @@ export class NightWatch {
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#eaf2ff';
-    ctx.font = this.font('900', Math.min(24 * u, cw / 11));
+    ctx.font = this.fit(t('nwRest'), '900', Math.min(24 * u, cw / 11), cw - 28 * u);
     ctx.fillText(t('nwRest'), this.w / 2, cy + 38 * u);
     ctx.fillStyle = 'rgba(220,235,255,0.72)';
-    ctx.font = this.font('700', Math.min(13 * u, cw / 26));
+    ctx.font = this.fit(t('nwRestLine'), '700', Math.min(13 * u, cw / 26), cw - 28 * u);
     ctx.fillText(t('nwRestLine'), this.w / 2, cy + 62 * u);
 
-    ctx.font = this.font('800', Math.min(15 * u, cw / (cols * 18)));
+    const nameW = (cols === 1 ? cw : cw / 2) - 24 * u;
     set.forEach((s, i) => {
       const col = cols === 1 ? 0 : i % cols;
       const row = cols === 1 ? i : Math.floor(i / cols);
       const x = cols === 1 ? this.w / 2 : cx + cw * (col === 0 ? 0.27 : 0.73);
       ctx.fillStyle = '#9df7c4';
+      ctx.font = this.fit(s.name, '800', Math.min(15 * u, cw / (cols * 16)), nameW);
       ctx.fillText(s.name, x, cy + 90 * u + row * lineH);
     });
 
@@ -630,7 +657,7 @@ export class NightWatch {
     const bx = this.w / 2 - bw / 2, by = cy + ch - bh - 16 * u;
     const face = chunkyButton(ctx, bx, by, bw, bh, { tone: '#2f4a86' });
     ctx.fillStyle = '#eaf2ff';
-    ctx.font = this.font('900', Math.min(15 * u, bw / 12));
+    ctx.font = this.fit(t('nwMore'), '900', Math.min(15 * u, bw / 12), bw - 22 * u);
     ctx.fillText(t('nwMore'), this.w / 2, face.y + bh * 0.63);
     this.hits.push({ id: 'more', x: bx, y: by, w: bw, h: bh });
   }

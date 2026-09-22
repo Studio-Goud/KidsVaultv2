@@ -54,9 +54,31 @@ what went wrong.
 Practises dividing attention, planning ahead, holding back and spatial reasoning. Age 6 and up.
 
 ### Night Watch (`nightwatch.html`)
-The sky shows a figure in the stars, the lines fade, and you draw it back from memory. Six figures a
-session, each with more lines, more look-alike stars and less time to look.
-Practises visual working memory. Age 5 and up.
+The sky shows a figure in the stars, the lines go out, and you draw it back from memory. One press
+draws the lot: the line follows your finger, every star it runs through locks with a click, a tick
+under the thumb and a small ring of light, and the note climbs a rung per star. Pulling back over
+the last star takes that line off again. Tapping one star and then another does exactly the same
+thing, so a child who lifts their finger between stars is never punished for it.
+
+There are eight hand-drawn figures - the Kite, the Hare, the Swan, the Fox, the Whale, the Owl, the
+Plough, the Deer - each with its name and a line of sky lore, and they are the opening run, in
+rising order. They are no longer the end of it. Past the last one the sky goes on making figures of
+its own out of the platform's one number: more stars, more lines, look-alikes crowding closer, less
+time per line, the lines going out one at a time rather than together, and at the top the whole sky
+turning a quarter or flipping over before you draw. A made-up figure is labelled by what it is -
+*9 sterren, 8 lijnen* - rather than given a name it has not earned. It never runs out, and every
+six figures it offers a rest rather than an ending.
+
+Two rules hold over all of it, and both are about a finger rather than a picture. Every generated
+figure is drawable in one unbroken stroke, because it is built as a walk rather than chosen as a
+set. And no two stars ever sit closer than a fingertip can separate - worked out from the radius
+the stars are really drawn at plus the width of a fingertip, not from a round number - while every
+line keeps its distance from every star that is not one of its ends, so a swipe along a line never
+picks up a bystander. The rules and the generator are in `sky.ts` and `swipe.ts` with no canvas in
+either, and `tests/run.mjs` checks them at four screen sizes.
+
+Practises visual working memory and pattern, and the difficulty follows those two skills rather than
+a level number. Age 5 and up.
 
 ### Orbit (`orbit.html`)
 Four tabs. Puzzle: put the eight planets in order by distance, size, day length and temperature, in

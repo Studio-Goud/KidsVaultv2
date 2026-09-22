@@ -285,8 +285,13 @@ function dressing(
   d: number, edgeCount: number, figureStars: number, f: Field, u: number,
 ): Pick<Puzzle, 'distractors' | 'crowd' | 'showMs' | 'parMs' | 'fade'> {
   const k = knobsOf(d);
-  const room = Math.max(0, capacity(f, u) - figureStars);
-  const distractors = Math.max(3, Math.min(room, Math.round(3 + k.distractors * 24 + k.elements * 0.8)));
+  // Look-alikes are counted against the figure rather than against the screen. Counting them
+  // against the screen filled a tall phone with forty-six stars at the top of the dial - which is
+  // what the field holds at a safe spacing, and far past what reads as a sky. Two per real star at
+  // the very top is already a hard look. The field still has the last word: three quarters of what
+  // it could hold, because a sky packed to its limit is a wall of light rather than stars.
+  const room = Math.max(0, Math.floor(capacity(f, u) * 0.75) - figureStars);
+  const distractors = Math.max(3, Math.min(room, Math.round(2 + figureStars * (0.6 + k.distractors * 1.2))));
   const showMs = Math.round(clamp((1500 + edgeCount * 430) / k.speed, 1200, 6000));
   return {
     distractors,
