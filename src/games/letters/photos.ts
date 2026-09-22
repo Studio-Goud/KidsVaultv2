@@ -18,12 +18,12 @@
  * With the network off at the start, nothing ever changes from the first case, which is the whole
  * point: Letterbos is a game a child plays on a train in a tunnel.
  *
- * The loading and the drawing itself are the animal book's - `../animals/photo` already queues
+ * The loading and the drawing itself are shared - `../../platform/photo` already queues
  * requests, retries a flaky one twice and crops to fill - so this file is only the word list's own
  * half: which word has one, whether the record may be shown at all, and the credit line.
  */
 
-import { drawCover, photo, photoState } from '../animals/photo';
+import { drawCover, photo, photoState } from '../../platform/photo';
 
 /** One word's photograph, as it lies in the data file. */
 interface Row {

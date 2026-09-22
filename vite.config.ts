@@ -29,6 +29,8 @@ export default defineConfig({
         numbers: resolve(__dirname, 'numbers.html'),
         letters: resolve(__dirname, 'letters.html'),
         circuit: resolve(__dirname, 'circuit.html'),
+        reis: resolve(__dirname, 'reis.html'),
+        diepzee: resolve(__dirname, 'diepzee.html'),
       },
     },
   },

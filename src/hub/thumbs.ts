@@ -1,9 +1,13 @@
 /**
- * Small bespoke thumbnails for the two games that have no photograph to show.
+ * Small bespoke thumbnails for the things that have no photograph to show.
  *
  * Deliberately self contained: the home page must not pull a whole game's bundle in just to draw a
- * picture the size of a stamp.
+ * picture the size of a stamp. The one thing borrowed from elsewhere is the drawing of the craft
+ * on the two journey cards, because a card that shows a different rocket than the journey does is
+ * worse than no card.
  */
+
+import { drawCraft } from '../journey/craft';
 
 const TAU = Math.PI * 2;
 
@@ -1150,4 +1154,80 @@ export function drawCircuitThumb(c: HTMLCanvasElement): void {
   ctx.lineTo(lx + r * 0.34, ly - r * 0.2);
   ctx.stroke();
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}
+
+/**
+ * The route out to the planets, with the rocket a third of the way along it.
+ *
+ * The craft itself is the journey engine's own drawing rather than a second one kept in step by
+ * hand: what a child sees on the card is exactly what they will be riding.
+ */
+export function drawTripThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, '#080c1c'); sky.addColorStop(1, '#3a2740');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 26; i++) {
+    const x = ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
+    const y = ((Math.sin(i * 78.233) * 43758.5453) % 1 + 1) % 1;
+    ctx.globalAlpha = 0.2 + 0.5 * y;
+    ctx.beginPath(); ctx.arc(x * w, y * h, 0.8 + x * 1.1, 0, TAU); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // the sun on the left edge, then the worlds getting smaller as they get further out
+  const g = ctx.createRadialGradient(0, h * 0.5, 0, 0, h * 0.5, w * 0.34);
+  g.addColorStop(0, '#ffd27a'); g.addColorStop(0.5, '#f0842c'); g.addColorStop(1, 'rgba(240,132,44,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, h * 0.5, w * 0.34, 0, TAU); ctx.fill();
+
+  const worlds: Array<[number, number, string]> = [
+    [0.42, 0.055, '#9c8f86'], [0.58, 0.075, '#3f7fb5'], [0.76, 0.06, '#b4623c'], [0.93, 0.1, '#c89a6a'],
+  ];
+  for (const [x, r, col] of worlds) {
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(w * x, h * (0.34 + x * 0.34), w * r, 0, TAU); ctx.fill();
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.4; ctx.setLineDash([3, 4]);
+  ctx.beginPath();
+  ctx.moveTo(w * 0.08, h * 0.62); ctx.quadraticCurveTo(w * 0.5, h * 0.4, w * 0.95, h * 0.7);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  drawCraft(ctx, 'rocket', w * 0.3, h * 0.5, Math.min(w, h) * 0.34, 1.2, 1);
+}
+
+/** Going down, with the light running out. */
+export function drawDiveThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const sea = ctx.createLinearGradient(0, 0, 0, h);
+  sea.addColorStop(0, '#7fd0e8'); sea.addColorStop(0.45, '#2a87ad'); sea.addColorStop(1, '#04121f');
+  ctx.fillStyle = sea; ctx.fillRect(0, 0, w, h);
+
+  // sunlight coming down in shafts through the top of the water
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#ffffff';
+  for (const x of [0.18, 0.46, 0.78]) {
+    ctx.beginPath();
+    ctx.moveTo(w * x, 0); ctx.lineTo(w * (x + 0.06), 0);
+    ctx.lineTo(w * (x + 0.16), h * 0.62); ctx.lineTo(w * (x + 0.02), h * 0.62);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  for (let i = 0; i < 16; i++) {
+    const x = ((Math.sin(i * 45.233) * 43758.5453) % 1 + 1) % 1;
+    const y = ((Math.sin(i * 91.7) * 43758.5453) % 1 + 1) % 1;
+    ctx.globalAlpha = 0.15 + 0.35 * (1 - y);
+    ctx.beginPath(); ctx.arc(x * w, y * h, 1 + x * 1.4, 0, TAU); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  drawCraft(ctx, 'sub', w * 0.5, h * 0.44, Math.min(w, h) * 0.5, Math.PI, 1);
 }

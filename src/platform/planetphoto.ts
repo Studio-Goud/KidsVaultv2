@@ -1,6 +1,11 @@
 /**
  * Real photographs of the planets.
  *
+ * This began inside Planetarium and moved out here when the discovery journeys wanted the same
+ * eleven pictures. Nothing about it is Planetarium's: it loads a frame that ships with the app,
+ * knocks the black sky out of it and measures the globe, and anything that wants to draw a planet
+ * needs all three.
+ *
  * Every image is a NASA or ESA/Hubble frame in the public domain, showing the planet against the
  * black of space. Before anything is drawn, each one is run through a small preparation step that
  * turns that black into transparency and measures where the planet's disc sits inside the frame, so

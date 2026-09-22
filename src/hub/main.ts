@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawValleyThumb } from './thumbs';
+import { drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawTripThumb, drawDiveThumb, drawValleyThumb } from './thumbs';
 import { NL, T } from '../util/lang';
 import { CATALOG, type Entry } from '../platform/catalog';
 import { lastGoNow, startClock } from '../platform/clock';
@@ -36,6 +36,8 @@ const ART: Record<string, { img?: string; tint?: string; paint?: (c: HTMLCanvasE
   letters: { paint: drawLettersThumb },
   rhythm: { paint: drawRhythmThumb },
   numbers: { paint: drawNumbersThumb },
+  reis: { paint: drawTripThumb },
+  diepzee: { paint: drawDiveThumb },
 };
 
 function card(g: Entry): HTMLElement {

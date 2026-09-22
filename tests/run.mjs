@@ -3075,6 +3075,111 @@ const group = name => console.log(`\n${name}`);
   is('test_dig_the_brush_can_never_break_bone', brush.risk, 0);
 }
 
+// ---------------------------------------------------------------- the discovery journeys
+
+{
+  const r = await bundle('src/journey/route.ts', 'route.mjs');
+  const { begin, setOff, travel, tellMore, onward, goTo, leftToTell, lineNow, reading, toneAt,
+    ahead, seenAll, mix, LEG_SECONDS } = r;
+  group('Ontdekreis - travelling, holding and telling');
+
+  const beat = n => ({ say: 'en ' + n, sayNl: 'en ' + n });
+  const stop = (id, at, mark, more = 0) => ({
+    id, at, mark, title: id, titleNl: id, say: id + '!', sayNl: id + '!',
+    more: Array.from({ length: more }, (_, i) => beat(i)), tone: '#102040', picture: { kind: 'none' },
+  });
+  const J = {
+    id: 'test', title: 't', titleNl: 't', opening: 'o', openingNl: 'o', closing: 'c', closingNl: 'c',
+    craft: 'pod', axis: 'down', unit: 'm', unitNl: 'm',
+    stops: [stop('a', 0, 0, 2), stop('b', 0.5, 100), stop('c', 1, 1000, 1)],
+  };
+  // a leg, in one go and in many small steps, so the engine cannot depend on the frame rate
+  const run = (t, secs, step = LEG_SECONDS) => {
+    let out = t;
+    for (let left = secs; left > 0; left -= step) out = travel(J, out, Math.min(step, left));
+    return out;
+  };
+
+  is('test_journey_a_new_trip_is_not_going_anywhere', begin().going, false);
+  is('test_journey_a_trip_that_has_not_started_does_not_move', run(begin(), 10).at, 0);
+  is('test_journey_starting_twice_changes_nothing', setOff(setOff(begin())).going, true);
+
+  const first = run(setOff(begin()), LEG_SECONDS + 0.1);
+  is('test_journey_the_first_stop_is_reached_at_once', first.held, 'a');
+  is('test_journey_reaching_a_stop_stops_the_travelling', run(first, 30).held, 'a');
+  is('test_journey_a_stop_reached_is_a_stop_seen', first.seen, ['a']);
+  is('test_journey_the_arrival_line_is_what_is_said', lineNow(J, first, false), 'a!');
+
+  const more1 = tellMore(J, first);
+  is('test_journey_asking_for_more_moves_to_the_next_beat', lineNow(J, more1, false), 'en 0');
+  is('test_journey_two_beats_leave_one_after_the_first', leftToTell(J, more1), 1);
+  const spent = tellMore(J, tellMore(J, more1));
+  is('test_journey_asking_past_the_last_beat_changes_nothing', spent.beat, 2);
+  is('test_journey_a_stop_with_nothing_more_to_tell_says_so', leftToTell(J, { ...first, held: 'b' }), 0);
+
+  const leg2 = run(onward(J, spent), LEG_SECONDS + 0.1);
+  is('test_journey_going_on_reaches_the_next_stop', leg2.held, 'b');
+  is('test_journey_a_new_stop_starts_at_its_own_first_line', leg2.beat, 0);
+  is('test_journey_half_a_leg_is_still_between_the_stops', run(onward(J, leg2), LEG_SECONDS / 2).held, null);
+
+  const leg3 = run(onward(J, leg2), LEG_SECONDS + 0.1);
+  is('test_journey_the_last_stop_is_reached_like_any_other', leg3.held, 'c');
+  is('test_journey_leaving_the_last_stop_ends_the_journey', onward(J, leg3).done, true);
+  is('test_journey_a_finished_journey_ends_at_the_end', onward(J, leg3).at, 1);
+  is('test_journey_a_finished_journey_does_not_creep_on', run(onward(J, leg3), 10).at, 1);
+  is('test_journey_everything_seen_is_everything_seen', seenAll(J, onward(J, leg3).seen), true);
+  is('test_journey_two_of_three_is_not_everything', seenAll(J, ['a', 'b']), false);
+
+  // the index may open anything, including something never travelled to
+  const jumped = goTo(J, begin(), 'c');
+  is('test_journey_the_index_opens_a_stop_that_was_never_reached', jumped.held, 'c');
+  is('test_journey_a_stop_opened_from_the_index_counts_as_seen', jumped.seen, ['c']);
+  is('test_journey_a_stop_that_does_not_exist_is_ignored', goTo(J, begin(), 'zzz').held, null);
+
+  // the gauge runs between the stops, not across the whole route
+  is('test_gauge_at_the_start_reads_the_first_mark', reading(J, 0), 0);
+  is('test_gauge_halfway_to_the_middle_stop_is_half_its_mark', reading(J, 0.25), 50);
+  is('test_gauge_halfway_on_the_second_leg_uses_the_second_scale', reading(J, 0.75), 550);
+  is('test_gauge_past_the_end_reads_the_last_mark', reading(J, 2), 1000);
+
+  is('test_journey_the_colour_between_two_of_one_colour_is_that_colour', toneAt(J, 0.3), '#102040');
+  is('test_mix_the_whole_way_is_the_far_colour', mix('#000000', '#ffffff', 1), '#ffffff');
+  is('test_mix_halfway_is_halfway', mix('#000000', '#ffffff', 0.5), '#808080');
+  is('test_mix_past_the_end_stays_at_the_end', mix('#000000', '#ffffff', 4), '#ffffff');
+
+  is('test_journey_nothing_is_ahead_once_everything_is_seen',
+    ahead(J, { ...begin(), seen: ['a', 'b', 'c'] }), null);
+}
+
+// ---------------------------------------------------------------- the journeys themselves
+
+{
+  const { SOLAR } = await bundle('src/journeys/solar.ts', 'solar.mjs');
+  const { seenAll } = await bundle('src/journey/route.ts', 'route2.mjs');
+  group('Ontdekreis - the routes that ship');
+
+  const check = j => {
+    const ids = j.stops.map(s => s.id);
+    return {
+      id: j.id,
+      first: j.stops[0].at,
+      last: j.stops[j.stops.length - 1].at,
+      ordered: j.stops.every((s, i) => i === 0 || s.at > j.stops[i - 1].at),
+      rising: j.stops.every((s, i) => i === 0 || s.mark >= j.stops[i - 1].mark),
+      unique: new Set(ids).size === ids.length,
+      spoken: j.stops.every(s => s.say && s.sayNl && s.title && s.titleNl),
+      beats: j.stops.every(s => s.more.every(b => b.say && b.sayNl)),
+      tones: j.stops.every(s => /^#[0-9a-f]{6}$/.test(s.tone)),
+      done: seenAll(j, ids),
+    };
+  };
+  is('test_solar_route_is_whole_and_in_order', check(SOLAR), {
+    id: 'reis', first: 0, last: 1, ordered: true, rising: true, unique: true,
+    spoken: true, beats: true, tones: true, done: true,
+  });
+  is('test_solar_route_stops_at_every_planet_and_the_sun', SOLAR.stops.length, 11);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);

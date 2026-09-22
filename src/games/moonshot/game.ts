@@ -36,7 +36,7 @@ import {
   paintGrain, paintPad, paintPart, paintSatellite, paintStars, paintTower, skyTone,
 } from './paint';
 import { buildOrder, EXAMPLES } from './examples';
-import { drawPhoto, loadPhoto, planetPhoto, moonPhoto, type PlanetPhoto } from '../orbit/photo';
+import { drawPhoto, loadPhoto, planetPhoto, moonPhoto, type PlanetPhoto } from '../../platform/planetphoto';
 import { engineSound, rocket } from './rocketsfx';
 import { NL, T } from '../../util/lang';
 import { speakLine } from '../../platform/voice';

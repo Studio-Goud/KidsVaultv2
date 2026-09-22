@@ -68,6 +68,13 @@ export interface SaveData {
     puzzle: number;
     bench: Array<{ id: string; col: number; row: number; rot: number; on?: boolean; blown?: boolean; charge?: number; link?: number }>;
   };
+  /**
+   * The discovery journeys: which stops have been reached, per journey. Nothing is locked behind
+   * this - a journey can be taken as often as you like and any stop can be opened straight from
+   * the index. It is here so the index can show what has already been seen, which is the only
+   * thing a child asks of it: "which ones have I not had yet".
+   */
+  journeys: Record<string, string[]>;
 }
 
 const KEY = 'cloudhopper.save.v1';
@@ -87,6 +94,7 @@ const defaults = (): SaveData => ({
   letters: { spell: false },
   rhythm: { steps: [0, 0, 0, 0, 0, 0, 0, 0], voice: 'chime', tempo: 100 },
   circuit: { solved: [], puzzle: 0, bench: [] },
+  journeys: {},
 });
 
 /**
@@ -104,6 +112,22 @@ function circuitSlice(d: SaveData['circuit'], got: unknown): SaveData['circuit']
     puzzle: typeof o.puzzle === 'number' && isFinite(o.puzzle) ? o.puzzle : d.puzzle,
     bench: Array.isArray(o.bench) ? o.bench : d.bench,
   };
+}
+
+/**
+ * The journeys' slice, out of a file somebody could have typed.
+ *
+ * Every value has to be a list of strings, because the index reads them back as stop ids. A save
+ * where one of them is a string would be read a letter at a time and the index would light up
+ * eleven stops that were never visited.
+ */
+function journeySlice(got: unknown): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  if (!got || typeof got !== 'object') return out;
+  for (const [k, v] of Object.entries(got as Record<string, unknown>)) {
+    if (Array.isArray(v)) out[k] = v.filter((x): x is string => typeof x === 'string');
+  }
+  return out;
 }
 
 export function loadSave(): SaveData {
@@ -126,6 +150,7 @@ export function loadSave(): SaveData {
       letters: { ...d.letters, ...(got.letters ?? {}) },
       rhythm: { ...d.rhythm, ...(got.rhythm ?? {}) },
       circuit: circuitSlice(d.circuit, got.circuit),
+      journeys: journeySlice(got.journeys),
     };
   } catch { return defaults(); }
 }

@@ -10,7 +10,7 @@
 import { TAU, type Vec } from '../../util/math';
 import { moonsOf, type Body, type Moon } from './bodies';
 import { drawBody } from './draw';
-import { drawPhoto, moonPhoto } from './photo';
+import { drawPhoto, moonPhoto } from '../../platform/planetphoto';
 import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;

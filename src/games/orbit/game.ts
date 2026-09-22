@@ -15,7 +15,7 @@ import { drawExplore, hitAt } from './explore';
 import { drawScale } from './scale';
 import { MissionScreen } from './missionscreen';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
-import { CREDITS, loadAllMoons, loadAllPlanets } from './photo';
+import { CREDITS, loadAllMoons, loadAllPlanets } from '../../platform/planetphoto';
 import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { chunkyButton } from '../../render/look';

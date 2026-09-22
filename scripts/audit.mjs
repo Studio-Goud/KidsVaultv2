@@ -34,7 +34,7 @@ const PAGES = [
   ['orbit', '__orbit'], ['circuit', '__circuit'], ['mill', '__mill'], ['tidepool', '__tide'],
   ['market', '__market'], ['puffball', '__puff'], ['dig', '__dig'], ['clock', '__clock'],
   ['atlas', '__atlas'], ['animals', '__animals'], ['letters', '__letters'], ['rhythm', '__rhythm'],
-  ['numbers', '__numbers'],
+  ['numbers', '__numbers'], ['reis', '__reis'], ['diepzee', '__diepzee'],
 ];
 
 /** The shapes a child actually holds, and the one that has a notch in it. */

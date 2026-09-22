@@ -12,7 +12,7 @@
 import { clamp, TAU } from '../../util/math';
 import { makeRng, ValueNoise } from '../../util/rng';
 import { SUN, type Body } from './bodies';
-import { drawPhoto, photoReach, planetPhoto } from './photo';
+import { drawPhoto, photoReach, planetPhoto } from '../../platform/planetphoto';
 
 type Ctx = CanvasRenderingContext2D;
 

@@ -1,5 +1,10 @@
 /**
- * The photographs.
+ * The photographs that are not shipped with the app.
+ *
+ * This began inside the animal book and moved out here when Letterbos and then the discovery
+ * journeys wanted the same queue. It is the general one: a path on Wikimedia Commons, fetched
+ * when something needs it, with a card in its place while it travels and a drawn stand-in if it
+ * never arrives.
  *
  * Planetarium ships its eleven planets with the app, because there are eleven of them. There are a few
  * thousand animals, so theirs stay on Wikimedia Commons and are fetched as they are needed. That

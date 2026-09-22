@@ -20,7 +20,7 @@ import { persist, save } from '../../util/storage';
 import { safeArea, uiScale } from '../../util/ui';
 import { chunkyButton, contactShadow, easeOutCubic, grainOver, hexA, roundRectPath, shade, vGrad } from '../../render/look';
 import { ASPECT, child, creature, creatureFit } from './creatures';
-import { SIZES, drawCover, onPhoto, photo, photoCount, photoUrl } from './photo';
+import { SIZES, drawCover, onPhoto, photo, photoCount, photoUrl } from '../../platform/photo';
 import { worldMap } from './worldmap';
 import {
   CONTINENT_EN, CONTINENT_NL, GROUPS, STATUS_EN, STATUS_NL, STATUS_TONE,
