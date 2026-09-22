@@ -987,14 +987,19 @@ export class Millstream {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, this.w, this.h);
 
-    ctx.textAlign = 'center';
-    heading(ctx, 'Watermolen', this.w / 2, 60 * u, this.font('900', 26), '#123047');
-    ctx.fillStyle = 'rgba(18,48,71,0.7)';
-    ctx.font = this.font('700', 12.5);
-    ctx.fillText(T('Dig, and the water finds its way.', 'Graaf, en het water vindt zijn weg.'), this.w / 2, 84 * u);
-
     // the way into the village, with what is in the barn written on it
     const vw = 104 * u, vh = 44 * u, vx = 14 * u, vy = 12 * u;
+    // On a narrow phone a centred title has nowhere to be: the chip is on one side and the way
+    // home on the other, and the title ran straight under the chip. So it steps below them both.
+    const narrow = this.w < (vx + vw) * 2 + 170 * u;
+    const headY = narrow ? vy + vh + 28 * u : 60 * u;
+
+    ctx.textAlign = 'center';
+    heading(ctx, 'Watermolen', this.w / 2, headY, this.font('900', 26), '#123047');
+    ctx.fillStyle = 'rgba(18,48,71,0.7)';
+    ctx.font = this.font('700', 12.5);
+    ctx.fillText(T('Dig, and the water finds its way.', 'Graaf, en het water vindt zijn weg.'), this.w / 2, headY + 24 * u);
+
     const face = chunkyButton(ctx, vx, vy, vw, vh, { tone: '#f3e6c7', pressed: this.held === 'village' });
     paintSheaf(ctx, vx + 20 * u, face.y + vh * 0.5, 8 * u);
     ctx.fillStyle = '#4a6a2e';
@@ -1012,7 +1017,7 @@ export class Millstream {
     const total = cols * cw + (cols - 1) * pad;
     const x0 = (this.w - total) / 2;
     const rowsNeeded = Math.ceil(LEVELS.length / cols);
-    const listTop = 104 * u;
+    const listTop = Math.max(104 * u, headY + 44 * u);
     const avail = this.h - listTop - 20 * u;
     const needed = rowsNeeded * chh + (rowsNeeded - 1) * pad;
     const squeeze = Math.min(1, avail / needed);

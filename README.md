@@ -629,7 +629,31 @@ two-letter sounds, the ei/ij and au/ou traps, and reading a short sentence. Age 
 npm install
 npm run dev        # http://localhost:5173
 npm run build      # dist/
+npm test           # the rules, headless, no browser
 ```
+
+## Checking it with eyes
+
+`npm test` checks what the rules say. It cannot see two things drawn in the same place, and that
+is how a build with twelve hundred green tests reached a real iPhone with the speed button
+underneath the way home, the phone's own clock printed across the height readout, and a spent
+booster hanging in the air above the rocket it had fallen off.
+
+```bash
+npm run audit      # needs npm run dev in another terminal
+npm run contact    # lays the audit's screenshots out side by side
+```
+
+`audit` opens all seventeen pages at five sizes - a small phone, a normal one, a big one with a
+notch, one on its side with a notch down the edge, and a tablet - and fails on anything you can
+press that is underneath the chrome, under the notch, past the home indicator, off the edge, or
+throwing in the console. A desktop browser cannot be given a notch, so the audit hands the page
+one through `window.__insets` and the stylesheet and the canvas both honour it; that is the only
+way the case that actually broke can be tested at all.
+
+`contact` turns the screenshots into one sheet per size, because the audit cannot see a screen
+that is simply empty or a title in the wrong place, and a person is far better at seventeen small
+pictures at once than at seventeen big ones one after another.
 
 ## Android (Android Studio nodig)
 ```bash

@@ -200,7 +200,12 @@ export class Coach {
       ctx.font = font('900', 14);
       const tw = Math.min(w - 48 * u, ctx.measureText(words).width + 40 * u);
       const near = spot ? centre(spot).y : h / 2;
-      const y = near > h * 0.5 ? h * 0.12 : h * 0.8;
+      // A phone on its side has no spare band at the foot - that is where every game keeps its
+      // buttons - so on a short screen the line goes to the top and takes the place of whatever
+      // instruction was there. It is teaching; the instruction can wait.
+      const y = h < 560 * u
+        ? 8 * u
+        : near > h * 0.5 ? h * 0.12 : h * 0.8;
       const x = w / 2 - tw / 2;
       glassPanel(ctx, x, y, tw, 44 * u, 16 * u, 0.95);
       ctx.fillStyle = '#12233b';

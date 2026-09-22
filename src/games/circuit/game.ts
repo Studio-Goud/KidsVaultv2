@@ -891,7 +891,9 @@ export class Circuit {
     ctx.restore();
 
     this.drawChip(b);
-    this.drawGoal(b);
+    // While the coach has the floor on a short screen its line stands where the goal banner does,
+    // so the banner steps aside rather than the two stacking up.
+    if (!(this.coach.busy && this.h < 560 * this.u())) this.drawGoal(b);
     this.drawTray(b);
     this.drawBar(b);
     this.ps.draw(ctx);
