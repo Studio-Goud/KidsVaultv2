@@ -92,7 +92,10 @@ export const PLAN = {
   kat: { art: 'photo', src: ['en:Cat', 'nl:Kat (dier)'] },
   pen: { art: 'drawn', why: 'one particular pen; the drawn one is every pen' },
   vis: { art: 'photo', src: ['en:Fish', 'nl:Vissen (dieren)'] },
-  zon: { art: 'photo', src: ['File:The Shining sun.jpg'] },
+  // the one the owner asked for by name, and the one that lost on looking at it: every free
+  // photograph of the sun is a white blur behind a flare, and a child has to work out what they
+  // are seeing. The drawn sun is the yellow disc with rays that they already mean by the word
+  zon: { art: 'drawn', why: 'the sun photographs as a white flare; the drawn disc is what is meant' },
   bal: { art: 'photo', src: ['File:Football Pallo valmiina-cropped.jpg', 'nl:Voetbal (voorwerp)'] },
   kip: { art: 'photo', src: ['File:Gallus gallus domesticus LC0262.jpg', 'File:Hen on street.jpg'] },
   mus: { art: 'photo', src: ['nl:Huismus', 'en:House sparrow'] },

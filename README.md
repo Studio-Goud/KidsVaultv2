@@ -525,7 +525,34 @@ as one tile and a single `a` beside it, because that mistake is the lesson; the 
 where it falls apart; a word ladder where exactly one sound changes at a time - *boom*, *boot*,
 *poot*, *pot*, *pet*, *pen*; and last, four-word sentences with a drawn scene that says the same
 thing without words. A hundred and forty-one words, each with its own drawing, and ten scenes.
-Nothing is fetched and nothing is a photograph.
+
+Sixty-seven of those words are a photograph instead, and the other seventy-four are still the
+drawing, on purpose. A child learning *olifant* should be looking at an elephant, not at somebody's
+idea of one, so the animals, the plants, the food, the weather and the materials are real: *maan*
+is the full moon, *koe* is a Friesian in a field, *krab* is a crab. But a photographed pen is one
+pen on one desk and a photographed bus is one bus in one street, while the drawn ones are every pen
+and every bus - so the manufactured things keep their drawing, and so do the body parts, the
+numbers (*zes* is six counted dots; you cannot photograph a five), and everything abstract: *fout*,
+*angst*, *koud*, *reis*. So does anything where the free photographs are simply poor - a bell
+photographs as a table of bells, a knife as a knife block, and the sun as a white flare behind a
+lens, which is the one case where the drawn yellow disc with rays is what a child actually means by
+the word. The choice is written down per word with its reason in `scripts/letterwords.mjs`, and it
+is a decision the pipeline records rather than a thing the game guesses.
+
+`npm run words` is that pipeline, the animal book's own one pointed at a word list: it asks
+Wikipedia which photograph leads the article about this thing, asks Wikimedia Commons who took it
+and under which licence, throws away anything that is not public domain, CC0, CC BY or CC BY-SA -
+and anything with nobody to credit - and writes `public/letters/photos.json`, eleven kilobytes.
+Every reply is cached in `.cache/letters/`, so a second run costs nothing, and `--sheet` writes a
+contact sheet of every photograph it chose, because the only honest way to know whether a picture
+names itself is to look at all of them at the size they are drawn. The photographer and the licence
+are on the screen, along the foot of the frame.
+
+That file is fetched and not bundled, so the game is already drawing before the request goes out
+and the drawing stays underneath the whole time: while a photograph is on its way, the drawing is
+what is on screen and the photograph fades in over it; if it never comes - no signal, a file that
+moved - the drawing stays for good. With the aeroplane mode on, Letterbos is exactly the game it
+was before, which is the point.
 
 The sounds are sounds, not letter names. /m/ is "mmm" and never "em", because "em-aa-en" never
 becomes *maan*. That table is `src/games/letters/phonics.ts`, a module with no canvas in it: the
@@ -564,10 +591,11 @@ two-letter sounds, the ei/ij and au/ou traps, and reading a short sentence. Age 
 ## Stack
 - Vite + TypeScript, Canvas 2D, multi-page build (one entry per game)
 - Photographs only where they are real: NASA planets and moons, public domain fossils, and the
-  animals in Dierenboek from Wikimedia Commons; everything else is drawn procedurally. Credits are
+  animals in Dierenboek and the two thirds of the Letterbos word list that a photograph actually
+  helps, both from Wikimedia Commons; everything else is drawn procedurally. Credits are
   shown in-game, beside the photograph. Licence rule: public domain, CC0, CC BY or CC BY-SA -
-  never NC and never ND, and `scripts/animals.mjs` drops any photograph whose licence does not
-  pass that test rather than shipping it. (CC BY-SA was let in when the animal book arrived: it
+  never NC and never ND, and `scripts/animals.mjs` and `scripts/letterwords.mjs` drop any
+  photograph whose licence does not pass that test rather than shipping it. (CC BY-SA was let in when the animal book arrived: it
   is a free licence and a displayed, unaltered, credited photograph honours it, and holding to
   CC BY alone would have left three animals in four with no picture.)
 - WebAudio, all sound synthesised in `src/util/audio.ts` and per-game `*sfx.ts`
