@@ -30,8 +30,8 @@ import {
   type Box, type Feature,
 } from './geo';
 import {
-  boardFor, dropTarget, isRight, LEVELS, nextLevel, pieceKindFor, poolFor, rngFor, runFor, SEA_OFF,
-  SEA_STORM, starsFor, teachLine, VIEWS, type Level,
+  boardFor, dropTarget, isRight, LEVELS, nextLevel, outlinable, pieceKindFor, poolFor, rngFor,
+  runFor, SEA_OFF, SEA_STORM, starsFor, teachLine, VIEWS, type Level,
 } from './model';
 import {
   drawDesk, drawFlag, drawGraticule, drawHeightMap, drawLine, drawLineAt, drawPieceAt, drawPin,
@@ -579,7 +579,7 @@ export class Atlas {
     }
 
     // the empty places, outlined, for a child still finding the holes
-    if (save.atlas.outlines) {
+    if (save.atlas.outlines && outlinable(this.level)) {
       for (const f of pool) {
         if (placedIds.has(f.id) || f.id === piece?.id) continue;
         if (f.rings?.length && this.level.piece === 'shape' && f.kind !== 'ocean') {
@@ -605,9 +605,7 @@ export class Atlas {
     for (const f of this.placed) this.drawPlacedLabel(f, view, L.board);
 
     // ---- the one the map is pointing at, after a wrong drop
-    if (this.shown && this.showT > 0 && (this.fb === 'wrong' || this.showT > 0)) {
-      this.drawPointedAt(this.shown, view, L.board);
-    }
+    if (this.shown && this.showT > 0) this.drawPointedAt(this.shown, view, L.board);
     if (this.fb === 'wrong' && this.missed) {
       drawShape(ctx, this.missed.rings ?? [], view, L.board, {
         stroke: '#c0512f', width: 2, dash: [5, 4],
@@ -631,7 +629,6 @@ export class Atlas {
   /** A piece that is home: filled in its own colour, with its name across it. */
   private drawPlaced(f: Feature, view: typeof VIEWS['nl'], box: Box): void {
     const ctx = this.ctx, u = this.u();
-    const kind = pieceKindFor(this.level, f);
     // an ocean is not filled in: its outline is only a region to aim at, and what has been learnt
     // is that the name goes there
     if (f.rings?.length && f.kind !== 'ocean') {
@@ -649,7 +646,12 @@ export class Atlas {
     const kind = pieceKindFor(this.level, f);
     const q = project(anchorOf(f), view, box);
     if (kind === 'flag' && f.flag) {
-      drawFlag(ctx, q.x - 17 * u, q.y - 11 * u, 34 * u, 22 * u, f.flag);
+      // kept inside the map, the way a name is: Iceland's middle is a hand's breadth from the
+      // left edge of a map of Europe, and a flag drawn there is half a flag
+      const fw = 34 * u, fh = 22 * u;
+      const fx = clamp(q.x, box.x + fw / 2 + 2 * u, box.x + box.w - fw / 2 - 2 * u);
+      const fy = clamp(q.y, box.y + fh / 2 + 2 * u, box.y + box.h - fh / 2 - 2 * u);
+      drawFlag(ctx, fx - fw / 2, fy - fh / 2, fw, fh, f.flag);
       return;
     }
     // a name is only written where the shape can carry one; on a map of Europe that fits a phone,
@@ -701,7 +703,13 @@ export class Atlas {
     ctx.font = this.font('900', 12);
     const half = ctx.measureText(nameOf(f, NL())).width / 2 + 4 * u;
     const lx = clamp(q.x, box.x + half, box.x + box.w - half);
-    const ly = clamp(q.y + (f.at ? -20 * u : 4 * u), box.y + 15 * u, box.y + box.h - 7 * u);
+    // The name goes across the shape where the shape is big enough to carry it, and above it
+    // where it is not. Switzerland on a map of Europe that fits a phone is seventeen pixels wide
+    // and the word Zwitserland is eighty, so writing it at the middle hides the very thing the
+    // map has just lit up - which is the one moment the whole correction exists for.
+    const wide = !!f.rings?.length && spanOf(f, view.kx) * fit(view, box).s >= 46 * u;
+    const dy = f.at || !wide ? -20 * u : 4 * u;
+    const ly = clamp(q.y + dy, box.y + 15 * u, box.y + box.h - 7 * u);
     outlinedText(ctx, nameOf(f, NL()), lx, ly,
       this.font('900', 12), '#7a3d10', 'rgba(255,255,255,0.96)', 5);
   }
@@ -839,6 +847,18 @@ export class Atlas {
     else if (f.path) drawLineAt(ctx, f.path, a, s, kx, at.x, at.y, f.tone, Math.max(3, 4 * u));
   }
 
+  /**
+   * Where the writing sits in the card.
+   *
+   * Upright the card is a strip just tall enough for a line and a fact. Turned on its side it is
+   * a whole column and takes whatever the map does not want, which can be three hundred pixels -
+   * and a heading pinned nineteen pixels from its top leaves a card that is two thirds empty. So
+   * the heading and the fact are one block, and the block sits in the middle of whatever it got.
+   */
+  private cardTop(b: Rect): number {
+    return b.y + Math.max(0, (b.h - 74 * this.u()) / 2);
+  }
+
   /** The correction: what it really was, why it is worth knowing, and the way on. */
   private drawTeach(b: Rect): void {
     const ctx = this.ctx, u = this.u();
@@ -852,10 +872,11 @@ export class Atlas {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#a5432a';
     ctx.font = this.font('900', 12.5);
-    ctx.fillText(teachLine(p, this.missed, nl), tx, b.y + 19 * u, textW);
+    const top = this.cardTop(b);
+    ctx.fillText(teachLine(p, this.missed, nl), tx, top + 15 * u, textW);
     ctx.fillStyle = 'rgba(18,48,71,0.8)';
     ctx.font = this.font('700', 10);
-    this.wrapText(factOf(p, nl), tx, b.y + 52 * u, textW, 12 * u, 4);
+    this.wrapText(factOf(p, nl), tx, top + 48 * u, textW, 12 * u, 4);
     this.button('go', T('Next', 'Verder'), b.x + b.w - bw - 10 * u, b.y + (b.h - bh) / 2, bw, bh,
       '#4fae6e', '#ffffff');
   }
@@ -875,10 +896,11 @@ export class Atlas {
     ctx.textAlign = 'center';
     ctx.fillStyle = right ? '#2f7a4c' : '#a5432a';
     ctx.font = this.font('900', 13);
-    ctx.fillText(nameOf(f, nl), tx, b.y + 19 * u, textW);
+    const top = this.cardTop(b);
+    ctx.fillText(nameOf(f, nl), tx, top + 15 * u, textW);
     ctx.fillStyle = 'rgba(18,48,71,0.8)';
     ctx.font = this.font('700', 10);
-    this.wrapText(factOf(f, nl), tx, b.y + 52 * u, textW, 12 * u, 4);
+    this.wrapText(factOf(f, nl), tx, top + 48 * u, textW, 12 * u, 4);
     ctx.restore();
     if (hasAnimals && this.fbT > 0.4) {
       this.button(`animals:${f.cont}`, T('Animals', 'Dieren'),
@@ -920,23 +942,30 @@ export class Atlas {
     if (this.phase !== 'play') return;
     this.button('levels', T('Levels', 'Niveaus'), 13 * u, 9 * u, 82 * u, 40 * u);
     const nx = 13 * u + 89 * u;
-    const on = save.atlas.outlines;
-    const face = chunkyButton(ctx, nx, 9 * u, 44 * u, 40 * u, {
-      tone: on ? '#f0b653' : '#fffdf6', pressed: this.held === 'outlines',
-    });
-    ctx.save();
-    ctx.strokeStyle = on ? '#4a2f10' : '#1d4763';
-    ctx.lineWidth = 2 * u;
-    ctx.setLineDash([3 * u, 3 * u]);
-    roundRectPath(ctx, nx + 12 * u, face.y + 12 * u, 20 * u, 16 * u, 4 * u);
-    ctx.stroke();
-    ctx.restore();
-    this.hits.push({ id: 'outlines', x: nx, y: 9 * u, w: 44 * u, h: 40 * u });
+    // the outline switch, but only where there is something for it to outline. On the water, the
+    // capitals and the flags the piece is a line, a name or a flag, and the places it can go are
+    // already drawn on the board - so the button had nothing to do there, and a button that does
+    // nothing when a child presses it is worse than no button at all.
+    const canOutline = outlinable(this.level);
+    if (canOutline) {
+      const on = save.atlas.outlines;
+      const face = chunkyButton(ctx, nx, 9 * u, 44 * u, 40 * u, {
+        tone: on ? '#f0b653' : '#fffdf6', pressed: this.held === 'outlines',
+      });
+      ctx.save();
+      ctx.strokeStyle = on ? '#4a2f10' : '#1d4763';
+      ctx.lineWidth = 2 * u;
+      ctx.setLineDash([3 * u, 3 * u]);
+      roundRectPath(ctx, nx + 12 * u, face.y + 12 * u, 20 * u, 16 * u, 4 * u);
+      ctx.stroke();
+      ctx.restore();
+      this.hits.push({ id: 'outlines', x: nx, y: 9 * u, w: 44 * u, h: 40 * u });
+    }
 
     // the dyke switch, beside it, only on the level that has one: a drawn dyke with the sea
     // against it, and the sea climbs as the switch goes round
     if (this.level.dykes) {
-      const dx = nx + 51 * u;
+      const dx = canOutline ? nx + 51 * u : nx;
       const tone = this.sea == null ? '#fffdf6' : this.sea === SEA_OFF ? '#6fb8d8' : '#3f86bd';
       const df = chunkyButton(ctx, dx, 9 * u, 44 * u, 40 * u, { tone, pressed: this.held === 'dykes' });
       ctx.save();

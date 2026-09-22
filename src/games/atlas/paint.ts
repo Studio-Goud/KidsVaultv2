@@ -151,6 +151,15 @@ export function drawPin(ctx: Ctx, x: number, y: number, s: number, tone: string,
  * because a drawn approximation of one of those is a wrong flag rather than a simple one.
  */
 export function drawFlag(ctx: Ctx, x: number, y: number, w: number, h: number, f: Flag): void {
+  // Switzerland's flag is square. A square flag stretched into a rectangle is a different flag, so
+  // it is drawn in the middle of the box it was given and the rest of the box is left alone.
+  if (f.kind === 'cross' && f.square) {
+    const side = Math.min(w, h);
+    x += (w - side) / 2;
+    y += (h - side) / 2;
+    w = side;
+    h = side;
+  }
   ctx.save();
   ctx.beginPath();
   roundRectPath(ctx, x, y, w, h, Math.min(w, h) * 0.07);
@@ -168,6 +177,16 @@ export function drawFlag(ctx: Ctx, x: number, y: number, w: number, h: number, f
       else ctx.fillRect(x + at * w, y, span * w + 0.6, h);
       at += span;
     }
+  } else if (f.kind === 'cross' && f.square) {
+    // the Swiss cross, by the measurements in its own law: the arms are six parts wide and the
+    // whole cross twenty parts across a flag of thirty-two, so it never touches an edge
+    ctx.fillStyle = f.field;
+    ctx.fillRect(x, y, w, h);
+    const bw = h * (6 / 32), arm = h * (20 / 32);
+    const cx = x + w / 2, cy = y + h / 2;
+    ctx.fillStyle = f.cross;
+    ctx.fillRect(cx - arm / 2, cy - bw / 2, arm, bw);
+    ctx.fillRect(cx - bw / 2, cy - arm / 2, bw, arm);
   } else if (f.kind === 'cross') {
     ctx.fillStyle = f.field;
     ctx.fillRect(x, y, w, h);

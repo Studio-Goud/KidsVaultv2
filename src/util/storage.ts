@@ -66,6 +66,23 @@ const defaults = (): SaveData => ({
   circuit: { solved: [], puzzle: 0, bench: [] },
 });
 
+/**
+ * Stroomkring's slice, out of a file somebody could have typed.
+ *
+ * The board itself is checked by `cleanCircuit()` in the game, which throws the lot away rather
+ * than opening a bench that cannot be solved. What is checked here is the rest of the slice: a
+ * list of finished puzzles that is not a list would be read a letter at a time, and the game would
+ * open saying eight of nine were done.
+ */
+function circuitSlice(d: SaveData['circuit'], got: unknown): SaveData['circuit'] {
+  const o = (got ?? {}) as Partial<SaveData['circuit']>;
+  return {
+    solved: Array.isArray(o.solved) ? o.solved.filter((x): x is string => typeof x === 'string') : d.solved,
+    puzzle: typeof o.puzzle === 'number' && isFinite(o.puzzle) ? o.puzzle : d.puzzle,
+    bench: Array.isArray(o.bench) ? o.bench : d.bench,
+  };
+}
+
 export function loadSave(): SaveData {
   try {
     const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
@@ -84,7 +101,7 @@ export function loadSave(): SaveData {
       numbers: { ...d.numbers, ...(got.numbers ?? {}) },
       letters: { ...d.letters, ...(got.letters ?? {}) },
       rhythm: { ...d.rhythm, ...(got.rhythm ?? {}) },
-      circuit: { ...d.circuit, ...(got.circuit ?? {}) },
+      circuit: circuitSlice(d.circuit, got.circuit),
     };
   } catch { return defaults(); }
 }

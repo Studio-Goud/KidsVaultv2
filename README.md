@@ -457,7 +457,9 @@ the world without being redrawn. The continents come out of the animal book's ow
 so there are not two different Africas in Bramblewood. The flags are written down rather than
 photographed - bands, a cross, a disc - and only the flags that description can tell the truth
 about are in the game, because a drawn approximation of a coat of arms is a wrong flag rather than
-a simple one.
+a simple one. A cross knows which cross it is: the Nordic ones stand off to the hoist and reach
+every edge, and the Swiss one is square with its arms stopping short, six parts wide and twenty
+across a flag of thirty-two, which is what its own law says.
 
 What is simplified is the coastline. What is not is the naming: twelve provinces with their
 capitals, twenty-two Dutch cities, ten rivers and seas and the works that hold them back,
@@ -468,10 +470,18 @@ government sits and Amsterdam is the capital, and the game says so.
 Luxembourg on a map of Europe that fits a phone is four pixels across. It stays on the board and in
 the data - a real country, a real capital, three real languages - but it is never dealt out as a
 piece there, because nobody could hit it. On the map of the neighbours, zoomed right in on the
-Netherlands, it is big enough and it is dealt out. Every level works that way: a target too small
-to put a finger on is drawn, but never asked for. A switch in the corner outlines the empty places
-for a child still finding the holes, and takes the outlines away again for a child who should
-know.
+Netherlands, it is big enough and it is dealt out. Every level works that way, and every board has
+its own number, measured in what it comes to on the narrowest phone: a country has to be twelve
+degrees across before the world level will hand it over, which on a 320 pixel screen is ten
+pixels. Kenya, between Ethiopia and Congo, is a real country with a real capital and a real fact,
+and it is not something a child can be asked to hit with a finger on a map of the whole earth - so
+the level that says "the big ones" on its own card deals the big ones.
+
+A switch in the corner outlines the empty places for a child still finding the holes, and takes
+the outlines away again for a child who should know. It is there only on the levels where there is
+something for it to outline: on the water, the capitals and the flags, the places a piece can go
+are the rivers and the countries the board has already drawn, and a button that does nothing when
+a child presses it is worse than no button at all.
 Practises where things are, reading a map, and the Netherlands, Europe and the world. Age 5 and up.
 
 ### Letterbos (`letters.html`)

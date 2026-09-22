@@ -143,7 +143,9 @@ export type FeatureKind = 'province' | 'water' | 'city' | 'country' | 'continent
  */
 export type Flag =
   | { kind: 'bands'; dir: 'h' | 'v'; colours: string[]; weights?: number[] }
-  | { kind: 'cross'; field: string; cross: string; inner?: string }
+  // `square` is the Swiss one: a square flag with a cross that stops short of the edges, which is
+  // a different flag from the Nordic cross and has to be drawn as one
+  | { kind: 'cross'; field: string; cross: string; inner?: string; square?: boolean }
   | { kind: 'disc'; field: string; disc: string; r?: number };
 
 export interface Feature {
@@ -243,8 +245,8 @@ export const PROVINCES: Feature[] = [
     capNl: 'Utrecht', capEn: 'Utrecht', cont: 'eu',
     rings: [P([4.83, 52.12], [5.05, 52.22], [5.20, 52.28], [5.18, 52.10], [5.27, 51.94],
       [5.05, 51.93], [4.94, 52.00], [4.80, 52.02])],
-    factNl: 'Utrecht is de kleinste provincie van het vasteland. De Domtoren is met 112 meter de hoogste kerktoren van Nederland.',
-    factEn: 'Utrecht is the smallest province on the mainland. The Dom Tower, at 112 metres, is the tallest church tower in the country.',
+    factNl: 'Utrecht is de kleinste provincie van Nederland. De Domtoren is met 112 meter de hoogste kerktoren van het land.',
+    factEn: 'Utrecht is the smallest province in the Netherlands. The Dom Tower, at 112 metres, is the tallest church tower in the country.',
   },
   {
     id: 'noordholland', nl: 'Noord-Holland', en: 'North Holland', kind: 'province', tone: '#e6a13c',
@@ -450,8 +452,8 @@ const city = (
 
 export const NL_CITIES: Feature[] = [
   city('amsterdam', 'Amsterdam', 'Amsterdam', [4.89, 52.37],
-    'De hoofdstad. Amsterdam staat op palen in het veen, en er zijn meer dan tweeduizend bruggen.',
-    'The capital. Amsterdam stands on piles driven into the peat, and it has over two thousand bridges.'),
+    'De hoofdstad. Amsterdam staat op palen in het veen, en er liggen ongeveer zeventienhonderd bruggen.',
+    'The capital. Amsterdam stands on piles driven into the peat, and about seventeen hundred bridges cross it.'),
   city('denhaag', 'Den Haag', 'The Hague', [4.30, 52.08],
     'Hier zitten de regering, de Tweede Kamer en de koning. Den Haag is geen hoofdstad, maar wel de plek waar het land bestuurd wordt.',
     'The government, parliament and the king are here. The Hague is not the capital, but it is where the country is run.'),
@@ -489,8 +491,8 @@ export const NL_CITIES: Feature[] = [
     'De grootste stad van Twente, tegen de Duitse grens aan. Hier stonden de katoenfabrieken.',
     'The biggest town in Twente, right against the German border. The cotton mills stood here.'),
   city('amersfoort', 'Amersfoort', 'Amersfoort', [5.39, 52.16],
-    'Amersfoort heeft nog een complete stadsmuur met poorten, en middenin het land ligt hij precies.',
-    'Amersfoort still has a complete town wall with gates, and it sits almost exactly in the middle of the country.'),
+    'Amersfoort heeft nog middeleeuwse stadspoorten: de Koppelpoort staat half over het water en gaat met een rad open.',
+    'Amersfoort still has its medieval town gates: the Koppelpoort stands half over the water and opens with a wheel.'),
   city('zwolle', 'Zwolle', 'Zwolle', [6.09, 52.51],
     'De hoofdstad van Overijssel, met een gracht in de vorm van een ster om de oude stad heen.',
     'The capital of Overijssel, with a star-shaped moat around the old town.'),
@@ -586,7 +588,9 @@ const FLAG: Record<string, Flag> = {
   denemarken: { kind: 'cross', field: '#c8102e', cross: '#ffffff' },
   finland: { kind: 'cross', field: '#ffffff', cross: '#003580' },
   ijsland: { kind: 'cross', field: '#02529c', cross: '#ffffff', inner: '#dc1e35' },
-  zwitserland: { kind: 'cross', field: '#d52b1e', cross: '#ffffff' },
+  // square, and the cross is in the middle with its arms stopping short of the edge - it is not a
+  // Nordic cross and drawing it as one would be drawing the wrong flag
+  zwitserland: { kind: 'cross', field: '#d52b1e', cross: '#ffffff', square: true },
   japan: { kind: 'disc', field: '#ffffff', disc: '#bc002d', r: 0.3 },
 };
 
@@ -1061,8 +1065,8 @@ export const WORLD_COUNTRIES: Feature[] = [
       P([172.6, -40.5], [174.3, -41.7], [172.7, -43.9], [171.2, -44.9], [169.9, -46.7],
         [167.0, -46.2], [168.4, -44.1], [170.7, -42.9]),
     ],
-    'Nieuw-Zeeland ligt ver van alles vandaan. Voordat de mensen kwamen, waren er geen zoogdieren op het land: alleen vogels, zoals de kiwi.',
-    'New Zealand lies a long way from everything. Before people came there were no land mammals on it: only birds, like the kiwi.',
+    'Nieuw-Zeeland ligt ver van alles vandaan. Voordat de mensen kwamen, leefden er op het land geen zoogdieren behalve vleermuizen: het was van de vogels, zoals de kiwi.',
+    'New Zealand lies a long way from everything. Before people came, no land mammal but the bat lived there: it belonged to the birds, like the kiwi.',
     '#6ab8a8'),
   world('verenigdestaten', 'Verenigde Staten', 'United States', 'Washington', 'Washington', 'na',
     [P([-125, 48], [-95, 49], [-83, 46], [-76, 44], [-70, 44], [-70, 41], [-76, 37], [-81, 31],
@@ -1101,8 +1105,8 @@ export const WORLD_COUNTRIES: Feature[] = [
   world('chili', 'Chili', 'Chile', 'Santiago', 'Santiago', 'sa',
     [P([-70, -18], [-68, -22], [-68, -27], [-70, -30], [-72, -38], [-71, -45], [-72, -52],
       [-75, -50], [-75, -44], [-74, -40], [-73, -32], [-71, -25], [-71, -20])],
-    'Chili is meer dan vierduizend kilometer lang en nergens breder dan tweehonderd kilometer. De Atacama is de droogste woestijn ter wereld.',
-    'Chile is over four thousand kilometres long and nowhere wider than two hundred. The Atacama is the driest desert in the world.',
+    'Chili is meer dan vierduizend kilometer lang en gemiddeld maar honderdtachtig kilometer breed. De Atacama is de droogste woestijn ter wereld.',
+    'Chile is over four thousand kilometres long and on average only a hundred and eighty wide. The Atacama is the driest desert in the world.',
     '#c46a5a'),
   world('peru', 'Peru', 'Peru', 'Lima', 'Lima', 'sa',
     [P([-81, -6], [-79, -8], [-76, -14], [-70, -18], [-69, -17], [-69, -11], [-73, -9],
@@ -1160,14 +1164,14 @@ export const WORLD_COUNTRIES: Feature[] = [
   world('zuidafrika', 'Zuid-Afrika', 'South Africa', 'Pretoria', 'Pretoria', 'af',
     [P([17, -29], [20, -25], [25, -26], [29, -23], [31, -23], [32, -26], [30, -31], [27, -33],
       [22, -34], [18, -34], [17, -32])],
-    'Zuid-Afrika heeft elf officiële talen, waaronder het Afrikaans, dat uit het Nederlands is gegroeid.',
-    'South Africa has eleven official languages, one of them Afrikaans, which grew out of Dutch.',
+    'Zuid-Afrika heeft twaalf officiële talen, waaronder het Afrikaans, dat uit het Nederlands is gegroeid.',
+    'South Africa has twelve official languages, one of them Afrikaans, which grew out of Dutch.',
     '#d8a13a'),
   world('madagaskar', 'Madagaskar', 'Madagascar', 'Antananarivo', 'Antananarivo', 'af',
     [P([49.5, -12.5], [50.5, -15], [50, -18], [48.5, -22], [47, -25], [45, -25], [43.5, -22],
       [43.5, -18], [46, -15], [48, -13])],
-    'Madagaskar brak tachtig miljoen jaar geleden los van Afrika. Negen van de tien dieren die er leven, bestaan nergens anders - zoals de maki.',
-    'Madagascar broke away from Africa eighty million years ago. Nine in ten of the animals there live nowhere else - the lemur, for one.',
+    'Madagaskar ligt al meer dan tachtig miljoen jaar los van al het andere land. Negen van de tien dieren die er leven, bestaan nergens anders - zoals de maki.',
+    'Madagascar has been cut off from every other piece of land for more than eighty million years. Nine in ten of the animals there live nowhere else - the lemur, for one.',
     '#8ac46a'),
   world('saoediarabie', 'Saoedi-Arabië', 'Saudi Arabia', 'Riyad', 'Riyadh', 'as',
     [P([34.5, 28], [37, 31], [39, 32], [42, 31], [47, 30], [48, 28], [50, 25], [52, 23],
@@ -1190,8 +1194,8 @@ export const WORLD_COUNTRIES: Feature[] = [
   world('mongolie', 'Mongolië', 'Mongolia', 'Ulaanbaatar', 'Ulaanbaatar', 'as',
     [P([88, 49], [95, 50], [102, 51], [108, 49], [115, 50], [120, 50], [119, 46], [112, 44],
       [105, 42], [97, 43], [91, 46])],
-    'In Mongolië wonen minder dan twee mensen per vierkante kilometer: nergens ter wereld zijn er minder. Veel families trekken rond met hun kudde.',
-    'Fewer than two people per square kilometre live in Mongolia: nowhere in the world is emptier. Many families still move about with their herds.',
+    'In Mongolië wonen maar twee mensen per vierkante kilometer: nergens ter wereld zijn er minder. Veel families trekken rond met hun kudde.',
+    'Only two people per square kilometre live in Mongolia: nowhere in the world is emptier. Many families still move about with their herds.',
     '#c46a5a'),
   world('thailand', 'Thailand', 'Thailand', 'Bangkok', 'Bangkok', 'as',
     [P([98, 19], [100, 20], [103, 18], [105, 15], [103, 14], [102, 13], [100, 13], [100, 10],

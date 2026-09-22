@@ -117,8 +117,13 @@ export const VIEWS: Record<BoardId, View> = {
  * A city on the map of the Netherlands is a dot; asking a five year old to hit it exactly would be
  * asking them to be accurate to about four kilometres. The world board is twenty times wider, so
  * the same forgiveness in degrees would be no forgiveness at all - hence one number per board.
+ *
+ * Every one of these is worth about the same number of millimetres under the finger on a phone,
+ * which is the only measure that matters: a map of the world on a 320 pixel screen is drawn at
+ * roughly one pixel to the degree, so fourteen degrees is fourteen pixels, and a map of the
+ * Netherlands is drawn at eighty, so a fifth of a degree is eighteen.
  */
-export const NEAR: Record<BoardId, number> = { nl: 0.22, near: 0.45, eu: 2.2, world: 7 };
+export const NEAR: Record<BoardId, number> = { nl: 0.22, near: 0.45, eu: 2.2, world: 14 };
 
 /**
  * How small a target may be and still be worth handing a child, in the degrees the board is drawn
@@ -129,8 +134,27 @@ export const NEAR: Record<BoardId, number> = { nl: 0.22, near: 0.45, eu: 2.2, wo
  * it is not something anybody can be asked to hit with a finger, so it is never dealt out as a
  * piece. The map of the Netherlands has no such problem: the smallest province on it is Utrecht,
  * and Utrecht is enormous.
+ *
+ * The world is the strict one. A map of the whole earth on a 320 pixel screen is about one pixel
+ * to the degree, so a country has to be twelve degrees across before it is a target a finger can
+ * find - and the one before it, at seven, made the level a game of hitting Kenya between Ethiopia
+ * and Congo with a fingertip eight pixels wide. Twelve leaves thirty-three countries, which is
+ * three times what the level deals, and it is the level that says "the big ones" on its own card.
  */
-export const MIN_SPAN: Record<BoardId, number> = { nl: 0, near: 0.35, eu: 2.0, world: 7 };
+export const MIN_SPAN: Record<BoardId, number> = { nl: 0, near: 0.35, eu: 2.0, world: 12 };
+
+/**
+ * Can this level outline its empty places?
+ *
+ * Only where the piece has a shape or a spot of its own: a province, a country, a continent, a
+ * city. On the water level the piece is a river, on the capitals level it is a name and on the
+ * flags level it is a flag - and in all three the places a piece can go are countries and
+ * provinces the board has already drawn, so there is nothing left for an outline to show. The
+ * switch is hidden there rather than left to do nothing.
+ */
+export function outlinable(level: Level): boolean {
+  return level.piece === 'shape' || level.piece === 'pin';
+}
 
 /** Is this target big enough to be dragged onto on this board? */
 export function placeable(level: Level, f: Feature): boolean {

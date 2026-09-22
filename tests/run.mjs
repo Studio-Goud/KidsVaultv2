@@ -1352,8 +1352,8 @@ const group = name => console.log(`\n${name}`);
     pointInRing, pointInRings, project, spanOf, unproject,
   } = geo;
   const {
-    LEVELS, MIN_SPAN, NEAR, VIEWS, boardFor, dropTarget, isRight, levelById, nextLevel, placeable,
-    poolFor, rngFor, runFor, starsFor, teachLine,
+    LEVELS, MIN_SPAN, NEAR, VIEWS, boardFor, dropTarget, isRight, levelById, nextLevel, outlinable,
+    placeable, poolFor, rngFor, runFor, starsFor, teachLine,
   } = mod;
 
   const byId = id => ALL_FEATURES.find(f => f.id === id);
@@ -1610,6 +1610,84 @@ const group = name => console.log(`\n${name}`);
   is('test_views_every_board_has_a_window_onto_the_globe',
     LEVELS.every(l => !!VIEWS[l.board] && VIEWS[l.board].lon1 > VIEWS[l.board].lon0), true);
   is('test_views_europe_is_drawn_with_the_longitudes_squashed', EU_VIEW.kx < 1, true);
+
+  group('Wereldatlas — big enough to hit with a finger');
+  // arrange: the map as it comes out on the narrowest phone the house supports, 320 across, where
+  // the board gets the width less its margins and rather more height than that
+  const phone = { x: 0, y: 0, w: 294, h: 240 };
+  const pxPerDegree = l => fit(VIEWS[l.board], phone).s;
+  const widthOnScreen = (l, f) => spanOf(f, VIEWS[l.board].kx) * pxPerDegree(l);
+  is('test_reach_every_dealt_shape_is_at_least_nine_pixels_across_on_a_320_phone',
+    LEVELS.every(l => poolFor(l).every(f => !f.rings?.length || widthOnScreen(l, f) >= 9)), true);
+  // the slop around a target is never meaner than the target itself: a shape a finger can only
+  // just see is a shape a finger gets a wide berth on
+  is('test_reach_no_dealt_shape_is_narrower_than_three_quarters_of_its_boards_forgiveness',
+    LEVELS.every(l => poolFor(l).every(f =>
+      !f.rings?.length || widthOnScreen(l, f) >= NEAR[l.board] * pxPerDegree(l) * 0.75)), true);
+  is('test_reach_the_forgiveness_on_every_board_is_at_least_ten_pixels_wide',
+    LEVELS.every(l => NEAR[l.board] * pxPerDegree(l) >= 10), true);
+  is('test_reach_the_world_no_longer_deals_out_kenya_at_seven_pixels',
+    poolFor(levelById('wereldlanden')).some(f => f.id === 'kenia'), false);
+  is('test_reach_the_world_still_deals_out_the_big_ones',
+    ['rusland_w', 'china', 'brazilie', 'australie', 'india'].every(id =>
+      poolFor(levelById('wereldlanden')).some(f => f.id === id)), true);
+  is('test_reach_the_world_pool_is_still_far_longer_than_the_level_it_feeds',
+    poolFor(levelById('wereldlanden')).length >= levelById('wereldlanden').rounds * 2, true);
+  is('test_reach_the_world_pool_still_reaches_every_continent_that_has_countries_on_it',
+    new Set(poolFor(levelById('wereldlanden')).map(f => f.cont)).size >= 5, true);
+  is('test_reach_the_world_is_more_forgiving_in_degrees_than_europe', NEAR.world > NEAR.eu, true);
+
+  group('Wereldatlas — the outline switch');
+  is('test_outlines_the_provinces_can_be_outlined', outlinable(levelById('provincies')), true);
+  is('test_outlines_the_cities_can_be_outlined', outlinable(levelById('steden')), true);
+  is('test_outlines_the_rivers_have_nothing_to_outline', outlinable(levelById('water')), false);
+  is('test_outlines_the_capitals_have_nothing_to_outline', outlinable(levelById('hoofdsteden')), false);
+  is('test_outlines_the_flags_have_nothing_to_outline', outlinable(levelById('vlaggen')), false);
+  is('test_outlines_every_level_that_can_be_outlined_hands_out_a_shape_or_a_spot',
+    LEVELS.filter(outlinable).every(l => poolFor(l).every(f => !!f.rings?.length || !!f.at)), true);
+
+  group('Wereldatlas — a flag is drawn the way the flag really is');
+  is('test_flags_the_swiss_flag_is_square_and_not_a_nordic_cross',
+    [byId('zwitserland').flag.kind, byId('zwitserland').flag.square], ['cross', true]);
+  is('test_flags_the_nordic_crosses_are_not_square',
+    ['zweden', 'noorwegen', 'denemarken', 'finland', 'ijsland']
+      .every(id => !byId(id).flag.square), true);
+  is('test_flags_the_swiss_flag_is_a_white_cross_on_red',
+    [byId('zwitserland').flag.field, byId('zwitserland').flag.cross], ['#d52b1e', '#ffffff']);
+  is('test_flags_every_flag_on_the_flag_level_is_big_enough_to_drop_onto',
+    poolFor(levelById('vlaggen')).length >= levelById('vlaggen').rounds, true);
+  is('test_flags_no_two_countries_on_the_flag_level_share_a_flag',
+    new Set(FLAG_COUNTRIES.map(id => JSON.stringify(byId(id).flag))).size, FLAG_COUNTRIES.length);
+
+  group('Wereldatlas — the facts a child would be told twice');
+  is('test_facts_south_africa_counts_twelve_official_languages',
+    byId('zuidafrika').factNl.includes('twaalf'), true);
+  is('test_facts_madagascar_is_not_said_to_have_left_africa_eighty_million_years_ago',
+    byId('madagaskar').factNl.includes('los van Afrika'), false);
+  is('test_facts_chile_is_described_by_its_average_width',
+    byId('chili').factNl.includes('gemiddeld'), true);
+  is('test_facts_new_zealand_remembers_the_bats',
+    byId('nieuwzeeland').factNl.includes('vleermuizen'), true);
+  is('test_facts_utrecht_is_simply_the_smallest_province',
+    byId('utrecht').factNl.includes('kleinste provincie van Nederland'), true);
+  is('test_facts_every_province_says_something_about_itself',
+    PROVINCES.every(p => p.factNl.includes(p.nl.split('-').pop()) || p.factNl.length > 40), true);
+  is('test_facts_no_fact_is_longer_than_the_card_can_hold',
+    ALL_FEATURES.every(f => f.factNl.length <= 175 && f.factEn.length <= 175), true);
+
+  group('Wereldatlas — a capital belongs to a country');
+  is('test_capitals_every_capital_on_the_capitals_level_belongs_to_one_country',
+    poolFor(levelById('hoofdsteden')).every(c =>
+      EU_COUNTRIES.filter(o => o.capNl === c.capNl).length === 1), true);
+  is('test_capitals_no_capital_is_also_the_name_of_a_different_country',
+    EU_COUNTRIES.every(c => !EU_COUNTRIES.some(o => o.id !== c.id && o.nl === c.capNl)), true);
+  is('test_capitals_the_world_names_a_real_capital_for_every_country',
+    WORLD_COUNTRIES.every(c => c.capNl.length > 2 && c.capEn.length > 2), true);
+  is('test_capitals_a_country_that_appears_twice_names_the_same_capital_both_times',
+    WORLD_COUNTRIES.filter(c => EU_COUNTRIES.some(e => e.nl === c.nl))
+      .every(c => EU_COUNTRIES.find(e => e.nl === c.nl).capNl === c.capNl), true);
+  is('test_capitals_the_dutch_and_english_capital_are_told_apart',
+    [capitalOf(byId('belgie'), true), capitalOf(byId('belgie'), false)], ['Brussel', 'Brussels']);
 }
 
 // ---------------------------------------------------------------- Stroomkring: what the circuit does
@@ -2009,6 +2087,39 @@ const group = name => console.log(`\n${name}`);
     cleanCircuit([{ id: 'wire', col: 2, row: 2, rot: 0, link: 999 }])[0].link, 15);
   is('test_clean_a_board_bigger_than_the_bench_is_thrown_away',
     cleanCircuit(Array.from({ length: 200 }, (_, i) => ({ id: 'wire', col: i % 9, row: 0, rot: 0 }))), null);
+
+  group('Stroomkring — the save slice a hand could have edited');
+  {
+    const { loadSave } = await bundle('src/util/storage.ts', 'storage.mjs');
+    const KEY = 'cloudhopper.save.v1';
+    const kept = fakeStore[KEY];
+    /** write a save, read it back the way the game does, and hand back only Stroomkring's slice */
+    const slice = written => { fakeStore[KEY] = JSON.stringify(written); return loadSave().circuit; };
+
+    is('test_save_a_file_with_no_circuit_slice_comes_back_with_the_defaults',
+      slice({ sound: true }), { solved: [], puzzle: 0, bench: [] });
+    is('test_save_a_sound_circuit_slice_comes_back_whole',
+      slice({ circuit: { solved: ['light', 'switch'], puzzle: 3, bench: [] } }),
+      { solved: ['light', 'switch'], puzzle: 3, bench: [] });
+    // a string here used to be read a letter at a time, and the chip said eight of nine were done
+    is('test_save_a_list_of_finished_puzzles_that_is_not_a_list_is_thrown_away',
+      slice({ circuit: { solved: 'nonsense' } }).solved, []);
+    is('test_save_a_finished_puzzle_that_is_not_a_name_is_dropped',
+      slice({ circuit: { solved: ['light', 7, null, 'switch'] } }).solved, ['light', 'switch']);
+    is('test_save_a_puzzle_number_that_is_not_a_number_falls_back_to_the_first',
+      slice({ circuit: { puzzle: 'three' } }).puzzle, 0);
+    is('test_save_a_puzzle_number_that_is_not_finite_falls_back_to_the_first',
+      slice({ circuit: { puzzle: Infinity } }).puzzle, 0);
+    is('test_save_a_bench_that_is_not_a_list_is_thrown_away',
+      slice({ circuit: { bench: 'nonsense' } }).bench, []);
+    is('test_save_a_bench_of_rubbish_survives_the_slice_and_dies_in_the_board_check',
+      cleanCircuit(slice({ circuit: { bench: [{ id: 'flux', col: -5, row: 400 }] } }).bench), null);
+    is('test_save_a_file_that_is_not_json_at_all_comes_back_with_the_defaults',
+      (() => { fakeStore[KEY] = '{ not json'; return loadSave().circuit; })(),
+      { solved: [], puzzle: 0, bench: [] });
+
+    if (kept === undefined) delete fakeStore[KEY]; else fakeStore[KEY] = kept;
+  }
 }
 
 rmSync(out, { recursive: true, force: true });

@@ -279,15 +279,20 @@ export class Circuit {
     const n = this.quiz().tray.length;
     const inset = 8 * u;
     const headH = 28 * u, footH = 28 * u;
-    // the corner the way home and the way back live in, which nothing else may go under
+    // the corner the way home and the way back live in, which nothing else may go under. The two
+    // round buttons are a fixed forty-six across and sit ten from the top and the right, so the
+    // room they take is the same however big the rest of the interface is drawn.
     const corner = 116;
+    const cornerH = 62;
 
     const chip = wide
       ? { x: 8 * u, y: 4 * u, w: Math.min(this.w * 0.28, 160 * u), h: 38 * u }
       : { x: 8 * u, y: 4 * u, w: Math.min(this.w * 0.56, 168 * u), h: 42 * u };
+    // sideways the goal card stops short of the corner; upright it runs the whole width, so it
+    // starts below the buttons instead - otherwise its first line reads out from under them
     const goal = wide
       ? { x: chip.x + this.chipW + 6 * u, y: chip.y, w: 0, h: chip.h }
-      : { x: 8 * u, y: chip.y + chip.h + 3 * u, w: this.w - 16 * u, h: 34 * u };
+      : { x: 8 * u, y: Math.max(chip.y + chip.h + 3 * u, cornerH), w: this.w - 16 * u, h: 34 * u };
     if (wide) goal.w = Math.max(60 * u, this.w - corner - goal.x);
     const top = (wide ? chip.y + chip.h : goal.y + goal.h) + 6 * u;
 
@@ -298,7 +303,9 @@ export class Circuit {
     if (wide) {
       const trayW = clamp(this.w * 0.15, 96 * u, 130 * u);
       const barH = 42 * u;
-      tray = { x: this.w - trayW - 6 * u, y: top, w: trayW, h: this.h - top - 8 * u };
+      // the shelf is a column down the right, which is the side the two round buttons are on
+      const trayY = Math.max(top, cornerH);
+      tray = { x: this.w - trayW - 6 * u, y: trayY, w: trayW, h: this.h - trayY - 8 * u };
       const barW = Math.min(tray.x - 16 * u, 520 * u);
       bar = { x: 8 * u + (tray.x - 16 * u - barW) / 2, y: this.h - barH - 8 * u, w: barW, h: barH };
       availW = tray.x - 16 * u;
@@ -360,9 +367,13 @@ export class Circuit {
     // a shelf with three things on it puts them in three columns, not in the first three of six,
     // and it does not keep an empty second row open underneath them
     const rows = Math.max(1, Math.min(rowsFit, Math.ceil(n / colsMax)));
-    const cols = Math.max(1, Math.min(colsMax, Math.ceil(n / rows)));
+    let cols = Math.max(1, Math.min(colsMax, Math.ceil(n / rows)));
+    const pages = Math.max(1, Math.ceil(n / Math.max(1, cols * rows)));
+    // a shelf that needs a second page splits the parts evenly over the two rather than cramming
+    // the first full and leaving two things rattling about on the second
+    const even = Math.max(1, Math.min(colsMax, Math.ceil(n / (rows * pages))));
+    if (even * rows >= Math.ceil(n / pages)) cols = even;
     const per = Math.max(1, cols * rows);
-    const pages = Math.max(1, Math.ceil(n / per));
     // a cell no bigger than a hand, and the block of them centred in what room there is
     const cell = Math.min(alongW / cols, 112 * u);
     const rowH = Math.min(alongH / rows, 92 * u);
@@ -1104,10 +1115,15 @@ export class Circuit {
     const top = r.y + pad + vGap + g.offY;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
+    // whatever is on this page is centred in the shelf, so a last page with three things on it is
+    // three things in the middle of the shelf and not three things in the top left of an empty one
+    const usedRows = Math.max(1, Math.ceil(list.length / g.cols));
+    const padY = ((g.rows - usedRows) * g.rowH) / 2;
     list.forEach((id, k) => {
       const col = k % g.cols, row = Math.floor(k / g.cols);
-      const x = left + col * g.cell;
-      const y = top + row * g.rowH;
+      const inRow = Math.min(g.cols, list.length - row * g.cols);
+      const x = left + ((g.cols - inRow) * g.cell) / 2 + col * g.cell;
+      const y = top + padY + row * g.rowH;
       const len = specOf(id).len;
       const pu = Math.min((g.cell * 0.78) / len, g.rowH * 0.52, 50 * u);
       const cx = x + g.cell / 2, cy = y + g.rowH * 0.38;
@@ -1199,7 +1215,10 @@ export class Circuit {
   private cardTop(b: Bands, h: number): number {
     const u = this.u();
     const foot = b.panel.y + b.panel.h;
-    if (b.trayDown) return Math.max(b.panel.y + 4 * u, foot - h - 6 * u);
+    // sideways there is no room under the bench at all, so the card drops to the very foot of the
+    // screen and lies over the row of buttons, which nothing needs while it is up. What it must
+    // not lie over is the circuit that has just been built, and down there it does not.
+    if (b.trayDown) return Math.max(b.panel.y + 4 * u, this.h - h - 4 * u);
     const below = b.tray.y - foot;
     if (below > h + 12 * u) return foot + (below - h) / 2;
     // a short screen has no room under the bench, so the card sits over the shelf instead and
@@ -1237,7 +1256,9 @@ export class Circuit {
     const last = this.puzzle >= PUZZLES.length - 1;
     const mid = this.cardMid(b);
     const w = Math.min(this.w - 24 * u, b.wide ? 540 * u : 380 * u);
-    const h = b.wide ? 82 * u : Math.min(140 * u, Math.max(112 * u, b.panel.h - 12 * u));
+    // sideways it is one low row along the foot of the screen: any taller and its top edge would
+    // come up over the line under the bench, which is the one line the game is always saying
+    const h = b.wide ? 62 * u : Math.min(140 * u, Math.max(112 * u, b.panel.h - 12 * u));
     const x = mid - w / 2;
     const y = this.cardTop(b, h) + (1 - k) * 26 * u;
     const bw = b.wide ? Math.min(128 * u, (w - 48 * u) * 0.34) : (w - 36 * u) / 2;
@@ -1284,6 +1305,9 @@ export class Circuit {
     ctx.fillText(last ? T('To the bench', 'Naar de werkbank') : T('Next', 'Volgende'),
       nx + bw / 2, nf.y + bh / 2, bw - 10 * u);
     ctx.restore();
+    // the card swallows what lands on it, so a finger aimed at a button and landing beside it does
+    // not draw a length of wire on the board underneath
+    this.hits.push({ id: 'card', x, y, w, h });
     this.hits.push({ id: 'stay', x: sx, y: by, w: bw, h: bh });
     this.hits.push({ id: 'next', x: nx, y: by, w: bw, h: bh });
   }
@@ -1291,7 +1315,12 @@ export class Circuit {
   /** The ten of them, with a star on the ones that are done and nothing locked. */
   private drawPicker(): void {
     const ctx = this.ctx, u = this.u();
-    ctx.fillStyle = 'rgba(5, 11, 20, 0.97)';
+    // the list covers the bench outright. At a hair short of opaque the white cards underneath
+    // ghosted through it, and a heading with half a goal card showing behind it reads as a fault
+    const back = ctx.createLinearGradient(0, 0, 0, this.h);
+    back.addColorStop(0, '#0a131d');
+    back.addColorStop(1, '#101c29');
+    ctx.fillStyle = back;
     ctx.fillRect(0, 0, this.w, this.h);
     this.hits.push({ id: 'closepick', x: 0, y: 0, w: this.w, h: this.h });
 
@@ -1320,7 +1349,13 @@ export class Circuit {
         ctx.lineWidth = Math.max(1.2, 1.8 * u);
         ctx.stroke();
       }
+      // a socket for the star: the unearned one is a dark shape meant for a pale card, and on a
+      // near-black list it is simply invisible, so the list looks as though it has no stars at all
       const my = y + (ch - 5 * u) / 2;
+      ctx.fillStyle = done ? 'rgba(255, 216, 107, 0.12)' : 'rgba(226, 238, 252, 0.13)';
+      ctx.beginPath();
+      ctx.arc(x + 24 * u, my, 15 * u, 0, TAU);
+      ctx.fill();
       drawStar(ctx, x + 24 * u, my, 11 * u, done);
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
@@ -1336,9 +1371,33 @@ export class Circuit {
   }
 }
 
+/**
+ * A word too long for the line, broken with a hyphen rather than squashed flat.
+ *
+ * Dutch makes long words out of short ones, and `Krokodillenklem` under a shelf four columns wide
+ * is wider than its column. Canvas will squeeze it to fit and it comes out unreadable, so it is
+ * cut instead, as near the middle as both halves allow, which is where a compound word breaks.
+ */
+function chop(ctx: Ctx, word: string, maxW: number): string[] {
+  if (word.length < 6 || ctx.measureText(word).width <= maxW) return [word];
+  const half = Math.ceil(word.length / 2);
+  if (ctx.measureText(`${word.slice(0, half)}-`).width <= maxW
+    && ctx.measureText(word.slice(half)).width <= maxW) {
+    return [`${word.slice(0, half)}-`, word.slice(half)];
+  }
+  const out: string[] = [];
+  let part = '';
+  for (const ch of word) {
+    if (part && ctx.measureText(`${part}${ch}-`).width > maxW) { out.push(`${part}-`); part = ''; }
+    part += ch;
+  }
+  if (part) out.push(part);
+  return out;
+}
+
 /** Break a line to fit a width, so nothing ever runs off its card. */
 function wrap(ctx: Ctx, text: string, maxW: number): string[] {
-  const words = text.split(' ');
+  const words = text.split(' ').flatMap(w => chop(ctx, w, maxW));
   const lines: string[] = [];
   let line = '';
   for (const w of words) {
