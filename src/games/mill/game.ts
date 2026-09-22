@@ -32,6 +32,7 @@ import {
   bankAt, buildValley, digAt, fieldDone, gridForAspect, houseFlooded, LEVELS, starsFor, stepWater,
   totalWater, wheelDone, type Level, type Valley,
 } from './world';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won' | 'failed' | 'village';
@@ -40,8 +41,6 @@ type Tool = 'dig' | 'bank';
 /** How long the valley stays dry at the start, so there is time to look and to dig. */
 const PREP_SECONDS = 15;
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (l: Level): string => (NL() ? l.nameNl : l.name);
 const saveKey = (l: Level): string => `mill:${l.id}`;
 

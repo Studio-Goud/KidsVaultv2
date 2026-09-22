@@ -30,12 +30,11 @@ import {
   at, buildBoard, FUSE, LEVELS, moleStarts, POP_TIME, potsLeft, reachOf, setTile, START, starsFor,
   type Board, type Level, type PickupKind, type Puff,
 } from './model';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won' | 'lost';
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (l: Level): string => (NL() ? l.nameNl : l.name);
 const saveKey = (l: Level): string => `puff:${l.id}`;
 

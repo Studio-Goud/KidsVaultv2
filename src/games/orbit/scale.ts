@@ -13,11 +13,10 @@ import { TAU } from '../../util/math';
 import { BODIES, type Body } from './bodies';
 import { drawBody, reachOf } from './draw';
 import { drawSun } from './draw';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (b: Body): string => (NL() ? b.nameNl : b.name);
 
 export function drawScale(

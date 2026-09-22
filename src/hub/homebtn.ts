@@ -5,6 +5,7 @@
  * text you had to be able to read before you could get out of them. It is a round button with a
  * house on it now, in the same corner, the same size, in every game on the site.
  */
+import { NL } from '../util/lang';
 /**
  * Put the forced insets on the page as well, so the buttons the stylesheet places and the chrome
  * the canvas draws are measured against the same edge during an audit.
@@ -20,7 +21,7 @@ function applyForcedInsets(): void {
 
 export function addHomeButton(): void {
   applyForcedInsets();
-  const nl = (navigator.language || 'en').toLowerCase().startsWith('nl');
+  const nl = NL();
   const a = document.createElement('a');
   a.className = 'homebtn';
   a.href = './';
@@ -43,7 +44,7 @@ export function addHomeButton(): void {
  * one screen. It hides itself when there is nothing to go back to.
  */
 export function addBackButton(opts: { back: () => void; canBack: () => boolean }): void {
-  const nl = (navigator.language || 'en').toLowerCase().startsWith('nl');
+  const nl = NL();
   const b = document.createElement('button');
   b.className = 'homebtn backbtn';
   b.type = 'button';

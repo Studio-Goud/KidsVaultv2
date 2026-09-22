@@ -2830,6 +2830,50 @@ const group = name => console.log(`\n${name}`);
   }
 }
 
+// ---------------------------------------------------------------- The catalogue of experiences
+
+{
+  const { CATALOG, byId, forAge, inDomain, domainsPresent, coverage } =
+    await bundle('src/platform/catalog.ts', 'catalog.mjs');
+  group('Platform — the catalogue');
+
+  is('test_catalog_every_id_is_unique', new Set(CATALOG.map(e => e.id)).size, CATALOG.length);
+  is('test_catalog_every_row_is_named_in_both_languages',
+    CATALOG.every(e => e.title && e.line && e.lineNl && e.practises && e.practisesNl), true);
+  is('test_catalog_every_row_has_at_least_one_subject',
+    CATALOG.every(e => e.domains.length > 0), true);
+  is('test_catalog_no_row_ends_before_it_begins',
+    CATALOG.every(e => e.to > e.from), true);
+  is('test_catalog_no_row_falls_outside_two_to_ten',
+    CATALOG.every(e => e.from >= 2 && e.to <= 10), true);
+  is('test_catalog_a_sitting_is_minutes_not_hours',
+    CATALOG.every(e => e.minutes[0] >= 1 && e.minutes[1] <= 30 && e.minutes[1] > e.minutes[0]), true);
+  is('test_catalog_is_listed_youngest_first',
+    CATALOG.every((e, i) => i === 0 || e.from >= CATALOG[i - 1].from), true);
+
+  is('test_catalog_looking_up_a_page_finds_it', byId('moonshot').title, 'Moonshot');
+  is('test_catalog_looking_up_nothing_finds_nothing', byId('nope'), undefined);
+
+  is('test_age_a_two_year_old_is_offered_only_what_suits_them',
+    forAge(2).every(e => e.from <= 2), true);
+  is('test_age_nothing_is_offered_below_its_own_floor', forAge(2).some(e => e.from > 2), false);
+  is('test_age_an_eleven_year_old_has_outgrown_the_app', forAge(11).length, 0);
+  is('test_age_every_row_is_offered_to_somebody',
+    CATALOG.every(e => forAge(e.from).includes(e)), true);
+
+  is('test_domain_every_subject_has_something_in_it',
+    domainsPresent().every(d => inDomain(d).length > 0), true);
+  is('test_domain_the_brief_s_subjects_are_all_covered',
+    ['taal', 'rekenen', 'tijd', 'vormen', 'dieren', 'dinos', 'ruimte', 'techniek', 'natuur']
+      .filter(d => inDomain(d).length === 0), []);
+
+  // the number the roadmap is about: the youngest band is the thinnest, and it must not quietly
+  // stop being true
+  is('test_coverage_rises_with_age_up_to_eight', coverage(8) > coverage(2), true);
+  is('test_coverage_of_the_youngest_is_still_the_thinnest',
+    [3, 4, 5, 6, 7, 8].every(a => coverage(a) >= coverage(2)), true);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(`\n${ran - failed}/${ran} checks passed`);
 process.exit(failed ? 1 : 0);

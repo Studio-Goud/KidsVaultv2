@@ -42,13 +42,12 @@ import {
   bounceBall, chimeBar, chimeStand, colourOf, drawRoom, drumPad, gridCell, noteBlock, quaver,
   rung, tapRing,
 } from './paint';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'home' | 'levels' | 'play' | 'won';
 type Step = 'count' | 'run' | 'listen' | 'answer' | 'judge' | 'teach' | 'seq';
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (l: Level): string => (NL() ? l.nameNl : l.name);
 const saveKey = (l: Level): string => `rhythm:${l.id}`;
 

@@ -30,12 +30,11 @@ import {
   Particles, vignette,
 } from '../../render/look';
 import { paintBadlands, paintExposedDial, paintSunDial, paintTool, paintTrench, RockPainter } from './paint';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'dig' | 'ask' | 'wrong' | 'reveal' | 'failed' | 'museum';
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (d: Dino): string => (NL() ? d.nameNl : d.name);
 const factOf = (d: Dino): string => (NL() ? d.factNl : d.fact);
 const eraName = (d: Dino): string => (NL() ? ERAS[d.era].nameNl : ERAS[d.era].name);

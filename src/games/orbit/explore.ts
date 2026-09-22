@@ -11,13 +11,12 @@ import { TAU, type Vec } from '../../util/math';
 import { moonsOf, type Body, type Moon } from './bodies';
 import { drawBody } from './draw';
 import { drawPhoto, moonPhoto } from './photo';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 
 export interface ExploreHit { id: string; x: number; y: number; w: number; h: number }
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 
 /** Day and year lengths read better in the unit a child already has a feel for. */
 export function dayLabel(hours: number): string {

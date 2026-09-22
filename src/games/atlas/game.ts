@@ -38,12 +38,11 @@ import {
   drawSea, drawShape, scaleToFit, INK, SEA,
 } from './paint';
 import { atlassfx } from './atlassfx';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won';
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const levelName = (l: Level): string => (NL() ? l.nameNl : l.name);
 const saveKey = (l: Level): string => `atlas:${l.id}`;
 

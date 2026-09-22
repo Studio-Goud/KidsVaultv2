@@ -33,12 +33,11 @@ import {
 import { centreOf, paintFlow, paintPart, paintWire, wireArms } from './paint';
 import { bench, buzzHum, coilHum, motorHum } from './sfx';
 import { Coach, type Beat } from '../../platform/coach';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 interface Rect { x: number; y: number; w: number; h: number }
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (id: Kind): string => (NL() ? specOf(id).nameNl : specOf(id).name);
 const noteOf = (id: Kind): string => (NL() ? specOf(id).noteNl : specOf(id).note);
 /** A number the way a Dutch child writes it: with a comma. */

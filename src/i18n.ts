@@ -1,3 +1,4 @@
+import { lang } from './util/lang';
 import { save } from './util/storage';
 
 type Dict = Record<string, string>;
@@ -586,10 +587,7 @@ const en: Dict = {
   nwLoreDeer: 'Deer graze in the dark and look up at every sound.',
 };
 
-export function lang(): 'nl' | 'en' {
-  if (save.lang !== 'auto') return save.lang;
-  return (navigator.language || 'en').toLowerCase().startsWith('nl') ? 'nl' : 'en';
-}
+export { lang } from './util/lang';
 
 export function t(key: string): string {
   const d = lang() === 'nl' ? nl : en;

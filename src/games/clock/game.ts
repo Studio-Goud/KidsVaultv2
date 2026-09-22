@@ -40,12 +40,11 @@ import {
 import { masteryRing, nextRing } from '../../platform/progress';
 import { dialRadius, drawClockFace, drawDigital, drawRoom, HOUR_LEN, MINUTE_LEN } from './paint';
 import { clocksfx } from './clocksfx';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won';
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (l: Level): string => (NL() ? l.nameNl : l.name);
 const saveKey = (l: Level): string => `clock:${l.id}`;
 

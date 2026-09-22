@@ -38,12 +38,11 @@ import {
 import { buildOrder, EXAMPLES } from './examples';
 import { drawPhoto, loadPhoto, planetPhoto, moonPhoto, type PlanetPhoto } from '../orbit/photo';
 import { engineSound, rocket } from './rocketsfx';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'build' | 'count' | 'fly' | 'coast' | 'done';
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (p: Part): string => (NL() ? p.nameNl : p.name);
 const noteOf = (p: Part): string => (NL() ? p.noteNl : p.note);
 

@@ -15,12 +15,11 @@ import {
   advance, bodiesFor, bodyById, bodyPos, fate, launch, launchPoint, MISSIONS, predict, starsFor,
   type Fate, type Mission, type Probe,
 } from './missions';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Stage = 'pick' | 'aim' | 'fly' | 'burn' | 'done';
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (m: Mission): string => (NL() ? m.nameNl : m.name);
 const saveKey = (m: Mission): string => `orbitm:${m.id}`;
 

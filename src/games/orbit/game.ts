@@ -21,6 +21,7 @@ import { unlockAudio } from '../../util/audio';
 import { chunkyButton } from '../../render/look';
 import { paintSpace } from './paint';
 import { orbit as osfx } from './orbitsfx';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
@@ -29,8 +30,6 @@ type Mode = 'quiz' | 'explore' | 'scale' | 'missions';
 interface Slot { body: Body; pos: Vec; r: number; placed: boolean }
 interface Flyer { body: Body; from: Vec; to: Vec; r0: number; r1: number; t0: number }
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (b: Body): string => (NL() ? b.nameNl : b.name);
 const factOf = (b: Body): string => (NL() ? b.factNl : b.fact);
 

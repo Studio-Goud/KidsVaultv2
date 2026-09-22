@@ -25,12 +25,11 @@ import {
   check, FRUITS, fruitName, LEVELS, makeOrder, rngFor, starsFor,
   type Basket, type Customer, type Fruit, type Level, type Order,
 } from './model';
+import { NL, T } from '../../util/lang';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won' | 'failed';
 
-const NL = (): boolean => (navigator.language || 'en').toLowerCase().startsWith('nl');
-const T = (en: string, nl: string): string => (NL() ? nl : en);
 const nameOf = (l: Level): string => (NL() ? l.nameNl : l.name);
 const saveKey = (l: Level): string => `market:${l.id}`;
 
