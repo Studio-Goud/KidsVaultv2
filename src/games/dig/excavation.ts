@@ -616,10 +616,16 @@ export class DinoDig {
   private drawTools(): void {
     const ctx = this.ctx, u = this.u();
     const n = TOOLS.length;
-    const bw = Math.min(86 * u, (this.w - 24 * u) / n - 6 * u), bh = 60 * u;
+    // The guide sits in the bottom left corner of every game, and the brush - the first tool a
+    // child reaches for - was underneath him. The belt keeps out of that corner instead, because
+    // the guide being in the same place everywhere is worth more than this row being centred. On
+    // a narrow phone the buttons give up width for it rather than running off the other edge.
+    const keepClear = 58 * u;
+    const room = this.w - keepClear - 12 * u;
     const gap = 6 * u;
+    const bw = Math.min(86 * u, (room - (n - 1) * gap) / n), bh = 60 * u;
     const total = n * bw + (n - 1) * gap;
-    let x = (this.w - total) / 2;
+    let x = keepClear + Math.max(0, (room - total) / 2);
     const y = this.h - bh - 24 * u;
     for (const t of TOOLS) {
       const open = this.unlocked(t);
