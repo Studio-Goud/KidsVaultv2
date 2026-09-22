@@ -72,6 +72,20 @@ export const night = {
   hold(): void { bell(1174.7, 0.22, 0.05); },
   /** a line is finished; the note climbs with how much of the figure is there */
   line(step: number): void { bell(LADDER[Math.min(step, LADDER.length - 1)], 0.5, 0.075); },
+  /**
+   * A star locking under a finger that has not lifted.
+   *
+   * The pitch climbs a rung of the ladder per star, and past the top of the ladder it carries on an
+   * octave higher, so a run of nine feels like a run of nine rather than nine of the same note. It
+   * is the cheapest satisfying thing in the whole game.
+   */
+  lock(run: number): void {
+    const i = Math.max(0, Math.min(23, Math.round(run)));
+    const oct = Math.floor(i / LADDER.length);
+    bell(LADDER[i % LADDER.length] * Math.pow(2, Math.min(2, oct)), 0.2, 0.062);
+  },
+  /** the sky turning over once the lines have gone out */
+  turn(): void { air(0.75, 0.03, 2400, 800); bell(587.33, 0.55, 0.035, 0, 1.33); },
   /** a line taken away again */
   undo(): void { bell(392, 0.3, 0.05, 0, 1.33); },
   /** the figure lighting up for you to look at */

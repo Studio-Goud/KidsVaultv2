@@ -37,6 +37,9 @@ import {
   type Level, type Question,
 } from './model';
 import { drawPicture } from './pictures';
+import {
+  drawCredit, drawWordPhoto, loadPhotos, photoCount, photoCovers, photoFor, photosState, WIDTHS,
+} from './photos';
 import { drawFrame, drawSlot, drawTile, drawWood, INK } from './paint';
 import { lettersfx } from './lettersfx';
 import { hasVoice, initVoice, say, saySound, sayWord, sayWordAndParts, stopSpeaking } from './speech';
@@ -144,6 +147,9 @@ export class Letters {
     canvas.addEventListener('pointerup', e => this.onUp(e));
     canvas.addEventListener('pointercancel', e => this.onUp(e));
     (window as unknown as { __letters?: Letters }).__letters = this;
+    // the photographs come over the network and every word already has a drawing, so this is
+    // started and then forgotten about: the loop is redrawing anyway, and whatever lands, lands
+    void loadPhotos();
     const loop = (ms: number): void => {
       const now = ms / 1000;
       const dt = Math.min(0.05, now - this.t || 0);
@@ -184,6 +190,13 @@ export class Letters {
       stars: this.earned,
       teach: this.teach,
       voice: hasVoice(),
+      // the photographs: whether the data file arrived, how many pictures are held, and what this
+      // word is actually looking at - so a test can prove the fallback rather than squint at it
+      photos: photosState(),
+      photosHeld: photoCount(),
+      art: this.q.kind !== 'sentence' && photoFor(this.q.pic) ? 'photo' : 'drawn',
+      credit: photoFor(this.q.pic)?.credit ?? '',
+      licence: photoFor(this.q.pic)?.licence ?? '',
       spell: save.letters.spell,
       picked: this.picked,
       frame: { x: Math.round(L.frame.x + L.frame.w / 2), y: Math.round(L.frame.y + L.frame.h / 2) },
@@ -766,7 +779,17 @@ export class Letters {
     const ctx = this.ctx, u = this.u();
     const pop = this.solved ? 1 + easeOutBack(clamp(this.winPop, 0, 1)) * 0.06 + Math.sin(this.t * 7) * 0.012 * (1 - this.winPop) : 1;
     const inner = drawFrame(ctx, r.x, r.y, r.w, r.h, pop);
-    drawPicture(ctx, this.q.pic, inner.x, inner.y, inner.w, inner.h * (this.q.kind === 'sentence' ? 1 : 0.94));
+    const ph = inner.w * this.dpr > 420 ? WIDTHS.page : WIDTHS.card;
+    // a sentence is a scene, and a scene is the one thing a photograph cannot be, so those stay
+    // drawn whatever the data file says
+    const pic = this.q.kind === 'sentence' ? null : photoFor(this.q.pic);
+    const picH = inner.h * (this.q.kind === 'sentence' ? 1 : 0.94);
+    // the drawing stays underneath until the photograph is all the way in, so the frame is never
+    // empty and the fade-in crossfades between the two
+    if (!photoCovers(pic, ph)) drawPicture(ctx, this.q.pic, inner.x, inner.y, inner.w, picH);
+    if (pic && drawWordPhoto(ctx, pic, inner.x, inner.y, inner.w, picH, this.t, ph)) {
+      drawCredit(ctx, pic, t('lettersPhotoBy'), inner.x, inner.y, inner.w, picH, this.font('700', 8), u);
+    }
     // the English word under the picture, in the English half of the game: it gives away nothing
     // about the Dutch spelling and it is the only way an English speaker knows what they are
     // looking at
@@ -1094,7 +1117,12 @@ export class Letters {
       ctx.restore();
       ctx.save();
       ctx.globalAlpha = open ? 1 : 0.4;
-      drawPicture(ctx, LEVEL_PICS[i] ?? 'kat', x + cw * 0.12, y + 6 * u, cw * 0.76, art - 6 * u);
+      // the ladder gets the photographs too, at the small width, so the second look at a word in
+      // the game itself is already in the browser's cache
+      const lp = photoFor(LEVEL_PICS[i] ?? '');
+      const px = x + cw * 0.12, py = y + 6 * u, pw = cw * 0.76, phh = art - 6 * u;
+      if (!photoCovers(lp, WIDTHS.card)) drawPicture(ctx, LEVEL_PICS[i] ?? 'kat', px, py, pw, phh);
+      if (lp) drawWordPhoto(ctx, lp, px, py, pw, phh, this.t, WIDTHS.card, 9 * u);
       ctx.restore();
 
       ctx.fillStyle = 'rgba(30,50,24,0.5)';
@@ -1129,6 +1157,15 @@ export class Letters {
       });
     });
     ctx.restore();
+
+    // where the photographs come from, said once and quietly - the frames themselves carry the
+    // photographer, and this is the half of the credit that is the same for all of them
+    if (photosState() === 'ready') {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(45,62,42,0.45)';
+      ctx.font = this.font('700', 9);
+      ctx.fillText(t('lettersPhotoSource'), this.w / 2, this.h - 7 * u, this.w - 24 * u);
+    }
 
     // a hand pointing at the first level, until something has been played
     if (!levelProgress(saveKey(LEVELS[0])).completed && this.cardPop > 0.9) {

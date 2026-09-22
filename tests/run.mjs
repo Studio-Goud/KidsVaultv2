@@ -16,7 +16,7 @@
  */
 
 import { build } from 'esbuild';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -1278,6 +1278,144 @@ const group = name => console.log(`\n${name}`);
     SENTENCES.filter(s => !SCENES[s.scene]).map(s => s.scene), []);
 }
 
+// ---------------------------------------------------------------- Letterbos: the photographs
+
+/**
+ * Two halves that have to agree. `scripts/letterwords.mjs` decides which word gets a photograph
+ * and refuses anything that is not free to show; `src/games/letters/photos.ts` reads the file it
+ * wrote and refuses it a second time before drawing. The checks below hold both to the same rule,
+ * and hold the file that was actually shipped to it. `public/letters/photos.json` is checked into
+ * the repository and read here as a fixture rather than as outside state, because a photograph
+ * nobody may use is not the sort of thing to find out about on a phone.
+ */
+{
+  const { PLAN, isFreeLicence: freeInScript, isUsablePhoto } = await import('../scripts/letterwords.mjs');
+  const { WORDS } = await bundle('src/games/letters/words.ts', 'letterwords3.mjs');
+  const { PICTURES } = await bundle('src/games/letters/pictures.ts', 'pictures2.mjs');
+  const {
+    isFreeLicence: freeInGame, usableRow, creditLine, urlOf, loadPhotos, photoFor, photosState,
+    WIDTHS,
+  } = await bundle('src/games/letters/photos.ts', 'letterphotos.mjs');
+  const shipped = JSON.parse(readFileSync('public/letters/photos.json', 'utf8'));
+  const rowOf = w => shipped.words.find(r => r.w === w);
+  const licenceOf = r => shipped.licences[r.l];
+
+  group('Letterbos — foto of tekening, per woord');
+  is('test_photoplan_every_word_in_the_list_has_a_choice',
+    WORDS.filter(w => !PLAN[w.w]).map(w => w.w), []);
+  is('test_photoplan_holds_no_word_the_game_does_not_have',
+    Object.keys(PLAN).filter(w => !WORDS.some(x => x.w === w)), []);
+  is('test_photoplan_every_choice_is_photo_or_drawn',
+    Object.entries(PLAN).filter(([, p]) => p.art !== 'photo' && p.art !== 'drawn').map(([w]) => w), []);
+  // a word that keeps its drawing has to say why, because "we never got round to it" and "a
+  // photograph would be worse" are different answers and only one of them is finished
+  is('test_photoplan_every_drawn_word_says_why',
+    Object.entries(PLAN).filter(([, p]) => p.art === 'drawn' && !p.why).map(([w]) => w), []);
+  is('test_photoplan_every_photo_word_says_where_to_look',
+    Object.entries(PLAN).filter(([, p]) => p.art === 'photo' && !(p.src ?? []).length).map(([w]) => w), []);
+
+  group('Letterbos — geen woord zonder plaatje');
+  is('test_photodata_holds_a_row_for_every_word',
+    WORDS.filter(w => !rowOf(w.w)).map(w => w.w), []);
+  // the point of the whole thing: a word is either a photograph or a drawing and never neither,
+  // and the ones that are a photograph keep their drawing underneath to fall back to
+  is('test_photodata_every_word_has_a_photograph_or_a_drawing',
+    WORDS.filter(w => {
+      const r = rowOf(w.w);
+      const hasPhoto = r && r.a === 'photo' && isUsablePhoto({ p: r.p, c: r.c, l: licenceOf(r) });
+      return !hasPhoto && !PICTURES[w.pic];
+    }).map(w => w.w), []);
+  is('test_photodata_every_photographed_word_still_has_its_drawing',
+    shipped.words.filter(r => r.a === 'photo' && !PICTURES[r.w]).map(r => r.w), []);
+  is('test_photodata_at_least_forty_words_got_a_photograph',
+    shipped.words.filter(r => r.a === 'photo').length >= 40, true);
+
+  group('Letterbos — wie de foto maakte, en onder welke licentie');
+  is('test_photodata_every_photograph_names_a_photographer',
+    shipped.words.filter(r => r.a === 'photo' && !(r.c ?? '').trim()).map(r => r.w), []);
+  is('test_photodata_every_photograph_names_a_licence',
+    shipped.words.filter(r => r.a === 'photo' && !licenceOf(r)).map(r => r.w), []);
+  is('test_photodata_every_licence_is_one_we_may_show',
+    shipped.licences.filter(l => !freeInScript(l)), []);
+  is('test_photodata_every_path_leaves_room_for_a_width',
+    shipped.words.filter(r => r.a === 'photo' && !/^(thumb\/)?[0-9a-f]\//.test(r.p)).map(r => r.w), []);
+  is('test_photodata_a_drawn_row_carries_no_photograph',
+    shipped.words.filter(r => r.a === 'drawn' && (r.p || r.c)).map(r => r.w), []);
+
+  group('Letterbos — welke licentie mag, en welke niet');
+  const cases = [
+    ['CC0', true], ['Public domain', true], ['CC BY 4.0', true], ['CC BY-SA 3.0', true],
+    ['CC BY-SA 2.0 de', true], ['Attribution', true],
+    ['CC BY-NC 4.0', false], ['CC BY-NC-SA 3.0', false], ['CC BY-ND 4.0', false],
+    ['CC BY-NC-ND 2.0', false], ['GFDL', false], ['Fair use', false], ['', false],
+  ];
+  is('test_licence_cc_zero_is_free', freeInGame('CC0'), true);
+  is('test_licence_public_domain_is_free', freeInGame('Public domain'), true);
+  is('test_licence_cc_by_sa_is_free', freeInGame('CC BY-SA 4.0'), true);
+  is('test_licence_noncommercial_is_refused', freeInGame('CC BY-NC 4.0'), false);
+  is('test_licence_no_derivatives_is_refused', freeInGame('CC BY-ND 4.0'), false);
+  is('test_licence_noncommercial_no_derivatives_is_refused', freeInGame('CC BY-NC-ND 2.0'), false);
+  is('test_licence_nothing_at_all_is_refused', freeInGame(''), false);
+  // the script writes the file and the game reads it; if the two ever disagree about a licence,
+  // one of them is shipping something the other would have refused
+  is('test_licence_the_script_and_the_game_agree',
+    cases.filter(([name, want]) => freeInScript(name) !== want || freeInGame(name) !== want).map(([n]) => n), []);
+
+  group('Letterbos — terugvallen op de tekening');
+  const LIC = ['CC BY-SA 4.0', 'CC BY-NC 2.0'];
+  is('test_fallback_a_complete_row_is_shown',
+    usableRow({ w: 'koe', a: 'photo', p: 'thumb/a/ab/Koe.jpg/{w}px-Koe.jpg', c: 'Jan', l: 0 }, LIC), true);
+  is('test_fallback_a_row_with_no_photographer_falls_back',
+    usableRow({ w: 'koe', a: 'photo', p: 'thumb/a/ab/Koe.jpg/{w}px-Koe.jpg', c: '  ', l: 0 }, LIC), false);
+  is('test_fallback_a_row_with_an_unfree_licence_falls_back',
+    usableRow({ w: 'koe', a: 'photo', p: 'thumb/a/ab/Koe.jpg/{w}px-Koe.jpg', c: 'Jan', l: 1 }, LIC), false);
+  is('test_fallback_a_row_with_no_licence_falls_back',
+    usableRow({ w: 'koe', a: 'photo', p: 'thumb/a/ab/Koe.jpg/{w}px-Koe.jpg', c: 'Jan' }, LIC), false);
+  is('test_fallback_a_row_with_no_path_falls_back',
+    usableRow({ w: 'koe', a: 'photo', p: '', c: 'Jan', l: 0 }, LIC), false);
+  is('test_fallback_a_word_marked_drawn_is_never_shown',
+    usableRow({ w: 'pen', a: 'drawn', p: 'thumb/a/ab/Pen.jpg/{w}px-Pen.jpg', c: 'Jan', l: 0 }, LIC), false);
+  is('test_fallback_nothing_at_all_falls_back', usableRow(null, LIC), false);
+  // the same row asked twice has to give the same answer, whatever else is going on: the choice
+  // between a photograph and a drawing may not depend on how often it is asked
+  const twice = r => [usableRow(r, LIC), usableRow(r, LIC)];
+  is('test_fallback_is_the_same_answer_every_time',
+    twice({ w: 'koe', a: 'photo', p: 'x/y/Koe.jpg', c: 'Jan', l: 1 }), [false, false]);
+
+  group('Letterbos — de foto in het spel');
+  const bundleFile = {
+    v: 1, base: 'https://example.org/commons/', source: 'Wikimedia Commons',
+    licences: ['CC BY-SA 4.0', 'CC BY-NC 2.0'],
+    words: [
+      { w: 'koe', a: 'photo', p: 'thumb/a/ab/Koe.jpg/{w}px-Koe.jpg', c: 'Jan Bakker', l: 0 },
+      { w: 'pen', a: 'drawn' },
+      { w: 'vos', a: 'photo', p: 'thumb/c/cd/Vos.jpg/{w}px-Vos.jpg', c: 'Ann', l: 1 },
+      { w: 'kam', a: 'photo', p: 'thumb/e/ef/Kam.jpg/{w}px-Kam.jpg', c: '', l: 0 },
+    ],
+  };
+  is('test_photos_load_reads_the_file',
+    await loadPhotos(async () => ({ ok: true, json: async () => bundleFile })), 'ready');
+  is('test_photos_a_free_and_credited_word_gets_its_photograph', photoFor('koe')?.credit, 'Jan Bakker');
+  is('test_photos_a_drawn_word_gets_none', photoFor('pen'), null);
+  is('test_photos_an_unfree_word_gets_none', photoFor('vos'), null);
+  is('test_photos_an_uncredited_word_gets_none', photoFor('kam'), null);
+  is('test_photos_a_word_nobody_asked_about_gets_none', photoFor('maan'), null);
+  is('test_photos_the_address_carries_the_width_asked_for',
+    urlOf(photoFor('koe'), WIDTHS.card), 'https://example.org/commons/thumb/a/ab/Koe.jpg/330px-Koe.jpg');
+  is('test_photos_only_widths_wikimedia_renders_are_asked_for', [WIDTHS.card, WIDTHS.page], [330, 960]);
+  is('test_photos_the_credit_names_the_photographer_and_the_licence',
+    creditLine(photoFor('koe'), 'Foto'), 'Foto: Jan Bakker · CC BY-SA 4.0');
+
+  const offline = await bundle('src/games/letters/photos.ts', 'letterphotos2.mjs');
+  is('test_photos_no_network_leaves_every_word_drawn',
+    await offline.loadPhotos(async () => { throw new Error('offline'); }), 'failed');
+  is('test_photos_no_network_still_answers_for_every_word',
+    WORDS.filter(w => offline.photoFor(w.w) !== null).map(w => w.w), []);
+  is('test_photos_a_second_load_does_not_start_over',
+    await offline.loadPhotos(async () => ({ ok: true, json: async () => bundleFile })), 'failed');
+  is('test_photos_the_state_is_readable_from_outside', photosState(), 'ready');
+}
+
 // ---------------------------------------------------------------- Letterbos: the ladder of levels
 
 {
@@ -2390,6 +2528,306 @@ const group = name => console.log(`\n${name}`);
     })(), true);
   is('test_clock_dial_working_out_how_much_later_is_given_longest',
     parMsFor(LEVELS.find(L => L.id === 'later')) > parMsFor(LEVELS.find(L => L.id === 'hours')), true);
+}
+
+// ---------------------------------------------------------------- Night Watch: a sky without a top
+
+{
+  const S = await bundle('src/games/nightwatch/sky.ts', 'nwsky.mjs');
+  const G = await bundle('src/games/nightwatch/swipe.ts', 'nwswipe.mjs');
+  const { FIGURES } = await bundle('src/games/nightwatch/figures.ts', 'nwfigures.mjs');
+  const { uiScale } = await bundle('src/util/ui.ts', 'nwui.mjs');
+  const {
+    oneStrokeOrder, isOneStroke, minStarGap, grabRadius, lineClearance, widestStarR, capacity,
+    playField, frameFor, figureClosest, madeLadder, madePuzzle, generatedPuzzle, layoutSky,
+    closestPair, planNext, blend, parMsFor, NODE_CAP, EDGE_CAP, HAND_MADE_SPAN,
+  } = S;
+  const { starAt, press, move, lift, runLength, EMPTY_HAND } = G;
+
+  /** the three sizes the game is checked at by hand, plus a tablet */
+  const SCREENS = [[320, 568], [390, 844], [844, 390], [768, 1024]].map(([w, h]) => {
+    const u = uiScale(w, h);
+    return { w, h, u, f: playField(w, h, u) };
+  });
+  const phone = SCREENS[1];
+  const key = (a, b) => (a < b ? `${a}-${b}` : `${b}-${a}`);
+  /** distance from a point to a segment, for checking that no star sits on a line */
+  const segDist = (p, a, b) => {
+    const abx = b.x - a.x, aby = b.y - a.y, l2 = abx * abx + aby * aby;
+    let t = l2 ? ((p.x - a.x) * abx + (p.y - a.y) * aby) / l2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p.x - (a.x + abx * t), p.y - (a.y + aby * t));
+  };
+
+  group('Night Watch — a figure one finger can draw without lifting');
+  const kite = FIGURES.find(f => f.id === 'kite');
+  const owl = FIGURES.find(f => f.id === 'owl');
+  is('test_onestroke_a_closed_square_of_four_lines_is_one_stroke',
+    oneStrokeOrder([[0, 1], [1, 2], [2, 3], [3, 0]]).length, 4);
+  is('test_onestroke_the_order_it_gives_back_joins_end_to_end',
+    isOneStroke(oneStrokeOrder(kite.edges)), true);
+  is('test_onestroke_a_plain_path_keeps_every_line', oneStrokeOrder([[0, 1], [1, 2], [2, 3]]).length, 3);
+  is('test_onestroke_six_odd_ends_cannot_be_drawn_without_lifting', oneStrokeOrder(owl.edges), null);
+  is('test_onestroke_a_figure_in_two_pieces_is_refused', oneStrokeOrder([[0, 1], [2, 3]]), null);
+  is('test_onestroke_a_line_from_a_star_to_itself_is_refused', oneStrokeOrder([[0, 0]]), null);
+  is('test_onestroke_no_lines_at_all_is_refused', oneStrokeOrder([]), null);
+  is('test_onestroke_a_list_that_jumps_between_lines_is_not_in_order', isOneStroke([[0, 1], [2, 3]]), false);
+  is('test_onestroke_the_same_line_drawn_twice_is_not_one_stroke', isOneStroke([[0, 1], [1, 0]]), false);
+
+  group('Night Watch — no two stars closer than a fingertip');
+  is('test_gap_is_a_fingertip_plus_the_bodies_of_both_stars',
+    Math.round(minStarGap(1, 100) * 10) / 10, 35.8);
+  is('test_gap_is_wider_than_the_two_stars_it_has_to_separate',
+    minStarGap(1, 100) > widestStarR(1) * 2, true);
+  is('test_gap_grows_with_the_scale_of_the_interface', minStarGap(2, 100) > minStarGap(1, 100), true);
+  is('test_gap_a_wide_field_takes_a_share_of_itself_as_the_floor', minStarGap(1, 2000), 150);
+  is('test_gap_is_always_wider_than_the_reach_that_picks_a_star_up',
+    [1, 1.4, 2.2].every(u => [150, 280, 350, 700, 1200].every(s => minStarGap(u, s) > grabRadius(u, s))), true);
+  // a finger dead on a line is inside the reach of anything sitting beside it, so the clearance
+  // has to be wider than the reach and not narrower: a real swipe found this one the hard way
+  is('test_gap_a_line_holds_every_other_star_further_off_than_the_reach_that_picks_one_up',
+    [1, 1.4, 2.2].every(u => [150, 280, 350, 700, 1200].every(s => lineClearance(u, s) > grabRadius(u, s))), true);
+
+  group('Night Watch — the figures the sky makes up');
+  const DIALS = [0.5, 0.6, 0.7, 0.8, 0.9, 1];
+  const built = [];
+  for (const sc of SCREENS) for (const d of DIALS) for (let seed = 1; seed <= 20; seed++) {
+    const p = generatedPuzzle(d, sc.f, sc.u, seed * 37);
+    built.push({ sc, d, p, sky: layoutSky(p, sc.f, sc.u, seed * 11) });
+  }
+  is('test_generator_never_puts_two_stars_within_a_fingertip_of_each_other',
+    built.every(m => closestPair(m.sky.stars) >= minStarGap(m.sc.u, m.sc.f.s) - 1e-6), true);
+  is('test_generator_every_figure_it_makes_is_drawable_in_one_stroke',
+    built.every(m => m.p.oneStroke && oneStrokeOrder(m.p.edges) !== null), true);
+  is('test_generator_never_goes_over_the_star_cap', built.every(m => m.p.stars.length <= NODE_CAP), true);
+  is('test_generator_never_goes_over_the_line_cap', built.every(m => m.p.edges.length <= EDGE_CAP), true);
+  is('test_generator_always_gives_at_least_three_lines', built.every(m => m.p.edges.length >= 3), true);
+  is('test_generator_every_star_of_the_figure_carries_a_line',
+    built.every(m => m.p.stars.every((_, i) => m.p.edges.some(([a, b]) => a === i || b === i))), true);
+  is('test_generator_never_draws_the_same_line_twice',
+    built.every(m => new Set(m.p.edges.map(([a, b]) => key(a, b))).size === m.p.edges.length), true);
+  is('test_generator_never_puts_more_stars_in_the_sky_than_it_holds',
+    built.every(m => m.sky.stars.length <= capacity(m.sc.f, m.sc.u)), true);
+  is('test_generator_keeps_every_star_clear_of_the_lines_it_is_not_an_end_of',
+    built.every(m => {
+      const clear = lineClearance(m.sc.u, m.sc.f.s);
+      return m.p.edges.every(([ea, eb]) => {
+        const a = m.sky.stars[m.sky.figureStars[ea]], b = m.sky.stars[m.sky.figureStars[eb]];
+        return m.sky.stars.every((s, i) =>
+          i === m.sky.figureStars[ea] || i === m.sky.figureStars[eb] || segDist(s, a, b) >= clear - 1e-6);
+      });
+    }), true);
+  is('test_generator_never_lays_a_star_outside_the_field',
+    built.every(m => m.sky.stars.every(s =>
+      s.x >= m.sc.f.x && s.x <= m.sc.f.x + m.sc.f.w && s.y >= m.sc.f.y && s.y <= m.sc.f.y + m.sc.f.h)), true);
+
+  const avgOn = (sc, d, pick) => {
+    let sum = 0;
+    for (let i = 1; i <= 20; i++) sum += pick(generatedPuzzle(d, sc.f, sc.u, i * 37));
+    return sum / 20;
+  };
+  const avg = (d, pick) => avgOn(phone, d, pick);
+  is('test_generator_puts_more_stars_in_the_figure_higher_up_the_dial',
+    avg(1, p => p.stars.length) > avg(0.5, p => p.stars.length), true);
+  is('test_generator_draws_more_lines_higher_up_the_dial',
+    avg(1, p => p.edges.length) > avg(0.5, p => p.edges.length), true);
+  // a bigger figure is given more seconds overall and fewer of them per line, which is where the
+  // pressure actually comes from: eleven lines in three seconds is far less time than six in two
+  is('test_generator_gives_less_time_per_line_higher_up_the_dial',
+    avg(1, p => p.showMs / p.edges.length) < avg(0.5, p => p.showMs / p.edges.length), true);
+  is('test_generator_never_gives_less_than_a_third_of_a_second_a_line',
+    built.every(m => m.p.showMs / m.p.edges.length >= 200), true);
+  is('test_generator_never_gives_less_than_a_second_and_a_fifth_to_look',
+    built.every(m => m.p.showMs >= 1200), true);
+  is('test_generator_crowds_the_look_alikes_closer_higher_up_the_dial',
+    avg(1, p => p.crowd) > avg(0.6, p => p.crowd), true);
+  is('test_generator_scatters_more_look_alikes_higher_up_the_dial',
+    avg(1, p => p.distractors) > avg(0.5, p => p.distractors), true);
+  is('test_generator_leaves_the_sky_still_low_down_the_dial',
+    [0.1, 0.3, 0.5].every(d => {
+      const p = generatedPuzzle(d, phone.f, phone.u, 99);
+      return p.turn === 0 && p.mirror === false;
+    }), true);
+  is('test_generator_turns_the_sky_over_near_the_top_of_the_dial',
+    generatedPuzzle(0.95, phone.f, phone.u, 99).turn > 0, true);
+  is('test_generator_lines_go_out_together_low_down_and_one_at_a_time_higher_up',
+    [generatedPuzzle(0.3, phone.f, phone.u, 5).fade, generatedPuzzle(0.9, phone.f, phone.u, 5).fade],
+    ['together', 'oneByOne']);
+  const stamp = p => `${p.stars.length}:${p.edges.length}:${Math.round(p.stars[0][0] * 1e6)}`;
+  is('test_generator_the_same_seed_makes_the_same_figure',
+    stamp(generatedPuzzle(0.8, phone.f, phone.u, 4242)), stamp(generatedPuzzle(0.8, phone.f, phone.u, 4242)));
+  is('test_generator_a_different_seed_makes_a_different_figure',
+    stamp(generatedPuzzle(0.8, phone.f, phone.u, 4242)) !== stamp(generatedPuzzle(0.8, phone.f, phone.u, 77)), true);
+  is('test_generator_a_short_sideways_sky_gets_a_smaller_figure_than_a_tall_one',
+    avgOn(SCREENS[2], 1, p => p.stars.length) < avgOn(SCREENS[1], 1, p => p.stars.length), true);
+  is('test_generator_gives_a_made_up_figure_no_name_to_pretend_with',
+    (() => { const p = generatedPuzzle(0.9, phone.f, phone.u, 7); return [p.made, p.name, p.nameNl, p.lore]; })(),
+    [false, '', '', '']);
+  is('test_par_a_figure_with_more_lines_is_given_longer_to_draw', parMsFor(10, 5) > parMsFor(4, 5), true);
+
+  group('Night Watch — the hand-made figures, still whole');
+  is('test_figures_all_eight_hand_made_figures_are_still_here', FIGURES.length, 8);
+  is('test_figures_every_one_has_an_english_name_a_dutch_name_and_a_line_of_lore',
+    FIGURES.every(f => !!f.name && !!f.nameNl && f.lore.startsWith('nwLore')), true);
+  is('test_figures_every_line_joins_two_stars_that_exist',
+    FIGURES.every(f => f.edges.every(([a, b]) => a !== b && !!f.stars[a] && !!f.stars[b])), true);
+  is('test_figures_no_figure_draws_the_same_line_twice',
+    FIGURES.every(f => new Set(f.edges.map(([a, b]) => key(a, b))).size === f.edges.length), true);
+  is('test_figures_every_star_of_every_figure_is_on_a_line',
+    FIGURES.every(f => f.stars.every((_, i) => f.edges.some(([a, b]) => a === i || b === i))), true);
+  is('test_figures_every_star_sits_inside_the_square_it_is_placed_in',
+    FIGURES.every(f => f.stars.every(([x, y]) => x > 0 && x < 1 && y > 0 && y < 1)), true);
+  is('test_figures_no_two_stars_of_a_hand_made_figure_come_within_a_fingertip_on_any_screen',
+    SCREENS.every(sc => FIGURES.every(f => figureClosest(f.stars, sc.f) >= minStarGap(sc.u, sc.f.s))), true);
+  is('test_figures_no_star_of_a_hand_made_figure_sits_on_one_of_its_own_lines',
+    SCREENS.every(sc => FIGURES.every(f => {
+      const pts = f.stars.map(([x, y]) => ({ x: sc.f.x + x * sc.f.w, y: sc.f.y + y * sc.f.h }));
+      return f.edges.every(([a, b]) => pts.every((p, i) =>
+        i === a || i === b || segDist(p, pts[a], pts[b]) >= lineClearance(sc.u, sc.f.s)));
+    })), true);
+  is('test_ladder_the_kite_with_its_four_lines_opens_the_run', madeLadder()[0].figure.id, 'kite');
+  is('test_ladder_every_rung_stands_higher_than_the_one_below_it',
+    madeLadder().every((r, i, a) => i === 0 || r.at > a[i - 1].at), true);
+  is('test_ladder_the_lines_only_ever_grow_along_the_run',
+    madeLadder().every((r, i, a) => i === 0 || r.figure.edges.length >= a[i - 1].figure.edges.length), true);
+  is('test_ladder_the_last_hand_made_rung_is_halfway_up_the_dial',
+    madeLadder()[madeLadder().length - 1].at, HAND_MADE_SPAN);
+  is('test_ladder_holds_every_hand_made_figure_exactly_once',
+    new Set(madeLadder().map(r => r.figure.id)).size, FIGURES.length);
+  is('test_made_puzzle_keeps_the_figures_name_and_its_line_of_lore',
+    (() => { const p = madePuzzle(kite, 0.1, phone.f, phone.u, 3); return [p.name, p.nameNl, p.lore]; })(),
+    [kite.name, kite.nameNl, kite.lore]);
+  is('test_made_puzzle_keeps_every_line_of_the_figure',
+    madePuzzle(owl, 0.3, phone.f, phone.u, 3).edges.length, owl.edges.length);
+  is('test_made_puzzle_puts_the_kites_lines_into_one_stroke_order',
+    isOneStroke(madePuzzle(kite, 0.1, phone.f, phone.u, 3).edges), true);
+  is('test_made_puzzle_says_so_when_a_figure_needs_a_lift', madePuzzle(owl, 0.3, phone.f, phone.u, 3).oneStroke, false);
+  is('test_made_puzzle_never_crowds_a_hand_made_figure_past_a_fingertip',
+    SCREENS.every(sc => FIGURES.every(f => [0, 0.25, 0.5].every(d => {
+      const p = madePuzzle(f, d, sc.f, sc.u, 17);
+      return closestPair(layoutSky(p, sc.f, sc.u, 5).stars) >= minStarGap(sc.u, sc.f.s) - 1e-6;
+    }))), true);
+  is('test_frame_a_quarter_turn_lays_the_figure_into_a_square',
+    (() => { const fr = frameFor(phone.f, 1); return fr.w === fr.h; })(), true);
+  is('test_frame_a_half_turn_keeps_the_whole_field', frameFor(phone.f, 2).w, phone.f.w);
+  is('test_field_a_sideways_phone_still_gets_a_sky_deep_enough_for_a_fingertip',
+    playField(844, 390, uiScale(844, 390)).s * 0.18 > minStarGap(uiScale(844, 390), playField(844, 390, uiScale(844, 390)).s), true);
+
+  group('Night Watch — the ladder without a top');
+  const fresh = { level: 0.08, seen: 0, streak: 0, slump: 0 };
+  const plan = (vm, pattern, recent, seenMade) => planNext({
+    vm, pattern, recent: recent ?? [], seenMade: seenMade ?? [], field: phone.f, u: phone.u, seed: 21,
+  });
+  const good = { correct: true, ms: 1000, parMs: 5000, hints: 0, tries: 1 };
+  is('test_plan_a_child_at_the_bottom_meets_a_hand_made_figure_first', plan(fresh, fresh).puzzle.made, true);
+  is('test_plan_the_very_first_figure_is_the_easiest_hand_made_one', plan(fresh, fresh).puzzle.id, 'kite');
+  is('test_plan_a_figure_already_brought_back_tonight_does_not_come_round_again',
+    plan(fresh, fresh, [], ['kite']).puzzle.id !== 'kite', true);
+  is('test_plan_a_child_who_has_seen_them_all_gets_one_the_sky_made_up',
+    plan(fresh, fresh, [], FIGURES.map(f => f.id)).puzzle.made, false);
+  is('test_plan_a_child_far_above_the_hand_made_run_gets_one_the_sky_made_up',
+    plan({ ...fresh, level: 0.9 }, { ...fresh, level: 0.9 }).puzzle.made, false);
+  is('test_plan_a_child_partway_up_starts_partway_along_the_run',
+    plan({ ...fresh, level: 0.3 }, { ...fresh, level: 0.3 }).puzzle.id !== 'kite', true);
+  is('test_plan_two_wrong_in_a_row_builds_a_bridge_rather_than_starting_over',
+    plan({ ...fresh, level: 0.7, slump: 2 }, { ...fresh, level: 0.7, slump: 2 }).move, 'bridge');
+  is('test_plan_a_bridge_asks_for_less_than_the_child_was_on',
+    plan({ ...fresh, level: 0.7, slump: 2 }, { ...fresh, level: 0.7, slump: 2 }).difficulty < 0.7, true);
+  is('test_plan_a_clean_quick_run_stretches_rather_than_creeps',
+    plan({ ...fresh, level: 0.6, streak: 3 }, { ...fresh, level: 0.6, streak: 3 }, [good, good, good]).move, 'stretch');
+  is('test_plan_a_stretch_asks_for_more_than_the_child_was_on',
+    plan({ ...fresh, level: 0.6, streak: 3 }, { ...fresh, level: 0.6, streak: 3 }, [good, good, good]).difficulty > 0.6, true);
+  is('test_plan_forty_figures_in_a_row_all_come_out_drawable',
+    (() => {
+      for (let i = 0; i < 40; i++) {
+        const lvl = Math.min(1, i / 20);
+        const p = planNext({
+          vm: { ...fresh, level: lvl }, pattern: { ...fresh, level: lvl }, recent: [],
+          seenMade: [], field: phone.f, u: phone.u, seed: 100 + i,
+        }).puzzle;
+        if (p.edges.length < 3) return false;
+        if (!p.made && !p.oneStroke) return false;
+      }
+      return true;
+    })(), true);
+  is('test_blend_visual_memory_carries_most_of_the_weight',
+    blend({ level: 1, seen: 0, streak: 0, slump: 0 }, { level: 0, seen: 0, streak: 0, slump: 0 }).level, 0.65);
+  is('test_blend_the_worse_of_the_two_slumps_is_the_one_that_counts',
+    blend({ ...fresh, slump: 0 }, { ...fresh, slump: 2 }).slump, 2);
+  is('test_blend_a_streak_is_only_as_long_as_the_shorter_of_the_two',
+    blend({ ...fresh, streak: 5 }, { ...fresh, streak: 2 }).streak, 2);
+
+  group('Night Watch — what one finger means');
+  const STARS = [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }];
+  const nothing = () => false;
+  const has = set => (a, b) => set.has(key(a, b));
+  is('test_swipe_a_point_on_a_star_picks_that_star', starAt({ x: 4, y: 3 }, STARS, 30), 0);
+  is('test_swipe_a_point_out_of_reach_of_every_star_picks_nothing', starAt({ x: 50, y: 50 }, STARS, 30), null);
+  is('test_swipe_a_point_halfway_between_two_stars_refuses_to_choose',
+    starAt({ x: 85, y: 0 }, [{ x: 70, y: 0 }, { x: 100, y: 0 }], 30), null);
+  is('test_swipe_a_clearly_nearer_star_wins_even_when_both_are_in_reach',
+    starAt({ x: 90, y: 0 }, [{ x: 70, y: 0 }, { x: 100, y: 0 }], 30), 1);
+  is('test_swipe_a_wider_slack_refuses_a_pair_it_would_otherwise_have_split',
+    starAt({ x: 90, y: 0 }, [{ x: 70, y: 0 }, { x: 100, y: 0 }], 30, 0.5), null);
+  is('test_swipe_an_empty_sky_picks_nothing', starAt({ x: 0, y: 0 }, [], 30), null);
+  is('test_swipe_a_press_on_a_star_starts_a_run', press(EMPTY_HAND, 0, nothing).hand.path, [0]);
+  is('test_swipe_a_press_on_a_star_reports_that_it_started', press(EMPTY_HAND, 0, nothing).event, 'start');
+  is('test_swipe_a_press_on_empty_sky_starts_nothing', press(EMPTY_HAND, null, nothing).hand.path, []);
+  {
+    // Arrange: a finger down on star 0
+    let h = press(EMPTY_HAND, 0, nothing).hand;
+    // Act: run it on through 1, 2 and 3 without lifting
+    const one = move(h, 1, nothing); h = one.hand;
+    const two = move(h, 2, nothing); h = two.hand;
+    const three = move(h, 3, nothing); h = three.hand;
+    is('test_swipe_running_on_to_a_new_star_adds_a_line', one.event, 'add');
+    is('test_swipe_the_added_line_joins_the_star_left_to_the_star_reached', [one.a, one.b], [0, 1]);
+    is('test_swipe_a_run_through_four_stars_draws_three_lines',
+      [one.event, two.event, three.event], ['add', 'add', 'add']);
+    is('test_swipe_the_run_remembers_every_star_it_passed_through', h.path, [0, 1, 2, 3]);
+    is('test_swipe_the_note_climbs_with_the_length_of_the_run', runLength(h), 3);
+    // Act: pull back over the star before last
+    const back = move(h, 2, nothing);
+    is('test_swipe_passing_back_over_the_last_star_takes_that_line_away', back.event, 'undo');
+    is('test_swipe_the_line_taken_away_is_the_one_just_drawn', [back.a, back.b], [3, 2]);
+    is('test_swipe_the_run_is_one_star_shorter_after_a_pull_back', back.hand.path, [0, 1, 2]);
+  }
+  is('test_swipe_standing_still_on_the_same_star_changes_nothing',
+    move({ path: [0, 1], links: 1, anchor: null }, 1, nothing).event, 'none');
+  is('test_swipe_a_finger_between_stars_changes_nothing',
+    move({ path: [0, 1], links: 1, anchor: null }, null, nothing).event, 'none');
+  is('test_swipe_a_run_that_never_started_ignores_a_star_under_it', move(EMPTY_HAND, 2, nothing).event, 'none');
+  {
+    // Arrange: a press on star 0 that goes nowhere, then lifted - a plain tap
+    const after = lift(press(EMPTY_HAND, 0, nothing).hand);
+    is('test_swipe_lifting_on_the_first_star_leaves_it_waiting', after.anchor, 0);
+    // Act: tap a second star
+    const join = press(after, 2, nothing);
+    is('test_swipe_a_tap_and_then_another_tap_draws_the_line_between_them',
+      [join.event, join.a, join.b], ['add', 0, 2]);
+    is('test_swipe_the_second_tap_leaves_nothing_waiting', join.hand.anchor, null);
+    is('test_swipe_the_second_tap_can_be_carried_straight_on_into_a_run', join.hand.path, [2]);
+  }
+  is('test_swipe_lifting_after_a_line_leaves_nothing_waiting',
+    lift({ path: [0, 1], links: 1, anchor: null }).anchor, null);
+  is('test_swipe_a_press_on_empty_sky_lets_the_waiting_star_go',
+    press({ path: [], links: 0, anchor: 3 }, null, nothing).hand.anchor, null);
+  is('test_swipe_pressing_the_waiting_star_again_only_picks_it_up_once_more',
+    press({ path: [], links: 0, anchor: 3 }, 3, nothing).hand.path, [3]);
+  {
+    // Arrange: the line between stars 0 and 1 is already on the sky
+    const drawn = new Set([key(0, 1)]);
+    // Act: draw over it as the first line of a gesture
+    const over = move(press(EMPTY_HAND, 0, has(drawn)).hand, 1, has(drawn));
+    is('test_swipe_drawing_over_a_line_you_already_have_takes_it_away', over.event, 'remove');
+    is('test_swipe_a_line_taken_away_leaves_the_finger_on_the_far_star', over.hand.path, [1]);
+    // Act: meet the same line partway through a long run instead
+    const mid = move({ path: [5, 0], links: 1, anchor: null }, 1, has(drawn));
+    is('test_swipe_a_long_run_crossing_a_line_it_already_has_leaves_it_alone', mid.event, 'pass');
+    is('test_swipe_a_run_that_passed_a_line_it_had_carries_straight_on', mid.hand.path, [5, 0, 1]);
+    is('test_swipe_a_tap_onto_a_line_you_already_have_takes_it_away',
+      press({ path: [], links: 0, anchor: 0 }, 1, has(drawn)).event, 'remove');
+  }
 }
 
 rmSync(out, { recursive: true, force: true });
