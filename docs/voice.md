@@ -167,3 +167,7 @@ Wat na die rondes nog niet Ruth is, en waarom:
 - **De radio van Cloudhopper**: Engelse luchtverkeersleiding met wisselende roepnamen, banen en
   windsnelheden, in twee stemmen (toren en piloot), met een eigen spraakcode. Wacht ook op een besluit.
 - **Alles in het Engels.** Ruth spreekt alleen de Nederlandse regels.
+
+Later dezelfde dag: het Engels is compleet. Alle 5245 Engelse regels, inclusief de 3738 Engelse
+diernamen, zijn met Ruth ingesproken (`npm run voice -- render <id> --lang en`). Een willekeurige
+rondgang in het Engels over negen pagina's gaf 124 gesproken regels, alle 124 uit opnames.
