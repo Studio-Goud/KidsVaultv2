@@ -1,5 +1,6 @@
 import { lang } from '../util/lang';
 import { save } from '../util/storage';
+import { lineKey } from './voicekey';
 
 /**
  * The app's voice.
@@ -186,7 +187,9 @@ export function say(id: string | null, text: string, opts: { rate?: number } = {
   stopSpeaking();
   const which = lang();
 
-  const clip = id ? clipFor(clips, which, id) : null;
+  // a line with a name of its own is looked up by it; everything else by its words, which is how
+  // `scripts/voice.mjs` files what it renders
+  const clip = (id ? clipFor(clips, which, id) : null) ?? (text ? clipFor(clips, which, lineKey(text)) : null);
   if (clip) {
     try {
       const a = new Audio(`./voice/${clip.file}`);

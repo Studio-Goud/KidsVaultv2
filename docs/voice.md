@@ -103,3 +103,15 @@ audiobestand meeleveren. De code kan dat al. Wat open staat is waarmee:
 Eén complicatie voor elke keuze: niet elke zin ligt vast. Rekenrijk zegt "acht plus vijf is
 dertien", Klokkijken zegt tijden, en die zinnen worden samengesteld. Die moeten ofwel in stukjes
 worden gerenderd en aan elkaar gezet, of op de toestelstem blijven.
+
+## 2026-09-23 — ElevenLabs, via een script op de bouwmachine
+
+De eigenaar heeft een ElevenLabs-account met tegoed en koos daarvoor. `scripts/voice.mjs` doet het
+hele traject: het leest alle Nederlandse zinnen uit de broncode (735 op dit moment, 39.304 tekens),
+laat ze één keer inspreken, zet de mp3's in `public/voice/nl/` en schrijft `clips.json`. De app
+zoekt een opname op de woorden zelf (`lineKey()` in `src/platform/voicekey.ts`), dus geen enkel
+spel hoefde te veranderen. Een zin die van woorden verandert valt terug op de toestelstem tot het
+script opnieuw draait; een andere stem of ander model laat het alles opnieuw doen.
+
+De sleutel staat als `ELEVENLABS_API_KEY` in de omgeving en nergens in de repo. Zinnen die pas
+tijdens het spelen worden samengesteld (sommen, tijden, dierennamen) blijven op de toestelstem.

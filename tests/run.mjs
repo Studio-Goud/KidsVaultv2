@@ -2932,6 +2932,12 @@ const group = name => console.log(`\n${name}`);
   is('test_voice_an_underscore_in_the_language_tag_is_read',
     pickName([v('Claire', 'nl_NL')]), 'Claire');
 
+  const { lineKey } = await bundle('src/platform/voicekey.ts', 'voicekey.mjs');
+  is('test_voicekey_the_same_words_give_the_same_key', lineKey('Tik op de klokjes.'), lineKey('Tik op de klokjes.'));
+  is('test_voicekey_spacing_does_not_change_the_key', lineKey('Tik  op de\nklokjes. '), lineKey('Tik op de klokjes.'));
+  is('test_voicekey_different_words_give_a_different_key', lineKey('Tik op de klokjes.') === lineKey('Tik op de klokjes'), false);
+  is('test_voicekey_a_key_is_short_and_safe_as_a_file_name', /^t[0-9a-f]{8}$/.test(lineKey('Één, twee, drie.')), true);
+
   const good = { nl: [{ id: 'a', file: 'nl/a.mp3', secs: 1.2 }], en: [{ id: 'a', file: 'en/a.mp3', secs: 1.1 }] };
   is('test_voice_a_good_manifest_survives', cleanManifest(good), good);
   is('test_voice_nothing_recorded_is_not_an_error', cleanManifest({ nl: [], en: [] }), { nl: [], en: [] });
