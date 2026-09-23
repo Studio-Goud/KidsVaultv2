@@ -287,3 +287,30 @@ tienjarige, via de `__years`-haak. Tot nu toe zag hij geen van die schermen.
 Wat nog niet klopt: er is geen einde. De eenvoudige Opgraving eindigt als het fossiel eruit is;
 het instrument eindigt pas als de dag op is. Voor een vrij instrument vind ik dat verdedigbaar,
 maar het is een uitzondering op "elke sessie eindigt" en die hoort hier te staan.
+
+---
+
+## 2026-09-23 — Opgenomen stem en geluidseffecten, met de oude eronder
+
+Tot vandaag was elk geluid in Suri in code gemaakt, en de stem was die van de telefoon. De eigenaar
+vond dat het als een robot klonk, heeft een ElevenLabs-account, en vroeg om een natuurlijke
+vrouwenstem en om echte geluidseffecten in elk spel.
+
+**Besluit: opnames vóór de code, nooit in plaats van.** Ruth spreekt alle vaste Nederlandse regels
+(`docs/voice.md`), en 138 effecten in veertien spellen en Cloudhopper zijn opgenomen
+(`src/platform/sfxspec.ts`). Alles wordt één keer op de bouwmachine gemaakt en gaat als bestand mee
+in de app. Wat er niet is - een regel die tijdens het spelen wordt samengesteld, een effect zonder
+opname, een bestand dat nog niet geladen is - valt terug op wat er altijd was. Een ontbrekend
+bestand is dus nooit een stil spel.
+
+Drie grenzen:
+
+1. **De noten van Klankhuis blijven code.** Klokjes, aftellen en trommel moeten zuiver gestemd en
+   precies op de audioklok staan. Alleen de knoppen en het applaus van Klankhuis zijn opgenomen.
+2. **Doorlopende geluiden blijven code**: motoren en zoemers die met het spel meebewegen.
+3. **De telefoon praat met niemand.** ElevenLabs ziet alleen de zinnen van de app, tijdens het
+   bouwen. Er gaat niets over een kind heen, en regel 1 uit `CLAUDE.md` blijft waar.
+
+De prijs: 13 MB stem en 1,5 MB effecten in de download, en een regel of effect dat verandert moet
+opnieuw door het script. Wat ik niet heb kunnen doen, is ernaar luisteren: deze omgeving heeft
+geen luidspreker. Dat een opname laadt en afspeelt is nagelopen, niet hoe hij klinkt.

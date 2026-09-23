@@ -9,6 +9,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -70,7 +71,7 @@ function throttled(ms: number): boolean {
   return true;
 }
 
-export const dig = {
+export const dig = withSamples('dig', {
   brush(): void { if (throttled(90)) burst(2600, 0.7, 0.14, 0.05, 1700); },
   chisel(): void { if (throttled(120)) { burst(1500, 3, 0.05, 0.07); ping(880, 0.07, 0.03, 'triangle', 620); } },
   hammer(): void { if (throttled(150)) { burst(340, 1.2, 0.12, 0.10, 180); ping(120, 0.1, 0.05, 'sine', 70); } },
@@ -84,4 +85,4 @@ export const dig = {
   complete(): void { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => ping(f, 0.4, 0.05, 'triangle'), i * 120)); },
   tired(): void { ping(200, 0.5, 0.05, 'sine', 120); },
   tap(): void { ping(740, 0.06, 0.05, 'sine'); },
-};
+});

@@ -115,3 +115,33 @@ script opnieuw draait; een andere stem of ander model laat het alles opnieuw doe
 
 De sleutel staat als `ELEVENLABS_API_KEY` in de omgeving en nergens in de repo. Zinnen die pas
 tijdens het spelen worden samengesteld (sommen, tijden, dierennamen) blijven op de toestelstem.
+
+## 2026-09-23 — Ruth
+
+De eigenaar koos na een proef met vier Nederlandse stemmen uit de ElevenLabs-bibliotheek (Ruth
+als kinderverteller, Roos, Emma, Melanie) voor **Ruth, "Friendly Children's Storyteller"**
+(`yO6w2xlECAQRFP6pX7Hw`, model `eleven_multilingual_v2`). Alle 1354 Nederlandse regels die het
+script in de broncode vindt zijn met haar ingesproken, samen ongeveer 47.000 tekens en 13 MB aan
+bestanden.
+
+`npm run voicecheck` opent elke pagina als twee- en als zesjarige en zegt per gesproken regel of
+hij van Ruth komt of van de telefoon. De eerste keer waren dat 40 tegen 17, om drie redenen, en
+alle drie zijn opgelost:
+
+1. **De openingszin kwam te vroeg.** Een spel zegt zijn eerste regel voordat `clips.json` binnen
+   is. Een regel wacht nu maximaal anderhalve seconde op de lijst, en alleen als er intussen niets
+   nieuws gevraagd is.
+2. **Korte regels waren overgeslagen** ("Zoeken", "Kijk goed", titels), omdat ik dacht dat die
+   alleen gelezen worden. Het Dierenboek en de Nachtwacht zeggen ze hardop. Ze zitten er nu in,
+   net als het oude woordenboek in `src/i18n.ts` en `NL() ? '…' : '…'`.
+3. **Samengestelde regels.** "Welke komt hierna?" plus de naam van het niveau is nergens één
+   zin. De app speelt nu de losse opnames achter elkaar als elke zin er een heeft, en anders de
+   hele regel op de telefoonstem; twee stemmen door elkaar in één regel klinkt slechter.
+
+Daarna: 55 tegen 0 op dezelfde rondgang. Dat is niet elke regel in de app, alleen wat een kind in
+de eerste tikken hoort.
+
+Wat nog op de telefoonstem staat: alles wat met getallen, tijden of namen tijdens het spelen wordt
+samengesteld (Rekenrijk, Klokkijken, de 3744 dieren), de klanken en woorden in Letterbos, en alle
+Engelse tekst. En op een echte telefoon mag geluid pas na de eerste aanraking; een openingszin die
+daarvoor valt, blijft stil of gaat naar de telefoonstem, zoals voorheen.

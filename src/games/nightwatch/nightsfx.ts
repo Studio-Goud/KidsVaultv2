@@ -9,6 +9,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -67,7 +68,7 @@ function air(dur: number, gain: number, from: number, to: number, when = 0): voi
 /** A pentatonic ladder, so any two notes played together still sound like they belong. */
 const LADDER = [523.25, 587.33, 698.46, 783.99, 932.33, 1046.5, 1174.7, 1396.9];
 
-export const night = {
+export const night = withSamples('nightwatch', {
   /** a finger lands on a star */
   hold(): void { bell(1174.7, 0.22, 0.05); },
   /** a line is finished; the note climbs with how much of the figure is there */
@@ -105,4 +106,4 @@ export const night = {
     air(2.4, 0.05, 700, 4200);
     [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98].forEach((f, i) => bell(f, 1.8 - i * 0.1, 0.08, i * 0.13));
   },
-};
+});

@@ -2907,10 +2907,43 @@ const group = name => console.log(`\n${name}`);
     [3, 4, 5, 6, 7, 8].every(a => coverage(a) >= coverage(2)), true);
 }
 
+// ---------------------------------------------------------------- Recorded sound effects
+
+{
+  const { SFX } = await bundle('src/platform/sfxspec.ts', 'sfxspec.mjs');
+  group('Platform — recorded sound effects');
+  const rows = Object.entries(SFX);
+  is('test_sfx_every_row_is_named_game_dot_method', rows.every(([k]) => /^[a-z]+\.[a-zA-Z]+$/.test(k)), true);
+  is('test_sfx_every_generation_is_at_least_the_api_floor', rows.every(([, r]) => r.secs >= 0.5), true);
+  is('test_sfx_nothing_plays_longer_than_it_was_made', rows.every(([, r]) => r.max > 0 && r.max <= r.secs), true);
+  is('test_sfx_every_prompt_asks_for_the_house_sound', rows.every(([, r]) => r.prompt.includes('for a calm children')), true);
+  is('test_sfx_klankhuis_notes_are_never_recorded',
+    rows.some(([k]) => /^rhythm\.(play|playChord|click|drum)$/.test(k)), false);
+  // the sfx files are the other half of the contract: every row has to name a method that exists
+  const { readFileSync } = await import('node:fs');
+  const src = { atlas: 'atlas/atlassfx', circuit: 'circuit/sfx', clock: 'clock/clocksfx', dig: 'dig/digsfx',
+    letters: 'letters/lettersfx', market: 'market/marketsfx', mill: 'mill/millsfx', moonshot: 'moonshot/rocketsfx',
+    nightwatch: 'nightwatch/nightsfx', numbers: 'numbers/numbersfx', orbit: 'orbit/orbitsfx', puffball: 'puffball/puffsfx',
+    rhythm: 'rhythm/chimesfx', tidepool: 'tidepool/tidesfx' };
+  const text = g => g === 'cloudhopper' ? readFileSync('src/util/audio.ts', 'utf8') : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
+  is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k]) => {
+    const [g, m] = k.split('.');
+    const t = text(g);
+    return !(new RegExp(`\\n  ${m}\\(`).test(t) || new RegExp(`function ${m}Synth\\(`).test(t));
+  }).map(([k]) => k), []);
+
+  const { measure } = await bundle('src/platform/sfxlevel.ts', 'sfxlevel.mjs');
+  const quiet = new Float32Array(1000);
+  for (let i = 500; i < 1000; i++) quiet[i] = i % 2 ? 0.5 : -0.5;
+  is('test_sfx_silence_before_a_sound_is_skipped', Math.round(measure(quiet, 1000).start * 1000), 496);
+  is('test_sfx_a_sound_is_levelled_by_its_peak', measure(quiet, 1000).level, 0.8);
+  is('test_sfx_a_silent_file_plays_at_nothing', measure(new Float32Array(10), 1000).level, 0);
+}
+
 // ---------------------------------------------------------------- The voice
 
 {
-  const { cleanManifest, clipFor, bestVoice } = await bundle('src/platform/voice.ts', 'voice.mjs');
+  const { cleanManifest, clipFor, bestVoice, clipsForLine } = await bundle('src/platform/voice.ts', 'voice.mjs');
   group('Platform — the voice');
 
   // "elke gesproken tekst is nu zo'n AI robot": pick the most natural woman's voice the device has
@@ -2937,6 +2970,17 @@ const group = name => console.log(`\n${name}`);
   is('test_voicekey_spacing_does_not_change_the_key', lineKey('Tik  op de\nklokjes. '), lineKey('Tik op de klokjes.'));
   is('test_voicekey_different_words_give_a_different_key', lineKey('Tik op de klokjes.') === lineKey('Tik op de klokjes'), false);
   is('test_voicekey_a_key_is_short_and_safe_as_a_file_name', /^t[0-9a-f]{8}$/.test(lineKey('Één, twee, drie.')), true);
+
+  // a line a game puts together at runtime is said from the recordings of its sentences
+  const rec = (...texts) => ({ nl: texts.map(t => ({ id: lineKey(t), file: `nl/${lineKey(t)}.mp3`, secs: 1 })), en: [] });
+  const m2 = rec('Welke komt hierna?', 'De vier rotsplaneten, dichtst bij de zon eerst', 'Tik op de klokjes.');
+  is('test_voice_a_whole_line_is_one_recording', clipsForLine(m2, 'nl', 'Tik op de klokjes.').length, 1);
+  is('test_voice_a_full_stop_left_off_still_finds_the_recording', clipsForLine(m2, 'nl', 'Tik op de klokjes').length, 1);
+  is('test_voice_a_line_put_together_is_said_from_its_sentences',
+    clipsForLine(m2, 'nl', 'Welke komt hierna? De vier rotsplaneten, dichtst bij de zon eerst.').length, 2);
+  is('test_voice_one_sentence_missing_sends_the_whole_line_to_the_device',
+    clipsForLine(m2, 'nl', 'Welke komt hierna? Iets wat niemand insprak.'), null);
+  is('test_voice_nothing_recorded_means_the_device', clipsForLine(rec(), 'nl', 'Hoi.'), null);
 
   const good = { nl: [{ id: 'a', file: 'nl/a.mp3', secs: 1.2 }], en: [{ id: 'a', file: 'en/a.mp3', secs: 1.1 }] };
   is('test_voice_a_good_manifest_survives', cleanManifest(good), good);

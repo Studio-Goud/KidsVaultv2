@@ -83,7 +83,7 @@ draagt twee reizen en een derde is een databestand. Het ouderscherm heeft een pi
 een tijdslimiet met de NJi-onderbouwing erbij, en vijftien vragen die vóór de code te lezen zijn.
 De dagteller telt. De keuzes van de ouder bereiken de voorpagina: uitgevinkte onderwerpen zijn
 weg, en wat nog te oud of al ontgroeid is staat in een eigen rij in plaats van te verdwijnen
-(`shelf()` in `src/platform/catalog.ts`). 1368 checks groen, `npm run audit` 0 fouten over 24 schermen x 5 schermmaten.
+(`shelf()` in `src/platform/catalog.ts`). 1382 checks groen, `npm run audit` 0 fouten over 24 schermen x 5 schermmaten.
 
 **Wat er níét is, en wat dus niet beweerd mag worden:** geen pedagoog heeft hier ooit naar
 gekeken. Er is geen afrekening, dus de €3,99 bestaat nog niet. Er is geen service worker, dus
@@ -131,10 +131,11 @@ De zwakste kant van een app die "audio-first" heet, is dat hij klinkt als een ro
 beschrijft het manifest. Er hoeft dus niets aan de code te veranderen om dit te repareren — alleen
 iemand die het inspreekt.
 
-De eigenaar heeft gezegd wat hij wil: **een zo natuurlijk mogelijke vrouwenstem**. Het toestel kiest
-nu al de beste vrouwenstem die het zelf heeft (`voiceScore()` in `src/platform/voice.ts`), maar dat
-blijft de stem van de telefoon. De echte stap is vooraf gerenderde clips, en welke dienst of welk
-model die maakt is een keuze van de eigenaar, niet van mij. Zie `docs/voice.md`.
+**Grotendeels gedaan.** De eigenaar koos Ruth uit de ElevenLabs-bibliotheek; alle 1354 vaste
+Nederlandse regels zijn met haar ingesproken (`npm run voice`), en `npm run voicecheck` laat zien
+welke regels nog op de telefoonstem vallen. Wat overblijft: regels met getallen, tijden en namen
+die tijdens het spelen worden samengesteld, Letterbos' klanken, en al het Engels. Zie
+`docs/voice.md`. Een regel die van woorden verandert, moet opnieuw door het script.
 
 ### 5. Afrekenen
 

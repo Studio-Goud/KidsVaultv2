@@ -7,6 +7,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -83,7 +84,7 @@ export class Square {
   }
 }
 
-export const market = {
+export const market = withSamples('market', {
   /** fruit into the basket: a soft thud with a bit of body */
   drop(i = 0): void { burst(300 - i * 8, 1.2, 0.09, 0.09, 180); ping(160, 0.08, 0.03, 'sine', 90); },
   take(): void { burst(700, 1.5, 0.07, 0.05, 1100); },
@@ -96,4 +97,4 @@ export const market = {
   complete(): void { [523, 659, 784, 1047].forEach((f, i) => ping(f, 0.42, 0.055, 'triangle', undefined, i * 0.12)); },
   fail(): void { ping(300, 0.6, 0.06, 'sine', 140); },
   tap(): void { ping(740, 0.06, 0.05, 'sine'); },
-};
+});

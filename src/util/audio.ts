@@ -1,4 +1,5 @@
 import { save } from './storage';
+import { withSamples } from '../platform/samples';
 
 /**
  * All sound is synthesized with WebAudio: no audio files, works offline inside Capacitor.
@@ -65,7 +66,7 @@ function noiseBurst(t0: number, dur: number, gain: number, filterType: BiquadFil
   s.connect(f).connect(g).connect(master); s.start(t0); s.stop(t0 + dur + 0.1);
 }
 
-export const sfx = {
+export const sfx = withSamples('cloudhopper', {
   unlock: unlockAudio,
   landed(): void {
     if (!enabled() || !ctx) return;
@@ -117,7 +118,7 @@ export const sfx = {
     const t = ctx.currentTime;
     tone(on ? 880 : 440, t, 0.5, 'sine', 0.12, on ? 220 : 880);
   },
-};
+});
 
 export function haptic(kind: 'light' | 'medium' | 'heavy' = 'light'): void {
   if (!save.haptics) return;

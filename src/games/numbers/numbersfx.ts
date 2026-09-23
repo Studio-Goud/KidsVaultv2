@@ -11,6 +11,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -49,7 +50,7 @@ function knock(freq: number, gain: number, dur = 0.05, q = 2.2): void {
   src.start(t); src.stop(t + dur + 0.02);
 }
 
-export const numbersfx = {
+export const numbersfx = withSamples('numbers', {
   /** a bead slides along the wire and knocks into the next */
   bead(): void { knock(1400, 0.06, 0.04, 3); },
   /** something is picked up off the table */
@@ -72,4 +73,4 @@ export const numbersfx = {
   wrong(): void { ping(300, 0.22, 0.055, 'triangle', 200); ping(220, 0.3, 0.045, 'sine', 150, 0.12); },
   /** the level is done */
   complete(): void { [523, 659, 784, 1047].forEach((f, i) => ping(f, 0.5, 0.05, 'triangle', undefined, i * 0.13)); },
-};
+});

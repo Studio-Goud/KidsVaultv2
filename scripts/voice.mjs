@@ -98,15 +98,23 @@ function harvest() {
       if (ts.isCallExpression(n) && ts.isIdentifier(n.expression) && n.expression.text === 'T'
         && n.arguments.length === 2 && lit(n.arguments[1])) lines.add(n.arguments[1].text);
       if (ts.isPropertyAssignment(n) && /Nl$/.test(n.name.getText(sf)) && lit(n.initializer)) lines.add(n.initializer.text);
+      // `NL() ? 'Dutch' : 'English'`
+      if (ts.isConditionalExpression(n) && ts.isCallExpression(n.condition)
+        && n.condition.expression.getText(sf) === 'NL' && lit(n.whenTrue)) lines.add(n.whenTrue.text);
+      // the Dutch half of an old-style dictionary, `const nl = { key: '...' }` (src/i18n.ts)
+      if (ts.isVariableDeclaration(n) && n.name.getText(sf) === 'nl' && n.initializer
+        && ts.isObjectLiteralExpression(n.initializer)) {
+        for (const pr of n.initializer.properties) if (ts.isPropertyAssignment(pr) && lit(pr.initializer)) lines.add(pr.initializer.text);
+      }
       ts.forEachChild(n, visit);
     };
     visit(sf);
   }
-  // a button label is read, not said; a sentence is three words or ends like one
-  return [...lines]
-    .map(s => s.replace(/\s+/g, ' ').trim())
+  // Short labels are kept too: the first run left them out as "read, not said", and then the animal
+  // book said "Zoeken" and the night sky said "Kijk goed" in the phone's voice. A label costs a few
+  // credits; a gap costs a second voice.
+  return [...new Set([...lines].map(s => s.replace(/\s+/g, ' ').trim()))]
     .filter(s => /[a-zà-ÿ]/i.test(s) && !/[<>{}]/.test(s))
-    .filter(s => s.split(' ').length >= 3 || /[.?!]$/.test(s))
     .sort();
 }
 

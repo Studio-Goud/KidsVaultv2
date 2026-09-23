@@ -9,6 +9,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -121,7 +122,7 @@ class Engine {
 
 export const engineSound = new Engine();
 
-export const rocket = {
+export const rocket = withSamples('moonshot', {
   /** a part clicking onto the stack */
   clunk(): void { tone(180, 0.09, 0.07, 'square', 120); burst(0.07, 0.05, 1800, 700); },
   tap(): void { tone(620, 0.06, 0.05, 'triangle'); },
@@ -140,4 +141,4 @@ export const rocket = {
     [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.5, 0.075, 'triangle', undefined, i * 0.11));
     burst(1.4, 0.05, 700, 3000, 0.6);
   },
-};
+});

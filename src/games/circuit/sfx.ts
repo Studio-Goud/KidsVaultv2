@@ -9,6 +9,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -111,7 +112,7 @@ export const buzzHum = new Held('square', 380, 110, 0.035);
 /** A relay coil holding in: the faint hum of something magnetic being pulled tight. */
 export const coilHum = new Held('triangle', 96, 26, 0.022);
 
-export const bench = {
+export const bench = withSamples('circuit', {
   /** a part set down on the board */
   clunk(): void { tone(190, 0.08, 0.06, 'square', 128); burst(0.06, 0.04, 1600, 620); },
   tap(): void { tone(660, 0.05, 0.045, 'triangle'); },
@@ -141,4 +142,4 @@ export const bench = {
   },
   /** everything that was being held, let go at once */
   hush(): void { motorHum.stop(); buzzHum.stop(); coilHum.stop(); },
-};
+});

@@ -9,6 +9,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -47,7 +48,7 @@ function knock(freq: number, gain: number, dur = 0.05): void {
   src.start(t); src.stop(t + dur + 0.02);
 }
 
-export const lettersfx = {
+export const lettersfx = withSamples('letters', {
   /** a tile has been picked up off the rack */
   lift(): void { tone(520, 0.07, 0.035, 'sine', 700); },
   /** a tile has landed in its slot */
@@ -65,4 +66,4 @@ export const lettersfx = {
   chop(): void { knock(1500, 0.08, 0.04); tone(880, 0.05, 0.025, 'square'); },
   /** the whole level is done */
   complete(): void { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.55, 0.045, 'triangle', undefined, i * 0.12)); },
-};
+});
