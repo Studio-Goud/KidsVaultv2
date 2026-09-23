@@ -19,6 +19,7 @@
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
 import { freqOfMidi } from './music';
+import { sampled } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -418,7 +419,7 @@ export function stopAll(): void {
 // ---------------------------------------------------------------- the interface
 
 /** A small dry knock for a button, which must never be mistaken for a note of the tune. */
-export function uiTap(): void {
+function uiTapSynth(): void {
   const r = ensure();
   if (!r || !on()) return;
   const t = r.ctx.currentTime;
@@ -435,20 +436,26 @@ export function uiTap(): void {
 }
 
 /** A rising third, for a bar played right. */
-export function cheer(step = 0): void {
+function cheerSynth(step = 0): void {
   const t = audioNow() + 0.01;
   [64, 67, 72].forEach((m, i) => play(m, t + i * 0.08 + step * 0.0, 0.5, 'chime', 0.5));
 }
 
 /** Not a buzzer. Two low notes, a step apart, which is a shrug rather than a punishment. */
-export function nudge(): void {
+function nudgeSynth(): void {
   const t = audioNow() + 0.01;
   play(57, t, 0.4, 'wood', 0.5);
   play(55, t + 0.13, 0.6, 'wood', 0.5);
 }
 
 /** The level is done: the chimes running up the scale. */
-export function fanfare(): void {
+function fanfareSynth(): void {
   const t = audioNow() + 0.02;
   [60, 64, 67, 72].forEach((m, i) => play(m, t + i * 0.11, 1.1, 'chime', 0.55));
 }
+
+// Only the interface is recorded; every note above stays synthesised, in tune and on the clock.
+export const uiTap = sampled('rhythm.uiTap', uiTapSynth);
+export const cheer = sampled('rhythm.cheer', cheerSynth);
+export const nudge = sampled('rhythm.nudge', nudgeSynth);
+export const fanfare = sampled('rhythm.fanfare', fanfareSynth);

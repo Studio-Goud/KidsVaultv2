@@ -16,7 +16,10 @@
     "cap:ios": "npm run cap:sync && npx cap open ios",
     "sheet": "node scripts/picturesheet.mjs",
     "audit": "node scripts/audit.mjs",
-    "contact": "node scripts/contact.mjs"
+    "contact": "node scripts/contact.mjs",
+    "voice": "node scripts/voice.mjs",
+    "voicecheck": "node scripts/voicecheck.mjs",
+    "sfx": "node scripts/sfx.mjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

@@ -765,6 +765,16 @@ const group = name => console.log(`\n${name}`);
     if (q.op === 'times') return q.answer === q.a * q.b;
     return q.answer === q.a + q.b;
   }), true);
+  // "Rekenrijk begint me iets te moeilijk": the first rung has to be one a five-year-old can stand on
+  is('test_ladder_starts_with_adding_to_five', LEVELS[0].id, 'tot5');
+  is('test_generator_adding_to_five_never_passes_five',
+    runLevel(level('tot5')).every(q => q.a + q.b <= 5 && q.a >= 1 && q.b >= 1), true);
+  is('test_generator_adding_to_five_opens_on_sums_you_can_see_at_a_glance',
+    runLevel(level('tot5')).filter((_, i) => i % level('tot5').rounds < 3).every(q => q.answer <= 3), true);
+  is('test_generator_splitting_opens_on_a_whole_of_five_or_less',
+    runLevel(level('splitsen')).filter((_, i) => i % level('splitsen').rounds < 3).every(q => q.a <= 5), true);
+  is('test_generator_splitting_still_reaches_ten',
+    runLevel(level('splitsen')).some(q => q.a === 10), true);
   is('test_generator_adding_to_ten_never_passes_ten',
     runLevel(level('erbij')).every(q => q.a + q.b <= 10 && q.a >= 1 && q.b >= 1), true);
   is('test_generator_taking_away_never_goes_below_one',
@@ -809,8 +819,9 @@ const group = name => console.log(`\n${name}`);
     everyQuestion.every(({ q }) => new Set(q.options).size === q.options.length), true);
   is('test_options_are_never_negative',
     everyQuestion.every(({ q }) => q.options.every(o => o >= 0)), true);
-  is('test_options_are_always_four_to_choose_between',
-    everyQuestion.every(({ q }) => q.options.length === 4), true);
+  is('test_options_are_always_as_many_as_the_level_asks_for',
+    everyQuestion.every(({ l, q }) => q.options.length === l.options), true);
+  is('test_options_the_way_in_never_offers_more_than_three', level('tot5').options, 3);
   is('test_options_never_offer_the_answer_twice_under_another_name',
     everyQuestion.every(({ q }) => q.options.filter(o => o === q.answer).length === 1), true);
 
@@ -2833,7 +2844,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- The catalogue of experiences
 
 {
-  const { CATALOG, byId, forAge, inDomain, domainsPresent, coverage } =
+  const { CATALOG, byId, forAge, inDomain, domainsPresent, coverage, shelf } =
     await bundle('src/platform/catalog.ts', 'catalog.mjs');
   group('Platform — the catalogue');
 
@@ -2861,6 +2872,28 @@ const group = name => console.log(`\n${name}`);
   is('test_age_every_row_is_offered_to_somebody',
     CATALOG.every(e => forAge(e.from).includes(e)), true);
 
+  // the parent's choices reaching the shelf: before this, nothing called forAge or allows
+  const ids = list => list.map(e => e.id);
+  const all = r => [...r.now, ...r.later, ...r.earlier];
+  is('test_shelf_no_profile_shows_everything_in_order', ids(shelf(null).now), ids(CATALOG));
+  is('test_shelf_no_profile_has_nothing_set_apart',
+    shelf(null).later.length + shelf(null).earlier.length, 0);
+  is('test_shelf_what_fits_now_is_what_fits_the_age', ids(shelf({ years: 5, domains: [] }).now), ids(forAge(5)));
+  is('test_shelf_age_puts_nothing_away_without_a_subject_choice',
+    all(shelf({ years: 2, domains: [] })).length, CATALOG.length);
+  is('test_shelf_too_old_things_are_to_grow_into',
+    shelf({ years: 2, domains: [] }).later.every(e => e.from > 2), true);
+  is('test_shelf_outgrown_things_are_kept_apart',
+    ids(shelf({ years: 10, domains: [] }).earlier), ids(CATALOG.filter(e => e.to < 10)));
+  is('test_shelf_a_thing_is_on_the_shelf_once',
+    [2, 5, 10].every(y => new Set(ids(all(shelf({ years: y, domains: [] })))).size === CATALOG.length), true);
+  is('test_shelf_an_unchosen_subject_is_put_away',
+    all(shelf({ years: 6, domains: ['ruimte'] })).every(e => e.domains.includes('ruimte')), true);
+  is('test_shelf_a_chosen_subject_keeps_all_its_things',
+    all(shelf({ years: 6, domains: ['ruimte'] })).length, inDomain('ruimte').length);
+  is('test_shelf_a_later_thing_of_an_unchosen_subject_is_not_offered_either',
+    ids(shelf({ years: 3, domains: ['taal'] }).later), ['letters']);
+
   is('test_domain_every_subject_has_something_in_it',
     domainsPresent().every(d => inDomain(d).length > 0), true);
   is('test_domain_the_brief_s_subjects_are_all_covered',
@@ -2874,11 +2907,80 @@ const group = name => console.log(`\n${name}`);
     [3, 4, 5, 6, 7, 8].every(a => coverage(a) >= coverage(2)), true);
 }
 
+// ---------------------------------------------------------------- Recorded sound effects
+
+{
+  const { SFX } = await bundle('src/platform/sfxspec.ts', 'sfxspec.mjs');
+  group('Platform — recorded sound effects');
+  const rows = Object.entries(SFX);
+  is('test_sfx_every_row_is_named_game_dot_method', rows.every(([k]) => /^[a-z]+\.[a-zA-Z]+$/.test(k)), true);
+  is('test_sfx_every_generation_is_at_least_the_api_floor', rows.every(([, r]) => r.secs >= 0.5), true);
+  is('test_sfx_nothing_plays_longer_than_it_was_made', rows.every(([, r]) => r.max > 0 && r.max <= r.secs), true);
+  is('test_sfx_every_prompt_asks_for_the_house_sound', rows.every(([, r]) => r.prompt.includes('for a calm children')), true);
+  is('test_sfx_klankhuis_notes_are_never_recorded',
+    rows.some(([k]) => /^rhythm\.(play|playChord|click|drum)$/.test(k)), false);
+  // the sfx files are the other half of the contract: every row has to name a method that exists
+  const { readFileSync } = await import('node:fs');
+  const src = { atlas: 'atlas/atlassfx', circuit: 'circuit/sfx', clock: 'clock/clocksfx', dig: 'dig/digsfx',
+    letters: 'letters/lettersfx', market: 'market/marketsfx', mill: 'mill/millsfx', moonshot: 'moonshot/rocketsfx',
+    nightwatch: 'nightwatch/nightsfx', numbers: 'numbers/numbersfx', orbit: 'orbit/orbitsfx', puffball: 'puffball/puffsfx',
+    rhythm: 'rhythm/chimesfx', tidepool: 'tidepool/tidesfx' };
+  const text = g => g === 'cloudhopper' ? readFileSync('src/util/audio.ts', 'utf8') : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
+  is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k]) => {
+    const [g, m] = k.split('.');
+    const t = text(g);
+    return !(new RegExp(`\\n  ${m}\\(`).test(t) || new RegExp(`function ${m}Synth\\(`).test(t));
+  }).map(([k]) => k), []);
+
+  const { measure } = await bundle('src/platform/sfxlevel.ts', 'sfxlevel.mjs');
+  const quiet = new Float32Array(1000);
+  for (let i = 500; i < 1000; i++) quiet[i] = i % 2 ? 0.5 : -0.5;
+  is('test_sfx_silence_before_a_sound_is_skipped', Math.round(measure(quiet, 1000).start * 1000), 496);
+  is('test_sfx_a_sound_is_levelled_by_its_peak', measure(quiet, 1000).level, 0.8);
+  is('test_sfx_a_silent_file_plays_at_nothing', measure(new Float32Array(10), 1000).level, 0);
+}
+
 // ---------------------------------------------------------------- The voice
 
 {
-  const { cleanManifest, clipFor } = await bundle('src/platform/voice.ts', 'voice.mjs');
+  const { cleanManifest, clipFor, bestVoice, clipsForLine } = await bundle('src/platform/voice.ts', 'voice.mjs');
   group('Platform — the voice');
+
+  // "elke gesproken tekst is nu zo'n AI robot": pick the most natural woman's voice the device has
+  const v = (name, lang, localService = true) => ({ name, lang, localService });
+  const pickName = (list, want = 'nl') => bestVoice(list, want)?.name ?? null;
+  is('test_voice_a_woman_is_picked_over_a_man',
+    pickName([v('Xander', 'nl-NL'), v('Claire', 'nl-NL')]), 'Claire');
+  is('test_voice_an_enhanced_voice_beats_a_compact_one',
+    pickName([v('Claire', 'nl-NL'), v('Claire (Enhanced)', 'nl-NL')]), 'Claire (Enhanced)');
+  is('test_voice_espeak_comes_last',
+    pickName([v('espeak-ng Dutch', 'nl'), v('Xander', 'nl-NL')]), 'Xander');
+  is('test_voice_a_voice_on_the_device_beats_a_better_one_on_the_network',
+    pickName([v('Microsoft Fenna Online (Natural)', 'nl-NL', false), v('Microsoft Frank', 'nl-NL')]), 'Microsoft Frank');
+  is('test_voice_a_network_voice_is_used_only_when_there_is_nothing_else',
+    pickName([v('Google Nederlands', 'nl-NL', false), v('Samantha', 'en-US')]), 'Google Nederlands');
+  is('test_voice_another_language_is_never_picked', pickName([v('Samantha', 'en-US')]), null);
+  is('test_voice_the_netherlands_before_flanders',
+    pickName([v('Ellen', 'nl-BE'), v('Claire', 'nl-NL')]), 'Claire');
+  is('test_voice_an_underscore_in_the_language_tag_is_read',
+    pickName([v('Claire', 'nl_NL')]), 'Claire');
+
+  const { lineKey } = await bundle('src/platform/voicekey.ts', 'voicekey.mjs');
+  is('test_voicekey_the_same_words_give_the_same_key', lineKey('Tik op de klokjes.'), lineKey('Tik op de klokjes.'));
+  is('test_voicekey_spacing_does_not_change_the_key', lineKey('Tik  op de\nklokjes. '), lineKey('Tik op de klokjes.'));
+  is('test_voicekey_different_words_give_a_different_key', lineKey('Tik op de klokjes.') === lineKey('Tik op de klokjes'), false);
+  is('test_voicekey_a_key_is_short_and_safe_as_a_file_name', /^t[0-9a-f]{8}$/.test(lineKey('Één, twee, drie.')), true);
+
+  // a line a game puts together at runtime is said from the recordings of its sentences
+  const rec = (...texts) => ({ nl: texts.map(t => ({ id: lineKey(t), file: `nl/${lineKey(t)}.mp3`, secs: 1 })), en: [] });
+  const m2 = rec('Welke komt hierna?', 'De vier rotsplaneten, dichtst bij de zon eerst', 'Tik op de klokjes.');
+  is('test_voice_a_whole_line_is_one_recording', clipsForLine(m2, 'nl', 'Tik op de klokjes.').length, 1);
+  is('test_voice_a_full_stop_left_off_still_finds_the_recording', clipsForLine(m2, 'nl', 'Tik op de klokjes').length, 1);
+  is('test_voice_a_line_put_together_is_said_from_its_sentences',
+    clipsForLine(m2, 'nl', 'Welke komt hierna? De vier rotsplaneten, dichtst bij de zon eerst.').length, 2);
+  is('test_voice_one_sentence_missing_sends_the_whole_line_to_the_device',
+    clipsForLine(m2, 'nl', 'Welke komt hierna? Iets wat niemand insprak.'), null);
+  is('test_voice_nothing_recorded_means_the_device', clipsForLine(rec(), 'nl', 'Hoi.'), null);
 
   const good = { nl: [{ id: 'a', file: 'nl/a.mp3', secs: 1.2 }], en: [{ id: 'a', file: 'en/a.mp3', secs: 1.1 }] };
   is('test_voice_a_good_manifest_survives', cleanManifest(good), good);

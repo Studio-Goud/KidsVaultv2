@@ -8,6 +8,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -46,7 +47,7 @@ function click(freq: number, gain: number, dur = 0.035): void {
   src.start(t); src.stop(t + dur + 0.02);
 }
 
-export const clocksfx = {
+export const clocksfx = withSamples('clock', {
   /** a hand has moved onto a new minute under the finger */
   tick(): void { click(2100, 0.05); },
   /** a hand has landed on a five, which is worth hearing */
@@ -60,4 +61,4 @@ export const clocksfx = {
   wrong(): void { ping(300, 0.22, 0.06, 'triangle', 200); ping(220, 0.3, 0.05, 'sine', 150, 0.12); },
   /** the level is done: the hour striking, softly */
   complete(): void { [523, 659, 784, 1047].forEach((f, i) => ping(f, 0.5, 0.05, 'triangle', undefined, i * 0.13)); },
-};
+});

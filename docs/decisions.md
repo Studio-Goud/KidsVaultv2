@@ -236,3 +236,81 @@ spelkaarten. Een ouder die deze app voor het eerst opent zoekt zijn eigen instel
 achter het hele schap verstoppen was de verkeerde volgorde. Er staat nu een knop rechtsboven, naast
 de naam. De link onder aan de beloftekaart blijft, maar is nu de stillere van de twee: dat is het
 eind van een verkooppraatje en niet de plek waar je iets zoekt.
+
+---
+
+## 2026-09-23 — De leeftijd bergt niets op, het onderwerp wel
+
+Het ouderscherm liet een ouder onderwerpen uitvinken en een leeftijd invullen, en de voorpagina las
+geen van beide. Nu wel, via één functie, `shelf()` in `src/platform/catalog.ts`, die ook het getal
+"zoveel van de achttien passen nu" op het ouderscherm levert, zodat die twee niet uit elkaar kunnen
+lopen.
+
+De twee keuzes werken met opzet verschillend:
+
+1. **Een uitgevinkt onderwerp is weg.** Dat is wat de ouder vroeg, en het ouderscherm zegt het al
+   met zoveel woorden ("dan wordt de rest opgeborgen").
+2. **De leeftijd verschuift alleen.** Wat nog te oud is komt onder "Hier groei je nog naartoe", wat
+   ontgroeid is onder "Van toen je kleiner was". Een tienjarige zou anders op zijn verjaardag negen
+   kaartjes kwijtraken, en een schap dat leegloopt terwijl je ouder wordt voelt als straf. Andersom
+   is een kaartje dat een vijfjarige al ziet maar nog niet helemaal kan een reden om terug te komen.
+   Niets zit op slot: elk kaartje opent nog steeds.
+3. **Geen profiel is alles**, op de oude volgorde, zonder rijen. Wie de app koud opent ziet het hele
+   schap; dat is dezelfde regel als bij de eenvoudige vorm in `src/platform/who.ts`.
+
+Wat nog niet klopt: de koppen boven de twee rijen worden niet uitgesproken. Een vierjarige ziet
+twee groepen kaartjes zonder te weten waarom. Dat hoort bij de gids op de voorpagina, die er nu
+alleen is voor "je laatste spelletje".
+
+---
+
+## 2026-09-23 — Klankhuis voor twee en drie: het instrument, en strijken
+
+De tweede eenvoudige vorm, naar het patroon van Opgraving. Klankhuis opende al met negen staven die
+je kunt aanslaan; voor drie en jonger is dat nu het hele spel. De knop naar de niveaus is weg, omdat
+elk niveau iets vraagt met een fout antwoord. De knop naar de sequencer is weg, omdat een raster
+van vakjes een gereedschap is dat je kiest vóór het gebaar. De staven worden groter nu ze de
+onderkant van het scherm er ook bij krijgen.
+
+Eén ding is erbij gekomen in plaats van weggehaald: een vinger die over de staven strijkt laat elke
+staaf klinken die hij binnengaat. Dat is wat een tweejarige met een echt klokkenspel doet, en op het
+scherm deed het tot nu toe niets. Het werkt alleen op het openingsscherm, voor elke leeftijd: in
+een echoniveau zou een veeg over drie staven drie antwoorden zijn die niemand bedoelde.
+
+De regel die gezegd wordt ("Tik op de klokjes. Of strijk er met je vinger overheen.") wordt
+uitgesproken bij het openen en herhaald door Suri in de hoek. In de grote vorm zegt het
+openingsscherm niets, zoals voorheen.
+
+De audit opent nu ook Opgraving en Klankhuis als tweejarige en de voorpagina als drie- en
+tienjarige, via de `__years`-haak. Tot nu toe zag hij geen van die schermen.
+
+Wat nog niet klopt: er is geen einde. De eenvoudige Opgraving eindigt als het fossiel eruit is;
+het instrument eindigt pas als de dag op is. Voor een vrij instrument vind ik dat verdedigbaar,
+maar het is een uitzondering op "elke sessie eindigt" en die hoort hier te staan.
+
+---
+
+## 2026-09-23 — Opgenomen stem en geluidseffecten, met de oude eronder
+
+Tot vandaag was elk geluid in Suri in code gemaakt, en de stem was die van de telefoon. De eigenaar
+vond dat het als een robot klonk, heeft een ElevenLabs-account, en vroeg om een natuurlijke
+vrouwenstem en om echte geluidseffecten in elk spel.
+
+**Besluit: opnames vóór de code, nooit in plaats van.** Ruth spreekt alle vaste Nederlandse regels
+(`docs/voice.md`), en 138 effecten in veertien spellen en Cloudhopper zijn opgenomen
+(`src/platform/sfxspec.ts`). Alles wordt één keer op de bouwmachine gemaakt en gaat als bestand mee
+in de app. Wat er niet is - een regel die tijdens het spelen wordt samengesteld, een effect zonder
+opname, een bestand dat nog niet geladen is - valt terug op wat er altijd was. Een ontbrekend
+bestand is dus nooit een stil spel.
+
+Drie grenzen:
+
+1. **De noten van Klankhuis blijven code.** Klokjes, aftellen en trommel moeten zuiver gestemd en
+   precies op de audioklok staan. Alleen de knoppen en het applaus van Klankhuis zijn opgenomen.
+2. **Doorlopende geluiden blijven code**: motoren en zoemers die met het spel meebewegen.
+3. **De telefoon praat met niemand.** ElevenLabs ziet alleen de zinnen van de app, tijdens het
+   bouwen. Er gaat niets over een kind heen, en regel 1 uit `CLAUDE.md` blijft waar.
+
+De prijs: 13 MB stem en 1,5 MB effecten in de download, en een regel of effect dat verandert moet
+opnieuw door het script. Wat ik niet heb kunnen doen, is ernaar luisteren: deze omgeving heeft
+geen luidspreker. Dat een opname laadt en afspeelt is nagelopen, niet hoe hij klinkt.

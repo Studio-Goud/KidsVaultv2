@@ -9,6 +9,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -53,7 +54,7 @@ function swell(dur: number, gain: number, from: number, to: number): void {
 /** Whole tones, so the ladder sounds like it keeps going up however long the row is. */
 const STEP = [392, 440, 493.88, 587.33, 659.25, 739.99, 880, 987.77];
 
-export const orbit = {
+export const orbit = withSamples('orbit', {
   /** a planet picked up */
   pick(): void { tone(660, 0.07, 0.05, 'triangle'); },
   /** a planet landing in the right place; the note climbs with how many are already out */
@@ -75,4 +76,4 @@ export const orbit = {
   /** a moon opened up */
   moon(): void { tone(1174.7, 0.22, 0.045, 'sine'); tone(1567.98, 0.3, 0.025, 'sine', undefined, 0.06); },
   tap(): void { tone(660, 0.08, 0.05, 'triangle'); },
-};
+});

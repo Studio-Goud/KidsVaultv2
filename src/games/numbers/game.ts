@@ -492,7 +492,17 @@ export class Numbers {
 
   // ---------- the run of a level ----------
 
-  private unlocked(i: number): boolean { return i === 0 || levelProgress(saveKey(LEVELS[i - 1])).completed; }
+  /**
+   * Open when the level before it is finished, or when this one has been played before. The second
+   * half is for a child whose ladder grew a new first rung after they had already climbed past it:
+   * nothing they could open yesterday is locked today.
+   */
+  private unlocked(i: number): boolean {
+    if (i === 0) return true;
+    if (levelProgress(saveKey(LEVELS[i - 1])).completed) return true;
+    const own = levelProgress(saveKey(LEVELS[i]));
+    return own.completed || own.best > 0;
+  }
 
   private start(i: number): void {
     this.levelIndex = clamp(i, 0, LEVELS.length - 1);
@@ -935,6 +945,9 @@ export class Numbers {
     const lit = this.lit(total);
 
     crate(ctx, c.big);
+    // the little crate's back goes down before any apple does: drawn after them, as it used to be,
+    // it covered its own apples and "1 + 2" showed one apple and an empty crate
+    if (t < 0.999) crate(ctx, c.small, '#b9834c');
     for (let i = 0; i < q.a; i++) {
       const sl = appleSlot(c.big, i, 5, c.rows);
       apple(ctx, sl.x, sl.y, sl.s * 0.44, i < lit ? '#f0a24a' : undefined);
@@ -949,7 +962,6 @@ export class Numbers {
     }
     crateFront(ctx, c.big);
     if (t < 0.999) {
-      crate(ctx, c.small, '#b9834c');
       crateFront(ctx, c.small, '#b9834c');
       this.grabs.push({ id: 'crate', x: c.small.x + c.small.w / 2, y: c.small.y + c.small.h / 2, w: c.small.w, h: c.small.h * 1.4 });
       // an arrow saying which way it goes
@@ -1611,7 +1623,7 @@ export class Numbers {
       ctx.save();
       ctx.globalAlpha = open ? 1 : 0.42;
       ctx.beginPath(); ctx.roundRect(x + 6 * u, y + 6 * u, cw - 12 * u, art - 6 * u, 12 * u); ctx.clip();
-      this.levelArt(i, { x: x + 6 * u, y: y + 6 * u, w: cw - 12 * u, h: art - 6 * u });
+      this.levelArt(L.id, { x: x + 6 * u, y: y + 6 * u, w: cw - 12 * u, h: art - 6 * u });
       ctx.restore();
 
       ctx.fillStyle = 'rgba(12,32,52,0.5)';
@@ -1658,21 +1670,22 @@ export class Numbers {
   }
 
   /** A stamp of the objects this level is about, on its card. */
-  private levelArt(i: number, r: Rect): void {
+  private levelArt(id: string, r: Rect): void {
     const ctx = this.ctx;
     const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
     ctx.fillStyle = 'rgba(214, 233, 214, 0.55)';
     ctx.fillRect(r.x, r.y, r.w, r.h);
     const s = Math.min(r.w, r.h);
-    switch (i) {
-      case 0: {
+    switch (id) {
+      case 'splitsen': {
         const d = r.w / 8;
         for (let k = 0; k < 7; k++) bead(ctx, r.x + d * (k + 0.8) + (k >= 3 ? d * 0.5 : 0), cy, d * 0.4, k < 5);
         ctx.fillStyle = '#4f8f66';
         ctx.fillRect(r.x + d * 3.6, cy - s * 0.3, d * 0.25, s * 0.6);
         break;
       }
-      case 1: {
+      case 'tot5':
+      case 'erbij': {
         const cw2 = r.w * 0.42, chh = cw2 * 0.6;
         const A = { x: cx - cw2 - 4, y: cy - chh / 2, w: cw2, h: chh };
         const B = { x: cx + 6, y: cy - chh / 2, w: cw2 * 0.7, h: chh };
@@ -1682,7 +1695,7 @@ export class Numbers {
         crateFront(ctx, B, '#b9834c');
         break;
       }
-      case 2: {
+      case 'eraf': {
         const cw2 = r.w * 0.46, chh = cw2 * 0.55;
         const A = { x: r.x + r.w * 0.04, y: cy - chh / 2, w: cw2, h: chh };
         const B = { x: r.x + r.w * 0.58, y: cy - chh * 0.2, w: r.w * 0.36, h: chh * 0.8 };
@@ -1694,20 +1707,20 @@ export class Numbers {
         apple(ctx, cx + r.w * 0.02, cy - chh * 0.55, s * 0.07);
         break;
       }
-      case 3: {
+      case 'tienvol': {
         const g = frameGeo({ x: r.x + r.w * 0.08, y: cy - s * 0.22, w: r.w * 0.84, h: s * 0.44 });
         drawTenFrame(ctx, g, true);
         for (let k = 0; k < 10; k++) { const sl = frameSlot(g, k); apple(ctx, sl.x, sl.y, g.cell * 0.32); }
         break;
       }
-      case 4: {
+      case 'tientallen': {
         const c = s * 0.1;
         for (let k = 0; k < 3; k++) rod(ctx, r.x + r.w * 0.1, cy - c * 2 + k * c * 1.3, c * 8, c);
         for (let k = 0; k < 4; k++) cube(ctx, r.x + r.w * 0.1 + k * c * 1.15, cy + c * 2.2, c * 0.9);
         break;
       }
-      case 5:
-      case 6: {
+      case 'overtiental':
+      case 'verschil': {
         const lu = s / 120;
         const g: LineGeo = { x: r.x + r.w * 0.14, y: cy + s * 0.06, w: r.w * 0.72, lo: 20, hi: 40 };
         drawNumberLine(ctx, g, lu);
@@ -1719,7 +1732,7 @@ export class Numbers {
         const cell = Math.min(r.w / 6.5, r.h / 4.6);
         const gx = cx - cell * 2.5, gy = cy - cell * 1.6;
         // the last level is the same crate with the apples going; the card says so
-        const faded = i === 8;
+        const faded = id === 'tafels';
         for (let row = 0; row < 3; row++) {
           for (let col = 0; col < 5; col++) {
             const x = gx + cell * (col + 0.5), y = gy + cell * (row + 0.5);

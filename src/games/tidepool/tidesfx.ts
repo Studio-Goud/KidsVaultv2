@@ -8,6 +8,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -91,7 +92,7 @@ export class Sea {
   }
 }
 
-export const tide = {
+export const tide = withSamples('tidepool', {
   pick(): void { burst(1600, 2, 0.08, 0.05, 900); },
   /** right pool: a clean plop that climbs with the streak */
   right(streak: number): void {
@@ -108,4 +109,4 @@ export const tide = {
   complete(): void { [523, 659, 784, 1047].forEach((f, i) => ping(f, 0.42, 0.055, 'triangle', undefined, i * 0.12)); },
   fail(): void { ping(300, 0.6, 0.06, 'sine', 140); },
   tap(): void { ping(740, 0.06, 0.05, 'sine'); },
-};
+});

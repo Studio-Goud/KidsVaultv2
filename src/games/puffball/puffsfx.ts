@@ -8,6 +8,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -82,7 +83,7 @@ function popSlot(): number {
   return popVoices++;
 }
 
-export const puff = {
+export const puff = withSamples('puffball', {
   place(): void { tone(180, 0.12, 0.16, 'sine', 120); breath(0.1, 0.05, 700, 300); },
   /** the note that climbs while it swells - the gaps shorten as the pop gets close */
   tick(step: number): void { tone(330 + step * 90, 0.07, 0.06, 'triangle'); },
@@ -104,4 +105,4 @@ export const puff = {
     [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.3, 0.11, 'triangle', undefined, i * 0.11));
   },
   fail(): void { [392, 330, 262].forEach((f, i) => tone(f, 0.34, 0.11, 'sine', undefined, i * 0.13)); },
-};
+});

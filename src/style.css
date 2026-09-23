@@ -385,6 +385,13 @@ html.page canvas { touch-action: auto; }
 .gamegrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 560px; }
 @media (min-width: 760px) { .gamegrid { grid-template-columns: repeat(3, 1fr); max-width: 940px; } }
 @media (min-width: 1180px) { .gamegrid { grid-template-columns: repeat(4, 1fr); max-width: 1240px; } }
+/* the heading over the part of the shelf a child is still growing into, or has grown out of */
+.shelfhead {
+  width: 100%; max-width: 560px; margin: 10px 0 -6px; box-sizing: border-box;
+  font-size: 15px; font-weight: 900; color: var(--ink); text-align: left;
+}
+@media (min-width: 760px) { .shelfhead { max-width: 940px; font-size: 17px; } }
+@media (min-width: 1180px) { .shelfhead { max-width: 1240px; } }
 
 /* every card is the same shape: a picture on top, the words underneath, full width for both */
 .gamecard {

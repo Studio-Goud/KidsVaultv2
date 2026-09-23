@@ -8,10 +8,11 @@
 import '../style.css';
 import { drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawTripThumb, drawDiveThumb, drawValleyThumb } from './thumbs';
 import { NL, T } from '../util/lang';
-import { CATALOG, type Entry } from '../platform/catalog';
+import { shelf, type Entry } from '../platform/catalog';
 import { lastGoNow, startClock } from '../platform/clock';
 import { drawGuide } from '../platform/guide';
 import { loadVoice } from '../platform/voice';
+import { playingChild, yearsNow } from '../platform/who';
 
 
 
@@ -131,10 +132,41 @@ head.innerHTML = `
   <a class="grownups" href="./parents.html">${T('For grown-ups', 'Voor ouders')}</a>`;
 root.appendChild(head);
 
-const grid = document.createElement('div');
-grid.className = 'gamegrid';
-for (const g of CATALOG) grid.appendChild(card(g));
-root.appendChild(grid);
+/**
+ * The shelf, for the child who is playing.
+ *
+ * What the parent chose on their own screen is applied here, and nowhere else: subjects switched
+ * off are not on the shelf, and the age splits it into what fits now, what is still to grow into,
+ * and what the child has outgrown. `shelf()` says why nothing disappears on a birthday.
+ *
+ * `yearsNow()` rather than the child's own age, so the audit's `__years` hook shows each shelf.
+ */
+function grid(list: Entry[]): HTMLElement {
+  const g = document.createElement('div');
+  g.className = 'gamegrid';
+  for (const e of list) g.appendChild(card(e));
+  return g;
+}
+
+function shelfHead(en: string, nl: string): HTMLElement {
+  const h = document.createElement('h2');
+  h.className = 'shelfhead';
+  h.textContent = T(en, nl);
+  return h;
+}
+
+const kid = playingChild();
+const years = yearsNow();
+const rows = shelf(years === null ? null : { years, domains: kid?.domains ?? [] });
+root.appendChild(grid(rows.now));
+if (rows.later.length) {
+  root.appendChild(shelfHead('Still to grow into', 'Hier groei je nog naartoe'));
+  root.appendChild(grid(rows.later));
+}
+if (rows.earlier.length) {
+  root.appendChild(shelfHead('From when you were smaller', 'Van toen je kleiner was'));
+  root.appendChild(grid(rows.earlier));
+}
 root.appendChild(promise());
 
 /**

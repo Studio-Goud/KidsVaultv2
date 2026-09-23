@@ -9,6 +9,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -98,7 +99,7 @@ export class Stream {
 }
 
 let lastDig = 0;
-export const mill = {
+export const mill = withSamples('mill', {
   dig(): void {
     const now = performance.now();
     if (now - lastDig < 110) return;
@@ -115,4 +116,4 @@ export const mill = {
   complete(): void { [523, 659, 784, 1047, 1319].forEach((f, i) => ping(f, 0.45, 0.05, 'triangle', undefined, i * 0.11)); },
   dry(): void { ping(300, 0.5, 0.05, 'sine', 160); },
   tap(): void { ping(740, 0.06, 0.05, 'sine'); },
-};
+});

@@ -1,3 +1,5 @@
+import { allows, type Child } from './session';
+
 /**
  * Every experience in Suri, as data rather than as prose.
  *
@@ -249,3 +251,34 @@ export function domainsPresent(): Domain[] {
  * quietly stop being true.
  */
 export const coverage = (years: number): number => forAge(years).length;
+
+/**
+ * What the shelf shows one child: the parent's two choices, applied.
+ *
+ * The subjects a parent switches off are put away, because the parent screen says so ("dan wordt
+ * de rest opgeborgen") and a choice that changes nothing is a lie on the screen.
+ *
+ * The age does not put anything away. A thing that is still too old goes into `later` - "hier
+ * groei je nog naartoe" - and a thing the child has outgrown goes into `earlier`, below it. A
+ * shelf that loses eight cards on a tenth birthday feels like a punishment, and a card a
+ * five-year-old can see but not yet quite play is a reason to come back, not a wall. Nothing is
+ * locked either way: every card still opens.
+ *
+ * No profile means everything, in `now`, in catalogue order. Someone who opens the app cold is
+ * shown the whole of it.
+ */
+export interface Shelf {
+  now: Entry[];
+  later: Entry[];
+  earlier: Entry[];
+}
+
+export function shelf(c: Pick<Child, 'years' | 'domains'> | null): Shelf {
+  if (!c) return { now: CATALOG.slice(), later: [], earlier: [] };
+  const on = CATALOG.filter(e => allows(c, e.domains));
+  return {
+    now: on.filter(e => c.years >= e.from && c.years <= e.to),
+    later: on.filter(e => c.years < e.from),
+    earlier: on.filter(e => c.years > e.to),
+  };
+}

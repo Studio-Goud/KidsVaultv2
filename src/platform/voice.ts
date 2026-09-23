@@ -1,5 +1,6 @@
 import { lang } from '../util/lang';
 import { save } from '../util/storage';
+import { lineKey } from './voicekey';
 
 /**
  * The app's voice.
@@ -79,6 +80,37 @@ export function clipFor(m: Manifest, which: 'nl' | 'en', id: string): Clip | nul
   return m[which].find(c => c.id === id) ?? null;
 }
 
+/** The key for a line, and the same line with its full stop added or taken away. */
+function keysOf(text: string): string[] {
+  const t = text.trim();
+  const other = /\.$/.test(t) ? t.slice(0, -1) : /[?!]$/.test(t) ? null : `${t}.`;
+  return other ? [lineKey(t), lineKey(other)] : [lineKey(t)];
+}
+
+/**
+ * The recordings that together say this line, in order, or null.
+ *
+ * First the line as a whole. Failing that, sentence by sentence, because games put lines together
+ * at runtime - "Welke komt hierna?" followed by the level's own description - and each half was
+ * recorded on its own. A full stop the game adds or leaves off does not stop a match.
+ *
+ * All or nothing: if one sentence has no recording, the whole line goes to the device's voice. Two
+ * voices taking turns inside one line sounds worse than either of them alone.
+ */
+export function clipsForLine(m: Manifest, which: 'nl' | 'en', text: string): Clip[] | null {
+  const one = (t: string): Clip | null => {
+    for (const k of keysOf(t)) { const c = clipFor(m, which, k); if (c) return c; }
+    return null;
+  };
+  if (!text.trim()) return null;
+  const whole = one(text);
+  if (whole) return [whole];
+  const parts = text.split(/(?<=[.?!])\s+/).map(x => x.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+  const found = parts.map(one);
+  return found.every(Boolean) ? (found as Clip[]) : null;
+}
+
 /**
  * How far the voice has got, as a number anyone can check.
  *
@@ -100,6 +132,51 @@ const synth = (): SpeechSynthesis | null => {
   } catch { return null; }
 };
 
+/** The parts of a `SpeechSynthesisVoice` the ranking looks at, so it can be tested without one. */
+export interface VoiceLike { name: string; lang: string; localService: boolean }
+
+/**
+ * How good a device voice is likely to sound as Suri, highest first.
+ *
+ * The owner asked for a voice as natural as possible, and a woman's. A browser does not say either
+ * of those things about a voice, so this goes by name, and the names are what the platforms ship:
+ * Apple's Dutch voices are Claire and Ellen (women) and Xander (a man); Microsoft's are Fenna,
+ * Colette and Dena (women) against Maarten, Arnaud and Frank; Chrome's own is "Google Nederlands",
+ * a woman. Apple marks its better downloads "Enhanced" or "Premium", Microsoft its neural ones
+ * "Natural". eSpeak, which is what a Linux machine falls back on, is the robot the owner heard, and
+ * comes last.
+ *
+ * A voice that runs on the device always beats one that does not, whatever it sounds like: a
+ * network voice sends the line it reads to somebody's server, and nothing is supposed to leave
+ * the device (the first rule in `CLAUDE.md`). A network voice is only ever used when there is no
+ * Dutch voice on the device at all, which is what this module did before it ranked anything.
+ */
+export function voiceScore(v: VoiceLike, want: string): number {
+  const name = v.name.toLowerCase();
+  const tag = v.lang.toLowerCase().replace('_', '-');
+  if (!tag.startsWith(want)) return -Infinity;
+  let score = v.localService ? 1000 : 0;
+  if (/natural|neural|premium|enhanced|verbeterd/.test(name)) score += 100;
+  if (/claire|ellen|fenna|colette|dena|google nederlands|female|vrouw/.test(name)) score += 50;
+  if (/xander|maarten|arnaud|frank|\bmale\b|\bman\b/.test(name)) score -= 50;
+  if (/espeak|compact/.test(name)) score -= 200;
+  // Dutch as spoken in the Netherlands, since that is what the app is written in; Flemish next
+  if (want === 'nl' && tag === 'nl-nl') score += 5;
+  if (want === 'en' && tag === 'en-gb') score += 5;
+  return score;
+}
+
+/** The best of what the device offers, or null. */
+export function bestVoice<T extends VoiceLike>(all: T[], want: string): T | null {
+  let best: T | null = null;
+  let bestScore = -Infinity;
+  for (const v of all) {
+    const sc = voiceScore(v, want);
+    if (sc > bestScore) { best = v; bestScore = sc; }
+  }
+  return best;
+}
+
 /**
  * Pick a voice in the app's language.
  *
@@ -114,9 +191,7 @@ function findVoice(): SpeechSynthesisVoice | null {
   let all: SpeechSynthesisVoice[] = [];
   try { all = s.getVoices(); } catch { all = []; }
   if (!all.length) return null;
-  const want = lang();
-  const mine = all.filter(v => v.lang.toLowerCase().replace('_', '-').startsWith(want));
-  picked = mine.find(v => v.localService) ?? mine[0] ?? null;
+  picked = bestVoice(all, lang());
   if (!picked && looked) absent = true;
   looked = true;
   return picked;
@@ -126,6 +201,7 @@ function findVoice(): SpeechSynthesisVoice | null {
 export const hasVoice = (): boolean => clips[lang()].length > 0 || findVoice() != null;
 
 export function stopSpeaking(): void {
+  said++;
   try { synth()?.cancel(); } catch { /* nothing to cancel */ }
   if (playing) { try { playing.pause(); } catch { /* ok */ } playing = null; }
 }
@@ -141,18 +217,45 @@ let playing: HTMLAudioElement | null = null;
 export function say(id: string | null, text: string, opts: { rate?: number } = {}): void {
   if (!save.sound) return;
   stopSpeaking();
-  const which = lang();
-
-  const clip = id ? clipFor(clips, which, id) : null;
-  if (clip) {
-    try {
-      const a = new Audio(`./voice/${clip.file}`);
-      a.play().catch(() => speakOut(text, opts.rate ?? 1));
-      playing = a;
-      return;
-    } catch { /* fall through to the machine */ }
+  const mine = ++said;
+  // The first line of a page is said while the manifest is still on its way, and used to go to the
+  // device's voice for that reason alone. So a line waits for the manifest - briefly, and only if it
+  // is still the newest thing asked for when the manifest arrives.
+  if (!loaded) {
+    Promise.race([ensureManifest(), new Promise(r => setTimeout(r, 1500))])
+      .then(() => { if (mine === said) speakNow(id, text, opts.rate ?? 1); });
+    return;
   }
-  speakOut(text, opts.rate ?? 1);
+  speakNow(id, text, opts.rate ?? 1);
+}
+
+/** Counts every request, so a line that waited can tell it has been overtaken. */
+let said = 0;
+
+function speakNow(id: string | null, text: string, rate: number): void {
+  const which = lang();
+  // a line with a name of its own is looked up by it; everything else by its words, which is how
+  // `scripts/voice.mjs` files what it renders
+  const named = id ? clipFor(clips, which, id) : null;
+  const list = named ? [named] : clipsForLine(clips, which, text);
+  if (list) { playClips(list, text, rate); return; }
+  speakOut(text, rate);
+}
+
+/** One recording after another. Anything new stops the lot, through `stopSpeaking()`. */
+function playClips(list: Clip[], text: string, rate: number): void {
+  const mine = said;
+  const next = (i: number): void => {
+    if (i >= list.length || mine !== said) return;
+    try {
+      const a = new Audio(`./voice/${list[i].file}`);
+      a.addEventListener('ended', () => next(i + 1));
+      // a phone that refuses to play before the first touch gets the device's voice instead
+      a.play().catch(() => { if (i === 0 && mine === said) speakOut(text, rate); });
+      playing = a;
+    } catch { if (i === 0) speakOut(text, rate); }
+  };
+  next(0);
 }
 
 function speakOut(text: string, rate: number): void {
@@ -169,7 +272,8 @@ function speakOut(text: string, rate: number): void {
     // a child needs it slower than an adult does, and slower again when something is being
     // taken apart rather than read out
     u.rate = Math.max(0.5, Math.min(1.2, 0.92 * rate));
-    u.pitch = 1.05;
+    // the voice's own pitch: nudging it up made every voice sound more synthetic, not younger
+    u.pitch = 1;
     s.speak(u);
   } catch { /* a voice that throws is a voice we do not have */ }
 }
@@ -198,12 +302,23 @@ export function speakLine(text: string, id: string | null = null): void {
 /** Forget what was last said, so the same words spoken again are spoken again. */
 export function forgetLine(): void { lastLine = ''; }
 
-export function loadVoice(): void {
-  if (typeof fetch !== 'function') return;
-  fetch('./voice/clips.json')
+let loaded = false;
+let manifestReady: Promise<void> | null = null;
+
+/** Fetch the manifest once, whoever asks first: a game's opening line often comes before `loadVoice()`. */
+function ensureManifest(): Promise<void> {
+  if (manifestReady) return manifestReady;
+  if (typeof fetch !== 'function') { loaded = true; manifestReady = Promise.resolve(); return manifestReady; }
+  manifestReady = fetch('./voice/clips.json')
     .then(r => (r.ok ? r.json() : null))
     .then(j => { if (j) clips = cleanManifest(j); })
-    .catch(() => { /* nothing recorded yet */ });
+    .catch(() => { /* nothing recorded yet */ })
+    .finally(() => { loaded = true; });
+  return manifestReady;
+}
+
+export function loadVoice(): void {
+  ensureManifest();
   // and start the browser looking for its own voices
   const s = synth();
   if (s) {

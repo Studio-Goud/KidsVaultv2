@@ -8,6 +8,7 @@
 
 import { audioContext } from '../../util/audio';
 import { save } from '../../util/storage';
+import { withSamples } from '../../platform/samples';
 
 const on = (): boolean => save.sound !== false;
 
@@ -48,7 +49,7 @@ function noise(freq: number, gain: number, dur: number, q = 3, when = 0): void {
   src.start(t); src.stop(t + dur + 0.02);
 }
 
-export const atlassfx = {
+export const atlassfx = withSamples('atlas', {
   /** a button, a tile, anything pressed */
   tap(): void { tone(660, 0.06, 0.05, 'sine'); },
   /** a piece coming off the table into the hand */
@@ -74,4 +75,4 @@ export const atlassfx = {
   complete(): void {
     [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.45, 0.05, 'triangle', undefined, i * 0.12));
   },
-};
+});
