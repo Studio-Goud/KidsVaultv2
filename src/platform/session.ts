@@ -136,7 +136,7 @@ export function finished(used: Used, today: string): Used {
 }
 
 /** Whether a subject is on offer to this child. An empty list means everything. */
-export const allows = (c: Child, d: Domain[]): boolean =>
+export const allows = (c: Pick<Child, 'domains'>, d: Domain[]): boolean =>
   c.domains.length === 0 || d.some(x => c.domains.includes(x));
 
 /** A save that has been hand-edited, truncated or written by an older version. */

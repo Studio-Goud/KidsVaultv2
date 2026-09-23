@@ -2833,7 +2833,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- The catalogue of experiences
 
 {
-  const { CATALOG, byId, forAge, inDomain, domainsPresent, coverage } =
+  const { CATALOG, byId, forAge, inDomain, domainsPresent, coverage, shelf } =
     await bundle('src/platform/catalog.ts', 'catalog.mjs');
   group('Platform — the catalogue');
 
@@ -2860,6 +2860,28 @@ const group = name => console.log(`\n${name}`);
   is('test_age_an_eleven_year_old_has_outgrown_the_app', forAge(11).length, 0);
   is('test_age_every_row_is_offered_to_somebody',
     CATALOG.every(e => forAge(e.from).includes(e)), true);
+
+  // the parent's choices reaching the shelf: before this, nothing called forAge or allows
+  const ids = list => list.map(e => e.id);
+  const all = r => [...r.now, ...r.later, ...r.earlier];
+  is('test_shelf_no_profile_shows_everything_in_order', ids(shelf(null).now), ids(CATALOG));
+  is('test_shelf_no_profile_has_nothing_set_apart',
+    shelf(null).later.length + shelf(null).earlier.length, 0);
+  is('test_shelf_what_fits_now_is_what_fits_the_age', ids(shelf({ years: 5, domains: [] }).now), ids(forAge(5)));
+  is('test_shelf_age_puts_nothing_away_without_a_subject_choice',
+    all(shelf({ years: 2, domains: [] })).length, CATALOG.length);
+  is('test_shelf_too_old_things_are_to_grow_into',
+    shelf({ years: 2, domains: [] }).later.every(e => e.from > 2), true);
+  is('test_shelf_outgrown_things_are_kept_apart',
+    ids(shelf({ years: 10, domains: [] }).earlier), ids(CATALOG.filter(e => e.to < 10)));
+  is('test_shelf_a_thing_is_on_the_shelf_once',
+    [2, 5, 10].every(y => new Set(ids(all(shelf({ years: y, domains: [] })))).size === CATALOG.length), true);
+  is('test_shelf_an_unchosen_subject_is_put_away',
+    all(shelf({ years: 6, domains: ['ruimte'] })).every(e => e.domains.includes('ruimte')), true);
+  is('test_shelf_a_chosen_subject_keeps_all_its_things',
+    all(shelf({ years: 6, domains: ['ruimte'] })).length, inDomain('ruimte').length);
+  is('test_shelf_a_later_thing_of_an_unchosen_subject_is_not_offered_either',
+    ids(shelf({ years: 3, domains: ['taal'] }).later), ['letters']);
 
   is('test_domain_every_subject_has_something_in_it',
     domainsPresent().every(d => inDomain(d).length > 0), true);

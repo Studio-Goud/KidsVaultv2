@@ -236,3 +236,28 @@ spelkaarten. Een ouder die deze app voor het eerst opent zoekt zijn eigen instel
 achter het hele schap verstoppen was de verkeerde volgorde. Er staat nu een knop rechtsboven, naast
 de naam. De link onder aan de beloftekaart blijft, maar is nu de stillere van de twee: dat is het
 eind van een verkooppraatje en niet de plek waar je iets zoekt.
+
+---
+
+## 2026-09-23 — De leeftijd bergt niets op, het onderwerp wel
+
+Het ouderscherm liet een ouder onderwerpen uitvinken en een leeftijd invullen, en de voorpagina las
+geen van beide. Nu wel, via één functie, `shelf()` in `src/platform/catalog.ts`, die ook het getal
+"zoveel van de achttien passen nu" op het ouderscherm levert, zodat die twee niet uit elkaar kunnen
+lopen.
+
+De twee keuzes werken met opzet verschillend:
+
+1. **Een uitgevinkt onderwerp is weg.** Dat is wat de ouder vroeg, en het ouderscherm zegt het al
+   met zoveel woorden ("dan wordt de rest opgeborgen").
+2. **De leeftijd verschuift alleen.** Wat nog te oud is komt onder "Hier groei je nog naartoe", wat
+   ontgroeid is onder "Van toen je kleiner was". Een tienjarige zou anders op zijn verjaardag negen
+   kaartjes kwijtraken, en een schap dat leegloopt terwijl je ouder wordt voelt als straf. Andersom
+   is een kaartje dat een vijfjarige al ziet maar nog niet helemaal kan een reden om terug te komen.
+   Niets zit op slot: elk kaartje opent nog steeds.
+3. **Geen profiel is alles**, op de oude volgorde, zonder rijen. Wie de app koud opent ziet het hele
+   schap; dat is dezelfde regel als bij de eenvoudige vorm in `src/platform/who.ts`.
+
+Wat nog niet klopt: de koppen boven de twee rijen worden niet uitgesproken. Een vierjarige ziet
+twee groepen kaartjes zonder te weten waarom. Dat hoort bij de gids op de voorpagina, die er nu
+alleen is voor "je laatste spelletje".

@@ -81,7 +81,9 @@ Alles hieronder is nagelopen, niet aangenomen.
 Opgraving heeft twee vormen, gekozen op de leeftijd die de ouder invult. De ontdekreis-motor
 draagt twee reizen en een derde is een databestand. Het ouderscherm heeft een pincode, per kind
 een tijdslimiet met de NJi-onderbouwing erbij, en vijftien vragen die vóór de code te lezen zijn.
-De dagteller telt. 1339 checks groen, `npm run audit` 0 fouten over 20 pagina's x 5 schermmaten.
+De dagteller telt. De keuzes van de ouder bereiken de voorpagina: uitgevinkte onderwerpen zijn
+weg, en wat nog te oud of al ontgroeid is staat in een eigen rij in plaats van te verdwijnen
+(`shelf()` in `src/platform/catalog.ts`). 1349 checks groen, `npm run audit` 0 fouten over 20 pagina's x 5 schermmaten.
 
 **Wat er níét is, en wat dus niet beweerd mag worden:** geen pedagoog heeft hier ooit naar
 gekeken. Er is geen afrekening, dus de €3,99 bestaat nog niet. Er is geen service worker, dus
@@ -94,22 +96,7 @@ gekeken. Er is geen afrekening, dus de €3,99 bestaat nog niet. Er is geen serv
 Op volgorde van wat het meeste oplevert per uur werk. Werk van boven naar beneden, tenzij de
 gebruiker anders zegt.
 
-### 1. De keuzes van de ouder moeten de voorpagina bereiken
-
-`allows()` in `src/platform/session.ts` en `forAge()` in `src/platform/catalog.ts` zijn allebei
-geschreven, allebei getest, en worden door **niets** aangeroepen. Een ouder die onderwerpen
-uitvinkt en een leeftijd invult verandert daarmee niets aan wat zijn kind te zien krijgt.
-
-Dat is dezelfde soort fout als de teller die altijd "0 dingen afgemaakt" zei: een knop die een
-waarde schrijft die niemand leest. Het is bovendien de hoofdbelofte van het ouderscherm, dus het
-is ook commercieel het duurste gat.
-
-Klein werk: de hub filtert `CATALOG` op het spelende kind. Let op twee dingen. Een kind zonder
-profiel krijgt alles. En iets wat buiten de leeftijd valt moet waarschijnlijk niet verdwijnen maar
-apart komen te staan ("hier groei je nog naartoe"), want een schap dat leegloopt terwijl je ouder
-wordt voelt als straf.
-
-### 2. De kloof bij twee en drie jaar
+### 1. De kloof bij twee en drie jaar
 
 Van de achttien dingen passen er drie bij een tweejarige. De eenvoudige vorm uit
 `src/platform/who.ts` is één keer uitgevoerd (Opgraving) en het patroon staat er nu: hetzelfde
@@ -119,7 +106,7 @@ Klankhuis is de volgende: in zijn vrije stand is dat al bijna goed — negen sta
 en die klinken. Daarna Getijdenpoel (één regel in plaats van wisselende regels) en het Dierenboek
 (bladeren zonder zoeken).
 
-### 3. Drie ontdekreizen erbij
+### 2. Drie ontdekreizen erbij
 
 De motor draagt ze al: `src/journey/` is af en `docs/journeys.md` beschrijft het formaat. Een
 nieuwe reis is een databestand met haltes, kleuren, foto's en een voertuig — de diepzee kostte
@@ -130,20 +117,20 @@ fabriek**. Die laatste loopt horizontaal en dat is het enige stuk tekenwerk dat 
 Dit is waarschijnlijk het beste rendement in de hele lijst: het is het formaat dat Suri
 onderscheidt van elke andere kinderapp, en de kosten per reis zijn laag.
 
-### 4. Echt offline werken
+### 3. Echt offline werken
 
 Een service worker, zodat de app in een auto of een trein gewoon opengaat. De vraag staat
 letterlijk in de ouder-FAQ en het antwoord is nu eerlijk maar zwak. Voor een kinderapp is dit geen
 detail: de achterbank is de belangrijkste plek waar hij gebruikt wordt.
 
-### 5. Ingesproken stem
+### 4. Ingesproken stem
 
 De zwakste kant van een app die "audio-first" heet, is dat hij klinkt als een routeplanner.
 `src/platform/voice.ts` kiest al een opname boven de machine als die er is, en `docs/voice.md`
 beschrijft het manifest. Er hoeft dus niets aan de code te veranderen om dit te repareren — alleen
 iemand die het inspreekt.
 
-### 6. Afrekenen
+### 5. Afrekenen
 
 €3,99 per maand via de App Store en Google Play. Zolang dit er niet is, is er geen product, alleen
 een demo. De tekst op het ouderscherm zegt nu al eerlijk dat het nog niet gebouwd is.

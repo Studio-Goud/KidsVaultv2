@@ -1,7 +1,7 @@
 import '../style.css';
 import '@fontsource/nunito/800.css';
 import '@fontsource/nunito/900.css';
-import { CATALOG, domainsPresent, type Domain } from '../platform/catalog';
+import { CATALOG, domainsPresent, shelf, type Domain } from '../platform/catalog';
 import {
   cleanChild, cleanUsed, dayKey, finished, FRESH_USED, leftToday, limitIsGuidance, limitsFor,
   limitsForAge, useToday, type Child, type Used,
@@ -328,8 +328,8 @@ function childScreen(id: string): void {
     chips.appendChild(chip);
   }
 
-  const fits = CATALOG.filter(e => c.years >= e.from && c.years <= e.to)
-    .filter(e => c.domains.length === 0 || e.domains.some(d => c.domains.includes(d)));
+  // the same rows the child's shelf is built from, so this count cannot drift away from it
+  const fits = shelf(c).now;
 
   // ---- what happened
   const u = useToday(usedBy(c.id), today());
@@ -348,7 +348,9 @@ function childScreen(id: string): void {
         'Nothing chosen means everything. Choose one or more and the rest is put away.',
         'Niets gekozen betekent alles. Kies er een of meer, dan wordt de rest opgeborgen.')),
       chips,
-      el('p', 'note quiet', `${fits.length} ${T('of', 'van de')} ${CATALOG.length} ${T('things fit this child right now.', 'dingen passen nu bij dit kind.')}`)),
+      el('p', 'note quiet', `${fits.length} ${T('of', 'van de')} ${CATALOG.length} ${T('things fit this child right now.', 'dingen passen nu bij dit kind.')} ${T(
+        'The age puts nothing away: what is still too old, or already outgrown, stays on the shelf in a row of its own.',
+        'De leeftijd bergt niets op: wat nog te oud is, of al ontgroeid, blijft op de plank staan in een eigen rij.')}`)),
     panel(T('Today', 'Vandaag'),
       el('p', 'note', `${u.minutes} ${T('minutes', 'minuten')} &middot; ${u.finished} ${T('things finished', 'dingen afgemaakt')}`),
       el('p', 'note quiet', T(
