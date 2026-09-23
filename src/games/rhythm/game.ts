@@ -16,6 +16,13 @@
  * landed with a line back to where the beat was, and then the bar plays again at half speed with
  * the right beat lit. A wrong chime in the echo levels is answered by the right one, straight
  * after, so the difference is something you hear rather than something you are told.
+ *
+ * For a child of three or under (`simpleNow()` in `src/platform/who.ts`) the opening screen is the
+ * whole of it: the nine chimes, and nothing else. No ladder, because every level asks something
+ * with a wrong answer; no sequencer, because a grid of cells is a tool to choose before the
+ * gesture. What is left is the part that already worked without a rule, and one thing added
+ * because a two-year-old does it anyway: a finger drawn across the bars plays every bar it
+ * crosses, the way a hand run along a real set of chimes would.
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
@@ -44,6 +51,7 @@ import {
 } from './paint';
 import { NL, T } from '../../util/lang';
 import { speakLine } from '../../platform/voice';
+import { simpleNow } from '../../platform/who';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'home' | 'levels' | 'play' | 'won';
@@ -109,6 +117,12 @@ export class Rhythm {
   private raf = 0;
 
   private phase: Phase = 'home';
+  /** the toddler shape: the instrument alone, fixed when the page opens */
+  private easy = simpleNow();
+  /** the finger is down on the opening screen, so crossing a bar strikes it */
+  private strumming = false;
+  /** the bar the finger is on now, so resting on one does not ring it again */
+  private strumAt = -1;
   private step: Step = 'count';
   private levelIndex = 0;
   private level: Level = LEVELS[0];
@@ -165,8 +179,9 @@ export class Rhythm {
     this.resize();
     window.addEventListener('resize', () => this.resize());
     canvas.addEventListener('pointerdown', e => this.onDown(e));
-    canvas.addEventListener('pointerup', () => { this.held0 = null; });
-    canvas.addEventListener('pointercancel', () => { this.held0 = null; });
+    canvas.addEventListener('pointermove', e => this.onMove(e));
+    canvas.addEventListener('pointerup', () => this.onUp());
+    canvas.addEventListener('pointercancel', () => this.onUp());
     (window as unknown as { __rhythm?: Rhythm }).__rhythm = this;
     const loop = (ms: number): void => {
       const now = ms / 1000;
@@ -178,6 +193,12 @@ export class Rhythm {
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
+    // the grown-up shape says nothing until there is something to do; the toddler shape has only
+    // this to say, and it has to be heard because nobody at that age reads the line under the title
+    if (this.easy) {
+      this.say(T('Touch the chimes. Or run your finger across them.',
+        'Tik op de klokjes. Of strijk er met je vinger overheen.'), 4);
+    }
   }
 
   destroy(): void { cancelAnimationFrame(this.raf); stopAll(); }
@@ -223,6 +244,7 @@ export class Rhythm {
     const now = audioNow();
     return {
       phase: this.phase,
+      easy: this.easy,
       step: this.step,
       level: this.level.id,
       levelIndex: this.levelIndex,
@@ -795,11 +817,36 @@ export class Rhythm {
     unlockAudio();
     const p = this.at(e);
     const hit = this.hitAt(p);
+    if (this.phase === 'home' && hit?.startsWith('chime:')) {
+      this.strumming = true;
+      this.strumAt = Number(hit.slice(6));
+    }
     if (hit) { this.held0 = hit; this.press(hit); return; }
     // a tapping level takes a tap anywhere it is not something else, because a child aiming at a
     // drum while watching a ball will miss the drum
     if (this.phase === 'play' && this.step === 'run'
       && (this.level.kind === 'tap' || this.level.kind === 'together')) this.tapBeat();
+  }
+
+  /**
+   * A finger drawn across the bars on the opening screen strikes each one it enters.
+   *
+   * Only on the opening screen, where nothing is being asked: in an echo level a slide across
+   * three bars would be three answers the child did not mean to give.
+   */
+  private onMove(e: PointerEvent): void {
+    if (!this.strumming || this.phase !== 'home') return;
+    const hit = this.hitAt(this.at(e));
+    const i = hit?.startsWith('chime:') ? Number(hit.slice(6)) : -1;
+    if (i === this.strumAt) return;
+    this.strumAt = i;
+    if (i >= 0) { this.held0 = hit; this.strike(i); }
+  }
+
+  private onUp(): void {
+    this.held0 = null;
+    this.strumming = false;
+    this.strumAt = -1;
   }
 
   private press(id: string): void {
@@ -888,19 +935,25 @@ export class Rhythm {
     heading(ctx, 'Klankhuis', hx, 44 * u, this.font('900', wide ? 22 : 26), '#fff2d8');
     ctx.fillStyle = 'rgba(255, 244, 222, 0.82)';
     ctx.font = this.font('700', 11.5);
-    const tag = T('Hit the chimes. Then make something with them.', 'Sla op de klokjes. Maak er daarna iets mee.');
+    const tag = this.easy
+      ? T('Touch the chimes, or run your finger across them.', 'Tik op de klokjes, of strijk er met je vinger overheen.')
+      : T('Hit the chimes. Then make something with them.', 'Sla op de klokjes. Maak er daarna iets mee.');
     this.wrapText(tag, this.headX(tag), 66 * u, this.w - 120 * u, 14 * u, 2);
 
     const pad = Math.max(10, 13 * u);
     const bh = 52 * u;
     const by = this.h - bh - 14 * u;
     const top = 92 * u;
-    const room = by - 20 * u - top;
+    // in the toddler shape there are no doors off the instrument, so it has the bottom too, less
+    // the corner the guide sits in
+    const room = (this.easy ? this.h - 64 * u : by - 20 * u) - top;
     // the instrument is the screen, not a strip along the bottom of it: it takes most of what is
     // between the title and the two buttons, and sits in the middle of that
-    const keysH = Math.max(90 * u, Math.min(wide ? 190 * u : 400 * u, room * 0.86));
+    // a bigger bar is an easier one to find with a whole hand, so the toddler shape may grow further
+    const keysH = Math.max(90 * u, Math.min(wide ? 190 * u : (this.easy ? 560 : 400) * u, room * 0.86));
     const keys: Rect = { x: pad, y: top + (room - keysH) / 2, w: this.w - pad * 2, h: keysH };
     this.drawChimes(keys, { free: true });
+    if (this.easy) return;
 
     const bw = Math.min(170 * u, (this.w - pad * 2 - 12 * u) / 2);
     this.button('levels', T('Levels', 'Niveaus'), this.w / 2 - bw - 6 * u, by, bw, bh, '#f0b653', '#40260a');

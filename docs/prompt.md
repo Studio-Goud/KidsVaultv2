@@ -78,12 +78,12 @@ Alles hieronder is nagelopen, niet aangenomen.
 | 18 | Cloudhopper | 7-10 | luchtverkeersleiding; het oudste deel |
 
 **Werkt en is nagelopen:** alle vijftien nieuwe spellen praten en dragen Suri in de hoek.
-Opgraving heeft twee vormen, gekozen op de leeftijd die de ouder invult. De ontdekreis-motor
+Opgraving en Klankhuis hebben twee vormen, gekozen op de leeftijd die de ouder invult. De ontdekreis-motor
 draagt twee reizen en een derde is een databestand. Het ouderscherm heeft een pincode, per kind
 een tijdslimiet met de NJi-onderbouwing erbij, en vijftien vragen die vóór de code te lezen zijn.
 De dagteller telt. De keuzes van de ouder bereiken de voorpagina: uitgevinkte onderwerpen zijn
 weg, en wat nog te oud of al ontgroeid is staat in een eigen rij in plaats van te verdwijnen
-(`shelf()` in `src/platform/catalog.ts`). 1349 checks groen, `npm run audit` 0 fouten over 20 pagina's x 5 schermmaten.
+(`shelf()` in `src/platform/catalog.ts`). 1349 checks groen, `npm run audit` 0 fouten over 24 schermen x 5 schermmaten.
 
 **Wat er níét is, en wat dus niet beweerd mag worden:** geen pedagoog heeft hier ooit naar
 gekeken. Er is geen afrekening, dus de €3,99 bestaat nog niet. Er is geen service worker, dus
@@ -98,12 +98,13 @@ gebruiker anders zegt.
 
 ### 1. De kloof bij twee en drie jaar
 
-Van de achttien dingen passen er drie bij een tweejarige. De eenvoudige vorm uit
+Van de achttien dingen passen er drie bij een tweejarige, en twee daarvan hebben een eenvoudige vorm. De eenvoudige vorm uit
 `src/platform/who.ts` is één keer uitgevoerd (Opgraving) en het patroon staat er nu: hetzelfde
 spel met de regels eruit, niet een kleiner spel.
 
-Klankhuis is de volgende: in zijn vrije stand is dat al bijna goed — negen staven die je aanraakt
-en die klinken. Daarna Getijdenpoel (één regel in plaats van wisselende regels) en het Dierenboek
+Klankhuis is nu de tweede: voor drie en jonger is het alleen de negen staven, groter, zonder de
+knoppen naar de niveaus en de sequencer, en een vinger die eroverheen strijkt laat elke staaf
+klinken die hij raakt. Daarna Getijdenpoel (één regel in plaats van wisselende regels) en het Dierenboek
 (bladeren zonder zoeken).
 
 ### 2. Drie ontdekreizen erbij

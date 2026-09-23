@@ -261,3 +261,29 @@ De twee keuzes werken met opzet verschillend:
 Wat nog niet klopt: de koppen boven de twee rijen worden niet uitgesproken. Een vierjarige ziet
 twee groepen kaartjes zonder te weten waarom. Dat hoort bij de gids op de voorpagina, die er nu
 alleen is voor "je laatste spelletje".
+
+---
+
+## 2026-09-23 — Klankhuis voor twee en drie: het instrument, en strijken
+
+De tweede eenvoudige vorm, naar het patroon van Opgraving. Klankhuis opende al met negen staven die
+je kunt aanslaan; voor drie en jonger is dat nu het hele spel. De knop naar de niveaus is weg, omdat
+elk niveau iets vraagt met een fout antwoord. De knop naar de sequencer is weg, omdat een raster
+van vakjes een gereedschap is dat je kiest vóór het gebaar. De staven worden groter nu ze de
+onderkant van het scherm er ook bij krijgen.
+
+Eén ding is erbij gekomen in plaats van weggehaald: een vinger die over de staven strijkt laat elke
+staaf klinken die hij binnengaat. Dat is wat een tweejarige met een echt klokkenspel doet, en op het
+scherm deed het tot nu toe niets. Het werkt alleen op het openingsscherm, voor elke leeftijd: in
+een echoniveau zou een veeg over drie staven drie antwoorden zijn die niemand bedoelde.
+
+De regel die gezegd wordt ("Tik op de klokjes. Of strijk er met je vinger overheen.") wordt
+uitgesproken bij het openen en herhaald door Suri in de hoek. In de grote vorm zegt het
+openingsscherm niets, zoals voorheen.
+
+De audit opent nu ook Opgraving en Klankhuis als tweejarige en de voorpagina als drie- en
+tienjarige, via de `__years`-haak. Tot nu toe zag hij geen van die schermen.
+
+Wat nog niet klopt: er is geen einde. De eenvoudige Opgraving eindigt als het fossiel eruit is;
+het instrument eindigt pas als de dag op is. Voor een vrij instrument vind ik dat verdedigbaar,
+maar het is een uitzondering op "elke sessie eindigt" en die hoort hier te staan.

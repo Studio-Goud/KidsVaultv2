@@ -35,6 +35,9 @@ const PAGES = [
   ['market', '__market'], ['puffball', '__puff'], ['dig', '__dig'], ['clock', '__clock'],
   ['atlas', '__atlas'], ['animals', '__animals'], ['letters', '__letters'], ['rhythm', '__rhythm'],
   ['numbers', '__numbers'], ['reis', '__reis'], ['diepzee', '__diepzee'],
+  // The same pages again as a particular age, through the `__years` hook in src/platform/who.ts.
+  // A toddler shape and a split shelf are different screens, and neither is seen without a profile.
+  ['index', null, 3], ['index', null, 10], ['dig', '__dig', 2], ['rhythm', '__rhythm', 2],
 ];
 
 /** The shapes a child actually holds, and the one that has a notch in it. */
@@ -51,6 +54,7 @@ const FINGER = 30;
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
 const pages = only.length ? PAGES.filter(([n]) => only.includes(n)) : PAGES;
+const label = (page, years) => (years === undefined ? page : `${page}-${years}y`);
 
 const overlap = (a, b) => {
   const x = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
@@ -73,9 +77,10 @@ for (const size of SIZES) {
     locale: 'nl-NL', ignoreHTTPSErrors: true,
   });
   if (size.insets) await ctx.addInitScript(i => { window.__insets = i; }, size.insets);
-  for (const [page, handle] of pages) {
-    const where = `${page} @ ${size.name}`;
+  for (const [page, handle, years] of pages) {
+    const where = `${label(page, years)} @ ${size.name}`;
     const p = await ctx.newPage();
+    if (years !== undefined) await p.addInitScript(y => { window.__years = y; }, years);
     const errs = [];
     p.on('pageerror', e => errs.push(e.message));
     p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
@@ -143,7 +148,7 @@ for (const size of SIZES) {
       }
     }
 
-    await p.screenshot({ path: `${OUT}/${size.name}-${page}.png` });
+    await p.screenshot({ path: `${OUT}/${size.name}-${label(page, years)}.png` });
     await p.close();
   }
   await ctx.close();
