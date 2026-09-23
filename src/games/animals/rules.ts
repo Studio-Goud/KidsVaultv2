@@ -148,6 +148,41 @@ export function scaleBar(animalCm: number, childCm: number, boxPx: number, child
   };
 }
 
+/** What a ruler under an animal looks like: how long it is, and where its marks go. */
+export interface Ruler {
+  /** the whole ruler, in cm */
+  span: number;
+  /** cm between the smallest marks */
+  minor: number;
+  /** cm between the marks that carry a number */
+  major: number;
+  /** the numbers are written in centimetres or in metres */
+  unit: 'cm' | 'm';
+}
+
+const NICE = [1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200, 250, 300, 400, 500, 600, 800, 1000, 1500, 2000, 2500, 3000, 4000, 5000];
+const STEPS = [0.1, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+
+/**
+ * The ruler an animal is measured against, in place of the card that stood it next to a child.
+ *
+ * The owner found that card distracting and asked for a ruler in centimetres and millimetres
+ * instead: something a child can hold against a real one. So the ruler is always a little longer
+ * than the animal and a round length, and its marks are as fine as the screen can show - every
+ * millimetre for a beetle, every centimetre for a mouse, every metre for a whale - but never so
+ * close together that they smear, and never so many numbers that they touch.
+ */
+export function rulerFor(cm: number, px: number): Ruler {
+  const want = Math.max(0.5, cm) * 1.15;
+  const span = NICE.find(n => n >= want) ?? Math.ceil(want / 1000) * 1000;
+  const perCm = Math.max(1, px) / span;
+  const minor = STEPS.find(s => s * perCm >= 5) ?? STEPS[STEPS.length - 1];
+  // a number every so often, and always on a whole multiple of the small marks
+  const major = STEPS.find(s => s >= minor && s * perCm >= 42 && Math.abs(s / minor - Math.round(s / minor)) < 1e-9)
+    ?? span;
+  return { span, minor, major, unit: span >= 300 ? 'm' : 'cm' };
+}
+
 /** A length the way you would say it: millimetres, centimetres or metres, never all three. */
 export function sizeLabel(cm: number, nl: boolean): string {
   if (!cm) return nl ? 'onbekend' : 'not known';
@@ -282,7 +317,7 @@ export function joinNames(names: string[], nl: boolean): string {
  * The two or three things the book says about an animal in its own words, built out of the data
  * rather than written by hand - which is the only way there can be two thousand of them.
  */
-export function facts(a: Animal, nl: boolean, childCm: number): string[] {
+export function facts(a: Animal, nl: boolean): string[] {
   const out: string[] = [];
   const fam = nl ? a.f : a.fe;
   if (fam && fold(fam) !== fold(nl ? a.n : a.e)) {
@@ -301,7 +336,9 @@ export function facts(a: Animal, nl: boolean, childCm: number): string[] {
   }
   const food = (nl ? DIET_NL : DIET_EN)[a.t];
   if (food) out.push(nl ? `Eet vooral ${food}.` : `Eats mostly ${food}.`);
-  if (a.z) out.push(compareToChild(a.z, childCm, nl));
+  // There used to be a last line comparing the animal with the child. It went with the size card,
+  // when the child's height stopped being something the child sets: a sentence about "you",
+  // measured against a height that is not yours, is not true. The ruler says the size now.
   return out;
 }
 

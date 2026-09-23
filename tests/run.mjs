@@ -666,13 +666,25 @@ const group = name => console.log(`\n${name}`);
   is('test_compare_no_size_admits_it', compareToChild(0, 120, true), 'We weten niet hoe groot hij wordt.');
 
   group('Dierenboek — the sentences the book writes itself');
-  const said = facts(leeuw, true, 120);
+  const said = facts(leeuw, true);
   is('test_facts_name_the_family', said[0], 'Hoort bij de familie van de katachtigen.');
   is('test_facts_say_where_and_on_which_continent', said[1], 'Leeft in grasland en open veld, in Afrika.');
   is('test_facts_say_what_it_eats', said[2], 'Eet vooral vlees.');
-  is('test_facts_end_with_the_size', said[3], 'Ongeveer 1,7 keer zo lang als jij groot bent.');
-  is('test_facts_leave_out_what_is_not_known', facts(zeehond, true, 120).length, 1);
-  is('test_facts_are_english_in_english', facts(leeuw, false, 120)[2], 'Eats mostly meat.');
+  is('test_facts_no_longer_compare_with_a_height_nobody_set', said.length, 3);
+  is('test_facts_leave_out_what_is_not_known', facts(zeehond, true).length, 0);
+  is('test_facts_are_english_in_english', facts(leeuw, false)[2], 'Eats mostly meat.');
+
+  group('Dierenboek — de meetlat');
+  const { rulerFor } = await bundle('src/games/animals/rules.ts', 'rules-ruler.mjs');
+  const beetleR = rulerFor(0.7, 300), catR = rulerFor(46, 300), whaleR = rulerFor(2500, 300);
+  is('test_ruler_is_always_longer_than_the_animal', [0.7, 12, 46, 180, 2500].every(cm => rulerFor(cm, 300).span > cm), true);
+  is('test_ruler_a_beetle_is_measured_in_millimetres', beetleR.minor, 0.1);
+  is('test_ruler_a_beetle_ruler_is_one_centimetre', beetleR.span, 1);
+  is('test_ruler_a_cat_is_measured_in_centimetres', catR.unit, 'cm');
+  is('test_ruler_a_whale_is_measured_in_metres', whaleR.unit, 'm');
+  is('test_ruler_marks_never_smear_together', [0.3, 5, 46, 300, 2500].every(cm => { const r = rulerFor(cm, 300); return r.minor * 300 / r.span >= 5; }), true);
+  is('test_ruler_numbers_never_touch', [0.3, 5, 46, 300, 2500].every(cm => { const r = rulerFor(cm, 300); return r.major * 300 / r.span >= 42; }), true);
+  is('test_ruler_numbers_sit_on_a_mark', [0.3, 5, 46, 300, 2500].every(cm => { const r = rulerFor(cm, 300); return Math.abs(r.major / r.minor - Math.round(r.major / r.minor)) < 1e-9; }), true);
   is('test_join_names_two_are_joined_with_and', joinNames(['Europa', 'Azië'], true), 'Europa en Azië');
   is('test_join_names_three_take_commas_then_and', joinNames(['a', 'b', 'c'], false), 'a, b and c');
 
