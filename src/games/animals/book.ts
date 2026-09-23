@@ -19,12 +19,12 @@ import { lang, t } from '../../i18n';
 import { persist, save } from '../../util/storage';
 import { safeArea, uiScale } from '../../util/ui';
 import { chunkyButton, contactShadow, easeOutCubic, grainOver, hexA, roundRectPath, shade, vGrad } from '../../render/look';
-import { ASPECT, child, creature, creatureFit } from './creatures';
+import { ASPECT, creature, creatureFit } from './creatures';
 import { SIZES, drawCover, onPhoto, photo, photoCount, photoUrl } from '../../platform/photo';
 import { worldMap } from './worldmap';
 import {
   CONTINENT_EN, CONTINENT_NL, GROUPS, STATUS_EN, STATUS_NL, STATUS_TONE,
-  clipBox, compareToChild, facts, groupById, joinNames, scaleBar, search, shapeOf, shelf, sizeLabel,
+  clipBox, facts, groupById, joinNames, rulerFor, search, shapeOf, shelf, sizeLabel,
   type Animal, type GroupId,
 } from './rules';
 import { speakLine } from '../../platform/voice';
@@ -112,6 +112,13 @@ export class AnimalBook {
   private dragging = false;
   private dragged = false;
   private lastY = 0;
+  /** where the finger went down, to tell a swipe sideways from a scroll */
+  private downX = 0;
+  private downY = 0;
+  /** a sideways swipe on an animal's page is under way */
+  private swiping = false;
+  /** how far the page is pushed sideways: under the finger, or easing back to rest */
+  private slide = 0;
   private downId: string | null = null;
   private downAt = 0;
   private hits: Hit[] = [];
@@ -300,8 +307,6 @@ export class AnimalBook {
     if (id === 'search') { ui.open(); this.query = ''; this.list = []; this.go('search'); return; }
     if (id === 'prev') { if (this.at > 0) { ui.page(); this.openAnimal(this.at - 1); } return; }
     if (id === 'next') { if (this.at < this.list.length - 1) { ui.page(); this.openAnimal(this.at + 1); } return; }
-    if (id === 'taller') { ui.stepper(); save.animals.childCm = Math.min(180, save.animals.childCm + 5); persist(); return; }
-    if (id === 'shorter') { ui.stepper(); save.animals.childCm = Math.max(80, save.animals.childCm - 5); persist(); return; }
     if (id === 'call') { const a = this.list[this.at]; if (a) playOnce(`animal.${a.i}`, CALL); return; }
     if (id.startsWith('shelf:')) { ui.open(); this.openGroup(id.slice(6) as GroupId); return; }
     if (id.startsWith('card:')) { ui.page(); this.openAnimal(Number(id.slice(5))); return; }
@@ -330,6 +335,9 @@ export class AnimalBook {
   private onDown(e: PointerEvent): void {
     unlockAudio();
     const p = this.point(e);
+    this.downX = p.x;
+    this.downY = p.y;
+    this.swiping = false;
     this.dragging = true;
     this.dragged = false;
     this.lastY = p.y;
@@ -342,6 +350,19 @@ export class AnimalBook {
   private onMove(e: PointerEvent): void {
     if (!this.dragging) return;
     const p = this.point(e);
+    // On an animal's page a finger moving sideways turns the page: left for the next animal on
+    // the same shelf, right for the one before - the owner asked to swipe through them rather than
+    // scroll down to a button every time.
+    const sx = p.x - this.downX, sy = p.y - this.downY;
+    if (this.view === 'detail' && !this.swiping && !this.dragged && Math.abs(sx) > 12 && Math.abs(sx) > Math.abs(sy) * 1.3) {
+      this.swiping = true;
+      this.downId = null;
+    }
+    if (this.swiping) {
+      const edge = (sx < 0 && this.at >= this.list.length - 1) || (sx > 0 && this.at <= 0);
+      this.slide = edge ? sx * 0.25 : sx;   // at either end the page gives a little, then stops
+      return;
+    }
     const dy = p.y - this.lastY;
     this.lastY = p.y;
     if (Math.abs(dy) > 0.4) {
@@ -353,6 +374,18 @@ export class AnimalBook {
 
   private onUp(e: PointerEvent): void {
     this.dragging = false;
+    if (this.swiping) {
+      this.swiping = false;
+      const far = Math.max(56 * this.u(), this.w * 0.16);
+      if (this.slide < -far && this.at < this.list.length - 1) {
+        ui.page(); this.openAnimal(this.at + 1); this.slide = this.w * 0.35;
+      } else if (this.slide > far && this.at > 0) {
+        ui.page(); this.openAnimal(this.at - 1); this.slide = -this.w * 0.35;
+      }
+      // anything shorter springs back where it came from
+      this.downId = null;
+      return;
+    }
     if (this.downId && !this.dragged && this.t - this.downAt < 0.9) {
       const p = this.point(e);
       const hit = this.hitAt(p.x, p.y);
@@ -393,6 +426,7 @@ export class AnimalBook {
 
   private update(dt: number): void {
     this.enter = Math.min(1, this.enter + dt * 3.2);
+    if (!this.swiping) this.slide *= Math.max(0, 1 - dt * 12);
     if (!this.dragging && Math.abs(this.vel) > 1) {
       this.scroll += this.vel * dt;
       this.vel *= Math.pow(0.001, dt);
@@ -828,6 +862,8 @@ export class AnimalBook {
     ctx.beginPath();
     ctx.rect(0, top, this.w, this.h - top);
     ctx.clip();
+    // the whole page slides with a sideways swipe, and eases in from the side it was turned to
+    if (Math.abs(this.slide) > 0.5) ctx.translate(this.slide, 0);
     const y0 = top + pad - this.scroll;
     let y = y0;
 
@@ -938,58 +974,88 @@ export class AnimalBook {
     return y + 30 * u;
   }
 
-  /** The animal and a child on one ruler. The reason the book is worth making. */
+  /**
+   * How long the animal is, on a ruler in centimetres and millimetres.
+   *
+   * This used to be the animal next to a drawn child whose height the child could set, and the
+   * owner found it distracting: a comparison to look at, not something to learn from. A ruler is
+   * something a child can hold a real one against. The animal stands on it at its true length on
+   * that ruler, the marks are as fine as the screen allows (`rulerFor` in rules.ts), and the length
+   * is written large above it.
+   */
   private sizeCard(a: Animal, x: number, y: number, w: number): number {
     const ctx = this.ctx;
     const u = this.u();
-    const childCm = save.animals.childCm;
-    // the sentence under the bar can run to two lines - "there are about a hundred and seventy of
-    // them along your height" is the whole point, and cutting it off with a … wastes it
-    const note = a.z && !a.x ? T(' (typical for its family)', ' (gemiddeld voor zijn familie)') : '';
-    const fSmall = this.font('700', 11.5);
-    // the box is always tall enough for two lines of it, so the card never changes height
-    // underneath the thing it is describing
-    const h = 226 * u;
+    const nl = NL();
+    const h = 196 * u;
     this.card(x, y, w, h, t('animalsHowBig'));
-    // how tall the child on the bar is, on the title's line so it is never in the drawing's way
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#93a8b5';
-    ctx.font = this.font('800', 11);
-    ctx.fillText(`${childCm} cm`, x + w - 78 * u, y + 26 * u);
-    this.tiny('shorter', x + w - 70 * u, y + 8 * u, '\u2212');
-    this.tiny('taller', x + w - 38 * u, y + 8 * u, '+');
-    const inner = y + 46 * u;
-    // the line they both stand on, with room under it for the sentence
-    const floor = y + h - 64 * u;
-    const childX = x + 32 * u;
-    const animalX = childX + 26 * u;
-    const roomW = Math.max(30 * u, x + w - 16 * u - animalX);
-    const roomH = Math.max(24 * u, floor - inner - 4 * u);
-    // the animal is measured along its length, the child up her height, so each has its own limit
-    const bar = scaleBar(a.z || 1, childCm, roomW, roomH);
-    const tone = groupById(a.g)?.tone ?? '#8aa6b8';
 
-    child(ctx, childX, floor - bar.childPx, bar.childPx, '#9fb6c4');
-    const shape = shapeOf(a);
-    const ch = Math.min(bar.animalPx * (ASPECT[shape] ?? 1) * 0.86, roomH);
-    creature(ctx, shape, animalX, floor - ch, bar.animalPx, ch, tone);
-
-    ctx.strokeStyle = 'rgba(23, 58, 79, 0.22)';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(x + 14 * u, floor + 1);
-    ctx.lineTo(x + w - 14 * u, floor + 1);
-    ctx.stroke();
-
+    // the length, large, and whether it is this animal's own or its family's
     ctx.textAlign = 'left';
     ctx.fillStyle = INK;
-    ctx.font = this.font('900', 16);
-    ctx.fillText(a.z ? sizeLabel(a.z, NL()) : T('not known', 'onbekend'), x + 14 * u, floor + 22 * u);
-    ctx.fillStyle = SOFT;
-    ctx.font = fSmall;
-    const blown = bar.magnified ? T(` · drawn ${bar.times}× life size`, ` · ${bar.times}× vergroot getekend`) : '';
-    const said = this.wrap(`${compareToChild(a.z, childCm, NL())}${note}${blown}`, fSmall, w - 28 * u, 2);
-    said.forEach((l, i) => ctx.fillText(l, x + 14 * u, floor + 36 * u + i * 14 * u));
+    ctx.font = this.font('900', 22);
+    ctx.fillText(a.z ? sizeLabel(a.z, nl) : T('not known', 'onbekend'), x + 14 * u, y + 52 * u);
+    if (a.z && !a.x) {
+      ctx.fillStyle = SOFT;
+      ctx.font = this.font('700', 11);
+      ctx.fillText(T('typical for its family', 'gemiddeld voor zijn familie'), x + 14 * u, y + 68 * u);
+    }
+    if (!a.z) return y + h;
+
+    const rx = x + 16 * u, rw = w - 32 * u;
+    const ry = y + h - 58 * u, rh = 34 * u;
+    const r = rulerFor(a.z, rw);
+    const perCm = rw / r.span;
+
+    // the animal, standing on the ruler at its true length on it
+    const len = Math.max(4 * u, a.z * perCm);
+    const shape = shapeOf(a);
+    const room = ry - (y + 78 * u) - 12 * u;
+    const ah = Math.min(len * (ASPECT[shape] ?? 1) * 0.86, room);
+    creature(ctx, shape, rx, ry - 12 * u - ah, len, ah, groupById(a.g)?.tone ?? '#8aa6b8');
+    // a bracket from nose to tail, so it is clear which part of the ruler is the animal
+    ctx.strokeStyle = 'rgba(23, 58, 79, 0.55)';
+    ctx.lineWidth = 1.6 * u;
+    ctx.beginPath();
+    ctx.moveTo(rx, ry - 9 * u); ctx.lineTo(rx, ry - 4 * u); ctx.lineTo(rx + len, ry - 4 * u); ctx.lineTo(rx + len, ry - 9 * u);
+    ctx.stroke();
+
+    // the ruler: a strip of pale wood with its marks along the top edge
+    ctx.save();
+    ctx.fillStyle = '#f3d98b';
+    roundRectPath(ctx, rx - 6 * u, ry, rw + 12 * u, rh, 5 * u);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120, 88, 30, 0.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    const n = Math.round(r.span / r.minor);
+    const per = Math.round(r.major / r.minor);
+    const half = per % 2 === 0 ? per / 2 : 0;
+    ctx.strokeStyle = '#5b4214';
+    ctx.fillStyle = '#5b4214';
+    ctx.font = this.font('800', 9.5);
+    ctx.textAlign = 'center';
+    for (let i = 0; i <= n; i++) {
+      const tx = rx + i * r.minor * perCm;
+      const big = i % per === 0, mid = half > 0 && i % half === 0;
+      ctx.lineWidth = big ? 1.4 : 1;
+      ctx.beginPath();
+      ctx.moveTo(tx, ry);
+      ctx.lineTo(tx, ry + (big ? 13 : mid ? 9 : 5) * u);
+      ctx.stroke();
+      if (big) {
+        const v = i * r.minor;
+        const shown = r.unit === 'm' ? v / 100 : v;
+        const txt = String(Math.round(shown * 10) / 10);
+        ctx.fillText(nl ? txt.replace('.', ',') : txt, tx, ry + 25 * u);
+      }
+    }
+    // which unit the numbers are in, and that the small marks are millimetres when they are
+    ctx.textAlign = 'right';
+    ctx.font = this.font('800', 9);
+    const unit = r.unit === 'm' ? 'm' : r.minor < 1 ? T('cm · marks are mm', 'cm · streepjes zijn mm') : 'cm';
+    ctx.fillText(unit, rx + rw, ry + rh + 12 * u);
+    ctx.restore();
     return y + h;
   }
 
@@ -1033,7 +1099,7 @@ export class AnimalBook {
   private factsCard(a: Animal, x: number, y: number, w: number): number {
     const ctx = this.ctx;
     const u = this.u();
-    const list = facts(a, NL(), save.animals.childCm);
+    const list = facts(a, NL());
     const para = this.text[String(a.i)] ?? '';
     const fFact = this.font('700', 13.5);
     const fPara = this.font('400', 13);

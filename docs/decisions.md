@@ -340,3 +340,23 @@ te horen is.
 Grenzen die blijven: Suri in de hoek maakt geen klik, want hij praat al; de noten van Klankhuis en de
 doorlopende motoren blijven code. De meeste van de 3744 dieren hebben geen geluid, omdat een vis of
 een spin er geen heeft dat een kind kent, en de generator er dan een verzint.
+
+---
+
+## 2026-09-23 — Het Dierenboek: vegen, en een liniaal in plaats van het kind
+
+De eigenaar vond de kaart met het getekende kind naast het dier storend, en vroeg om een meetlat
+in centimeters en millimeters: iets waar een kind nog iets van leert. Die kaart is weg. Onder de
+foto staat nu hoe lang het dier is, groot geschreven, en daaronder een houten liniaal met het dier
+erop op zijn echte lengte op die liniaal. De liniaal is altijd een ronde maat en iets langer dan het
+dier, en zijn streepjes zijn zo fijn als het scherm toelaat (`rulerFor()` in rules.ts): millimeters
+bij een lieveheersbeestje, centimeters bij een kat, meters bij een blauwe vinvis.
+
+Met de kaart verdwenen ook de knoppen waarmee je de lengte van het kind instelde, en daarom ook de
+zin "ongeveer zo vaak zo lang als jij" bij de weetjes. Die rekende met een lengte die het kind niet
+meer zelf instelt, en een zin over "jou" die niet over jou gaat is niet waar.
+
+Daarnaast: op de pagina van een dier veeg je naar links voor het volgende dier op dezelfde plank en
+naar rechts voor het vorige. De pagina schuift mee onder de vinger, veert terug bij een korte veeg,
+en geeft aan het eind van de plank een beetje mee en stopt dan. De knoppen Vorige en Volgende
+blijven staan voor wie niet veegt.
