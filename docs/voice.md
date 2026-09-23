@@ -145,3 +145,25 @@ Wat nog op de telefoonstem staat: alles wat met getallen, tijden of namen tijden
 samengesteld (Rekenrijk, Klokkijken, de 3744 dieren), de klanken en woorden in Letterbos, en alle
 Engelse tekst. En op een echte telefoon mag geluid pas na de eerste aanraking; een openingszin die
 daarvoor valt, blijft stil of gaat naar de telefoonstem, zoals voorheen.
+
+## 2026-09-23 — "Letterlijk alles Ruth"
+
+Letterbos zei niets meer op "Hoor het woord" en "Klank voor klank". Het had als enige spel een
+eigen spraakmodule die alleen de telefoonstem kende, en op de telefoon van de eigenaar bleef die
+stil zodra de rest van de app opnames afspeelde. Letterbos vraagt nu eerst Ruth
+(`sayRecorded()`): alle woorden, zinnetjes, klanken en "de ei van trein"-regels zijn ingesproken,
+en het woord gevolgd door zijn klanken speelt als één reeks. Alleen als er één stukje ontbreekt
+spreekt de telefoon, dan de hele reeks, zodat het nooit twee stemmen door elkaar is.
+
+Daarna vroeg de eigenaar dat letterlijk alles Ruth is. `npm run voicecrawl` speelt elke pagina
+willekeurig en noteert elke regel die toch naar de telefoon ging. Gevonden en opgelost: namen met
+een uitleg achter een streepje (Stroomkring, Moonshot), twee stukken zonder punt ertussen
+(Planetarium), een getal in een zin (Opgraving), de diergroepen, "<onderdeel> gedraaid." en de
+missies van Moonshot met hun snelheid. "m/s" wordt nu voorgelezen als "meter per seconde".
+
+Wat na die rondes nog niet Ruth is, en waarom:
+- **De 3737 diernamen** in het Dierenboek: samen 62.414 tekens, meer dan het tegoed van deze
+  maand. Wacht op een besluit van de eigenaar.
+- **De radio van Cloudhopper**: Engelse luchtverkeersleiding met wisselende roepnamen, banen en
+  windsnelheden, in twee stemmen (toren en piloot), met een eigen spraakcode. Wacht ook op een besluit.
+- **Alles in het Engels.** Ruth spreekt alleen de Nederlandse regels.

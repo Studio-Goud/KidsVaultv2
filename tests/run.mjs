@@ -2981,6 +2981,13 @@ const group = name => console.log(`\n${name}`);
   is('test_voice_one_sentence_missing_sends_the_whole_line_to_the_device',
     clipsForLine(m2, 'nl', 'Welke komt hierna? Iets wat niemand insprak.'), null);
   is('test_voice_nothing_recorded_means_the_device', clipsForLine(rec(), 'nl', 'Hoi.'), null);
+  const m3 = rec('Lampje', 'Twaalf ohm gloeiend draad.', 'Die nog even niet', 'De vier rotsplaneten');
+  is('test_voice_a_name_and_its_note_across_a_dash_are_two_recordings',
+    clipsForLine(m3, 'nl', 'Lampje — Twaalf ohm gloeiend draad.').length, 2);
+  is('test_voice_a_note_of_two_sentences_recorded_whole_is_found_after_the_dash',
+    clipsForLine(rec('Lampje', 'Twaalf ohm. Hoe meer stroom, hoe feller.'), 'nl', 'Lampje — Twaalf ohm. Hoe meer stroom, hoe feller.').length, 2);
+  is('test_voice_two_pieces_glued_without_a_stop_are_found',
+    clipsForLine(m3, 'nl', 'Die nog even niet De vier rotsplaneten').length, 2);
 
   const good = { nl: [{ id: 'a', file: 'nl/a.mp3', secs: 1.2 }], en: [{ id: 'a', file: 'en/a.mp3', secs: 1.1 }] };
   is('test_voice_a_good_manifest_survives', cleanManifest(good), good);

@@ -19,6 +19,7 @@
     "contact": "node scripts/contact.mjs",
     "voice": "node scripts/voice.mjs",
     "voicecheck": "node scripts/voicecheck.mjs",
+    "voicecrawl": "node scripts/voicecrawl.mjs",
     "sfx": "node scripts/sfx.mjs"
   },
   "devDependencies": {

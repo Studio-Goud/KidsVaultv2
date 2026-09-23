@@ -103,12 +103,36 @@ export function clipsForLine(m: Manifest, which: 'nl' | 'en', text: string): Cli
     return null;
   };
   if (!text.trim()) return null;
-  const whole = one(text);
-  if (whole) return [whole];
-  const parts = text.split(/(?<=[.?!])\s+/).map(x => x.trim()).filter(Boolean);
-  if (parts.length < 2) return null;
-  const found = parts.map(one);
-  return found.every(Boolean) ? (found as Clip[]) : null;
+  // Layer by layer: a name and its note across a dash ("Lampje — Twaalf ohm ..."), each of those
+  // whole or sentence by sentence, and last two pieces glued with no stop between them.
+  const sentences = (t: string): Clip[] | null => {
+    const whole = one(t);
+    if (whole) return [whole];
+    const parts = t.split(/(?<=[.?!])\s+/).map(x => x.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const found = parts.map(one);
+      if (found.every(Boolean)) return found as Clip[];
+    }
+    const words = t.trim().split(/\s+/);
+    for (let i = 1; i < words.length; i++) {
+      const a = one(words.slice(0, i).join(' '));
+      if (!a) continue;
+      const b = one(words.slice(i).join(' '));
+      if (b) return [a, b];
+    }
+    return null;
+  };
+  const direct = sentences(text);
+  if (direct) return direct;
+  const sides = text.split(/\s+[—–-]\s+/).map(x => x.trim()).filter(Boolean);
+  if (sides.length < 2) return null;
+  const out: Clip[] = [];
+  for (const side of sides) {
+    const got = sentences(side);
+    if (!got) return null;
+    out.push(...got);
+  }
+  return out;
 }
 
 /**
@@ -239,23 +263,68 @@ function speakNow(id: string | null, text: string, rate: number): void {
   const named = id ? clipFor(clips, which, id) : null;
   const list = named ? [named] : clipsForLine(clips, which, text);
   if (list) { playClips(list, text, rate); return; }
+  noteMiss(text);
   speakOut(text, rate);
 }
 
+/**
+ * Every line that had to go to the device's voice, for `npm run voicecheck` to collect. The owner
+ * asked for Ruth and nothing else, so a miss is a bug to be found, not a fallback to be tolerated.
+ */
+export function noteMiss(text: string): void {
+  if (!text || typeof window === 'undefined') return;
+  const w = window as unknown as { __voiceMisses?: string[] };
+  const list = (w.__voiceMisses ??= []);
+  if (!list.includes(text) && list.length < 500) list.push(text);
+}
+
 /** One recording after another. Anything new stops the lot, through `stopSpeaking()`. */
+/** What is still to be played after the recording that is playing now. */
+let queued: Clip[] = [];
+
 function playClips(list: Clip[], text: string, rate: number): void {
   const mine = said;
-  const next = (i: number): void => {
-    if (i >= list.length || mine !== said) return;
+  queued = list.slice();
+  const next = (first: boolean): void => {
+    if (mine !== said) return;
+    const c = queued.shift();
+    if (!c) return;
     try {
-      const a = new Audio(`./voice/${list[i].file}`);
-      a.addEventListener('ended', () => next(i + 1));
+      const a = new Audio(`./voice/${c.file}`);
+      a.addEventListener('ended', () => next(false));
       // a phone that refuses to play before the first touch gets the device's voice instead
-      a.play().catch(() => { if (i === 0 && mine === said) speakOut(text, rate); });
+      a.play().catch(() => { if (first && mine === said) speakOut(text, rate); });
       playing = a;
-    } catch { if (i === 0) speakOut(text, rate); }
+    } catch { if (first) speakOut(text, rate); }
   };
-  next(0);
+  next(true);
+}
+
+/**
+ * Say these lines from Ruth's recordings, one after another, or report that it cannot be done.
+ *
+ * For Letterbos, which keeps its own device voice for the pieces nobody recorded: it asks here
+ * first and speaks for itself only on false. All or nothing, like `clipsForLine`: one missing
+ * piece and the caller says the lot, so a word and its sounds are never in two voices.
+ *
+ * `append` adds to what is playing instead of cutting it off - the sounds after the word.
+ */
+export function sayRecorded(texts: string[], append = false): boolean {
+  if (!save.sound) return true;
+  if (!loaded) { ensureManifest(); return false; }
+  const which = lang();
+  const all: Clip[] = [];
+  for (const t of texts) {
+    const l = clipsForLine(clips, which, t);
+    if (!l) return false;
+    all.push(...l);
+  }
+  if (!all.length) return false;
+  if (append && playing && !playing.paused && !playing.ended) { queued.push(...all); return true; }
+  stopSpeaking();
+  said++;
+  playClips(all, '', 1);
+  return true;
 }
 
 function speakOut(text: string, rate: number): void {

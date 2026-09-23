@@ -22,6 +22,18 @@
    "text": "Verdiend"
   },
   {
+   "id": "t005c31b1",
+   "file": "nl/t005c31b1.mp3",
+   "secs": 1.1,
+   "text": "in de lucht"
+  },
+  {
+   "id": "t00620c99",
+   "file": "nl/t00620c99.mp3",
+   "secs": 1.4,
+   "text": "de ee van been"
+  },
+  {
    "id": "t00768ca5",
    "file": "nl/t00768ca5.mp3",
    "secs": 5.4,
@@ -58,6 +70,12 @@
    "text": "Maak eerst het tienveld vol: tien. Tel dan door met wat er nog over is."
   },
   {
+   "id": "t00d528c7",
+   "file": "nl/t00d528c7.mp3",
+   "secs": 1.7,
+   "text": "Vind eerst 8 fossielen."
+  },
+  {
    "id": "t00ec233c",
    "file": "nl/t00ec233c.mp3",
    "secs": 1.2,
@@ -74,6 +92,12 @@
    "file": "nl/t01174710.mp3",
    "secs": 1,
    "text": "Trap los"
+  },
+  {
+   "id": "t01388379",
+   "file": "nl/t01388379.mp3",
+   "secs": 6,
+   "text": "Een rondje om de Aarde - 2720 m/s als de brandstof op is"
   },
   {
    "id": "t01517942",
@@ -154,10 +178,22 @@
    "text": "Drie motoren"
   },
   {
+   "id": "t03df8f8d",
+   "file": "nl/t03df8f8d.mp3",
+   "secs": 1.6,
+   "text": "Schakelaar gedraaid."
+  },
+  {
    "id": "t03f5086f",
    "file": "nl/t03f5086f.mp3",
    "secs": 0.9,
    "text": "Enceladus"
+  },
+  {
+   "id": "t03f6bd2d",
+   "file": "nl/t03f6bd2d.mp3",
+   "secs": 3.1,
+   "text": "Breed en laag. De lucht moet er ver omheen."
   },
   {
    "id": "t03f9f144",
@@ -176,6 +212,12 @@
    "file": "nl/t0501a2b2.mp3",
    "secs": 1.3,
    "text": "Grote cabine"
+  },
+  {
+   "id": "t052ce269",
+   "file": "nl/t052ce269.mp3",
+   "secs": 1,
+   "text": "prijs"
   },
   {
    "id": "t05cfabd7",
@@ -200,6 +242,12 @@
    "file": "nl/t06662cdb.mp3",
    "secs": 3.8,
    "text": "Meerdere toestellen tegelijk volgen zonder er een te vergeten."
+  },
+  {
+   "id": "t06bdc9cf",
+   "file": "nl/t06bdc9cf.mp3",
+   "secs": 1.8,
+   "text": "De Zuidelijke Oceaan"
   },
   {
    "id": "t06fe254a",
@@ -268,6 +316,12 @@
    "text": "Het hol"
   },
   {
+   "id": "t0914d819",
+   "file": "nl/t0914d819.mp3",
+   "secs": 0.9,
+   "text": "spin"
+  },
+  {
    "id": "t09173dc5",
    "file": "nl/t09173dc5.mp3",
    "secs": 4,
@@ -320,6 +374,12 @@
    "file": "nl/t0a1f387b.mp3",
    "secs": 1,
    "text": "Telescoop"
+  },
+  {
+   "id": "t0a21ad3c",
+   "file": "nl/t0a21ad3c.mp3",
+   "secs": 1.2,
+   "text": "wiel"
   },
   {
    "id": "t0a4dddda",
@@ -412,6 +472,12 @@
    "text": "vertrekt"
   },
   {
+   "id": "t0c9de72b",
+   "file": "nl/t0c9de72b.mp3",
+   "secs": 0.8,
+   "text": "ngk"
+  },
+  {
    "id": "t0d21954e",
    "file": "nl/t0d21954e.mp3",
    "secs": 1.1,
@@ -424,6 +490,12 @@
    "text": "Een schakelaar die terugveert. Alleen dicht zolang je hem vasthoudt."
   },
   {
+   "id": "t0d2e5d5d",
+   "file": "nl/t0d2e5d5d.mp3",
+   "secs": 0.9,
+   "text": "trein"
+  },
+  {
    "id": "t0d41a022",
    "file": "nl/t0d41a022.mp3",
    "secs": 6.2,
@@ -434,6 +506,12 @@
    "file": "nl/t0d548fa7.mp3",
    "secs": 0.9,
    "text": "vlag"
+  },
+  {
+   "id": "t0db4b4e7",
+   "file": "nl/t0db4b4e7.mp3",
+   "secs": 0.9,
+   "text": "hek"
   },
   {
    "id": "t0dff1c74",
@@ -452,6 +530,12 @@
    "file": "nl/t0e43ae3b.mp3",
    "secs": 1,
    "text": "Zonnecel"
+  },
+  {
+   "id": "t0e636f71",
+   "file": "nl/t0e636f71.mp3",
+   "secs": 1.3,
+   "text": "de h van hok"
   },
   {
    "id": "t0e830b84",
@@ -494,6 +578,24 @@
    "file": "nl/t0f51e07c.mp3",
    "secs": 1,
    "text": "We gaan"
+  },
+  {
+   "id": "t0fa36288",
+   "file": "nl/t0fa36288.mp3",
+   "secs": 1.7,
+   "text": "Vind eerst 3 fossielen."
+  },
+  {
+   "id": "t0fdf919c",
+   "file": "nl/t0fdf919c.mp3",
+   "secs": 3.7,
+   "text": "Kort en dik duwt veel lucht weg. Maak hem langer."
+  },
+  {
+   "id": "t0fe6432d",
+   "file": "nl/t0fe6432d.mp3",
+   "secs": 1.5,
+   "text": "Batterij gedraaid."
   },
   {
    "id": "t101d577c",
@@ -544,6 +646,12 @@
    "text": "Een land aan zijn vorm. Kijk eerst naar de kust."
   },
   {
+   "id": "t10d4cfc5",
+   "file": "nl/t10d4cfc5.mp3",
+   "secs": 1.2,
+   "text": "Antarctica"
+  },
+  {
    "id": "t110003eb",
    "file": "nl/t110003eb.mp3",
    "secs": 0.9,
@@ -574,10 +682,34 @@
    "text": "Half uur"
   },
   {
+   "id": "t11b54859",
+   "file": "nl/t11b54859.mp3",
+   "secs": 0.8,
+   "text": "nnn"
+  },
+  {
+   "id": "t11b7276e",
+   "file": "nl/t11b7276e.mp3",
+   "secs": 1.5,
+   "text": "Er zijn er nog veel"
+  },
+  {
+   "id": "t11e871ee",
+   "file": "nl/t11e871ee.mp3",
+   "secs": 1.3,
+   "text": "de i van vis"
+  },
+  {
    "id": "t121927e3",
    "file": "nl/t121927e3.mp3",
    "secs": 1.2,
    "text": "Lelystad"
+  },
+  {
+   "id": "t1221242e",
+   "file": "nl/t1221242e.mp3",
+   "secs": 1.2,
+   "text": "in de bergen"
   },
   {
    "id": "t12453b10",
@@ -598,10 +730,22 @@
    "text": "Vooruit plannen"
   },
   {
+   "id": "t12aca1ac",
+   "file": "nl/t12aca1ac.mp3",
+   "secs": 0.8,
+   "text": "www"
+  },
+  {
    "id": "t12afbcb9",
    "file": "nl/t12afbcb9.mp3",
    "secs": 1.4,
    "text": "Deze speelt nu"
+  },
+  {
+   "id": "t12d9c14a",
+   "file": "nl/t12d9c14a.mp3",
+   "secs": 0.8,
+   "text": "weg"
   },
   {
    "id": "t12ebc3f4",
@@ -616,10 +760,28 @@
    "text": "Twee lange vleugels. Prachtig, en pure vracht."
   },
   {
+   "id": "t133d9f63",
+   "file": "nl/t133d9f63.mp3",
+   "secs": 1.2,
+   "text": "een uur"
+  },
+  {
    "id": "t136b3d62",
    "file": "nl/t136b3d62.mp3",
    "secs": 1,
    "text": "Opnieuw"
+  },
+  {
+   "id": "t13a7bc7d",
+   "file": "nl/t13a7bc7d.mp3",
+   "secs": 4.6,
+   "text": "Elke vallei levert schoven op. Bouw er iets van dat je verder helpt."
+  },
+  {
+   "id": "t13bddf61",
+   "file": "nl/t13bddf61.mp3",
+   "secs": 0.9,
+   "text": "planten"
   },
   {
    "id": "t14655700",
@@ -686,6 +848,12 @@
    "file": "nl/t159b4e24.mp3",
    "secs": 1.2,
    "text": "Zet de klok"
+  },
+  {
+   "id": "t15b22c46",
+   "file": "nl/t15b22c46.mp3",
+   "secs": 0.9,
+   "text": "vlees"
   },
   {
    "id": "t15f24655",
@@ -784,6 +952,12 @@
    "text": "Hoger dan bijna alles wat mensen daarboven hebben gezet."
   },
   {
+   "id": "t18449112",
+   "file": "nl/t18449112.mp3",
+   "secs": 1.5,
+   "text": "Vissen en haaien"
+  },
+  {
    "id": "t1871cbb7",
    "file": "nl/t1871cbb7.mp3",
    "secs": 3,
@@ -826,6 +1000,12 @@
    "text": "Grote motor"
   },
   {
+   "id": "t19fd0340",
+   "file": "nl/t19fd0340.mp3",
+   "secs": 0.9,
+   "text": "roos"
+  },
+  {
    "id": "t1a10158d",
    "file": "nl/t1a10158d.mp3",
    "secs": 3.7,
@@ -836,6 +1016,12 @@
    "file": "nl/t1a4ef52c.mp3",
    "secs": 1.8,
    "text": "We zeggen wat we niet weten"
+  },
+  {
+   "id": "t1abb2122",
+   "file": "nl/t1abb2122.mp3",
+   "secs": 1.8,
+   "text": "Ongeveer even groot als jij."
   },
   {
    "id": "t1aef56e0",
@@ -916,6 +1102,12 @@
    "text": "Twee noten. Was de tweede hoger of lager? Later: hoeveel hoger."
   },
   {
+   "id": "t1d772ada",
+   "file": "nl/t1d772ada.mp3",
+   "secs": 4.1,
+   "text": "Het platform - 0 m/s als de brandstof op is"
+  },
+  {
    "id": "t1d97aaa9",
    "file": "nl/t1d97aaa9.mp3",
    "secs": 1.2,
@@ -946,6 +1138,12 @@
    "text": "Een stapel van hetzelfde idee. Sterk en zuinig tegelijk."
   },
   {
+   "id": "t1e342a97",
+   "file": "nl/t1e342a97.mp3",
+   "secs": 1.5,
+   "text": "Ernstig bedreigd"
+  },
+  {
    "id": "t1e79abab",
    "file": "nl/t1e79abab.mp3",
    "secs": 4.6,
@@ -956,6 +1154,12 @@
    "file": "nl/t1e88aade.mp3",
    "secs": 2.2,
    "text": "Nog een keer, voor de zekerheid."
+  },
+  {
+   "id": "t1ea111da",
+   "file": "nl/t1ea111da.mp3",
+   "secs": 0.8,
+   "text": "goud"
   },
   {
    "id": "t1ed37da7",
@@ -1022,6 +1226,12 @@
    "file": "nl/t208fdb5f.mp3",
    "secs": 1,
    "text": "De Zwaan"
+  },
+  {
+   "id": "t209e1a9c",
+   "file": "nl/t209e1a9c.mp3",
+   "secs": 1.3,
+   "text": "Noord-Brabant"
   },
   {
    "id": "t20b974f5",
@@ -1180,6 +1390,12 @@
    "text": "Gelderland is de grootste provincie. De Veluwe is het grootste bos van Nederland, en er lopen wilde zwijnen en edelherten."
   },
   {
+   "id": "t25999158",
+   "file": "nl/t25999158.mp3",
+   "secs": 0.8,
+   "text": "net"
+  },
+  {
    "id": "t25aa1cbe",
    "file": "nl/t25aa1cbe.mp3",
    "secs": 3.8,
@@ -1270,10 +1486,22 @@
    "text": "Splitsen tot 10, erbij en eraf, over het tiental, tientallen, de tafels"
   },
   {
+   "id": "t28b5471d",
+   "file": "nl/t28b5471d.mp3",
+   "secs": 0.9,
+   "text": "leeuw"
+  },
+  {
    "id": "t28f2d632",
    "file": "nl/t28f2d632.mp3",
    "secs": 0.9,
    "text": "Muziek"
+  },
+  {
+   "id": "t2903a4c3",
+   "file": "nl/t2903a4c3.mp3",
+   "secs": 1,
+   "text": "De Rijn"
   },
   {
    "id": "t2969ec33",
@@ -1306,6 +1534,12 @@
    "text": "16,5 ton brandstof, 6 rijen hoog."
   },
   {
+   "id": "t2a10a52f",
+   "file": "nl/t2a10a52f.mp3",
+   "secs": 1.4,
+   "text": "Lampje gedraaid."
+  },
+  {
    "id": "t2a1fe298",
    "file": "nl/t2a1fe298.mp3",
    "secs": 0.9,
@@ -1324,16 +1558,46 @@
    "text": "Verloopstuk"
   },
   {
+   "id": "t2a3cf612",
+   "file": "nl/t2a3cf612.mp3",
+   "secs": 2.3,
+   "text": "We weten niet hoe groot hij wordt."
+  },
+  {
+   "id": "t2a820395",
+   "file": "nl/t2a820395.mp3",
+   "secs": 0.9,
+   "text": "brood"
+  },
+  {
+   "id": "t2ac0ccff",
+   "file": "nl/t2ac0ccff.mp3",
+   "secs": 1.2,
+   "text": "Overijssel"
+  },
+  {
    "id": "t2ac5958b",
    "file": "nl/t2ac5958b.mp3",
    "secs": 0.9,
    "text": "vlucht"
   },
   {
+   "id": "t2ae97348",
+   "file": "nl/t2ae97348.mp3",
+   "secs": 0.9,
+   "text": "plankton"
+  },
+  {
    "id": "t2b1f9256",
    "file": "nl/t2b1f9256.mp3",
    "secs": 5.2,
    "text": "Hou de trom aan de gang terwijl het liedje eroverheen speelt. Twee dingen tegelijk."
+  },
+  {
+   "id": "t2b500e53",
+   "file": "nl/t2b500e53.mp3",
+   "secs": 1.8,
+   "text": "verder dan we kunnen tellen"
   },
   {
    "id": "t2b62de22",
@@ -1354,10 +1618,22 @@
    "text": "Tik om te beginnen"
   },
   {
+   "id": "t2c14e4af",
+   "file": "nl/t2c14e4af.mp3",
+   "secs": 1.8,
+   "text": "De Atlantische Oceaan"
+  },
+  {
    "id": "t2c2b43e6",
    "file": "nl/t2c2b43e6.mp3",
    "secs": 5.6,
    "text": "Een mol rent weg van een zwellende stuifzwam. Zorg dat hij nergens heen kan."
+  },
+  {
+   "id": "t2c5f1223",
+   "file": "nl/t2c5f1223.mp3",
+   "secs": 1.3,
+   "text": "de t van tak"
   },
   {
    "id": "t2c5f9268",
@@ -1376,6 +1652,12 @@
    "file": "nl/t2cad3bc7.mp3",
    "secs": 3.4,
    "text": "Uilen jagen in het donker, met de scherpste ogen."
+  },
+  {
+   "id": "t2cae7cd9",
+   "file": "nl/t2cae7cd9.mp3",
+   "secs": 0.9,
+   "text": "kaas"
   },
   {
    "id": "t2cec2276",
@@ -1402,6 +1684,12 @@
    "text": "Brandt maar één kant op. Achterstevoren laat hij niets door."
   },
   {
+   "id": "t2de8f655",
+   "file": "nl/t2de8f655.mp3",
+   "secs": 0.9,
+   "text": "wol"
+  },
+  {
    "id": "t2e5b4423",
    "file": "nl/t2e5b4423.mp3",
    "secs": 1.7,
@@ -1420,10 +1708,22 @@
    "text": "Aarde"
   },
   {
+   "id": "t2e741f6b",
+   "file": "nl/t2e741f6b.mp3",
+   "secs": 4.4,
+   "text": "Twee parallelle banen, non-stop vol, terminals er middenin."
+  },
+  {
    "id": "t2e862925",
    "file": "nl/t2e862925.mp3",
    "secs": 1.5,
    "text": "verander één klank"
+  },
+  {
+   "id": "t2ec8b648",
+   "file": "nl/t2ec8b648.mp3",
+   "secs": 1,
+   "text": "augurk"
   },
   {
    "id": "t2f015a9b",
@@ -1438,6 +1738,12 @@
    "text": "Een jaar"
   },
   {
+   "id": "t2f862dda",
+   "file": "nl/t2f862dda.mp3",
+   "secs": 1.5,
+   "text": "De Westerschelde"
+  },
+  {
    "id": "t2f8f8e1f",
    "file": "nl/t2f8f8e1f.mp3",
    "secs": 3.1,
@@ -1448,6 +1754,12 @@
    "file": "nl/t2fe7860f.mp3",
    "secs": 0.9,
    "text": "OVER"
+  },
+  {
+   "id": "t300dfdff",
+   "file": "nl/t300dfdff.mp3",
+   "secs": 1,
+   "text": "rok"
   },
   {
    "id": "t300f9a2f",
@@ -1486,10 +1798,22 @@
    "text": "Een staaf is tien, een blokje is één. Leg ze op de plank en lees de getallenlijn."
   },
   {
+   "id": "t30716294",
+   "file": "nl/t30716294.mp3",
+   "secs": 1,
+   "text": "spons"
+  },
+  {
    "id": "t3073de01",
    "file": "nl/t3073de01.mp3",
    "secs": 1.6,
    "text": "Ze zijn het wachten zat."
+  },
+  {
+   "id": "t3080b364",
+   "file": "nl/t3080b364.mp3",
+   "secs": 0.8,
+   "text": "snoep"
   },
   {
    "id": "t3091f9cf",
@@ -1564,6 +1888,12 @@
    "text": "Kleine vleugel"
   },
   {
+   "id": "t32090087",
+   "file": "nl/t32090087.mp3",
+   "secs": 1.2,
+   "text": "Led gedraaid."
+  },
+  {
    "id": "t3268bbff",
    "file": "nl/t3268bbff.mp3",
    "secs": 1.1,
@@ -1604,6 +1934,12 @@
    "file": "nl/t339b7715.mp3",
    "secs": 6.2,
    "text": "De moeilijkste reis naar binnen. Je moet veel snelheid kwijt, en Mercurius wacht niet."
+  },
+  {
+   "id": "t33adcf4a",
+   "file": "nl/t33adcf4a.mp3",
+   "secs": 0.9,
+   "text": "rijdt"
   },
   {
    "id": "t33fe8f7e",
@@ -1648,6 +1984,12 @@
    "text": "Zet de klok op"
   },
   {
+   "id": "t3579f70d",
+   "file": "nl/t3579f70d.mp3",
+   "secs": 0.9,
+   "text": "rijst"
+  },
+  {
    "id": "t35831c63",
    "file": "nl/t35831c63.mp3",
    "secs": 1.5,
@@ -1690,6 +2032,12 @@
    "text": "Een lamp aan de zijkant. Verandert niets en het staat goed."
   },
   {
+   "id": "t365991eb",
+   "file": "nl/t365991eb.mp3",
+   "secs": 0.9,
+   "text": "lll"
+  },
+  {
    "id": "t3669f706",
    "file": "nl/t3669f706.mp3",
    "secs": 1.2,
@@ -1700,6 +2048,24 @@
    "file": "nl/t36723927.mp3",
    "secs": 4.6,
    "text": "Een korte schoor. Vooral om een verbinding stevig te laten lijken."
+  },
+  {
+   "id": "t369a65ae",
+   "file": "nl/t369a65ae.mp3",
+   "secs": 1.5,
+   "text": "De Grote Oceaan"
+  },
+  {
+   "id": "t36b4baf1",
+   "file": "nl/t36b4baf1.mp3",
+   "secs": 5.3,
+   "text": "Los van de Aarde - 11190 m/s als de brandstof op is"
+  },
+  {
+   "id": "t36d37d74",
+   "file": "nl/t36d37d74.mp3",
+   "secs": 1.3,
+   "text": "Zuid-Amerika"
   },
   {
    "id": "t36e23fac",
@@ -1718,6 +2084,12 @@
    "file": "nl/t36f1a1e6.mp3",
    "secs": 1,
    "text": "Jupiter"
+  },
+  {
+   "id": "t36f31f9b",
+   "file": "nl/t36f31f9b.mp3",
+   "secs": 7.4,
+   "text": "Vijf grote banen in de polder plus de korte Oostbaan; de Polderbaan ligt kilometers van de terminal."
   },
   {
    "id": "t36f891c6",
@@ -1744,6 +2116,24 @@
    "text": "Wat je kind oefent"
   },
   {
+   "id": "t37fd044c",
+   "file": "nl/t37fd044c.mp3",
+   "secs": 4.2,
+   "text": "Alle motoren staan op wachten. Er moet er een op 0 seconden."
+  },
+  {
+   "id": "t381a575f",
+   "file": "nl/t381a575f.mp3",
+   "secs": 0.8,
+   "text": "ee"
+  },
+  {
+   "id": "t38386c73",
+   "file": "nl/t38386c73.mp3",
+   "secs": 0.7,
+   "text": "ie"
+  },
+  {
    "id": "t3869daa1",
    "file": "nl/t3869daa1.mp3",
    "secs": 1.6,
@@ -1760,6 +2150,12 @@
    "file": "nl/t38a23797.mp3",
    "secs": 0.9,
    "text": "Triton"
+  },
+  {
+   "id": "t38deadf5",
+   "file": "nl/t38deadf5.mp3",
+   "secs": 0.8,
+   "text": "rrr"
   },
   {
    "id": "t38ecf688",
@@ -1828,16 +2224,40 @@
    "text": "Kleine neuskap"
   },
   {
+   "id": "t3a83f51c",
+   "file": "nl/t3a83f51c.mp3",
+   "secs": 0.9,
+   "text": "touw"
+  },
+  {
+   "id": "t3aaa7bc8",
+   "file": "nl/t3aaa7bc8.mp3",
+   "secs": 1.3,
+   "text": "De Deltawerken"
+  },
+  {
    "id": "t3ac5b484",
    "file": "nl/t3ac5b484.mp3",
    "secs": 1.1,
    "text": "Leeftijd"
   },
   {
+   "id": "t3b1a5c18",
+   "file": "nl/t3b1a5c18.mp3",
+   "secs": 0.9,
+   "text": "eh"
+  },
+  {
    "id": "t3b1d4c78",
    "file": "nl/t3b1d4c78.mp3",
    "secs": 5.6,
    "text": "Een nieuwe regel: grootte. De grote de ene kant op, de kleine de andere."
+  },
+  {
+   "id": "t3b2c8507",
+   "file": "nl/t3b2c8507.mp3",
+   "secs": 3.9,
+   "text": "Drie banen aan zee, met tropische buien in de middag."
   },
   {
    "id": "t3b34bc42",
@@ -1864,6 +2284,12 @@
    "text": "Houdt een wiebelige raket kaarsrecht, en de lucht laat je ervoor betalen."
   },
   {
+   "id": "t3b952e97",
+   "file": "nl/t3b952e97.mp3",
+   "secs": 0.8,
+   "text": "bank"
+  },
+  {
    "id": "t3bae174d",
    "file": "nl/t3bae174d.mp3",
    "secs": 9.1,
@@ -1882,10 +2308,28 @@
    "text": "Borstel het zand weg, vind het skelet en benoem de dinosaurus."
   },
   {
+   "id": "t3c1a5dab",
+   "file": "nl/t3c1a5dab.mp3",
+   "secs": 0.8,
+   "text": "ei"
+  },
+  {
+   "id": "t3c1d722e",
+   "file": "nl/t3c1d722e.mp3",
+   "secs": 1.6,
+   "text": "Vind eerst 10 fossielen."
+  },
+  {
    "id": "t3c24101b",
    "file": "nl/t3c24101b.mp3",
    "secs": 1.2,
    "text": "Eraf tot 10"
+  },
+  {
+   "id": "t3c45dffa",
+   "file": "nl/t3c45dffa.mp3",
+   "secs": 0.9,
+   "text": "aai"
   },
   {
    "id": "t3c658733",
@@ -1900,16 +2344,40 @@
    "text": "vanaf"
   },
   {
+   "id": "t3cb0b5ee",
+   "file": "nl/t3cb0b5ee.mp3",
+   "secs": 1.7,
+   "text": "Vind eerst 5 fossielen."
+  },
+  {
    "id": "t3ce0280e",
    "file": "nl/t3ce0280e.mp3",
    "secs": 3.6,
    "text": "Mijn kind is negen. Is dit niet te kinderachtig?"
   },
   {
+   "id": "t3d3b5281",
+   "file": "nl/t3d3b5281.mp3",
+   "secs": 1.2,
+   "text": "Duitsland"
+  },
+  {
    "id": "t3d661f91",
    "file": "nl/t3d661f91.mp3",
    "secs": 0.9,
    "text": "STROOM"
+  },
+  {
+   "id": "t3d78c2cc",
+   "file": "nl/t3d78c2cc.mp3",
+   "secs": 1,
+   "text": "Flevoland"
+  },
+  {
+   "id": "t3d878512",
+   "file": "nl/t3d878512.mp3",
+   "secs": 1.2,
+   "text": "Noord-Holland"
   },
   {
    "id": "t3d91e7c9",
@@ -1930,6 +2398,12 @@
    "text": "Kleine tank"
   },
   {
+   "id": "t3dd6df7c",
+   "file": "nl/t3dd6df7c.mp3",
+   "secs": 1.8,
+   "text": "Vind eerst 7 fossielen."
+  },
+  {
    "id": "t3dddb9fd",
    "file": "nl/t3dddb9fd.mp3",
    "secs": 0.9,
@@ -1940,6 +2414,12 @@
    "file": "nl/t3e033bf8.mp3",
    "secs": 1.2,
    "text": "Neuskegel"
+  },
+  {
+   "id": "t3e2d566b",
+   "file": "nl/t3e2d566b.mp3",
+   "secs": 1.3,
+   "text": "ik zie een uil"
   },
   {
    "id": "t3e3e23e3",
@@ -1960,6 +2440,12 @@
    "text": "Ruimtelijk inzicht, vooruitdenken, oorzaak en gevolg, sparen"
   },
   {
+   "id": "t3e9e2529",
+   "file": "nl/t3e9e2529.mp3",
+   "secs": 2.3,
+   "text": "Tel de staven en dan de blokjes."
+  },
+  {
    "id": "t3eaa3daa",
    "file": "nl/t3eaa3daa.mp3",
    "secs": 1.6,
@@ -1972,6 +2458,12 @@
    "text": "Verken"
   },
   {
+   "id": "t3ed0abf8",
+   "file": "nl/t3ed0abf8.mp3",
+   "secs": 0.8,
+   "text": "vaas"
+  },
+  {
    "id": "t3f0c21c2",
    "file": "nl/t3f0c21c2.mp3",
    "secs": 1.5,
@@ -1982,6 +2474,18 @@
    "file": "nl/t3f7929da.mp3",
    "secs": 6,
    "text": "Tel de lange wijzer rond met sprongen van vijf: vijf, tien, vijftien."
+  },
+  {
+   "id": "t3fd67cb3",
+   "file": "nl/t3fd67cb3.mp3",
+   "secs": 5.4,
+   "text": "De rand van de lucht - 1390 m/s als de brandstof op is"
+  },
+  {
+   "id": "t3fdb91e5",
+   "file": "nl/t3fdb91e5.mp3",
+   "secs": 1.1,
+   "text": "Reptielen"
   },
   {
    "id": "t3fdbe005",
@@ -2002,10 +2506,22 @@
    "text": "Bijna driekwart van de aarde is water."
   },
   {
+   "id": "t40d655f8",
+   "file": "nl/t40d655f8.mp3",
+   "secs": 1.4,
+   "text": "de oei van koei"
+  },
+  {
    "id": "t40f82dfc",
    "file": "nl/t40f82dfc.mp3",
    "secs": 1,
    "text": "Batterij"
+  },
+  {
+   "id": "t40ff0e38",
+   "file": "nl/t40ff0e38.mp3",
+   "secs": 0.9,
+   "text": "rat"
   },
   {
    "id": "t410407f2",
@@ -2020,16 +2536,34 @@
    "text": "Helemaal geen klok. Werkt laag net zo goed als hoog, en dat doet geen gewone motor."
   },
   {
+   "id": "t411a658a",
+   "file": "nl/t411a658a.mp3",
+   "secs": 0.9,
+   "text": "en"
+  },
+  {
    "id": "t4120946c",
    "file": "nl/t4120946c.mp3",
    "secs": 1.4,
    "text": "Negen motoren"
   },
   {
+   "id": "t4144beda",
+   "file": "nl/t4144beda.mp3",
+   "secs": 0.9,
+   "text": "Zeeland"
+  },
+  {
    "id": "t41658f12",
    "file": "nl/t41658f12.mp3",
    "secs": 1.2,
    "text": "Kolostank 3"
+  },
+  {
+   "id": "t41aa7edf",
+   "file": "nl/t41aa7edf.mp3",
+   "secs": 0.9,
+   "text": "ieuw"
   },
   {
    "id": "t41d70244",
@@ -2080,10 +2614,22 @@
    "text": "Een lang snoer met aan elk eind een klem. Overbrugt twee vakjes tegelijk."
   },
   {
+   "id": "t4324f60c",
+   "file": "nl/t4324f60c.mp3",
+   "secs": 0.7,
+   "text": "ah"
+  },
+  {
    "id": "t432b8ff6",
    "file": "nl/t432b8ff6.mp3",
    "secs": 7.8,
    "text": "Glazen vleugels die daarboven uitklappen. Plat, breed, en onderweg omhoog geen enkele hulp."
+  },
+  {
+   "id": "t43387dc4",
+   "file": "nl/t43387dc4.mp3",
+   "secs": 0.8,
+   "text": "ih"
   },
   {
    "id": "t43437e6c",
@@ -2122,6 +2668,12 @@
    "text": "Dit is de batterij. Hier komt de duw vandaan."
   },
   {
+   "id": "t44171b83",
+   "file": "nl/t44171b83.mp3",
+   "secs": 0.8,
+   "text": "gat"
+  },
+  {
    "id": "t4470becf",
    "file": "nl/t4470becf.mp3",
    "secs": 6.1,
@@ -2152,6 +2704,18 @@
    "text": "35,64 ton brandstof, 4 rijen hoog."
   },
   {
+   "id": "t44be5576",
+   "file": "nl/t44be5576.mp3",
+   "secs": 0.9,
+   "text": "fiets"
+  },
+  {
+   "id": "t4521d7e5",
+   "file": "nl/t4521d7e5.mp3",
+   "secs": 0.9,
+   "text": "dijk"
+  },
+  {
    "id": "t4533606e",
    "file": "nl/t4533606e.mp3",
    "secs": 1.1,
@@ -2170,10 +2734,28 @@
    "text": "Eilanden"
   },
   {
+   "id": "t46332299",
+   "file": "nl/t46332299.mp3",
+   "secs": 0.9,
+   "text": "dier"
+  },
+  {
    "id": "t4638307f",
    "file": "nl/t4638307f.mp3",
    "secs": 1.1,
    "text": "De reis"
+  },
+  {
+   "id": "t4638827d",
+   "file": "nl/t4638827d.mp3",
+   "secs": 0.8,
+   "text": "ik"
+  },
+  {
+   "id": "t464b5d26",
+   "file": "nl/t464b5d26.mp3",
+   "secs": 1.4,
+   "text": "de koe eet gras"
   },
   {
    "id": "t465aa188",
@@ -2206,16 +2788,40 @@
    "text": "sterren"
   },
   {
+   "id": "t47538a16",
+   "file": "nl/t47538a16.mp3",
+   "secs": 1.2,
+   "text": "de eu van neus"
+  },
+  {
    "id": "t47579146",
    "file": "nl/t47579146.mp3",
    "secs": 0.9,
    "text": "Venus"
   },
   {
+   "id": "t4773cc0f",
+   "file": "nl/t4773cc0f.mp3",
+   "secs": 0.9,
+   "text": "Limburg"
+  },
+  {
    "id": "t477a76e7",
    "file": "nl/t477a76e7.mp3",
    "secs": 3.3,
    "text": "Uranus ligt op zijn zij en rolt zo om de zon."
+  },
+  {
+   "id": "t477c7329",
+   "file": "nl/t477c7329.mp3",
+   "secs": 4.5,
+   "text": "Neptunus - 16200 m/s als de brandstof op is"
+  },
+  {
+   "id": "t477d3f0a",
+   "file": "nl/t477d3f0a.mp3",
+   "secs": 0.9,
+   "text": "klomp"
   },
   {
    "id": "t4785d630",
@@ -2230,10 +2836,22 @@
    "text": "Minuutgetallen"
   },
   {
+   "id": "t47a5e0b0",
+   "file": "nl/t47a5e0b0.mp3",
+   "secs": 1,
+   "text": "De Maas"
+  },
+  {
    "id": "t47b5b5ae",
    "file": "nl/t47b5b5ae.mp3",
    "secs": 4.9,
    "text": "Een bol houdt het meeste vast voor zijn huid, dus het is de lichtste tank die er is."
+  },
+  {
+   "id": "t47ce8468",
+   "file": "nl/t47ce8468.mp3",
+   "secs": 0.9,
+   "text": "zaag"
   },
   {
    "id": "t47f262db",
@@ -2260,10 +2878,28 @@
    "text": "Je beste tot nu toe"
   },
   {
+   "id": "t481a708f",
+   "file": "nl/t481a708f.mp3",
+   "secs": 0.8,
+   "text": "eu"
+  },
+  {
    "id": "t4836470c",
    "file": "nl/t4836470c.mp3",
    "secs": 1.2,
    "text": "nu"
+  },
+  {
+   "id": "t483f00fa",
+   "file": "nl/t483f00fa.mp3",
+   "secs": 1.5,
+   "text": "De Noordelijke IJszee"
+  },
+  {
+   "id": "t484312ff",
+   "file": "nl/t484312ff.mp3",
+   "secs": 0.7,
+   "text": "uu"
   },
   {
    "id": "t485751f4",
@@ -2276,6 +2912,18 @@
    "file": "nl/t488124fb.mp3",
    "secs": 1.2,
    "text": "Losse minuten"
+  },
+  {
+   "id": "t4888c1a8",
+   "file": "nl/t4888c1a8.mp3",
+   "secs": 1.1,
+   "text": "nggg"
+  },
+  {
+   "id": "t48896bee",
+   "file": "nl/t48896bee.mp3",
+   "secs": 0.9,
+   "text": "Azië"
   },
   {
    "id": "t48967187",
@@ -2296,6 +2944,12 @@
    "text": "Goed. Let op de klokken die je uitgelegd kreeg."
   },
   {
+   "id": "t4905ab80",
+   "file": "nl/t4905ab80.mp3",
+   "secs": 1.2,
+   "text": "de p van pen"
+  },
+  {
    "id": "t4909f8a2",
    "file": "nl/t4909f8a2.mp3",
    "secs": 5.5,
@@ -2314,6 +2968,12 @@
    "text": "Hoe laat is dat?"
   },
   {
+   "id": "t495054d3",
+   "file": "nl/t495054d3.mp3",
+   "secs": 1.5,
+   "text": "de bij vliegt weg"
+  },
+  {
    "id": "t495f3977",
    "file": "nl/t495f3977.mp3",
    "secs": 4.9,
@@ -2330,6 +2990,12 @@
    "file": "nl/t4a4b8184.mp3",
    "secs": 3.6,
    "text": "10,78 ton brandstof, 2 rijen hoog."
+  },
+  {
+   "id": "t4a4c69e3",
+   "file": "nl/t4a4c69e3.mp3",
+   "secs": 1.4,
+   "text": "de b van bus"
   },
   {
    "id": "t4a6d2a61",
@@ -2374,6 +3040,12 @@
    "text": "Limburg is de enige provincie met heuvels. Het hoogste punt van Nederland is de Vaalserberg, 322 meter, waar drie landen elkaar raken."
   },
   {
+   "id": "t4b4d041c",
+   "file": "nl/t4b4d041c.mp3",
+   "secs": 1.3,
+   "text": "de w van wol"
+  },
+  {
    "id": "t4b7f7705",
    "file": "nl/t4b7f7705.mp3",
    "secs": 0.9,
@@ -2396,6 +3068,12 @@
    "file": "nl/t4bc76803.mp3",
    "secs": 1.2,
    "text": "Code wijzigen"
+  },
+  {
+   "id": "t4c250437",
+   "file": "nl/t4c250437.mp3",
+   "secs": 0.8,
+   "text": "aa"
   },
   {
    "id": "t4c381914",
@@ -2458,6 +3136,12 @@
    "text": "Hoeveel later"
   },
   {
+   "id": "t4e0a8814",
+   "file": "nl/t4e0a8814.mp3",
+   "secs": 0.9,
+   "text": "nectar"
+  },
+  {
    "id": "t4e7da5a1",
    "file": "nl/t4e7da5a1.mp3",
    "secs": 4.3,
@@ -2468,6 +3152,12 @@
    "file": "nl/t4e9633f7.mp3",
    "secs": 0.7,
    "text": "uur"
+  },
+  {
+   "id": "t4ec3340d",
+   "file": "nl/t4ec3340d.mp3",
+   "secs": 3.7,
+   "text": "Vier banen die elkaar kruisen, met de baai er omheen."
   },
   {
    "id": "t4ed0b4c1",
@@ -2548,6 +3238,12 @@
    "text": "Harp"
   },
   {
+   "id": "t50f63a7a",
+   "file": "nl/t50f63a7a.mp3",
+   "secs": 0.9,
+   "text": "Spinnen"
+  },
+  {
    "id": "t51041fdd",
    "file": "nl/t51041fdd.mp3",
    "secs": 1.1,
@@ -2566,10 +3262,34 @@
    "text": "Middelburg"
   },
   {
+   "id": "t51335fd0",
+   "file": "nl/t51335fd0.mp3",
+   "secs": 0.8,
+   "text": "pop"
+  },
+  {
+   "id": "t51389cf8",
+   "file": "nl/t51389cf8.mp3",
+   "secs": 1.2,
+   "text": "Uitgestorven"
+  },
+  {
    "id": "t516b7206",
    "file": "nl/t516b7206.mp3",
    "secs": 1.6,
    "text": "Drift this aircraft"
+  },
+  {
+   "id": "t516b7c23",
+   "file": "nl/t516b7c23.mp3",
+   "secs": 1.7,
+   "text": "Vind eerst 4 fossielen."
+  },
+  {
+   "id": "t51b21831",
+   "file": "nl/t51b21831.mp3",
+   "secs": 0.9,
+   "text": "trui"
   },
   {
    "id": "t51c52b5a",
@@ -2662,10 +3382,28 @@
    "text": "Te snel: je kwam nooit meer terug."
   },
   {
+   "id": "t54c7da35",
+   "file": "nl/t54c7da35.mp3",
+   "secs": 0.8,
+   "text": "uil"
+  },
+  {
+   "id": "t5533661c",
+   "file": "nl/t5533661c.mp3",
+   "secs": 0.8,
+   "text": "pot"
+  },
+  {
    "id": "t5533b7db",
    "file": "nl/t5533b7db.mp3",
    "secs": 1.2,
    "text": "Brede kegel"
+  },
+  {
+   "id": "t55727a72",
+   "file": "nl/t55727a72.mp3",
+   "secs": 0.8,
+   "text": "puh"
   },
   {
    "id": "t55c23e92",
@@ -2678,6 +3416,12 @@
    "file": "nl/t55c4b1d4.mp3",
    "secs": 4.8,
    "text": "Op Pluto ligt een vlakte van bevroren stikstof in de vorm van een hart."
+  },
+  {
+   "id": "t55cef8d4",
+   "file": "nl/t55cef8d4.mp3",
+   "secs": 0.9,
+   "text": "worst"
   },
   {
    "id": "t55d8b2f8",
@@ -2740,6 +3484,18 @@
    "text": "off the line"
   },
   {
+   "id": "t583dca6f",
+   "file": "nl/t583dca6f.mp3",
+   "secs": 1.2,
+   "text": "de kat slaapt"
+  },
+  {
+   "id": "t58716793",
+   "file": "nl/t58716793.mp3",
+   "secs": 1.4,
+   "text": "de aai van haai"
+  },
+  {
    "id": "t58795643",
    "file": "nl/t58795643.mp3",
    "secs": 1,
@@ -2752,10 +3508,34 @@
    "text": "tailwind"
   },
   {
+   "id": "t58ac9133",
+   "file": "nl/t58ac9133.mp3",
+   "secs": 0.8,
+   "text": "voet"
+  },
+  {
+   "id": "t58ae5384",
+   "file": "nl/t58ae5384.mp3",
+   "secs": 0.9,
+   "text": "bel"
+  },
+  {
+   "id": "t58b74de0",
+   "file": "nl/t58b74de0.mp3",
+   "secs": 0.8,
+   "text": "bal"
+  },
+  {
    "id": "t58e57c02",
    "file": "nl/t58e57c02.mp3",
    "secs": 9.2,
    "text": "Het afrekenen is nog niet gebouwd. Straks loopt het via de App Store of Google Play, zodat opzeggen gaat waar je alles opzegt."
+  },
+  {
+   "id": "t58ecb0b2",
+   "file": "nl/t58ecb0b2.mp3",
+   "secs": 1.3,
+   "text": "Draad gedraaid."
   },
   {
    "id": "t58f897e2",
@@ -2768,6 +3548,12 @@
    "file": "nl/t59257ee2.mp3",
    "secs": 4.8,
    "text": "Graaf geulen en het water vindt zelf zijn weg naar de akkers en de molen."
+  },
+  {
+   "id": "t593cc03f",
+   "file": "nl/t593cc03f.mp3",
+   "secs": 0.8,
+   "text": "kuh"
   },
   {
    "id": "t59529289",
@@ -2788,10 +3574,28 @@
    "text": "Antarctica is het koudste werelddeel en niemand woont er vast. Het ijs is er gemiddeld bijna twee kilometer dik."
   },
   {
+   "id": "t59d89890",
+   "file": "nl/t59d89890.mp3",
+   "secs": 0.9,
+   "text": "kraan"
+  },
+  {
    "id": "t5a13f683",
    "file": "nl/t5a13f683.mp3",
    "secs": 6,
    "text": "Negen klankstaven om op te spelen, en negen niveaus van tel, maat en melodie."
+  },
+  {
+   "id": "t5a623252",
+   "file": "nl/t5a623252.mp3",
+   "secs": 0.9,
+   "text": "blauw"
+  },
+  {
+   "id": "t5a63e17e",
+   "file": "nl/t5a63e17e.mp3",
+   "secs": 1,
+   "text": "sein"
   },
   {
    "id": "t5a72b29f",
@@ -2818,6 +3622,12 @@
    "text": "Geen advertenties, geen volgsoftware van derden, geen account. De voortgang blijft op het toestel zelf staan."
   },
   {
+   "id": "t5aad8782",
+   "file": "nl/t5aad8782.mp3",
+   "secs": 1.5,
+   "text": "Relais gedraaid."
+  },
+  {
    "id": "t5ae80aff",
    "file": "nl/t5ae80aff.mp3",
    "secs": 0.9,
@@ -2830,6 +3640,12 @@
    "text": "Het licht was op"
   },
   {
+   "id": "t5b4330e8",
+   "file": "nl/t5b4330e8.mp3",
+   "secs": 0.7,
+   "text": "uh"
+  },
+  {
    "id": "t5b80f0e4",
    "file": "nl/t5b80f0e4.mp3",
    "secs": 4.6,
@@ -2840,6 +3656,12 @@
    "file": "nl/t5badf19b.mp3",
    "secs": 0.9,
    "text": "Turbo"
+  },
+  {
+   "id": "t5bc1c548",
+   "file": "nl/t5bc1c548.mp3",
+   "secs": 0.9,
+   "text": "neus"
   },
   {
    "id": "t5be0c41d",
@@ -2860,6 +3682,24 @@
    "text": "21,56 ton brandstof, 4 rijen hoog."
   },
   {
+   "id": "t5c1ccea2",
+   "file": "nl/t5c1ccea2.mp3",
+   "secs": 0.9,
+   "text": "de"
+  },
+  {
+   "id": "t5c3427f1",
+   "file": "nl/t5c3427f1.mp3",
+   "secs": 0.7,
+   "text": "ou"
+  },
+  {
+   "id": "t5c43327b",
+   "file": "nl/t5c43327b.mp3",
+   "secs": 0.9,
+   "text": "ui"
+  },
+  {
    "id": "t5c44f7d8",
    "file": "nl/t5c44f7d8.mp3",
    "secs": 1.2,
@@ -2878,6 +3718,12 @@
    "text": "Laat het lampje branden."
   },
   {
+   "id": "t5c7c6218",
+   "file": "nl/t5c7c6218.mp3",
+   "secs": 0.9,
+   "text": "schip"
+  },
+  {
    "id": "t5c8be38c",
    "file": "nl/t5c8be38c.mp3",
    "secs": 3.5,
@@ -2890,10 +3736,22 @@
    "text": "Doorstart"
   },
   {
+   "id": "t5ca79832",
+   "file": "nl/t5ca79832.mp3",
+   "secs": 1.4,
+   "text": "de k van kat"
+  },
+  {
    "id": "t5cae1571",
    "file": "nl/t5cae1571.mp3",
    "secs": 5.5,
    "text": "Zeven werelddelen en vijf oceanen. Samen zijn ze de hele aarde."
+  },
+  {
+   "id": "t5d0b29bf",
+   "file": "nl/t5d0b29bf.mp3",
+   "secs": 0.7,
+   "text": "kat"
   },
   {
    "id": "t5d1e6aa9",
@@ -2918,6 +3776,18 @@
    "file": "nl/t5d53adb1.mp3",
    "secs": 1,
    "text": "Haarlem"
+  },
+  {
+   "id": "t5d56feee",
+   "file": "nl/t5d56feee.mp3",
+   "secs": 0.9,
+   "text": "zwaan"
+  },
+  {
+   "id": "t5d819540",
+   "file": "nl/t5d819540.mp3",
+   "secs": 0.9,
+   "text": "eik"
   },
   {
    "id": "t5dc30a17",
@@ -2956,10 +3826,22 @@
    "text": "Een wandelend fort met een knots van bot aan zijn staart."
   },
   {
+   "id": "t5ecadf0a",
+   "file": "nl/t5ecadf0a.mp3",
+   "secs": 0.9,
+   "text": "bij"
+  },
+  {
    "id": "t5ed3d6aa",
    "file": "nl/t5ed3d6aa.mp3",
    "secs": 4.9,
    "text": "Houd het water bij de huizen weg. Een rug is makkelijker dan een dam."
+  },
+  {
+   "id": "t5ede86fb",
+   "file": "nl/t5ede86fb.mp3",
+   "secs": 3.9,
+   "text": "Een baan dwars door de doorgaande weg, in de luwte van de Rots."
   },
   {
    "id": "t5ee4f128",
@@ -3010,6 +3892,12 @@
    "text": "Bij de vogels"
   },
   {
+   "id": "t5fd56df9",
+   "file": "nl/t5fd56df9.mp3",
+   "secs": 0.9,
+   "text": "bus"
+  },
+  {
    "id": "t5ff2953a",
    "file": "nl/t5ff2953a.mp3",
    "secs": 8.2,
@@ -3026,6 +3914,18 @@
    "file": "nl/t6062cb03.mp3",
    "secs": 3.3,
    "text": "De kleinste planeet, en de snelste rond de zon."
+  },
+  {
+   "id": "t60809302",
+   "file": "nl/t60809302.mp3",
+   "secs": 1.1,
+   "text": "trap"
+  },
+  {
+   "id": "t6084ee1a",
+   "file": "nl/t6084ee1a.mp3",
+   "secs": 1.7,
+   "text": "Vind eerst 1 fossielen."
   },
   {
    "id": "t608e2417",
@@ -3070,6 +3970,12 @@
    "text": "nl"
   },
   {
+   "id": "t6146368f",
+   "file": "nl/t6146368f.mp3",
+   "secs": 1.4,
+   "text": "Motor gedraaid."
+  },
+  {
    "id": "t618b8386",
    "file": "nl/t618b8386.mp3",
    "secs": 1.5,
@@ -3088,10 +3994,22 @@
    "text": "Sluit een brede stapel af zonder richel."
   },
   {
+   "id": "t62343163",
+   "file": "nl/t62343163.mp3",
+   "secs": 0.9,
+   "text": "oo"
+  },
+  {
    "id": "t62414144",
    "file": "nl/t62414144.mp3",
    "secs": 8.2,
    "text": "Onder Groningen ligt het grootste aardgasveld van Europa. Door het gas beeft de grond, en daarom is de kraan dichtgedraaid."
+  },
+  {
+   "id": "t625eb672",
+   "file": "nl/t625eb672.mp3",
+   "secs": 1.1,
+   "text": "Nederland"
   },
   {
    "id": "t6287165b",
@@ -3122,6 +4040,12 @@
    "file": "nl/t63028875.mp3",
    "secs": 3.9,
    "text": "Drie hoorns en een benen kraag, als een schild voor de nek."
+  },
+  {
+   "id": "t634a3a2f",
+   "file": "nl/t634a3a2f.mp3",
+   "secs": 1.3,
+   "text": "de l van lamp"
   },
   {
    "id": "t636e12b1",
@@ -3172,6 +4096,12 @@
    "text": "De anemoon krijgt er iets voor terug: de vis jaagt weg wat aan haar komt knabbelen."
   },
   {
+   "id": "t64c44836",
+   "file": "nl/t64c44836.mp3",
+   "secs": 0.9,
+   "text": "vliegt"
+  },
+  {
    "id": "t65178c21",
    "file": "nl/t65178c21.mp3",
    "secs": 4.4,
@@ -3196,6 +4126,12 @@
    "text": "Grote drievoudige"
   },
   {
+   "id": "t658149cf",
+   "file": "nl/t658149cf.mp3",
+   "secs": 0.9,
+   "text": "Afrika"
+  },
+  {
    "id": "t65e6e675",
    "file": "nl/t65e6e675.mp3",
    "secs": 1,
@@ -3212,6 +4148,12 @@
    "file": "nl/t66200f36.mp3",
    "secs": 1,
    "text": "Abonnement"
+  },
+  {
+   "id": "t6643d6cb",
+   "file": "nl/t6643d6cb.mp3",
+   "secs": 0.8,
+   "text": "plein"
   },
   {
    "id": "t6651a4ec",
@@ -3242,6 +4184,18 @@
    "file": "nl/t67043665.mp3",
    "secs": 1,
    "text": "Hoe lang"
+  },
+  {
+   "id": "t67343942",
+   "file": "nl/t67343942.mp3",
+   "secs": 0.8,
+   "text": "oh"
+  },
+  {
+   "id": "t675fc7c7",
+   "file": "nl/t675fc7c7.mp3",
+   "secs": 4.1,
+   "text": "Twee lange parallelbanen in de woestijn, vol met widebodies."
   },
   {
    "id": "t67c08ebe",
@@ -3292,6 +4246,18 @@
    "text": "De Challengerdiepte"
   },
   {
+   "id": "t68f7b4eb",
+   "file": "nl/t68f7b4eb.mp3",
+   "secs": 0.9,
+   "text": "kip"
+  },
+  {
+   "id": "t690f7f30",
+   "file": "nl/t690f7f30.mp3",
+   "secs": 1.3,
+   "text": "Noord-Amerika"
+  },
+  {
    "id": "t690ff5ed",
    "file": "nl/t690ff5ed.mp3",
    "secs": 1.2,
@@ -3304,10 +4270,34 @@
    "text": "of"
   },
   {
+   "id": "t694b8a7e",
+   "file": "nl/t694b8a7e.mp3",
+   "secs": 0.9,
+   "text": "pet"
+  },
+  {
+   "id": "t695a8a05",
+   "file": "nl/t695a8a05.mp3",
+   "secs": 1.2,
+   "text": "aan de kust"
+  },
+  {
    "id": "t697887cc",
    "file": "nl/t697887cc.mp3",
    "secs": 1,
    "text": "Opdracht"
+  },
+  {
+   "id": "t69b13cca",
+   "file": "nl/t69b13cca.mp3",
+   "secs": 0.9,
+   "text": "huis"
+  },
+  {
+   "id": "t69b42c78",
+   "file": "nl/t69b42c78.mp3",
+   "secs": 4.5,
+   "text": "Jupiter - 14200 m/s als de brandstof op is"
   },
   {
    "id": "t69bdba56",
@@ -3358,6 +4348,12 @@
    "text": "Er gaat nog een motor aan."
   },
   {
+   "id": "t6aa03e01",
+   "file": "nl/t6aa03e01.mp3",
+   "secs": 1.3,
+   "text": "de o van zon"
+  },
+  {
    "id": "t6ae989b7",
    "file": "nl/t6ae989b7.mp3",
    "secs": 0.9,
@@ -3394,6 +4390,12 @@
    "text": "Hiermee houd je je kind uit de instellingen. Er gaat niets weg van dit toestel; de code blijft hier."
   },
   {
+   "id": "t6b62ebd2",
+   "file": "nl/t6b62ebd2.mp3",
+   "secs": 1.8,
+   "text": "Vind eerst 9 fossielen."
+  },
+  {
    "id": "t6baada42",
    "file": "nl/t6baada42.mp3",
    "secs": 1.2,
@@ -3416,6 +4418,18 @@
    "file": "nl/t6c0c683d.mp3",
    "secs": 2.1,
    "text": "Er is nog geen batterij op het bord."
+  },
+  {
+   "id": "t6c32cce6",
+   "file": "nl/t6c32cce6.mp3",
+   "secs": 1.3,
+   "text": "de r van roos"
+  },
+  {
+   "id": "t6c344121",
+   "file": "nl/t6c344121.mp3",
+   "secs": 0.7,
+   "text": "oe"
   },
   {
    "id": "t6c37e60b",
@@ -3458,6 +4472,12 @@
    "file": "nl/t6cebe945.mp3",
    "secs": 1.8,
    "text": "Altijd is Kortjakje ziek"
+  },
+  {
+   "id": "t6cf3616c",
+   "file": "nl/t6cf3616c.mp3",
+   "secs": 0.8,
+   "text": "geit"
   },
   {
    "id": "t6cf7afb3",
@@ -3520,10 +4540,22 @@
    "text": "Langer en naar achteren gepijld. Rustiger, en de lucht merkt het."
   },
   {
+   "id": "t6e8102dd",
+   "file": "nl/t6e8102dd.mp3",
+   "secs": 0.9,
+   "text": "zeil"
+  },
+  {
    "id": "t6ed63223",
    "file": "nl/t6ed63223.mp3",
    "secs": 5.3,
    "text": "Twaalf ton vaste brandstof. Twee hiervan krijgen bijna alles in beweging."
+  },
+  {
+   "id": "t6ee02fc3",
+   "file": "nl/t6ee02fc3.mp3",
+   "secs": 1.5,
+   "text": "Zekering gedraaid."
   },
   {
    "id": "t6eee887d",
@@ -3532,10 +4564,22 @@
    "text": "Noord-Brabant is na Gelderland de grootste provincie. Het zuiden viert carnaval, en dan heet Den Bosch een week lang Oeteldonk."
   },
   {
+   "id": "t6f3329d0",
+   "file": "nl/t6f3329d0.mp3",
+   "secs": 0.9,
+   "text": "buik"
+  },
+  {
    "id": "t6f489a97",
    "file": "nl/t6f489a97.mp3",
    "secs": 4,
    "text": "Tik op de klokjes. Of strijk er met je vinger overheen."
+  },
+  {
+   "id": "t6f4b93f0",
+   "file": "nl/t6f4b93f0.mp3",
+   "secs": 0.7,
+   "text": "pen"
   },
   {
    "id": "t6f6aaf1b",
@@ -3554,6 +4598,12 @@
    "file": "nl/t703cc555.mp3",
    "secs": 1,
    "text": "Remklep"
+  },
+  {
+   "id": "t7065d777",
+   "file": "nl/t7065d777.mp3",
+   "secs": 1,
+   "text": "in het bos"
   },
   {
    "id": "t7092127b",
@@ -3592,6 +4642,12 @@
    "text": "Langzamer"
   },
   {
+   "id": "t713d1076",
+   "file": "nl/t713d1076.mp3",
+   "secs": 1.5,
+   "text": "de muis eet kaas"
+  },
+  {
    "id": "t7179b1ee",
    "file": "nl/t7179b1ee.mp3",
    "secs": 2.9,
@@ -3602,6 +4658,12 @@
    "file": "nl/t71861de2.mp3",
    "secs": 1.4,
    "text": "Grote vleugel"
+  },
+  {
+   "id": "t71a4538e",
+   "file": "nl/t71a4538e.mp3",
+   "secs": 0.8,
+   "text": "slak"
   },
   {
    "id": "t71cca36b",
@@ -3646,6 +4708,12 @@
    "text": "Wie"
   },
   {
+   "id": "t7382bcfc",
+   "file": "nl/t7382bcfc.mp3",
+   "secs": 1.4,
+   "text": "dicht bij mensen"
+  },
+  {
    "id": "t73a6622e",
    "file": "nl/t73a6622e.mp3",
    "secs": 1.2,
@@ -3668,6 +4736,12 @@
    "file": "nl/t73fc92ed.mp3",
    "secs": 1.8,
    "text": "Toestellen op dit eiland"
+  },
+  {
+   "id": "t740b4df4",
+   "file": "nl/t740b4df4.mp3",
+   "secs": 0.9,
+   "text": "kam"
   },
   {
    "id": "t74103c80",
@@ -3694,16 +4768,40 @@
    "text": "Leeuwarden"
   },
   {
+   "id": "t7481e86d",
+   "file": "nl/t7481e86d.mp3",
+   "secs": 0.9,
+   "text": "vaart"
+  },
+  {
    "id": "t74a5081e",
    "file": "nl/t74a5081e.mp3",
    "secs": 11,
    "text": "Uit is de onderzochte stand. Een waarschuwing vooraf bleek het overgeven juist moeilijker te maken; een laatste spelletje dat netjes afloopt werkt beter."
   },
   {
+   "id": "t74c6847e",
+   "file": "nl/t74c6847e.mp3",
+   "secs": 0.8,
+   "text": "bot"
+  },
+  {
+   "id": "t74d58f08",
+   "file": "nl/t74d58f08.mp3",
+   "secs": 0.7,
+   "text": "buh"
+  },
+  {
    "id": "t74f5b842",
    "file": "nl/t74f5b842.mp3",
    "secs": 1.4,
    "text": "Dubbele booster"
+  },
+  {
+   "id": "t74fc44fd",
+   "file": "nl/t74fc44fd.mp3",
+   "secs": 0.8,
+   "text": "kop"
   },
   {
    "id": "t755017bb",
@@ -3760,6 +4858,12 @@
    "text": "(gemiddeld voor zijn familie)"
   },
   {
+   "id": "t77c68937",
+   "file": "nl/t77c68937.mp3",
+   "secs": 0.8,
+   "text": "bos"
+  },
+  {
    "id": "t77d86a5b",
    "file": "nl/t77d86a5b.mp3",
    "secs": 1.3,
@@ -3772,6 +4876,12 @@
    "text": "Duitsland is het buurland in het oosten en het grootste land van de Europese Unie. Er wonen ruim tachtig miljoen mensen."
   },
   {
+   "id": "t77fc49b6",
+   "file": "nl/t77fc49b6.mp3",
+   "secs": 1,
+   "text": "kom"
+  },
+  {
    "id": "t78240c20",
    "file": "nl/t78240c20.mp3",
    "secs": 1,
@@ -3782,6 +4892,12 @@
    "file": "nl/t78582b6c.mp3",
    "secs": 6.6,
    "text": "Een drukknop veert vanzelf terug. Houd hem ingedrukt om hem te horen, laat los om te stoppen."
+  },
+  {
+   "id": "t7863558d",
+   "file": "nl/t7863558d.mp3",
+   "secs": 1.5,
+   "text": "in en bij zoet water"
   },
   {
    "id": "t786de7ca",
@@ -3868,6 +4984,12 @@
    "text": "in één keer zelf gemaakt"
   },
   {
+   "id": "t7a9f2ad5",
+   "file": "nl/t7a9f2ad5.mp3",
+   "secs": 0.9,
+   "text": "zeep"
+  },
+  {
    "id": "t7ac3be63",
    "file": "nl/t7ac3be63.mp3",
    "secs": 1.5,
@@ -3890,6 +5012,18 @@
    "file": "nl/t7af35f33.mp3",
    "secs": 4.2,
    "text": "Het lichtste wat je kunt versturen. Er komt niemand mee terug."
+  },
+  {
+   "id": "t7b124869",
+   "file": "nl/t7b124869.mp3",
+   "secs": 0.9,
+   "text": "vis"
+  },
+  {
+   "id": "t7b2152f3",
+   "file": "nl/t7b2152f3.mp3",
+   "secs": 0.8,
+   "text": "vos"
   },
   {
    "id": "t7b35704c",
@@ -3928,10 +5062,40 @@
    "text": "sensitivity"
   },
   {
+   "id": "t7c33998f",
+   "file": "nl/t7c33998f.mp3",
+   "secs": 1.1,
+   "text": "Bedreigd"
+  },
+  {
+   "id": "t7c4460ea",
+   "file": "nl/t7c4460ea.mp3",
+   "secs": 1.2,
+   "text": "De IJssel"
+  },
+  {
+   "id": "t7c7738b1",
+   "file": "nl/t7c7738b1.mp3",
+   "secs": 0.7,
+   "text": "eet"
+  },
+  {
+   "id": "t7c8e1cd9",
+   "file": "nl/t7c8e1cd9.mp3",
+   "secs": 1.2,
+   "text": "Oceanië"
+  },
+  {
    "id": "t7c98cf1f",
    "file": "nl/t7c98cf1f.mp3",
    "secs": 1.2,
    "text": "Instellingen"
+  },
+  {
+   "id": "t7cae2b3a",
+   "file": "nl/t7cae2b3a.mp3",
+   "secs": 1.4,
+   "text": "Zoemer gedraaid."
   },
   {
    "id": "t7cd1ff3d",
@@ -3970,6 +5134,12 @@
    "text": "Verras me"
   },
   {
+   "id": "t7d8fe9e7",
+   "file": "nl/t7d8fe9e7.mp3",
+   "secs": 3,
+   "text": "Redelijk glad. Langer en smaller is beter."
+  },
+  {
    "id": "t7d94a817",
    "file": "nl/t7d94a817.mp3",
    "secs": 2.6,
@@ -4000,6 +5170,12 @@
    "text": "Achter elkaar delen ze één stroom, dus elk lampje is zwakker. Dat heet in serie."
   },
   {
+   "id": "t7eae88cd",
+   "file": "nl/t7eae88cd.mp3",
+   "secs": 0.9,
+   "text": "loopt"
+  },
+  {
    "id": "t7ed0af7d",
    "file": "nl/t7ed0af7d.mp3",
    "secs": 2.4,
@@ -4016,6 +5192,12 @@
    "file": "nl/t7ed6c595.mp3",
    "secs": 13.7,
    "text": "Een code houdt het alledaagse tegen: een kind dat hier binnenloopt en zijn eigen tijdslimiet uitzet. Het is geen kluis. Een vastberaden tienjarige op een computer komt erlangs."
+  },
+  {
+   "id": "t7f00d465",
+   "file": "nl/t7f00d465.mp3",
+   "secs": 1.5,
+   "text": "het schaap loopt weg"
   },
   {
    "id": "t7f01ee83",
@@ -4036,6 +5218,12 @@
    "text": "Baan bezet"
   },
   {
+   "id": "t7f8983ee",
+   "file": "nl/t7f8983ee.mp3",
+   "secs": 0.9,
+   "text": "pauw"
+  },
+  {
    "id": "t7f8b878a",
    "file": "nl/t7f8b878a.mp3",
    "secs": 1,
@@ -4046,6 +5234,18 @@
    "file": "nl/t7fa6ad88.mp3",
    "secs": 1.2,
    "text": "meter diep"
+  },
+  {
+   "id": "t7fc695cf",
+   "file": "nl/t7fc695cf.mp3",
+   "secs": 0.9,
+   "text": "bok"
+  },
+  {
+   "id": "t7ffc564e",
+   "file": "nl/t7ffc564e.mp3",
+   "secs": 0.9,
+   "text": "koe"
   },
   {
    "id": "t8012dd7a",
@@ -4186,6 +5386,12 @@
    "text": "De zaagmolen"
   },
   {
+   "id": "t82774223",
+   "file": "nl/t82774223.mp3",
+   "secs": 0.9,
+   "text": "een"
+  },
+  {
    "id": "t82c08c94",
    "file": "nl/t82c08c94.mp3",
    "secs": 5.6,
@@ -4318,10 +5524,22 @@
    "text": "geen"
   },
   {
+   "id": "t87282c3e",
+   "file": "nl/t87282c3e.mp3",
+   "secs": 1.6,
+   "text": "De Indische Oceaan"
+  },
+  {
    "id": "t8766a73e",
    "file": "nl/t8766a73e.mp3",
    "secs": 1.4,
    "text": "Fossielfoto’s:"
+  },
+  {
+   "id": "t87836577",
+   "file": "nl/t87836577.mp3",
+   "secs": 1.2,
+   "text": "de e van pen"
   },
   {
    "id": "t87baec8c",
@@ -4370,6 +5588,12 @@
    "file": "nl/t88be0640.mp3",
    "secs": 1.1,
    "text": "Hitteschild"
+  },
+  {
+   "id": "t88f1eceb",
+   "file": "nl/t88f1eceb.mp3",
+   "secs": 2.8,
+   "text": "Lang en dun. Daar glijdt de lucht langs."
   },
   {
    "id": "t894542ac",
@@ -4438,6 +5662,12 @@
    "text": "Herten kijken op bij elk geluid in het donker."
   },
   {
+   "id": "t89dd6ceb",
+   "file": "nl/t89dd6ceb.mp3",
+   "secs": 0.8,
+   "text": "poot"
+  },
+  {
    "id": "t8a02e13d",
    "file": "nl/t8a02e13d.mp3",
    "secs": 3.5,
@@ -4480,10 +5710,28 @@
    "text": "Venus staat dichter bij de zon. Om naar binnen te vallen moet je langzamer dan de Aarde: duw naar achteren."
   },
   {
+   "id": "t8ab73f1e",
+   "file": "nl/t8ab73f1e.mp3",
+   "secs": 0.9,
+   "text": "raam"
+  },
+  {
+   "id": "t8b42b514",
+   "file": "nl/t8b42b514.mp3",
+   "secs": 1.4,
+   "text": "de oo van boom"
+  },
+  {
    "id": "t8b63bc72",
    "file": "nl/t8b63bc72.mp3",
    "secs": 1,
    "text": "In de zon"
+  },
+  {
+   "id": "t8b68c3e7",
+   "file": "nl/t8b68c3e7.mp3",
+   "secs": 1.3,
+   "text": "in het poolgebied"
   },
   {
    "id": "t8bc1348c",
@@ -4496,6 +5744,12 @@
    "file": "nl/t8bcc20d1.mp3",
    "secs": 4.6,
    "text": "'s Nachts komt hij omhoog om te eten en voor de ochtend zakt hij weer."
+  },
+  {
+   "id": "t8bd37e0f",
+   "file": "nl/t8bd37e0f.mp3",
+   "secs": 0.8,
+   "text": "mees"
   },
   {
    "id": "t8bde4295",
@@ -4564,6 +5818,12 @@
    "text": "Het tij is gesorteerd"
   },
   {
+   "id": "t8d80fe26",
+   "file": "nl/t8d80fe26.mp3",
+   "secs": 0.9,
+   "text": "eiland"
+  },
+  {
    "id": "t8d826ec7",
    "file": "nl/t8d826ec7.mp3",
    "secs": 0.9,
@@ -4582,16 +5842,40 @@
    "text": "Zekering"
   },
   {
+   "id": "t8e03e3ec",
+   "file": "nl/t8e03e3ec.mp3",
+   "secs": 1.1,
+   "text": "Vlinders"
+  },
+  {
    "id": "t8e9af50c",
    "file": "nl/t8e9af50c.mp3",
    "secs": 4.9,
    "text": "De maan draait om ons heen, en die trekt het water van eb en vloed."
   },
   {
+   "id": "t8ec37059",
+   "file": "nl/t8ec37059.mp3",
+   "secs": 0.9,
+   "text": "schaap"
+  },
+  {
+   "id": "t8ec3dce4",
+   "file": "nl/t8ec3dce4.mp3",
+   "secs": 0.9,
+   "text": "poes"
+  },
+  {
    "id": "t8ed3cddb",
    "file": "nl/t8ed3cddb.mp3",
    "secs": 0.8,
    "text": "Vloot"
+  },
+  {
+   "id": "t8eee52c8",
+   "file": "nl/t8eee52c8.mp3",
+   "secs": 4.4,
+   "text": "Venus - 11470 m/s als de brandstof op is"
   },
   {
    "id": "t8ef854a3",
@@ -4666,10 +5950,22 @@
    "text": "Druk op spelen en het gaat rond."
   },
   {
+   "id": "t905fdcc1",
+   "file": "nl/t905fdcc1.mp3",
+   "secs": 0.8,
+   "text": "vvv"
+  },
+  {
    "id": "t90824a7f",
    "file": "nl/t90824a7f.mp3",
    "secs": 1.6,
    "text": "Je hebt de vlag geplant"
+  },
+  {
+   "id": "t90a73545",
+   "file": "nl/t90a73545.mp3",
+   "secs": 0.9,
+   "text": "druif"
   },
   {
    "id": "t90bc18ba",
@@ -4696,6 +5992,12 @@
    "text": "Welke dieren wonen hier?"
   },
   {
+   "id": "t90f270db",
+   "file": "nl/t90f270db.mp3",
+   "secs": 0.9,
+   "text": "ijs"
+  },
+  {
    "id": "t90fea18e",
    "file": "nl/t90fea18e.mp3",
    "secs": 5.1,
@@ -4714,6 +6016,12 @@
    "text": "Dezelfde ring, voor een brede stapel."
   },
   {
+   "id": "t9117c3c0",
+   "file": "nl/t9117c3c0.mp3",
+   "secs": 0.9,
+   "text": "zwemt"
+  },
+  {
    "id": "t915a7af6",
    "file": "nl/t915a7af6.mp3",
    "secs": 1.5,
@@ -4726,6 +6034,12 @@
    "text": "Nog een keer"
   },
   {
+   "id": "t917c3a98",
+   "file": "nl/t917c3a98.mp3",
+   "secs": 0.9,
+   "text": "zon"
+  },
+  {
    "id": "t918b8786",
    "file": "nl/t918b8786.mp3",
    "secs": 1.3,
@@ -4736,6 +6050,12 @@
    "file": "nl/t91c01408.mp3",
    "secs": 3.9,
    "text": "De batterij is leeg. Tik op de batterijknop voor een nieuwe."
+  },
+  {
+   "id": "t91e6a5d2",
+   "file": "nl/t91e6a5d2.mp3",
+   "secs": 1.3,
+   "text": "de ng van ring"
   },
   {
    "id": "t92043363",
@@ -4760,6 +6080,12 @@
    "file": "nl/t9339db65.mp3",
    "secs": 1.2,
    "text": "Woorden hakken"
+  },
+  {
+   "id": "t933f09ad",
+   "file": "nl/t933f09ad.mp3",
+   "secs": 0.9,
+   "text": "tuin"
   },
   {
    "id": "t9350ed3c",
@@ -4802,6 +6128,24 @@
    "file": "nl/t948ece0b.mp3",
    "secs": 3.7,
    "text": "Nieuwe batterijen, en een nieuw draadje in de zekering."
+  },
+  {
+   "id": "t94a84a9e",
+   "file": "nl/t94a84a9e.mp3",
+   "secs": 0.9,
+   "text": "dweil"
+  },
+  {
+   "id": "t94ada54e",
+   "file": "nl/t94ada54e.mp3",
+   "secs": 1.4,
+   "text": "de z van zon"
+  },
+  {
+   "id": "t94adb91a",
+   "file": "nl/t94adb91a.mp3",
+   "secs": 5.4,
+   "text": "Voorbij de planeten - 19900 m/s als de brandstof op is"
   },
   {
    "id": "t94b229d8",
@@ -4858,10 +6202,22 @@
    "text": "Houten blokjes"
   },
   {
+   "id": "t95ea06ba",
+   "file": "nl/t95ea06ba.mp3",
+   "secs": 0.9,
+   "text": "meeuw"
+  },
+  {
    "id": "t960b3f15",
    "file": "nl/t960b3f15.mp3",
    "secs": 1.6,
    "text": "Het tij was te snel"
+  },
+  {
+   "id": "t9617884b",
+   "file": "nl/t9617884b.mp3",
+   "secs": 3.9,
+   "text": "De beruchte bocht bij het schaakbord, laag over de daken."
   },
   {
    "id": "t9620b897",
@@ -4880,6 +6236,12 @@
    "file": "nl/t96826393.mp3",
    "secs": 1.3,
    "text": "Grote aerospike"
+  },
+  {
+   "id": "t9695da5d",
+   "file": "nl/t9695da5d.mp3",
+   "secs": 0.8,
+   "text": "zak"
   },
   {
    "id": "t96fbe097",
@@ -4966,6 +6328,12 @@
    "text": "Plek voor drie, en zo voelt het ook."
   },
   {
+   "id": "t988255cb",
+   "file": "nl/t988255cb.mp3",
+   "secs": 0.8,
+   "text": "zie"
+  },
+  {
    "id": "t988c9724",
    "file": "nl/t988c9724.mp3",
    "secs": 5.6,
@@ -4984,6 +6352,12 @@
    "text": "Dat is de code niet."
   },
   {
+   "id": "t997fdfbb",
+   "file": "nl/t997fdfbb.mp3",
+   "secs": 1.3,
+   "text": "Het IJsselmeer"
+  },
+  {
    "id": "t99893a38",
    "file": "nl/t99893a38.mp3",
    "secs": 1.7,
@@ -4996,10 +6370,22 @@
    "text": "Om mee te beginnen. Tilt ongeveer veertig ton en verder niets."
   },
   {
+   "id": "t99b95d34",
+   "file": "nl/t99b95d34.mp3",
+   "secs": 1.2,
+   "text": "anderhalf uur"
+  },
+  {
    "id": "t9a46328b",
    "file": "nl/t9a46328b.mp3",
    "secs": 1.3,
    "text": "Impuls remmen"
+  },
+  {
+   "id": "t9a68f284",
+   "file": "nl/t9a68f284.mp3",
+   "secs": 5.3,
+   "text": "Boven de vliegtuigen - 620 m/s als de brandstof op is"
   },
   {
    "id": "t9a791920",
@@ -5026,6 +6412,12 @@
    "text": "Niet genoeg munten"
   },
   {
+   "id": "t9b28ce3e",
+   "file": "nl/t9b28ce3e.mp3",
+   "secs": 0.7,
+   "text": "tuh"
+  },
+  {
    "id": "t9b4812e1",
    "file": "nl/t9b4812e1.mp3",
    "secs": 1.2,
@@ -5036,6 +6428,18 @@
    "file": "nl/t9b508453.mp3",
    "secs": 2.8,
    "text": "Denkflexibiliteit, van regel wisselen"
+  },
+  {
+   "id": "t9b787a0c",
+   "file": "nl/t9b787a0c.mp3",
+   "secs": 1.3,
+   "text": "de au van pauw"
+  },
+  {
+   "id": "t9b955ae6",
+   "file": "nl/t9b955ae6.mp3",
+   "secs": 0.9,
+   "text": "sneeuw"
   },
   {
    "id": "t9bc7df53",
@@ -5054,6 +6458,12 @@
    "file": "nl/t9bfcd6a3.mp3",
    "secs": 0.9,
    "text": "Draad"
+  },
+  {
+   "id": "t9c109f05",
+   "file": "nl/t9c109f05.mp3",
+   "secs": 0.9,
+   "text": "deur"
   },
   {
    "id": "t9c58341f",
@@ -5092,6 +6502,12 @@
    "text": "Bouw de kring. Is hij rond, dan brandt het lampje."
   },
   {
+   "id": "t9d6b3189",
+   "file": "nl/t9d6b3189.mp3",
+   "secs": 0.9,
+   "text": "schoen"
+  },
+  {
    "id": "t9d786310",
    "file": "nl/t9d786310.mp3",
    "secs": 2.7,
@@ -5128,6 +6544,18 @@
    "text": "Runway wet"
   },
   {
+   "id": "t9e42c458",
+   "file": "nl/t9e42c458.mp3",
+   "secs": 0.8,
+   "text": "oei"
+  },
+  {
+   "id": "t9e50fe62",
+   "file": "nl/t9e50fe62.mp3",
+   "secs": 1.5,
+   "text": "de trein rijdt hard"
+  },
+  {
    "id": "t9e7adcbf",
    "file": "nl/t9e7adcbf.mp3",
    "secs": 1.3,
@@ -5158,6 +6586,12 @@
    "text": "Alles tegelijk, en het tij is sneller."
   },
   {
+   "id": "t9f519cc9",
+   "file": "nl/t9f519cc9.mp3",
+   "secs": 1.1,
+   "text": "school"
+  },
+  {
    "id": "t9f6b3d8d",
    "file": "nl/t9f6b3d8d.mp3",
    "secs": 0.9,
@@ -5174,6 +6608,12 @@
    "file": "nl/t9f95a5f2.mp3",
    "secs": 1.4,
    "text": "Naar de werkplaats"
+  },
+  {
+   "id": "t9fb0166b",
+   "file": "nl/t9fb0166b.mp3",
+   "secs": 1,
+   "text": "De Waal"
   },
   {
    "id": "ta0459a44",
@@ -5198,6 +6638,12 @@
    "file": "nl/ta09f59aa.mp3",
    "secs": 4,
    "text": "Een plat vlak opzij. Het stabiliseert en het remt."
+  },
+  {
+   "id": "ta0a3628b",
+   "file": "nl/ta0a3628b.mp3",
+   "secs": 1.8,
+   "text": "Een stukje kleiner dan jij."
   },
   {
    "id": "ta0ec9f40",
@@ -5230,6 +6676,24 @@
    "text": "helihaven"
   },
   {
+   "id": "ta1e27199",
+   "file": "nl/ta1e27199.mp3",
+   "secs": 1,
+   "text": "herfst"
+  },
+  {
+   "id": "ta1f73c77",
+   "file": "nl/ta1f73c77.mp3",
+   "secs": 0.9,
+   "text": "tak"
+  },
+  {
+   "id": "ta22932be",
+   "file": "nl/ta22932be.mp3",
+   "secs": 0.8,
+   "text": "ooi"
+  },
+  {
    "id": "ta293eeb7",
    "file": "nl/ta293eeb7.mp3",
    "secs": 0.9,
@@ -5240,6 +6704,12 @@
    "file": "nl/ta29711b3.mp3",
    "secs": 0.8,
    "text": "Heat"
+  },
+  {
+   "id": "ta2a0c381",
+   "file": "nl/ta2a0c381.mp3",
+   "secs": 3.7,
+   "text": "Er moet iets mee: zet er een capsule of sonde op."
   },
   {
    "id": "ta2a70281",
@@ -5256,7 +6726,7 @@
   {
    "id": "ta2ba46ff",
    "file": "nl/ta2ba46ff.mp3",
-   "secs": 7,
+   "secs": 8.2,
    "text": "Ontsnappingssnelheid: 11,19 km/s. Zo snel, en de Aarde trekt je nooit meer terug."
   },
   {
@@ -5270,6 +6740,12 @@
    "file": "nl/ta2f5826a.mp3",
    "secs": 0.8,
    "text": "Led"
+  },
+  {
+   "id": "ta30d13df",
+   "file": "nl/ta30d13df.mp3",
+   "secs": 1.3,
+   "text": "de j van jas"
   },
   {
    "id": "ta324faae",
@@ -5368,6 +6844,12 @@
    "text": "Sommige bestellingen hebben twee soorten fruit. Doe de een, dan de ander."
   },
   {
+   "id": "ta5df14fc",
+   "file": "nl/ta5df14fc.mp3",
+   "secs": 1.2,
+   "text": "de a van kat"
+  },
+  {
    "id": "ta60ad24a",
    "file": "nl/ta60ad24a.mp3",
    "secs": 1.7,
@@ -5386,10 +6868,28 @@
    "text": "kort"
   },
   {
+   "id": "ta65b72c3",
+   "file": "nl/ta65b72c3.mp3",
+   "secs": 0.8,
+   "text": "been"
+  },
+  {
    "id": "ta667eec4",
    "file": "nl/ta667eec4.mp3",
    "secs": 5.5,
    "text": "Verbrandt methaan. Schoner, en de uitlaat gaat er sneller uit dan bij kerosine."
+  },
+  {
+   "id": "ta67e389f",
+   "file": "nl/ta67e389f.mp3",
+   "secs": 0.9,
+   "text": "Vogels"
+  },
+  {
+   "id": "ta68b6631",
+   "file": "nl/ta68b6631.mp3",
+   "secs": 0.9,
+   "text": "zes"
   },
   {
    "id": "ta69c7abd",
@@ -5398,16 +6898,34 @@
    "text": "Goed. Let op de stukken die langzaam werden voorgespeeld."
   },
   {
+   "id": "ta713bd4a",
+   "file": "nl/ta713bd4a.mp3",
+   "secs": 1.3,
+   "text": "de u van bus"
+  },
+  {
    "id": "ta79968b8",
    "file": "nl/ta79968b8.mp3",
    "secs": 1.8,
    "text": "Bijna. Luister nog eens."
   },
   {
+   "id": "ta7b0389d",
+   "file": "nl/ta7b0389d.mp3",
+   "secs": 0.8,
+   "text": "zzz"
+  },
+  {
    "id": "ta82ee9fb",
    "file": "nl/ta82ee9fb.mp3",
    "secs": 2.4,
    "text": "Tik op de schakelaar om hem aan te zetten."
+  },
+  {
+   "id": "ta8363cce",
+   "file": "nl/ta8363cce.mp3",
+   "secs": 0.8,
+   "text": "chhh"
   },
   {
    "id": "ta84ef638",
@@ -5438,6 +6956,12 @@
    "file": "nl/ta8f75b91.mp3",
    "secs": 1.2,
    "text": "eerste noot"
+  },
+  {
+   "id": "ta8ff77ce",
+   "file": "nl/ta8ff77ce.mp3",
+   "secs": 4,
+   "text": "Vlakke bovenkant vangt lucht. Zet er neuskegels op."
   },
   {
    "id": "ta9413979",
@@ -5476,6 +7000,18 @@
    "text": "Tanks"
   },
   {
+   "id": "ta9f7490f",
+   "file": "nl/ta9f7490f.mp3",
+   "secs": 0.9,
+   "text": "tas"
+  },
+  {
+   "id": "taa980a00",
+   "file": "nl/taa980a00.mp3",
+   "secs": 0.9,
+   "text": "alles"
+  },
+  {
    "id": "taaac0db8",
    "file": "nl/taaac0db8.mp3",
    "secs": 5.8,
@@ -5492,6 +7028,12 @@
    "file": "nl/taafe469d.mp3",
    "secs": 4.4,
    "text": "De voortgang blijft op het toestel. Er gaat niets over je kind weg."
+  },
+  {
+   "id": "tab103e39",
+   "file": "nl/tab103e39.mp3",
+   "secs": 1.4,
+   "text": "de m van maan"
   },
   {
    "id": "tab1d2b52",
@@ -5530,6 +7072,12 @@
    "text": "De tel vasthouden, lang tegen kort, hoog van laag horen"
   },
   {
+   "id": "tabe53440",
+   "file": "nl/tabe53440.mp3",
+   "secs": 1.4,
+   "text": "de ij van ijs"
+  },
+  {
    "id": "tabee3807",
    "file": "nl/tabee3807.mp3",
    "secs": 0.9,
@@ -5540,6 +7088,18 @@
    "file": "nl/tabefd943.mp3",
    "secs": 2.6,
    "text": "Er draaien minstens negentig manen omheen."
+  },
+  {
+   "id": "tac08623c",
+   "file": "nl/tac08623c.mp3",
+   "secs": 0.9,
+   "text": "angst"
+  },
+  {
+   "id": "tac1a37f2",
+   "file": "nl/tac1a37f2.mp3",
+   "secs": 0.8,
+   "text": "ouw"
   },
   {
    "id": "tac2673ac",
@@ -5596,6 +7156,12 @@
    "text": "Leert mijn kind hier iets van?"
   },
   {
+   "id": "tad61e217",
+   "file": "nl/tad61e217.mp3",
+   "secs": 0.9,
+   "text": "Drenthe"
+  },
+  {
    "id": "tad8c8585",
    "file": "nl/tad8c8585.mp3",
    "secs": 0.9,
@@ -5614,6 +7180,12 @@
    "text": "Ganymedes"
   },
   {
+   "id": "tadb72911",
+   "file": "nl/tadb72911.mp3",
+   "secs": 1.4,
+   "text": "de ieuw van nieuw"
+  },
+  {
    "id": "tadbc391e",
    "file": "nl/tadbc391e.mp3",
    "secs": 4,
@@ -5624,6 +7196,12 @@
    "file": "nl/tadc8c5da.mp3",
    "secs": 3.7,
    "text": "Een paar van de grote. De stapel vertrekt met haast."
+  },
+  {
+   "id": "tadde45ab",
+   "file": "nl/tadde45ab.mp3",
+   "secs": 4.6,
+   "text": "Bij de vogels - 140 m/s als de brandstof op is"
   },
   {
    "id": "tade951ed",
@@ -5680,6 +7258,12 @@
    "text": "Triceratops"
   },
   {
+   "id": "taf673bab",
+   "file": "nl/taf673bab.mp3",
+   "secs": 1.3,
+   "text": "de vis zwemt"
+  },
+  {
    "id": "tafefdabe",
    "file": "nl/tafefdabe.mp3",
    "secs": 2.8,
@@ -5696,6 +7280,18 @@
    "file": "nl/tb05799ef.mp3",
    "secs": 1.2,
    "text": "In drieën"
+  },
+  {
+   "id": "tb06cfb33",
+   "file": "nl/tb06cfb33.mp3",
+   "secs": 1.6,
+   "text": "de eeuw van leeuw"
+  },
+  {
+   "id": "tb09aa3dc",
+   "file": "nl/tb09aa3dc.mp3",
+   "secs": 0.9,
+   "text": "gras"
   },
   {
    "id": "tb0c78c37",
@@ -5740,6 +7336,18 @@
    "text": "Erbij"
   },
   {
+   "id": "tb197e816",
+   "file": "nl/tb197e816.mp3",
+   "secs": 1,
+   "text": "straat"
+  },
+  {
+   "id": "tb1a5e8b3",
+   "file": "nl/tb1a5e8b3.mp3",
+   "secs": 0.8,
+   "text": "vuur"
+  },
+  {
    "id": "tb2227a64",
    "file": "nl/tb2227a64.mp3",
    "secs": 4.3,
@@ -5770,16 +7378,34 @@
    "text": "Drie kleine bladen. Genoeg voor een kleine raket."
   },
   {
+   "id": "tb2f89995",
+   "file": "nl/tb2f89995.mp3",
+   "secs": 1,
+   "text": "saus"
+  },
+  {
    "id": "tb301ed4e",
    "file": "nl/tb301ed4e.mp3",
    "secs": 3,
    "text": "Verzamel 12 sterren op het vorige eiland"
   },
   {
+   "id": "tb3095351",
+   "file": "nl/tb3095351.mp3",
+   "secs": 0.7,
+   "text": "fff"
+  },
+  {
    "id": "tb3188e83",
    "file": "nl/tb3188e83.mp3",
    "secs": 1.2,
    "text": "Diplodocus"
+  },
+  {
+   "id": "tb349718a",
+   "file": "nl/tb349718a.mp3",
+   "secs": 1.6,
+   "text": "Condensator gedraaid."
   },
   {
    "id": "tb36bd890",
@@ -5792,6 +7418,18 @@
    "file": "nl/tb3a5da63.mp3",
    "secs": 5.2,
    "text": "Zo groot naast Pluto dat ze samen om een punt in de lege ruimte ertussen draaien."
+  },
+  {
+   "id": "tb3d7f7ec",
+   "file": "nl/tb3d7f7ec.mp3",
+   "secs": 1.3,
+   "text": "de f van fiets"
+  },
+  {
+   "id": "tb40328e9",
+   "file": "nl/tb40328e9.mp3",
+   "secs": 0.8,
+   "text": "hout"
   },
   {
    "id": "tb47fa838",
@@ -5822,6 +7460,18 @@
    "file": "nl/tb541c5b5.mp3",
    "secs": 3.5,
    "text": "Net niet - het spel speelde de goede erachteraan."
+  },
+  {
+   "id": "tb54d5899",
+   "file": "nl/tb54d5899.mp3",
+   "secs": 1.7,
+   "text": "Vind eerst 6 fossielen."
+  },
+  {
+   "id": "tb56a9dcb",
+   "file": "nl/tb56a9dcb.mp3",
+   "secs": 0.9,
+   "text": "krab"
   },
   {
    "id": "tb56c05e8",
@@ -5926,6 +7576,12 @@
    "text": "Pak de draad en trek een lijn van het een naar het ander."
   },
   {
+   "id": "tb714b297",
+   "file": "nl/tb714b297.mp3",
+   "secs": 0.9,
+   "text": "kous"
+  },
+  {
    "id": "tb71f4ced",
    "file": "nl/tb71f4ced.mp3",
    "secs": 1.4,
@@ -5954,6 +7610,12 @@
    "file": "nl/tb7fc9b03.mp3",
    "secs": 1.3,
    "text": "Vijf tegelijk"
+  },
+  {
+   "id": "tb8150f49",
+   "file": "nl/tb8150f49.mp3",
+   "secs": 0.8,
+   "text": "peer"
   },
   {
    "id": "tb84d6fe9",
@@ -5996,6 +7658,12 @@
    "file": "nl/tb99c421e.mp3",
    "secs": 1.2,
    "text": "Boosters los"
+  },
+  {
+   "id": "tb9b37680",
+   "file": "nl/tb9b37680.mp3",
+   "secs": 3.6,
+   "text": "Scheef: de duw komt niet onder het gewicht vandaan."
   },
   {
    "id": "tb9deba93",
@@ -6046,6 +7714,18 @@
    "text": "Nog een"
   },
   {
+   "id": "tbb04363c",
+   "file": "nl/tbb04363c.mp3",
+   "secs": 0.8,
+   "text": "muur"
+  },
+  {
+   "id": "tbb36c95d",
+   "file": "nl/tbb36c95d.mp3",
+   "secs": 1.7,
+   "text": "Te zwaar om op te tillen."
+  },
+  {
    "id": "tbb63fa00",
    "file": "nl/tbb63fa00.mp3",
    "secs": 1,
@@ -6068,6 +7748,12 @@
    "file": "nl/tbbb0a0bf.mp3",
    "secs": 3.7,
    "text": "Het hele dorp is er. Adem, tel, bel."
+  },
+  {
+   "id": "tbbcae592",
+   "file": "nl/tbbcae592.mp3",
+   "secs": 0.9,
+   "text": "plant"
   },
   {
    "id": "tbbf0c98f",
@@ -6112,6 +7798,12 @@
    "text": "Dat was de laatste."
   },
   {
+   "id": "tbd4bce84",
+   "file": "nl/tbd4bce84.mp3",
+   "secs": 0.9,
+   "text": "duim"
+  },
+  {
    "id": "tbd4f9d63",
    "file": "nl/tbd4f9d63.mp3",
    "secs": 1.2,
@@ -6136,10 +7828,22 @@
    "text": "Bel"
   },
   {
+   "id": "tbe1f8fec",
+   "file": "nl/tbe1f8fec.mp3",
+   "secs": 1.2,
+   "text": "De Noordzee"
+  },
+  {
    "id": "tbe70c88f",
    "file": "nl/tbe70c88f.mp3",
    "secs": 3.7,
    "text": "44,55 ton brandstof, 5 rijen hoog."
+  },
+  {
+   "id": "tbeaca654",
+   "file": "nl/tbeaca654.mp3",
+   "secs": 1,
+   "text": "schijnt"
   },
   {
    "id": "tbedf6481",
@@ -6166,6 +7870,12 @@
    "text": "Het Hert"
   },
   {
+   "id": "tbf0801ae",
+   "file": "nl/tbf0801ae.mp3",
+   "secs": 0.9,
+   "text": "stoel"
+  },
+  {
    "id": "tbf6a740b",
    "file": "nl/tbf6a740b.mp3",
    "secs": 3.8,
@@ -6184,10 +7894,22 @@
    "text": "Riem vast. We gaan helemaal naar buiten, en we stoppen overal."
   },
   {
+   "id": "tbfcf7c05",
+   "file": "nl/tbfcf7c05.mp3",
+   "secs": 3.9,
+   "text": "Geen motor die kan branden. Zet een motor onder een tank."
+  },
+  {
    "id": "tc00934de",
    "file": "nl/tc00934de.mp3",
    "secs": 2.1,
    "text": "Geen enkele keer omvergelopen."
+  },
+  {
+   "id": "tc00e2f8e",
+   "file": "nl/tc00e2f8e.mp3",
+   "secs": 1,
+   "text": "in zee"
   },
   {
    "id": "tc01389ad",
@@ -6304,6 +8026,12 @@
    "text": "Dat gesteente is te hard voor dit gereedschap."
   },
   {
+   "id": "tc1ac8f1e",
+   "file": "nl/tc1ac8f1e.mp3",
+   "secs": 0.9,
+   "text": "boek"
+  },
+  {
    "id": "tc1d23dd1",
    "file": "nl/tc1d23dd1.mp3",
    "secs": 3.7,
@@ -6334,6 +8062,18 @@
    "text": "Drievoudige booster"
   },
   {
+   "id": "tc28be896",
+   "file": "nl/tc28be896.mp3",
+   "secs": 1.3,
+   "text": "de uu van muur"
+  },
+  {
+   "id": "tc2aea0a1",
+   "file": "nl/tc2aea0a1.mp3",
+   "secs": 4.7,
+   "text": "De Maan - 11090 m/s als de brandstof op is"
+  },
+  {
    "id": "tc2d88579",
    "file": "nl/tc2d88579.mp3",
    "secs": 4.1,
@@ -6344,6 +8084,42 @@
    "file": "nl/tc33305d6.mp3",
    "secs": 1.4,
    "text": "alleen de lange baan"
+  },
+  {
+   "id": "tc33f0730",
+   "file": "nl/tc33f0730.mp3",
+   "secs": 0.8,
+   "text": "sss"
+  },
+  {
+   "id": "tc3b247e9",
+   "file": "nl/tc3b247e9.mp3",
+   "secs": 1,
+   "text": "strand"
+  },
+  {
+   "id": "tc3dc32a9",
+   "file": "nl/tc3dc32a9.mp3",
+   "secs": 0.9,
+   "text": "hoed"
+  },
+  {
+   "id": "tc414c70e",
+   "file": "nl/tc414c70e.mp3",
+   "secs": 0.9,
+   "text": "koud"
+  },
+  {
+   "id": "tc43ebd4f",
+   "file": "nl/tc43ebd4f.mp3",
+   "secs": 1.3,
+   "text": "de v van vis"
+  },
+  {
+   "id": "tc44968eb",
+   "file": "nl/tc44968eb.mp3",
+   "secs": 1,
+   "text": "muis"
   },
   {
    "id": "tc44c5c0c",
@@ -6394,6 +8170,18 @@
    "text": "Samen"
   },
   {
+   "id": "tc5ac3a4b",
+   "file": "nl/tc5ac3a4b.mp3",
+   "secs": 0.9,
+   "text": "eeuw"
+  },
+  {
+   "id": "tc5c455cd",
+   "file": "nl/tc5c455cd.mp3",
+   "secs": 4.7,
+   "text": "Uranus - 15900 m/s als de brandstof op is"
+  },
+  {
    "id": "tc5ce693d",
    "file": "nl/tc5ce693d.mp3",
    "secs": 3.3,
@@ -6404,6 +8192,18 @@
    "file": "nl/tc5d7154c.mp3",
    "secs": 4.6,
    "text": "Twee in een behuizing. Het werkpaard van de grote draagraketten."
+  },
+  {
+   "id": "tc5d984fc",
+   "file": "nl/tc5d984fc.mp3",
+   "secs": 1,
+   "text": "slaapt"
+  },
+  {
+   "id": "tc606ae81",
+   "file": "nl/tc606ae81.mp3",
+   "secs": 0.8,
+   "text": "teen"
   },
   {
    "id": "tc614e5cd",
@@ -6436,6 +8236,12 @@
    "text": "camera (geen stroom)"
   },
   {
+   "id": "tc6b0331d",
+   "file": "nl/tc6b0331d.mp3",
+   "secs": 1,
+   "text": "Het dorp"
+  },
+  {
    "id": "tc6cae80b",
    "file": "nl/tc6cae80b.mp3",
    "secs": 1.2,
@@ -6460,6 +8266,12 @@
    "text": "Lang en spits. De beste neus in het spel, en dat merk je."
   },
   {
+   "id": "tc6ebdfb7",
+   "file": "nl/tc6ebdfb7.mp3",
+   "secs": 1.4,
+   "text": "de ouw van touw"
+  },
+  {
    "id": "tc6ff8ce3",
    "file": "nl/tc6ff8ce3.mp3",
    "secs": 1.2,
@@ -6478,6 +8290,18 @@
    "text": "Drie volt uit daglicht, en hij raakt nooit op. Zwakker dan een batterij."
   },
   {
+   "id": "tc72e78d6",
+   "file": "nl/tc72e78d6.mp3",
+   "secs": 1.3,
+   "text": "de oe van boek"
+  },
+  {
+   "id": "tc73e814f",
+   "file": "nl/tc73e814f.mp3",
+   "secs": 1.8,
+   "text": "Krokodillenklem gedraaid."
+  },
+  {
    "id": "tc786cbc5",
    "file": "nl/tc786cbc5.mp3",
    "secs": 1.1,
@@ -6488,6 +8312,12 @@
    "file": "nl/tc792f483.mp3",
    "secs": 1.4,
    "text": "Terug naar Suri"
+  },
+  {
+   "id": "tc79493aa",
+   "file": "nl/tc79493aa.mp3",
+   "secs": 0.8,
+   "text": "boom"
   },
   {
    "id": "tc81d40dd",
@@ -6526,6 +8356,12 @@
    "text": "Trek de lijn hiervandaan verder."
   },
   {
+   "id": "tc8fd7d52",
+   "file": "nl/tc8fd7d52.mp3",
+   "secs": 0.9,
+   "text": "bloem"
+  },
+  {
    "id": "tc905115f",
    "file": "nl/tc905115f.mp3",
    "secs": 1.4,
@@ -6542,6 +8378,12 @@
    "file": "nl/tc93f4ba2.mp3",
    "secs": 0.9,
    "text": "Arnhem"
+  },
+  {
+   "id": "tc9441d35",
+   "file": "nl/tc9441d35.mp3",
+   "secs": 0.8,
+   "text": "ster"
   },
   {
    "id": "tc9669f63",
@@ -6580,6 +8422,18 @@
    "text": "Sorteer wat het tij brengt. Let op het bord."
   },
   {
+   "id": "tca99d446",
+   "file": "nl/tca99d446.mp3",
+   "secs": 0.8,
+   "text": "mmm"
+  },
+  {
+   "id": "tcaa43760",
+   "file": "nl/tcaa43760.mp3",
+   "secs": 0.8,
+   "text": "maan"
+  },
+  {
    "id": "tcae5d6c7",
    "file": "nl/tcae5d6c7.mp3",
    "secs": 4.6,
@@ -6598,10 +8452,22 @@
    "text": "Een huis is ondergelopen."
   },
   {
+   "id": "tcc85fb2b",
+   "file": "nl/tcc85fb2b.mp3",
+   "secs": 1.4,
+   "text": "de ei van trein"
+  },
+  {
    "id": "tcc8fc127",
    "file": "nl/tcc8fc127.mp3",
    "secs": 1,
    "text": "Ophogen"
+  },
+  {
+   "id": "tccc138bc",
+   "file": "nl/tccc138bc.mp3",
+   "secs": 1.8,
+   "text": "Vind eerst 12 fossielen."
   },
   {
    "id": "tcccd78ca",
@@ -6610,10 +8476,28 @@
    "text": "Boven de zes is er geen Nederlandse richtlijn om naar te wijzen, dus dit getal is van ons. Zie het als een beginpunt, niet als advies."
   },
   {
+   "id": "tccd51ee7",
+   "file": "nl/tccd51ee7.mp3",
+   "secs": 2,
+   "text": "in droge, warme streken"
+  },
+  {
+   "id": "tccf41f65",
+   "file": "nl/tccf41f65.mp3",
+   "secs": 1.7,
+   "text": "Vind eerst 2 fossielen."
+  },
+  {
    "id": "tcd48560d",
    "file": "nl/tcd48560d.mp3",
    "secs": 5.5,
    "text": "Een ruim met deuren. Tik erop en stop er twee dingen in, uit de wind."
+  },
+  {
+   "id": "tcd90b070",
+   "file": "nl/tcd90b070.mp3",
+   "secs": 2.6,
+   "text": "Leg er appels bij tot het tienveld vol is."
   },
   {
    "id": "tcdb3d24c",
@@ -6664,10 +8548,28 @@
    "text": "Bouw je luchthaven"
   },
   {
+   "id": "tcebb50be",
+   "file": "nl/tcebb50be.mp3",
+   "secs": 0.9,
+   "text": "slang"
+  },
+  {
    "id": "tcec42a29",
    "file": "nl/tcec42a29.mp3",
    "secs": 5.8,
    "text": "De stroom moet de batterij uit, door het lampje, en er weer in. Helemaal rond."
+  },
+  {
+   "id": "tcecb037b",
+   "file": "nl/tcecb037b.mp3",
+   "secs": 0.9,
+   "text": "plank"
+  },
+  {
+   "id": "tceedb025",
+   "file": "nl/tceedb025.mp3",
+   "secs": 0.8,
+   "text": "jas"
   },
   {
    "id": "tcefb2e37",
@@ -6712,6 +8614,12 @@
    "text": "no anti-ice"
   },
   {
+   "id": "td094a1d5",
+   "file": "nl/td094a1d5.mp3",
+   "secs": 0.8,
+   "text": "boot"
+  },
+  {
    "id": "td1221dd0",
    "file": "nl/td1221dd0.mp3",
    "secs": 1.7,
@@ -6736,10 +8644,22 @@
    "text": "De kwartieren"
   },
   {
+   "id": "td1d0809a",
+   "file": "nl/td1d0809a.mp3",
+   "secs": 1.3,
+   "text": "de n van net"
+  },
+  {
    "id": "td1d2d146",
    "file": "nl/td1d2d146.mp3",
    "secs": 3.7,
    "text": "De klok liet het elke keer zien. Doe het nog eens."
+  },
+  {
+   "id": "td1fd8b7d",
+   "file": "nl/td1fd8b7d.mp3",
+   "secs": 0.9,
+   "text": "bloed"
   },
   {
    "id": "td25a11f5",
@@ -6796,6 +8716,18 @@
    "text": "Teken voor elk binnenkomend toestel een route en breng het veilig aan de grond."
   },
   {
+   "id": "td3c68721",
+   "file": "nl/td3c68721.mp3",
+   "secs": 1,
+   "text": "Kwetsbaar"
+  },
+  {
+   "id": "td3ce2053",
+   "file": "nl/td3ce2053.mp3",
+   "secs": 1.7,
+   "text": "Er hangt een stuk los."
+  },
+  {
    "id": "td3d2b26b",
    "file": "nl/td3d2b26b.mp3",
    "secs": 1.5,
@@ -6826,6 +8758,12 @@
    "text": "Niets met die letters."
   },
   {
+   "id": "td484c94c",
+   "file": "nl/td484c94c.mp3",
+   "secs": 0.8,
+   "text": "mus"
+  },
+  {
    "id": "td4906f86",
    "file": "nl/td4906f86.mp3",
    "secs": 1,
@@ -6836,6 +8774,12 @@
    "file": "nl/td4ab857b.mp3",
    "secs": 8.4,
    "text": "Afrika heeft 54 landen, meer dan welk werelddeel ook. De Sahara is de grootste hete woestijn ter wereld."
+  },
+  {
+   "id": "td4ad6bbc",
+   "file": "nl/td4ad6bbc.mp3",
+   "secs": 0.8,
+   "text": "mes"
   },
   {
    "id": "td4f4a681",
@@ -6860,6 +8804,12 @@
    "file": "nl/td54c383a.mp3",
    "secs": 0.9,
    "text": "De dijk"
+  },
+  {
+   "id": "td5780b2b",
+   "file": "nl/td5780b2b.mp3",
+   "secs": 3,
+   "text": "Vinnen houden hem recht, maar kosten snelheid."
   },
   {
    "id": "td580e346",
@@ -6928,6 +8878,12 @@
    "text": "Even wachten"
   },
   {
+   "id": "td72f5d58",
+   "file": "nl/td72f5d58.mp3",
+   "secs": 1.5,
+   "text": "Drukknop gedraaid."
+  },
+  {
    "id": "td7490b2b",
    "file": "nl/td7490b2b.mp3",
    "secs": 7.6,
@@ -6988,6 +8944,12 @@
    "text": "Naar Mars"
   },
   {
+   "id": "td8ac5157",
+   "file": "nl/td8ac5157.mp3",
+   "secs": 1.2,
+   "text": "Amfibieën"
+  },
+  {
    "id": "td8c06a74",
    "file": "nl/td8c06a74.mp3",
    "secs": 0.9,
@@ -7024,6 +8986,12 @@
    "text": "Hoog en laag"
   },
   {
+   "id": "td998bfc6",
+   "file": "nl/td998bfc6.mp3",
+   "secs": 1,
+   "text": "insecten"
+  },
+  {
    "id": "td9a7c753",
    "file": "nl/td9a7c753.mp3",
    "secs": 1.3,
@@ -7054,6 +9022,12 @@
    "text": "Temperatuur"
   },
   {
+   "id": "tdad3ee7d",
+   "file": "nl/tdad3ee7d.mp3",
+   "secs": 1.7,
+   "text": "Alleen nog in dierentuinen"
+  },
+  {
    "id": "tdb3a9832",
    "file": "nl/tdb3a9832.mp3",
    "secs": 1.2,
@@ -7078,6 +9052,18 @@
    "text": "Twee raderen"
   },
   {
+   "id": "tdc1a7ec2",
+   "file": "nl/tdc1a7ec2.mp3",
+   "secs": 4.8,
+   "text": "Saturnus - 15300 m/s als de brandstof op is"
+  },
+  {
+   "id": "tdc2bdcc3",
+   "file": "nl/tdc2bdcc3.mp3",
+   "secs": 1.3,
+   "text": "de d van dak"
+  },
+  {
    "id": "tdc2c5b33",
    "file": "nl/tdc2c5b33.mp3",
    "secs": 1.3,
@@ -7088,6 +9074,12 @@
    "file": "nl/tdc48d4ea.mp3",
    "secs": 6.9,
    "text": "Vier poelen. De regel wisselt vaak. Adem, kijk naar het bord, dan pas slepen."
+  },
+  {
+   "id": "tdc9beb2a",
+   "file": "nl/tdc9beb2a.mp3",
+   "secs": 1.3,
+   "text": "de aa van maan"
   },
   {
    "id": "tdcc53d9a",
@@ -7114,16 +9106,34 @@
    "text": "Een rad is eerder tevreden."
   },
   {
+   "id": "tdd57f646",
+   "file": "nl/tdd57f646.mp3",
+   "secs": 2.6,
+   "text": "Schuif de kleine kist tegen de grote aan."
+  },
+  {
    "id": "tdd5a11b9",
    "file": "nl/tdd5a11b9.mp3",
    "secs": 0.9,
    "text": "van de"
   },
   {
+   "id": "tdd6f9199",
+   "file": "nl/tdd6f9199.mp3",
+   "secs": 1,
+   "text": "Friesland"
+  },
+  {
    "id": "tddb6e666",
    "file": "nl/tddb6e666.mp3",
    "secs": 1.5,
    "text": "mln jaar geleden"
+  },
+  {
+   "id": "tddc4b053",
+   "file": "nl/tddc4b053.mp3",
+   "secs": 1.1,
+   "text": "Gelderland"
   },
   {
    "id": "tdddd4d2c",
@@ -7142,6 +9152,24 @@
    "file": "nl/tdeb2a43b.mp3",
    "secs": 1.4,
    "text": "een remote stand"
+  },
+  {
+   "id": "tdef1e1db",
+   "file": "nl/tdef1e1db.mp3",
+   "secs": 1.5,
+   "text": "Weerstand gedraaid."
+  },
+  {
+   "id": "tdf026e97",
+   "file": "nl/tdf026e97.mp3",
+   "secs": 4,
+   "text": "Eén baan in een dal, bergen aan weerszijden en valwinden."
+  },
+  {
+   "id": "tdf1d7e72",
+   "file": "nl/tdf1d7e72.mp3",
+   "secs": 1.4,
+   "text": "de g van gat"
   },
   {
    "id": "tdf3a35b7",
@@ -7174,6 +9202,12 @@
    "text": "Draait eromheen"
   },
   {
+   "id": "te00f30d4",
+   "file": "nl/te00f30d4.mp3",
+   "secs": 1.7,
+   "text": "Het gaat iets minder goed"
+  },
+  {
    "id": "te0168b9e",
    "file": "nl/te0168b9e.mp3",
    "secs": 3,
@@ -7196,6 +9230,24 @@
    "file": "nl/te0d07f4b.mp3",
    "secs": 1.2,
    "text": "De werkbank"
+  },
+  {
+   "id": "te1109963",
+   "file": "nl/te1109963.mp3",
+   "secs": 1.7,
+   "text": "Vind eerst 11 fossielen."
+  },
+  {
+   "id": "te12f06be",
+   "file": "nl/te12f06be.mp3",
+   "secs": 1.2,
+   "text": "Zuid-Holland"
+  },
+  {
+   "id": "te148cd22",
+   "file": "nl/te148cd22.mp3",
+   "secs": 1.4,
+   "text": "de nk van bank"
   },
   {
    "id": "te14ea34c",
@@ -7252,10 +9304,22 @@
    "text": "light"
   },
   {
+   "id": "te2a567a2",
+   "file": "nl/te2a567a2.mp3",
+   "secs": 1.3,
+   "text": "de zon schijnt"
+  },
+  {
    "id": "te2aa6e9f",
    "file": "nl/te2aa6e9f.mp3",
    "secs": 1.1,
    "text": "Maximaal"
+  },
+  {
+   "id": "te2c2dcaa",
+   "file": "nl/te2c2dcaa.mp3",
+   "secs": 1.2,
+   "text": "onder de grond"
   },
   {
    "id": "te2df3579",
@@ -7282,6 +9346,12 @@
    "text": "Dezelfde, twee keer. Op zichzelf al een halve raket."
   },
   {
+   "id": "te3363f34",
+   "file": "nl/te3363f34.mp3",
+   "secs": 0.8,
+   "text": "sok"
+  },
+  {
    "id": "te355cf9d",
    "file": "nl/te355cf9d.mp3",
    "secs": 2.8,
@@ -7300,6 +9370,12 @@
    "text": "Motoren"
   },
   {
+   "id": "te3a2f5fd",
+   "file": "nl/te3a2f5fd.mp3",
+   "secs": 0.8,
+   "text": "mat"
+  },
+  {
    "id": "te3af30e6",
    "file": "nl/te3af30e6.mp3",
    "secs": 7,
@@ -7310,6 +9386,18 @@
    "file": "nl/te3c4d694.mp3",
    "secs": 5.5,
    "text": "Luik dicht. We gaan recht naar beneden, en we stoppen overal waar iets te zien is."
+  },
+  {
+   "id": "te3c97a6a",
+   "file": "nl/te3c97a6a.mp3",
+   "secs": 1.6,
+   "text": "Zonnecel gedraaid."
+  },
+  {
+   "id": "te3ffc693",
+   "file": "nl/te3ffc693.mp3",
+   "secs": 0.9,
+   "text": "veer"
   },
   {
    "id": "te4763769",
@@ -7324,6 +9412,12 @@
    "text": "Drie poelen nu, en twee dieren tegelijk op het water."
   },
   {
+   "id": "te4a30831",
+   "file": "nl/te4a30831.mp3",
+   "secs": 0.9,
+   "text": "haar"
+  },
+  {
    "id": "te4a4604e",
    "file": "nl/te4a4604e.mp3",
    "secs": 0.9,
@@ -7334,6 +9428,12 @@
    "file": "nl/te4ae515a.mp3",
    "secs": 3.7,
    "text": "Dat ging mee met de trap: het middenstuk was eerder leeg."
+  },
+  {
+   "id": "te4c35bdc",
+   "file": "nl/te4c35bdc.mp3",
+   "secs": 0.8,
+   "text": "hard"
   },
   {
    "id": "te4d56d8c",
@@ -7360,6 +9460,12 @@
    "text": "In België spreken ze Nederlands in Vlaanderen, Frans in Wallonië en Duits in een hoekje in het oosten. Drie talen in één land."
   },
   {
+   "id": "te5c38079",
+   "file": "nl/te5c38079.mp3",
+   "secs": 0.8,
+   "text": "hok"
+  },
+  {
    "id": "te5f1e62a",
    "file": "nl/te5f1e62a.mp3",
    "secs": 5.8,
@@ -7370,6 +9476,12 @@
    "file": "nl/te6264d90.mp3",
    "secs": 5.4,
    "text": "Zijn tanden groeien steeds terug. Een haai versleet er duizenden in zijn leven."
+  },
+  {
+   "id": "te62ae886",
+   "file": "nl/te62ae886.mp3",
+   "secs": 1,
+   "text": "duizend"
   },
   {
    "id": "te6467658",
@@ -7384,6 +9496,12 @@
    "text": "Naaldkegel"
   },
   {
+   "id": "te6907397",
+   "file": "nl/te6907397.mp3",
+   "secs": 1.2,
+   "text": "De Waddenzee"
+  },
+  {
    "id": "te726dfd0",
    "file": "nl/te726dfd0.mp3",
    "secs": 0.9,
@@ -7396,6 +9514,12 @@
    "text": "Camera"
   },
   {
+   "id": "te75b0536",
+   "file": "nl/te75b0536.mp3",
+   "secs": 1.5,
+   "text": "Hou de huizen droog."
+  },
+  {
    "id": "te77f4e82",
    "file": "nl/te77f4e82.mp3",
    "secs": 7.1,
@@ -7406,6 +9530,18 @@
    "file": "nl/te790a4b5.mp3",
    "secs": 1.9,
    "text": "Deze twee klinken hetzelfde."
+  },
+  {
+   "id": "te7e10b8d",
+   "file": "nl/te7e10b8d.mp3",
+   "secs": 0.9,
+   "text": "jjj"
+  },
+  {
+   "id": "te7f352d8",
+   "file": "nl/te7f352d8.mp3",
+   "secs": 0.9,
+   "text": "reis"
   },
   {
    "id": "te80c2f78",
@@ -7468,6 +9604,12 @@
    "text": "Sleep ergens om de duw in te stellen."
   },
   {
+   "id": "te9a2ff6f",
+   "file": "nl/te9a2ff6f.mp3",
+   "secs": 1,
+   "text": "man"
+  },
+  {
    "id": "te9e40b93",
    "file": "nl/te9e40b93.mp3",
    "secs": 9.4,
@@ -7510,6 +9652,12 @@
    "text": "Op schaal"
   },
   {
+   "id": "teab1d888",
+   "file": "nl/teab1d888.mp3",
+   "secs": 0.9,
+   "text": "vijf"
+  },
+  {
    "id": "teab9b7f6",
    "file": "nl/teab9b7f6.mp3",
    "secs": 4.1,
@@ -7528,6 +9676,12 @@
    "text": "Do not land now"
   },
   {
+   "id": "teb3117ee",
+   "file": "nl/teb3117ee.mp3",
+   "secs": 0.8,
+   "text": "duh"
+  },
+  {
    "id": "teb498fcb",
    "file": "nl/teb498fcb.mp3",
    "secs": 0.9,
@@ -7538,6 +9692,12 @@
    "file": "nl/teb4d21da.mp3",
    "secs": 9.3,
    "text": "Suri kost €3,99 per maand. Daarvan wordt het gemaakt, en daarom valt er binnen de app niets aan je kind te verkopen."
+  },
+  {
+   "id": "tebeaac17",
+   "file": "nl/tebeaac17.mp3",
+   "secs": 4.3,
+   "text": "Mars - 11570 m/s als de brandstof op is"
   },
   {
    "id": "tec1d3b5b",
@@ -7552,10 +9712,28 @@
    "text": "Minuutgetallen uit."
   },
   {
+   "id": "tec869778",
+   "file": "nl/tec869778.mp3",
+   "secs": 1.2,
+   "text": "Zeedieren"
+  },
+  {
    "id": "tecad1025",
    "file": "nl/tecad1025.mp3",
    "secs": 3.7,
    "text": "Tot 2012 had nog nooit iemand er een levende gefilmd."
+  },
+  {
+   "id": "tecd4d49f",
+   "file": "nl/tecd4d49f.mp3",
+   "secs": 0.9,
+   "text": "hhh"
+  },
+  {
+   "id": "tecd88b7d",
+   "file": "nl/tecd88b7d.mp3",
+   "secs": 0.9,
+   "text": "krijt"
   },
   {
    "id": "tecf45d76",
@@ -7568,6 +9746,12 @@
    "file": "nl/ted31954e.mp3",
    "secs": 6.2,
    "text": "Verbrandt waterstof, dus de uitlaat gaat er snel uit. Sterk en zuinig tegelijk."
+  },
+  {
+   "id": "ted8c8580",
+   "file": "nl/ted8c8580.mp3",
+   "secs": 6.4,
+   "text": "Deze draad zit nergens aan vast. Trek de lijn met je vinger van het ene deel naar het andere."
   },
   {
    "id": "tedc44e8a",
@@ -7624,16 +9808,34 @@
    "text": "Een hengelaarsvis draagt een lampje aan een hengel boven haar kop, om mee te vissen."
   },
   {
+   "id": "teeb9e629",
+   "file": "nl/teeb9e629.mp3",
+   "secs": 1.3,
+   "text": "de s van sok"
+  },
+  {
    "id": "teec7e211",
    "file": "nl/teec7e211.mp3",
    "secs": 5.3,
    "text": "Jupiter is de grootste. Hij is een bol van gas, zonder grond om op te staan."
   },
   {
+   "id": "tef22b334",
+   "file": "nl/tef22b334.mp3",
+   "secs": 1.3,
+   "text": "de ie van fiets"
+  },
+  {
    "id": "tef418c4d",
    "file": "nl/tef418c4d.mp3",
    "secs": 5.6,
    "text": "Ze klinken precies hetzelfde. Alleen het woord zelf zegt welke het is."
+  },
+  {
+   "id": "tef4aee9c",
+   "file": "nl/tef4aee9c.mp3",
+   "secs": 1.8,
+   "text": "in grasland en open veld"
   },
   {
    "id": "tef73b9eb",
@@ -7648,10 +9850,28 @@
    "text": "Het ruim is vol. Haal er eerst iets uit."
   },
   {
+   "id": "tefc1c2a4",
+   "file": "nl/tefc1c2a4.mp3",
+   "secs": 0.9,
+   "text": "reus"
+  },
+  {
    "id": "tefc77f76",
    "file": "nl/tefc77f76.mp3",
    "secs": 1.6,
    "text": "als de brandstof op is"
+  },
+  {
+   "id": "tefca025a",
+   "file": "nl/tefca025a.mp3",
+   "secs": 5.3,
+   "text": "Voorbij de satellieten - 6800 m/s als de brandstof op is"
+  },
+  {
+   "id": "tefe5648b",
+   "file": "nl/tefe5648b.mp3",
+   "secs": 1,
+   "text": "lijm"
   },
   {
    "id": "tf032ab71",
@@ -7672,16 +9892,58 @@
    "text": "Twee akkers"
   },
   {
+   "id": "tf065dcd9",
+   "file": "nl/tf065dcd9.mp3",
+   "secs": 0.9,
+   "text": "klauw"
+  },
+  {
+   "id": "tf0a31b15",
+   "file": "nl/tf0a31b15.mp3",
+   "secs": 0.9,
+   "text": "haan"
+  },
+  {
    "id": "tf0a71688",
    "file": "nl/tf0a71688.mp3",
    "secs": 1.9,
    "text": "Spellen die iets echts oefenen"
   },
   {
+   "id": "tf0df73f1",
+   "file": "nl/tf0df73f1.mp3",
+   "secs": 1.4,
+   "text": "de ou van hout"
+  },
+  {
    "id": "tf1211485",
    "file": "nl/tf1211485.mp3",
    "secs": 1.3,
    "text": "De eerste plof"
+  },
+  {
+   "id": "tf13135d8",
+   "file": "nl/tf13135d8.mp3",
+   "secs": 1.2,
+   "text": "de boot vaart"
+  },
+  {
+   "id": "tf1452baa",
+   "file": "nl/tf1452baa.mp3",
+   "secs": 1,
+   "text": "riem"
+  },
+  {
+   "id": "tf18ab1b4",
+   "file": "nl/tf18ab1b4.mp3",
+   "secs": 1.4,
+   "text": "de ch van lach"
+  },
+  {
+   "id": "tf1b264ca",
+   "file": "nl/tf1b264ca.mp3",
+   "secs": 3.5,
+   "text": "Vijfhonderd meter tegen de berg op, geen tweede kans."
   },
   {
    "id": "tf1d3a76d",
@@ -7714,10 +9976,28 @@
    "text": "Allebei de raderen tegelijk, of na elkaar. Jij kiest."
   },
   {
+   "id": "tf2442832",
+   "file": "nl/tf2442832.mp3",
+   "secs": 3.1,
+   "text": "Landen op het strand, tussen twee getijden door."
+  },
+  {
+   "id": "tf24f3807",
+   "file": "nl/tf24f3807.mp3",
+   "secs": 0.8,
+   "text": "dak"
+  },
+  {
    "id": "tf26ab87d",
    "file": "nl/tf26ab87d.mp3",
    "secs": 1.3,
    "text": "Enkele booster"
+  },
+  {
+   "id": "tf2754a2a",
+   "file": "nl/tf2754a2a.mp3",
+   "secs": 0.9,
+   "text": "dauw"
   },
   {
    "id": "tf285a8ce",
@@ -7736,6 +10016,18 @@
    "file": "nl/tf29f02b6.mp3",
    "secs": 4.6,
    "text": "Neptunus is de verste planeet. Daar waait de hardste wind van allemaal."
+  },
+  {
+   "id": "tf2a7221c",
+   "file": "nl/tf2a7221c.mp3",
+   "secs": 1.5,
+   "text": "de ooi van kooi"
+  },
+  {
+   "id": "tf2b48a66",
+   "file": "nl/tf2b48a66.mp3",
+   "secs": 0.9,
+   "text": "het"
   },
   {
    "id": "tf2c911a8",
@@ -7774,6 +10066,12 @@
    "text": "Smalle tank 4"
   },
   {
+   "id": "tf41a8c9b",
+   "file": "nl/tf41a8c9b.mp3",
+   "secs": 3.6,
+   "text": "De baan ligt op pilaren boven zee, met wind van de kliffen."
+  },
+  {
    "id": "tf44884ed",
    "file": "nl/tf44884ed.mp3",
    "secs": 3,
@@ -7784,6 +10082,12 @@
    "file": "nl/tf4a4d608.mp3",
    "secs": 3.1,
    "text": "5,5 ton brandstof, 2 rijen hoog."
+  },
+  {
+   "id": "tf4ab0827",
+   "file": "nl/tf4ab0827.mp3",
+   "secs": 1,
+   "text": "zout"
   },
   {
    "id": "tf4cd9531",
@@ -7834,6 +10138,12 @@
    "text": "De Waddenzee valt bij eb droog: dan kun je er overheen lopen. Het is werelderfgoed en de kraamkamer van de Noordzee."
   },
   {
+   "id": "tf67e231b",
+   "file": "nl/tf67e231b.mp3",
+   "secs": 1.2,
+   "text": "Zoogdieren"
+  },
+  {
    "id": "tf6c3adc3",
    "file": "nl/tf6c3adc3.mp3",
    "secs": 1.4,
@@ -7852,10 +10162,22 @@
    "text": "Graven"
   },
   {
+   "id": "tf75afb6b",
+   "file": "nl/tf75afb6b.mp3",
+   "secs": 0.9,
+   "text": "ring"
+  },
+  {
    "id": "tf75eca33",
    "file": "nl/tf75eca33.mp3",
    "secs": 0.9,
    "text": "Gezien"
+  },
+  {
+   "id": "tf78223a0",
+   "file": "nl/tf78223a0.mp3",
+   "secs": 1.4,
+   "text": "De Afsluitdijk"
   },
   {
    "id": "tf7a5a55a",
@@ -7868,6 +10190,12 @@
    "file": "nl/tf7d46bb6.mp3",
    "secs": 4.1,
    "text": "Wielen voor ergens anders. Plat, breed en lastig in de lucht."
+  },
+  {
+   "id": "tf7ddd1ae",
+   "file": "nl/tf7ddd1ae.mp3",
+   "secs": 3,
+   "text": "De aanvliegroute scheert over Maho Beach heen."
   },
   {
    "id": "tf8006a5d",
@@ -7886,6 +10214,12 @@
    "file": "nl/tf8315001.mp3",
    "secs": 1,
    "text": "Kijk goed"
+  },
+  {
+   "id": "tf83c8de9",
+   "file": "nl/tf83c8de9.mp3",
+   "secs": 0.9,
+   "text": "zwijn"
   },
   {
    "id": "tf8758cfb",
@@ -7930,6 +10264,12 @@
    "text": "Lange wijzer omlaag is half. Let op: dit is half vier, niet half drie - de korte wijzer is al onderweg naar de vier."
   },
   {
+   "id": "tf94276b8",
+   "file": "nl/tf94276b8.mp3",
+   "secs": 1.4,
+   "text": "de ui van huis"
+  },
+  {
    "id": "tf94c6f54",
    "file": "nl/tf94c6f54.mp3",
    "secs": 4.2,
@@ -7940,6 +10280,12 @@
    "file": "nl/tf9947192.mp3",
    "secs": 3,
    "text": "Oef. Tel de vakjes voor je stil gaat staan."
+  },
+  {
+   "id": "tf9a360c1",
+   "file": "nl/tf9a360c1.mp3",
+   "secs": 0.9,
+   "text": "België"
   },
   {
    "id": "tf9a8ea2d",
@@ -7978,6 +10324,12 @@
    "text": "Die nog even niet"
   },
   {
+   "id": "tfa441515",
+   "file": "nl/tfa441515.mp3",
+   "secs": 0.8,
+   "text": "mouw"
+  },
+  {
    "id": "tfa5157b3",
    "file": "nl/tfa5157b3.mp3",
    "secs": 1.2,
@@ -7994,6 +10346,12 @@
    "file": "nl/tfb378307.mp3",
    "secs": 3.7,
    "text": "De volgorde van landingen bepalen voordat het te druk wordt."
+  },
+  {
+   "id": "tfb5338ac",
+   "file": "nl/tfb5338ac.mp3",
+   "secs": 1,
+   "text": "pijl"
   },
   {
    "id": "tfbd4d88e",
@@ -8018,6 +10376,12 @@
    "file": "nl/tfc89207a.mp3",
    "secs": 4,
    "text": "De winderigste planeet: stormen sneller dan een straaljager."
+  },
+  {
+   "id": "tfcb929fe",
+   "file": "nl/tfcb929fe.mp3",
+   "secs": 4.9,
+   "text": "Door de wolken - 340 m/s als de brandstof op is"
   },
   {
    "id": "tfd0eacf2",
@@ -8062,6 +10426,12 @@
    "text": "brandstof"
   },
   {
+   "id": "tfec96edd",
+   "file": "nl/tfec96edd.mp3",
+   "secs": 1.4,
+   "text": "de auw van blauw"
+  },
+  {
    "id": "tfee759ae",
    "file": "nl/tfee759ae.mp3",
    "secs": 0.9,
@@ -8102,6 +10472,12 @@
    "file": "nl/tffa6332b.mp3",
    "secs": 1.2,
    "text": "De gordel"
+  },
+  {
+   "id": "tffa928e6",
+   "file": "nl/tffa928e6.mp3",
+   "secs": 1,
+   "text": "Insecten"
   },
   {
    "id": "tffb0f5d8",

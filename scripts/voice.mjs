@@ -79,8 +79,33 @@ async function lineKeyFn() {
   return mod;
 }
 
+/**
+ * Letterbos' own material: its words, its sentences whole and word by word, and every sound it
+ * says - which is data rather than sentences in the source, so the parser above never sees it.
+ */
+async function letterbos() {
+  const dir = mkdtempSync(join(tmpdir(), 'suri-letters-'));
+  const file = join(dir, 'letters.mjs');
+  await build({
+    stdin: { contents: "export * from './src/games/letters/words.ts'; export * from './src/games/letters/phonics.ts';", resolveDir: process.cwd(), loader: 'ts' },
+    bundle: true, format: 'esm', outfile: file, logLevel: 'warning',
+  });
+  const L = await import(file);
+  rmSync(dir, { recursive: true, force: true });
+  return [
+    ...L.WORDS.map(w => w.w),
+    ...L.LADDERS.flat(),
+    ...L.SENTENCES.map(x => x.nl.join(' ')),
+    ...L.SENTENCE_WORDS,
+    ...L.UNITS.map(u => L.sayOf(u)),
+    ...L.UNITS.map(u => L.exampleLine(u, true)),
+    // lines that carry a number, said with every number they can carry
+    ...Array.from({ length: 12 }, (_, i) => `Vind eerst ${i + 1} fossielen.`),
+  ];
+}
+
 /** Every Dutch sentence in the source. */
-function harvest() {
+function harvest(extra = []) {
   const files = [];
   const walk = d => {
     for (const f of readdirSync(d)) {
@@ -98,9 +123,28 @@ function harvest() {
       if (ts.isCallExpression(n) && ts.isIdentifier(n.expression) && n.expression.text === 'T'
         && n.arguments.length === 2 && lit(n.arguments[1])) lines.add(n.arguments[1].text);
       if (ts.isPropertyAssignment(n) && /Nl$/.test(n.name.getText(sf)) && lit(n.initializer)) lines.add(n.initializer.text);
-      // `NL() ? 'Dutch' : 'English'`
-      if (ts.isConditionalExpression(n) && ts.isCallExpression(n.condition)
-        && n.condition.expression.getText(sf) === 'NL' && lit(n.whenTrue)) lines.add(n.whenTrue.text);
+      // `NL() ? 'Dutch' : 'English'`, and the same with a plain `nl` flag
+      if (ts.isConditionalExpression(n) && lit(n.whenTrue)
+        && ((ts.isCallExpression(n.condition) && n.condition.expression.getText(sf) === 'NL')
+          || (ts.isIdentifier(n.condition) && n.condition.text === 'nl'))) lines.add(n.whenTrue.text);
+      // Moonshot says "<mission> - <speed> m/s als de brandstof op is" for every rung of its ladder
+      if (f.endsWith(join('moonshot', 'design.ts')) && ts.isObjectLiteralExpression(n)) {
+        const get = k => n.properties.find(pr => ts.isPropertyAssignment(pr) && pr.name.getText(sf) === k);
+        const sp = get('speed'), nm = get('nameNl');
+        if (sp && nm && ts.isNumericLiteral(sp.initializer) && lit(nm.initializer)) {
+          lines.add(`${nm.initializer.text} - ${sp.initializer.text} m/s als de brandstof op is`);
+        }
+      }
+      // Stroomkring says "<part> gedraaid." when a part with a plus and a minus is turned round
+      if (f.endsWith(join('circuit', 'sim.ts')) && ts.isPropertyAssignment(n) && n.name.getText(sf) === 'nameNl'
+        && lit(n.initializer)) lines.add(`${n.initializer.text} gedraaid.`);
+      // a row whose Dutch field is simply `nl` (the animal groups)
+      if (ts.isPropertyAssignment(n) && n.name.getText(sf) === 'nl' && lit(n.initializer)) lines.add(n.initializer.text);
+      // a table of Dutch names, `const CONTINENT_NL = { eu: 'Europa' }`
+      if (ts.isVariableDeclaration(n) && /_NL$/.test(n.name.getText(sf)) && n.initializer
+        && ts.isObjectLiteralExpression(n.initializer)) {
+        for (const pr of n.initializer.properties) if (ts.isPropertyAssignment(pr) && lit(pr.initializer)) lines.add(pr.initializer.text);
+      }
       // the Dutch half of an old-style dictionary, `const nl = { key: '...' }` (src/i18n.ts)
       if (ts.isVariableDeclaration(n) && n.name.getText(sf) === 'nl' && n.initializer
         && ts.isObjectLiteralExpression(n.initializer)) {
@@ -113,14 +157,24 @@ function harvest() {
   // Short labels are kept too: the first run left them out as "read, not said", and then the animal
   // book said "Zoeken" and the night sky said "Kijk goed" in the phone's voice. A label costs a few
   // credits; a gap costs a second voice.
-  return [...new Set([...lines].map(s => s.replace(/\s+/g, ' ').trim()))]
+  return [...new Set([...lines, ...extra].map(s => s.replace(/\s+/g, ' ').trim()))]
     .filter(s => /[a-zà-ÿ]/i.test(s) && !/[<>{}]/.test(s))
     .sort();
 }
 
+/**
+ * What the voice is actually given to read. The line is still filed under its own words; only the
+ * reading changes, because "m/s" read letter by letter is not what anybody would say to a child.
+ */
+const readable = text => text
+  .replace(/(\d)\s*m\/s\b/g, '$1 meter per seconde')
+  .replace(/(\d)\s*km\/s\b/g, '$1 kilometer per seconde')
+  .replace(/(\d)\s*km\/h\b/g, '$1 kilometer per uur')
+  .replace(/(\d)\s*×/g, '$1 keer');
+
 async function tts(voice, text) {
   const body = {
-    text,
+    text: readable(text),
     model_id: MODEL,
     // steady rather than theatrical: the same line should sound the same every time a child hears it
     voice_settings: { stability: 0.55, similarity_boost: 0.8, style: 0.15, use_speaker_boost: true },
@@ -166,7 +220,7 @@ async function sample(ids) {
 
 async function render(voice, dry) {
   const { lineKey } = await lineKeyFn();
-  const all = harvest();
+  const all = harvest(await letterbos());
   const raw = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : {};
   // a different voice or model means every recording is out of date, so start again
   const same = raw._voice === voice && raw._model === MODEL;
@@ -213,7 +267,7 @@ const [cmd, ...rest] = process.argv.slice(2).filter((a, i, all) => !a.startsWith
 if (cmd === 'voices') await voices();
 else if (cmd === 'sample' && rest.length) await sample(rest);
 else if (cmd === 'render' && rest[0]) await render(rest[0], process.argv.includes('--dry'));
-else if (cmd === 'lines') for (const l of harvest()) console.log(l);
+else if (cmd === 'lines') for (const l of harvest(await letterbos())) console.log(l);
 else {
   console.log('node scripts/voice.mjs voices | sample <voiceId>... | render <voiceId> [--dry] | lines');
   process.exit(cmd ? 1 : 0);

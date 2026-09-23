@@ -15,6 +15,7 @@
  */
 
 import { save } from '../../util/storage';
+import { noteMiss, recorded, sayRecorded, stopSpeaking as stopRecorded } from '../../platform/voice';
 import { sayOf } from './phonics';
 
 type Voices = SpeechSynthesisVoice[];
@@ -64,7 +65,7 @@ export function initVoice(): void {
 }
 
 /** Has a Dutch voice turned up? The game only uses this to decide what to promise on screen. */
-export const hasVoice = (): boolean => voice != null;
+export const hasVoice = (): boolean => voice != null || recorded('nl') > 0;
 
 const on = (): boolean => save.sound !== false;
 
@@ -73,6 +74,17 @@ const on = (): boolean => save.sound !== false;
  * this is a no-op that costs nothing.
  */
 export function say(text: string, rate = 1, pitch = 1, queue = false): void {
+  // Ruth first: every word, sentence and sound in here is recorded (scripts/voice.mjs). On a phone
+  // the device voice also went silent once the rest of the app played recordings, which is what
+  // the owner heard - "Hoor het woord" doing nothing.
+  if (!on() || !text) return;
+  if (sayRecorded([text], queue)) return;
+  noteMiss(text);
+  speakDevice(text, rate, pitch, queue);
+}
+
+/** The device's own voice, and nothing else. */
+function speakDevice(text: string, rate: number, pitch: number, queue: boolean): void {
   const s = synth();
   if (!s || !on() || !text) return;
   if (!voice && !absent) findVoice();
@@ -89,6 +101,7 @@ export function say(text: string, rate = 1, pitch = 1, queue = false): void {
 }
 
 export function stopSpeaking(): void {
+  stopRecorded();
   const s = synth();
   if (!s) return;
   try { s.cancel(); } catch { /* nothing to cancel */ }
@@ -108,10 +121,13 @@ export const saySound = (unit: string, queue = false): void => say(sayOf(unit), 
  * straight through and then word by word, which is the same idea one floor up.
  */
 export function sayWordAndParts(word: string, parts: string[], asWords = false): void {
+  // the whole run from recordings when every piece has one, so it is never two voices taking turns
+  if (on() && sayRecorded([word, ...parts.map(p => (asWords ? p : sayOf(p)))])) return;
+  noteMiss([word, ...parts].join(' / '));
   stopSpeaking();
-  say(word, asWords ? 0.8 : 0.85);
+  speakDevice(word, asWords ? 0.8 : 0.85, 1, false);
   for (const p of parts) {
-    if (asWords) say(p, 0.75, 1, true);
-    else saySound(p, true);
+    if (asWords) speakDevice(p, 0.75, 1, true);
+    else speakDevice(sayOf(p), 0.7, 1.08, true);
   }
 }
