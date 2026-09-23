@@ -1,16 +1,16 @@
-# Braambos
+# Suri
 
-Braambos is a small world of games for children, built as one codebase. No advertising, no
+Suri is a small world of games for children, built as one codebase. No advertising, no
 third-party tracking, no account. Every game practises something real and ends properly: a session
 has a beginning and an end, with no endless loop and no daily reward pulling anyone back.
 
 English is the first language; Dutch is included.
 
-`index.html` is Braambos itself: the page that holds every game and says in a line what each
+`index.html` is Suri itself: the page that holds every game and says in a line what each
 one practises. Each game has its own page beside it.
 
 Every game carries the same two round buttons in the same corner, with no words in them: a house
-that goes back to Braambos, and, beside it, a chevron that goes back exactly one screen - out
+that goes back to Suri, and, beside it, a chevron that goes back exactly one screen - out
 of a level to the level list, out of a flight to the workshop, out of the museum to the dig. The
 chevron hides itself when there is nothing to go back to.
 
@@ -502,7 +502,7 @@ Nothing is fetched and nothing is a photograph. The outlines are longitude and l
 `src/games/atlas/geo.ts`, simplified to about ten kilometres of detail and drawn as canvas paths,
 which is what lets the same Germany appear on a map of the neighbours, a map of Europe and a map of
 the world without being redrawn. The continents come out of the animal book's own `worldmap.ts`,
-so there are not two different Africas in Braambos. The flags are written down rather than
+so there are not two different Africas in Suri. The flags are written down rather than
 photographed - bands, a cross, a disc - and only the flags that description can tell the truth
 about are in the game, because a drawn approximation of a coat of arms is a wrong flag rather than
 a simple one. A cross knows which cross it is: the Nordic ones stand off to the hoist and reach

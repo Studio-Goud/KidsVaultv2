@@ -1,5 +1,5 @@
 /**
- * Klankhuis - the sound house, in Braambos.
+ * Klankhuis - the sound house, in Suri.
  *
  * The instrument comes before the game. What opens is nine chimes you can hit, in tune, with a
  * proper strike and a room behind them; the ladder of levels is a button off to one side and the
@@ -1518,7 +1518,7 @@ export class Rhythm {
     if (this.level.kind === 'make') return;
 
     // the level's name and how far through it you are, both kept clear of the two round buttons
-    // in the corner, which sit over the canvas on every page in Braambos
+    // in the corner, which sit over the canvas on every page in Suri
     const lx = 13 * u + 88 * u + 12 * u;
     const room = this.w - 106 * u - lx;
     ctx.textAlign = 'left';
@@ -1551,7 +1551,7 @@ export class Rhythm {
   /**
    * Centre a heading, but never under the two round buttons in the top right corner.
    *
-   * They are the same size on every page of Braambos and they sit over the canvas, so the
+   * They are the same size on every page of Suri and they sit over the canvas, so the
    * canvas has to know they are there. The font must be set before this is called.
    */
   private headX(text: string): number {

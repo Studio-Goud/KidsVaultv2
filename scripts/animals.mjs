@@ -29,7 +29,7 @@ const CACHE = join(ROOT, '.cache', 'animals');
 const OUT = join(ROOT, 'public', 'animals', 'animals.json');
 const FRESH = process.argv.includes('--fresh');
 
-const UA = 'BraambosAnimalBook/1.0 (a children\'s nature encyclopedia; contact ricardovanrijn2@gmail.com)';
+const UA = 'SuriAnimalBook/1.0 (a children\'s nature encyclopedia; contact ricardovanrijn2@gmail.com)';
 
 mkdirSync(CACHE, { recursive: true });
 

@@ -47,9 +47,17 @@ function makeDemoWorld(): World {
   return w;
 }
 
-/** The tower takes the name of the field: a real airport uses its own, the archipelago uses Braambos. */
+/**
+ * The tower takes the name of the field: a real airport uses its own, the invented archipelago
+ * uses its own home field.
+ *
+ * That name is deliberately not the app's. It used to be, and the rename to Suri made a control
+ * tower answer to the name of a meerkat. Cloudhopper's islands are their own place and should
+ * never have borrowed the brand; Wolkenhaven - cloud harbour - is what the project called itself
+ * before any of this, and it is a better name for an airfield than for an app.
+ */
 function towerName(): string {
-  return world.level.port ? world.level.port.name : 'Braambos';
+  return world.level.port ? world.level.port.name : 'Wolkenhaven';
 }
 
 function onWorldEvent(e: GameEvent): void {

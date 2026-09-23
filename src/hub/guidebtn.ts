@@ -1,5 +1,5 @@
 /**
- * Braam, in the corner of every game, for when you did not catch it.
+ * Suri, in the corner of every game, for when you did not catch it.
  *
  * The instruction is spoken when it changes. That is not enough on its own: a child who was still
  * looking at the picture, or whose brother said something, has no way back to it. Every game

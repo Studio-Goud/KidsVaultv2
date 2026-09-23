@@ -90,9 +90,13 @@ Gekozen, en het is een betere keuze dan hij op het eerste gezicht lijkt:
   geen verzonnen tekenfilmfiguur te zijn, en dat past bij "we zeggen wat we niet weten".
 - **"Stokstaartje" is te zeggen door een tweejarige.**
 
-**Zijn naam is Braam.** Braambos → Braam: twee letters van de app-naam, kort, en niet aan een
+**Zijn naam was Braam.** Braambos → Braam: twee letters van de app-naam, kort, en niet aan een
 geslacht gebonden. Het staat als één constante in `src/platform/guide.ts`, dus hernoemen is één
 regel.
+
+> **Achterhaald op 2026-09-23.** De app heet geen Braambos meer en de gids heet geen Braam meer;
+> beide heten Suri. Zie het besluit onderaan dit document. Wat hieronder staat over waaróm het een
+> stokstaartje is, geldt onverkort.
 
 **Eén ding om in de gaten te houden:** de bekendste stokstaart in kindermedia is Timon uit The Lion
 King. Braam is met opzet niet zijn evenbeeld — andere verhoudingen, eigen palet, geen kleren, geen
@@ -187,3 +191,48 @@ dat niet: die vlag stamt uit de tijd dat niets hardop ging, en is nu waarschijnl
 Er staat nu bij dat hij niet nagekeken is, en niemand mag hem citeren tot dat wel zo is. Dit is de
 eerste van de open posten omdat hij goedkoop is: het is achttien keer kijken wat er op het scherm
 staat dat gelezen moet worden.
+
+---
+
+## 2026-09-23 — De app heet Suri, en dat is de gids
+
+> "En Braambos slaat echt nergens op."
+
+Klopt, en om een scherpere reden dan hij op het eerste gezicht lijkt: **een stokstaartje in een
+braambos is dubbel onzin.** Stokstaartjes leven in de Kalahari, niet in een doornstruik. Ik had een
+naam gekozen, er daarna een mascotte bij gezet die er niet in paste, en vervolgens een icoon
+getekend van een braamboog. Eén verhaal dat niet klopt, drie keer uitgevoerd.
+
+**Besluit: de app heet Suri, en de gids heet Suri.** Een stokstaartje is een *suricata*; de naam
+komt dus uit het dier zelf. Wat het oplost:
+
+1. **Het verhaal klopt weer.** Eén naam, één dier, één icoon. Er valt niets meer uit te leggen.
+2. **Een tweejarige zegt het.** Twee lettergrepen, open klanken, geen medeklinkercluster.
+3. **Het reist.** "Braambos" had bij export per markt een andere naam nodig; "Suri" gaat onvertaald
+   mee. De app is vanaf dag één tweetalig gebouwd en dit was de laatste Nederlandse knoop erin.
+4. **Het merk is een karakter en geen woord.** Dat is commercieel het punt: kinderen binden zich aan
+   een figuur, niet aan een productnaam, en de figuur stond er al op elk scherm.
+
+Het icoon is nu zijn kop: zandkleurig, donker masker, ronde oren, spitse snuit, tegen de schemer
+met het heuveltje waar hij op de uitkijk staat. De geometrie is met opzet dezelfde als in
+`src/platform/guide.ts`, zodat het icoon en het dier in de app niet uit elkaar kunnen groeien.
+Twee dingen die ik onderweg heb weggegooid: een halo achter zijn kop die als een muts las, en een
+borst in dezelfde vacht die met de snuit tot één klont samenviel. Kop en oren alleen is wat op
+achtenveertig pixels overeind blijft.
+
+**Wat ik niet kan nakijken vanaf hier:** of "Suri" vrij is als merknaam, als domein en in de app
+stores. Dat is een van de eerste dingen om te doen voordat er geld in marketing gaat.
+
+---
+
+## 2026-09-23 — De ouder-ingang staat bovenaan
+
+De voorpagina begroette je met de naam in witte letters op een lichtblauwe lucht, wat alleen leesbaar
+was door er een donkere waas achter te schilderen — en die waas las als een vlek. Donkere letters op
+een lichte lucht hebben niets achter zich nodig, dus de waas is weg en de naam is inkt.
+
+Daarnaast: de enige ingang naar het ouderscherm stond onder aan de pagina, achter achttien
+spelkaarten. Een ouder die deze app voor het eerst opent zoekt zijn eigen instellingen, en die
+achter het hele schap verstoppen was de verkeerde volgorde. Er staat nu een knop rechtsboven, naast
+de naam. De link onder aan de beloftekaart blijft, maar is nu de stillere van de twee: dat is het
+eind van een verkooppraatje en niet de plek waar je iets zoekt.

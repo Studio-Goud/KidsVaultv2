@@ -1,7 +1,7 @@
 /**
  * The checks that can be run without a browser.
  *
- * Most of Braambos is canvas and thumbs, and the honest way to test that is `tests/regression.md`
+ * Most of Suri is canvas and thumbs, and the honest way to test that is `tests/regression.md`
  * plus a phone. But the *rules* underneath - when a runway is clear, how a rocket cuts into stages,
  * what the air makes of a shape - are plain functions over plain data, and those should never be
  * allowed to break quietly.
@@ -3029,7 +3029,7 @@ const group = name => console.log(`\n${name}`);
 {
   const { SIMPLE_UPTO, simpleFor } = await bundle('src/platform/who.ts', 'who.mjs');
   const { TOOLS, buildSite, soften, strike } = await bundle('src/games/dig/site.ts', 'digsite.mjs');
-  group('Braambos - the simple shape of a game');
+  group('Suri - the simple shape of a game');
 
   is('test_simple_a_two_year_old_gets_the_simple_shape', simpleFor(2), true);
   is('test_simple_the_oldest_toddler_gets_it_too', simpleFor(SIMPLE_UPTO), true);

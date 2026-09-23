@@ -20,7 +20,7 @@ export interface Advisory {
 
 const nl = (): boolean => lang() === 'nl';
 /**
- * Dutch first here, unlike every other T() in Braambos - this file was written that way and
+ * Dutch first here, unlike every other T() in Suri - this file was written that way and
  * has some twenty-five call sites. The name says which order it takes, so a line copied in from
  * a file that uses the usual English-first T() cannot silently swap the two languages.
  */

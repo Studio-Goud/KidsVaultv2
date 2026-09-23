@@ -1,6 +1,6 @@
 # Claims die een (ortho)pedagoog moet toetsen
 
-Status: open. Niemand met een pedagogische opleiding heeft Braambos gezien.
+Status: open. Niemand met een pedagogische opleiding heeft Suri gezien.
 
 Dit is de lijst van alles wat de app of zijn documentatie beweert over kinderen, en wat er
 onder elke bewering ligt. Hij bestaat om twee redenen. De eerste is dat ik ze zelf niet kan

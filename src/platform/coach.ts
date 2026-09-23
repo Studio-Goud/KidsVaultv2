@@ -226,7 +226,7 @@ export class Coach {
       const y = h < 560 * u
         ? 8 * u
         : near > h * 0.5 ? h * 0.12 : h * 0.8;
-      // Braam stands to the left of what he is saying. He is the answer to the one pillar of
+      // Suri stands to the left of what he is saying. He is the answer to the one pillar of
       // learning the whole market is worst at - somebody who responds - and he is why the line is
       // heard rather than read.
       const guide = 52 * u;

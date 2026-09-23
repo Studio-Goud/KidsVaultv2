@@ -1,4 +1,4 @@
-import { drawGuide } from './guide';
+import { drawGuide, GUIDE_NAME } from './guide';
 import { dayKey, cleanUsed, isLastGo, limitsFor, spend, spent, type Child } from './session';
 import { playingChild } from './who';
 import { NL, T } from '../util/lang';
@@ -104,7 +104,7 @@ export function countFinished(): void {
 // ---------------------------------------------------------------- the closing
 
 /**
- * The end of the day: Braam goes to sleep, and the same thing happens every time.
+ * The end of the day: the guide goes to sleep, and the same thing happens every time.
  *
  * A routine is the other half of the research finding. It is the same animation, the same words
  * and the same button every single evening, so that stopping becomes a thing that happens rather
@@ -123,7 +123,7 @@ function close(then?: () => void): void {
   wrap.innerHTML = `
     <div class="dayend-card">
       <canvas class="dayend-guide" width="360" height="260"></canvas>
-      <h2>${T('Braam has gone to sleep', 'Braam gaat slapen')}</h2>
+      <h2>${T(GUIDE_NAME + ' has gone to sleep', GUIDE_NAME + ' gaat slapen')}</h2>
       <p>${T('Time to give the phone back to a grown-up.', 'Tijd om de telefoon terug te geven aan papa of mama!')}</p>
       <a class="dayend-parents" href="./parents.html">${T('For grown-ups', 'Voor ouders')}</a>
     </div>`;

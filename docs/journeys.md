@@ -4,7 +4,7 @@ Status: gebouwd. Twee reizen live (`reis.html`, `diepzee.html`), motor in `src/j
 
 ## Wat het is
 
-Een ontdekreis is het enige onderdeel van Braambos dat geen spel is. Je stapt ergens in, je drukt
+Een ontdekreis is het enige onderdeel van Suri dat geen spel is. Je stapt ergens in, je drukt
 op start, en het ding brengt je. Om de zoveel tijd stopt het, zegt de gids één ding, en jij
 beslist of je meer wilt horen of verder wilt. Er wordt niets van je gevraagd en er kan niets
 misgaan.

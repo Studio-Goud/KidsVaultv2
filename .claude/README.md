@@ -1,4 +1,4 @@
-# Claude Code Game Studios, in Braambos
+# Claude Code Game Studios, in Suri
 
 The skills, agents and rules in this folder come from
 https://github.com/Donchitos/Claude-Code-Game-Studios (MIT), installed on
@@ -13,7 +13,7 @@ the only thing that runs automatically. They can be fetched from the upstream
 repository if they are ever wanted.
 
 Most of these skills assume a studio workflow with design documents under
-`design/` and a game engine project. Braambos has neither, so the ones that
+`design/` and a game engine project. Suri has neither, so the ones that
 carry their weight here are the review skills - `ux-review`, `design-review`,
 `code-review`, `playtest-report`, `smoke-check`, `perf-profile` - used as
 checklists rather than as document pipelines.

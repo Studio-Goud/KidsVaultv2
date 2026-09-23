@@ -1,7 +1,7 @@
 /**
- * The way back to Braambos, and it is the same button in every game.
+ * The way back to Suri, and it is the same button in every game.
  *
- * It used to be a pill with the word "Braambos" in it, which meant nine games had a piece of
+ * It used to be a pill with the word "Suri" in it, which meant nine games had a piece of
  * text you had to be able to read before you could get out of them. It is a round button with a
  * house on it now, in the same corner, the same size, in every game on the site.
  */
@@ -25,8 +25,8 @@ export function addHomeButton(): void {
   const a = document.createElement('a');
   a.className = 'homebtn';
   a.href = './';
-  a.setAttribute('aria-label', nl ? 'Terug naar Braambos' : 'Back to Braambos');
-  a.title = nl ? 'Terug naar Braambos' : 'Back to Braambos';
+  a.setAttribute('aria-label', nl ? 'Terug naar Suri' : 'Back to Suri');
+  a.title = nl ? 'Terug naar Suri' : 'Back to Suri';
   a.innerHTML =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +

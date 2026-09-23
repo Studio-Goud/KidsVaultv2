@@ -402,8 +402,8 @@ function promisePanel(): HTMLElement {
 function subscriptionPanel(): HTMLElement {
   return panel(T('Subscription', 'Abonnement'),
     el('p', 'note', T(
-      'Braambos costs €3.99 a month. That pays for the making of it, and it is why there is nothing to sell your child inside it.',
-      'Braambos kost €3,99 per maand. Daarvan wordt het gemaakt, en daarom valt er binnen de app niets aan je kind te verkopen.')),
+      'Suri costs €3.99 a month. That pays for the making of it, and it is why there is nothing to sell your child inside it.',
+      'Suri kost €3,99 per maand. Daarvan wordt het gemaakt, en daarom valt er binnen de app niets aan je kind te verkopen.')),
     el('p', 'note quiet', T(
       'Billing is not built yet. When it is, it runs through the App Store or Google Play, so cancelling is where you cancel everything else.',
       'Het afrekenen is nog niet gebouwd. Straks loopt het via de App Store of Google Play, zodat opzeggen gaat waar je alles opzegt.')));
@@ -467,7 +467,7 @@ function faqLink(back: () => void): HTMLElement {
 function homeLink(): HTMLElement {
   const a = el('a', 'btn quiet');
   a.href = './';
-  a.textContent = T('Back to Braambos', 'Terug naar Braambos');
+  a.textContent = T('Back to Suri', 'Terug naar Suri');
   return a;
 }
 

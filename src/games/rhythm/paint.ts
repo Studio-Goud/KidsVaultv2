@@ -28,7 +28,7 @@ export const colourOf = (midi: number): string => PITCH_COLOURS[colourIndexOfMid
 
 /**
  * The room the instrument stands in: a warm wall with a rail along it, a wooden floor, and the
- * light coming in from the top left like everywhere else in Braambos.
+ * light coming in from the top left like everywhere else in Suri.
  */
 export function drawRoom(ctx: Ctx, w: number, h: number, t: number): void {
   const wall = ctx.createLinearGradient(0, 0, 0, h);

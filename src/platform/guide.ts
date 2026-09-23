@@ -1,7 +1,7 @@
 /**
- * Braam, the meerkat.
+ * Suri, the meerkat, who is also the app.
  *
- * Every game in Braambos explains itself in writing to children who mostly cannot read, and the
+ * Every game in Suri explains itself in writing to children who mostly cannot read, and the
  * weakest of the four pillars of learning across the whole market is the social one: somebody who
  * responds. A guide is the answer to both, so there is one, and he is the same animal on every
  * screen.
@@ -26,7 +26,7 @@ type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
 
 /** The name a child says. One constant, so it can be changed in one place. */
-export const GUIDE_NAME = 'Braam';
+export const GUIDE_NAME = 'Suri';
 
 const FUR = '#d9a96a';
 const FUR_D = '#b9884a';

@@ -1,5 +1,5 @@
 /**
- * Moonshot - the ninth game in Braambos.
+ * Moonshot - the ninth game in Suri.
  *
  * A workshop with every part on the shelf and nothing locked, a grid you can put any of them
  * anywhere on, and a launch button you press when you decide the thing is finished. There are no
@@ -384,7 +384,7 @@ export class Moonshot {
     const trayY = launchY - trayH - 6 * u;
     const tabsH = 28 * u;
     const tabsY = trayY - tabsH - 4 * u;
-    // The readouts sit under the grid rather than over it, because the way back to Braambos
+    // The readouts sit under the grid rather than over it, because the way back to Suri
     // owns the top right corner and a number half hidden behind a link is worse than no number.
     const readH = wide ? 44 * u : 58 * u;
     const readTop = tabsY - readH - 2 * u;
@@ -1399,7 +1399,7 @@ export class Moonshot {
     ctx.fillRect(0, 0, this.w, this.h);
     this.hits.push({ id: 'closepick', x: 0, y: 0, w: this.w, h: this.h });
 
-    // under the chip and clear of the way back to Braambos, which owns the top right
+    // under the chip and clear of the way back to Suri, which owns the top right
     ctx.textAlign = 'left';
     ctx.fillStyle = '#e2ecf8';
     ctx.font = this.font('900', 16);
@@ -2086,7 +2086,7 @@ export class Moonshot {
   private drawFlightChrome(): void {
     const ctx = this.ctx, u = this.u();
 
-    // Height and speed on the left: the way back to Braambos owns the top right corner, and a
+    // Height and speed on the left: the way back to Suri owns the top right corner, and a
     // number sitting under a link nobody can read is worse than no number.
     const shown = this.phase === 'coast' || this.phase === 'done' ? this.shownKm : this.alt / 1000;
     ctx.textAlign = 'left';

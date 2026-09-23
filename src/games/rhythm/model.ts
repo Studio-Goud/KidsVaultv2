@@ -366,7 +366,7 @@ export const roundBeats = (r: Round): number => r.bars * beatsPerBar(r.sig);
 /**
  * Stars count what went right the first time, before the game played it back slowly or answered
  * a wrong chime with the right one. Half is worth a star, seven tenths two, and everything three.
- * The same ladder Klokkijken uses, so a star means the same thing across Braambos.
+ * The same ladder Klokkijken uses, so a star means the same thing across Suri.
  */
 export function starsFor(right: number, total: number): number {
   if (total <= 0) return 0;

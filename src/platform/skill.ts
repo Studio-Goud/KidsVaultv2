@@ -1,7 +1,7 @@
 /**
  * What a child can do at the moment, and what to ask them next.
  *
- * Every game in Braambos used to own a ladder of levels: nine of them, hand-cut, and when you
+ * Every game in Suri used to own a ladder of levels: nine of them, hand-cut, and when you
  * had climbed it there was nothing left. That is fine for a valley of water or a rocket you keep
  * rebuilding, and it is no good at all for the things a child gets steadily better at - reading a
  * clock, splitting a number, holding a pattern in mind. Those want a ladder without a top.

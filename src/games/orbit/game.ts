@@ -1,5 +1,5 @@
 /**
- * Planetarium - the planets game in Braambos.
+ * Planetarium - the planets game in Suri.
  *
  * Four rounds, each one question repeated: which planet comes next? The child taps, the planet
  * flies onto the track and says one true thing about itself. Rounds one and two take the inner and

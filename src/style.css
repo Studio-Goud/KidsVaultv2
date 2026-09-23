@@ -71,18 +71,19 @@ canvas.full { position: fixed; inset: 0; width: 100%; height: 100%; display: blo
 .card p { margin: 6px 0; color: var(--ink-soft); font-size: 15px; line-height: 1.45; }
 .card .sub { color: var(--ink-soft); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
 /* The way into the parent screen, from the card that is already talking to a parent.
-   It sits under a list whose rows look like soft grey blocks, so it deliberately does not: a
-   darker face, a chevron, and a line above it, or it reads as a fifth promise and not as a door. */
+   It sits under a list whose rows look like soft grey blocks, so it deliberately does not: an
+   outline, a chevron and a line above it, or it reads as a fifth promise and not as a door.
+   It is the quieter of the two doors: the pill at the top of the shelf is the one a parent
+   opening the app is looking for, and this one is the end of a sales pitch. */
 .card .parentlink {
   display: flex; align-items: center; gap: 10px; justify-content: space-between;
   margin-top: 16px; padding: 14px 16px; border-radius: 14px; min-height: 48px; box-sizing: border-box;
   border-top: 1px solid rgba(20, 60, 110, 0.12);
-  background: linear-gradient(180deg, #2f6ea8, #255c90); color: #fff; text-decoration: none;
+  background: #fff; border: 2px solid rgba(47, 110, 168, 0.35); color: #2f6ea8; text-decoration: none;
   font-size: 14px; font-weight: 800; line-height: 1.35; text-align: left;
-  box-shadow: 0 6px 14px rgba(20, 60, 110, 0.22);
 }
 .card .parentlink::after { content: '\203A'; font-size: 22px; font-weight: 900; opacity: .8; flex: none; }
-.card .parentlink:active { transform: translateY(1px); box-shadow: 0 3px 8px rgba(20, 60, 110, 0.22); }
+.card .parentlink:active { background: #eef4fa; }
 
 .logo {
   /* White type straight onto the scene measured 1.5:1 on the hub's pale sky, and on Cloudhopper
@@ -336,7 +337,7 @@ canvas.full { position: fixed; inset: 0; width: 100%; height: 100%; display: blo
 .skills span { font-size: 13px; line-height: 1.5; color: var(--ink); opacity: .78; }
 @media (min-width: 760px) { .skills { grid-template-columns: repeat(2, 1fr); } }
 
-/* --- Braambos home --- */
+/* --- Suri home --- */
 /* the games pin a canvas and lock scrolling; the home page is a page, and must scroll */
 html.page, html.page body {
   overflow: auto; height: auto; min-height: 100%;
@@ -348,7 +349,39 @@ html.page canvas { touch-action: auto; }
   display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box;
   background: linear-gradient(180deg, #bfe7ff 0%, #8fd0f2 38%, #d9efd2 100%);
 }
-#hub .logo { margin: 4px 0 2px; }
+/* The shelf's own header: the mark, the name, and the door to the parent screen.
+   Not `.logo`: that one is Cloudhopper's title over a lit island and still needs its dark wash. */
+#hub .hubtop {
+  width: 100%; max-width: 560px; display: flex; align-items: center; gap: 12px;
+  margin: 2px 0 2px; box-sizing: border-box;
+}
+#hub .hubtop .mark {
+  width: 52px; height: 52px; border-radius: 15px; display: block; flex: none;
+  box-shadow: 0 6px 16px rgba(10, 40, 80, 0.25);
+}
+#hub .hubtop .name { flex: 1; min-width: 0; }
+#hub .hubtop .word {
+  font-size: clamp(28px, 8vw, 38px); font-weight: 900; letter-spacing: -0.02em; line-height: 1;
+  color: var(--ink);
+}
+#hub .hubtop .tag {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.04em; margin-top: 4px;
+  color: var(--ink-soft); opacity: .95;
+}
+#hub .hubtop .grownups {
+  flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 15px;
+  border-radius: 999px; background: rgba(255,255,255,0.92); color: var(--ink);
+  text-decoration: none; font-size: 13px; font-weight: 900; white-space: nowrap;
+  box-shadow: 0 6px 14px rgba(10, 40, 80, 0.14);
+}
+#hub .hubtop .grownups:active { transform: translateY(1px); box-shadow: 0 3px 8px rgba(10, 40, 80, 0.14); }
+/* on a narrow phone the pill drops under the name rather than squeezing it to nothing */
+@media (max-width: 379px) {
+  #hub .hubtop { flex-wrap: wrap; }
+  #hub .hubtop .grownups { width: 100%; justify-content: center; }
+}
+@media (min-width: 760px) { #hub .hubtop { max-width: 940px; } }
+@media (min-width: 1180px) { #hub .hubtop { max-width: 1240px; } }
 .gamegrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 560px; }
 @media (min-width: 760px) { .gamegrid { grid-template-columns: repeat(3, 1fr); max-width: 940px; } }
 @media (min-width: 1180px) { .gamegrid { grid-template-columns: repeat(4, 1fr); max-width: 1240px; } }

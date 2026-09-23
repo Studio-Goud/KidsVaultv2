@@ -1,5 +1,5 @@
 /**
- * Stroomkring - the twelfth game in Braambos, and Moonshot's nearest relation.
+ * Stroomkring - the twelfth game in Suri, and Moonshot's nearest relation.
  *
  * A bench with a grid on it, a shelf of real parts, and a circuit that is solved forty times a
  * second whether anybody is watching or not. You drag a battery and a bulb onto the board, draw a
@@ -643,7 +643,7 @@ export class Circuit {
     unlockAudio();
     this.idle = 0;
     const p = this.at(e);
-    // a tap on Braam means "say that again", and nothing else: it must not skip the lesson, or a
+    // a tap on Suri means "say that again", and nothing else: it must not skip the lesson, or a
     // child who did not catch the line would lose it by asking for it
     if (this.coach.tappedGuide(p.x, p.y)) return;
     // while the hand is still demonstrating, a tap means "yes, I have seen it" and skips ahead;

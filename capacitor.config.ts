@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.bramblewood.cloudhopper',
-  appName: 'Cloudhopper',
+  appId: 'com.studiogoud.suri',
+  appName: 'Suri',
   webDir: 'dist',
   backgroundColor: '#0f2a4a',
   android: {

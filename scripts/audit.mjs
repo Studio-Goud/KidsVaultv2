@@ -1,5 +1,5 @@
 /**
- * Look at every screen in Braambos the way a parent's phone does, and complain in writing.
+ * Look at every screen in Suri the way a parent's phone does, and complain in writing.
  *
  * This exists because a screenshot from a real iPhone showed four faults at once - a speed button
  * underneath the way home, a readout drawn under the status bar, a dropped stage floating above

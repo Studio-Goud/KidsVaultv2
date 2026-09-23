@@ -1,7 +1,7 @@
 /**
  * The shape of a discovery journey.
  *
- * A journey is the one format in Braambos that is not a game. You get into something, you press
+ * A journey is the one format in Suri that is not a game. You get into something, you press
  * start, and it carries you. Every so often it stops, the guide says one thing, and you decide
  * whether you want to hear more or go on. Nothing is asked of you and nothing can go wrong, which
  * is the point: it is the thing to open when a child wants to be shown rather than tested.

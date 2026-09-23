@@ -9,7 +9,7 @@ export default defineConfig({
     assetsInlineLimit: 0,
     sourcemap: false,
     rollupOptions: {
-      // Braambos ships one bundle per game; the shell that ties them together comes later.
+      // Suri ships one bundle per game; the shell that ties them together comes later.
       input: {
         hub: resolve(__dirname, 'index.html'),
         parents: resolve(__dirname, 'parents.html'),

@@ -33,7 +33,7 @@ export const INK = '#123047';
  *
  * Marktdag counts to ten on a stall; this is the next row of tables along, which is why the
  * wood, the light and the apples are the same ones. The sun sits up on the left like everywhere
- * else in Braambos, so everything on the table casts to the lower right.
+ * else in Suri, so everything on the table casts to the lower right.
  */
 export function drawYard(ctx: Ctx, w: number, h: number, t: number): void {
   const sky = ctx.createLinearGradient(0, 0, 0, h);

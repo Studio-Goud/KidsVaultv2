@@ -1,5 +1,5 @@
 /**
- * Braambos, the front door.
+ * Suri, the front door.
  *
  * One page that holds every game in the world, says in a line what each one practises, and carries
  * the promise the whole thing rests on: no advertising, no tracking, and a session that ends.
@@ -108,10 +108,27 @@ function promise(): HTMLElement {
 }
 
 const root = document.getElementById('hub')!;
-const head = document.createElement('div');
-head.className = 'logo';
-head.innerHTML = `<div class="word">Braambos</div><div class="tag">${T(
-  'Games that practise something real', 'Spellen die iets echts oefenen')}</div>`;
+
+/**
+ * The top of the shelf: who this is, and the way out to the grown-ups.
+ *
+ * It used to be the app's name in white type on the pale sky, which needed a dark wash painted
+ * behind it to be readable at all - and that wash read as a smudge. Dark type on a pale sky needs
+ * nothing behind it, so the wash is gone and the name is ink.
+ *
+ * The way into the parent screen lives here rather than at the foot of the page. A parent opening
+ * this app for the first time is looking for their own settings, and asking them to scroll past
+ * eighteen game cards to find them was the wrong way round.
+ */
+const head = document.createElement('header');
+head.className = 'hubtop';
+head.innerHTML = `
+  <img class="mark" src="./icons/icon-192.png" alt="" width="56" height="56" />
+  <div class="name">
+    <div class="word">Suri</div>
+    <div class="tag">${T('Games that practise something real', 'Spellen die iets echts oefenen')}</div>
+  </div>
+  <a class="grownups" href="./parents.html">${T('For grown-ups', 'Voor ouders')}</a>`;
 root.appendChild(head);
 
 const grid = document.createElement('div');

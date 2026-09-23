@@ -1,5 +1,5 @@
 /**
- * The house style of Braambos: the drawing primitives every game shares.
+ * The house style of Suri: the drawing primitives every game shares.
  *
  * A game made of flat shapes reads as a diagram. What makes a scene read as a place is light
  * coming from one direction, something under every object that touches the ground, edges that are

@@ -426,7 +426,7 @@ export class UI {
   }
 
   /**
-   * The parent corner. Every game in Braambos gets one: what it practises, how a session is
+   * The parent corner. Every game in Suri gets one: what it practises, how a session is
    * shaped, and what we do not claim. This is the page that earns a subscription, so it stays honest.
    */
   parents(): void {

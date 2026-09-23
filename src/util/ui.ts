@@ -15,7 +15,7 @@ export function uiScale(w: number, h: number): number {
  * How much of the screen the phone itself has taken: the notch and status bar at the top, the
  * home indicator at the bottom. Every page sets `viewport-fit=cover`, so the art runs edge to
  * edge under them - but nothing a child has to read or press may. Cloudhopper's renderer has
- * read these since the beginning; this is the same numbers for the rest of Braambos.
+ * read these since the beginning; this is the same numbers for the rest of Suri.
  */
 export interface SafeArea { top: number; bottom: number; left: number; right: number }
 
@@ -29,7 +29,7 @@ let cached: SafeArea | null = null;
  * WebKit hands back the text "env(safe-area-inset-top, 0px)", which `parseFloat` turns into
  * nothing. So on an iPhone the stylesheet placed the buttons correctly at 61 pixels down and the
  * canvas drew its own at nothing, and the two sat on top of each other - on every screen in
- * Braambos, and never once on the machine this was written on.
+ * Suri, and never once on the machine this was written on.
  *
  * Padding is not a custom property. It is always computed to pixels, in every engine, and the
  * probe carries its own inline style so it does not need the stylesheet to have loaded yet.

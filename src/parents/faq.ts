@@ -37,11 +37,11 @@ export const QUESTIONS: Question[] = [
     q: 'What is this for?',
     qNl: 'Waar is dit voor?',
     a: [
-      'Braambos is a hub of small things to do, each of which practises something real: hearing the sounds in a word, holding a beat, counting out, reading a clock, finding your way round a map, working out why a circuit will not light.',
+      'Suri is a hub of small things to do, each of which practises something real: hearing the sounds in a word, holding a beat, counting out, reading a clock, finding your way round a map, working out why a circuit will not light.',
       'It exists because most of what is on offer for this age is built to be opened again tomorrow rather than to be any good today. Nothing in here is trying to get your child to come back. There is no streak, no daily reward, no badge you lose by stopping.',
     ],
     aNl: [
-      'Braambos is een verzameling kleine dingen om te doen, die elk iets echts oefenen: de klanken in een woord horen, de tel vasthouden, uittellen, de klok lezen, de weg vinden op een kaart, uitzoeken waarom een lampje niet brandt.',
+      'Suri is een verzameling kleine dingen om te doen, die elk iets echts oefenen: de klanken in een woord horen, de tel vasthouden, uittellen, de klok lezen, de weg vinden op een kaart, uitzoeken waarom een lampje niet brandt.',
       'Het bestaat omdat het meeste aanbod voor deze leeftijd gebouwd is om morgen weer geopend te worden, niet om vandaag goed te zijn. Niets hierin probeert je kind terug te lokken. Er is geen reeks die je kwijtraakt, geen dagelijkse beloning, geen badge die vervalt als je stopt.',
     ],
   },
