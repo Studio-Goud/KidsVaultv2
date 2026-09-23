@@ -1,5 +1,9 @@
 # Suri
 
+> **Nieuw hier, of een nieuwe sessie?** Lees `CLAUDE.md` voor de vaste werkregels en
+> `docs/prompt.md` voor wat Suri moet worden, waar het staat en wat er als eerste aan de beurt is.
+> De redenering achter elke grote keuze staat in `docs/decisions.md`.
+
 Suri is a small world of games for children, built as one codebase. No advertising, no
 third-party tracking, no account. Every game practises something real and ends properly: a session
 has a beginning and an end, with no endless loop and no daily reward pulling anyone back.
