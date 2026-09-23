@@ -765,6 +765,16 @@ const group = name => console.log(`\n${name}`);
     if (q.op === 'times') return q.answer === q.a * q.b;
     return q.answer === q.a + q.b;
   }), true);
+  // "Rekenrijk begint me iets te moeilijk": the first rung has to be one a five-year-old can stand on
+  is('test_ladder_starts_with_adding_to_five', LEVELS[0].id, 'tot5');
+  is('test_generator_adding_to_five_never_passes_five',
+    runLevel(level('tot5')).every(q => q.a + q.b <= 5 && q.a >= 1 && q.b >= 1), true);
+  is('test_generator_adding_to_five_opens_on_sums_you_can_see_at_a_glance',
+    runLevel(level('tot5')).filter((_, i) => i % level('tot5').rounds < 3).every(q => q.answer <= 3), true);
+  is('test_generator_splitting_opens_on_a_whole_of_five_or_less',
+    runLevel(level('splitsen')).filter((_, i) => i % level('splitsen').rounds < 3).every(q => q.a <= 5), true);
+  is('test_generator_splitting_still_reaches_ten',
+    runLevel(level('splitsen')).some(q => q.a === 10), true);
   is('test_generator_adding_to_ten_never_passes_ten',
     runLevel(level('erbij')).every(q => q.a + q.b <= 10 && q.a >= 1 && q.b >= 1), true);
   is('test_generator_taking_away_never_goes_below_one',
@@ -809,8 +819,9 @@ const group = name => console.log(`\n${name}`);
     everyQuestion.every(({ q }) => new Set(q.options).size === q.options.length), true);
   is('test_options_are_never_negative',
     everyQuestion.every(({ q }) => q.options.every(o => o >= 0)), true);
-  is('test_options_are_always_four_to_choose_between',
-    everyQuestion.every(({ q }) => q.options.length === 4), true);
+  is('test_options_are_always_as_many_as_the_level_asks_for',
+    everyQuestion.every(({ l, q }) => q.options.length === l.options), true);
+  is('test_options_the_way_in_never_offers_more_than_three', level('tot5').options, 3);
   is('test_options_never_offer_the_answer_twice_under_another_name',
     everyQuestion.every(({ q }) => q.options.filter(o => o === q.answer).length === 1), true);
 
@@ -2899,8 +2910,27 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- The voice
 
 {
-  const { cleanManifest, clipFor } = await bundle('src/platform/voice.ts', 'voice.mjs');
+  const { cleanManifest, clipFor, bestVoice } = await bundle('src/platform/voice.ts', 'voice.mjs');
   group('Platform — the voice');
+
+  // "elke gesproken tekst is nu zo'n AI robot": pick the most natural woman's voice the device has
+  const v = (name, lang, localService = true) => ({ name, lang, localService });
+  const pickName = (list, want = 'nl') => bestVoice(list, want)?.name ?? null;
+  is('test_voice_a_woman_is_picked_over_a_man',
+    pickName([v('Xander', 'nl-NL'), v('Claire', 'nl-NL')]), 'Claire');
+  is('test_voice_an_enhanced_voice_beats_a_compact_one',
+    pickName([v('Claire', 'nl-NL'), v('Claire (Enhanced)', 'nl-NL')]), 'Claire (Enhanced)');
+  is('test_voice_espeak_comes_last',
+    pickName([v('espeak-ng Dutch', 'nl'), v('Xander', 'nl-NL')]), 'Xander');
+  is('test_voice_a_voice_on_the_device_beats_a_better_one_on_the_network',
+    pickName([v('Microsoft Fenna Online (Natural)', 'nl-NL', false), v('Microsoft Frank', 'nl-NL')]), 'Microsoft Frank');
+  is('test_voice_a_network_voice_is_used_only_when_there_is_nothing_else',
+    pickName([v('Google Nederlands', 'nl-NL', false), v('Samantha', 'en-US')]), 'Google Nederlands');
+  is('test_voice_another_language_is_never_picked', pickName([v('Samantha', 'en-US')]), null);
+  is('test_voice_the_netherlands_before_flanders',
+    pickName([v('Ellen', 'nl-BE'), v('Claire', 'nl-NL')]), 'Claire');
+  is('test_voice_an_underscore_in_the_language_tag_is_read',
+    pickName([v('Claire', 'nl_NL')]), 'Claire');
 
   const good = { nl: [{ id: 'a', file: 'nl/a.mp3', secs: 1.2 }], en: [{ id: 'a', file: 'en/a.mp3', secs: 1.1 }] };
   is('test_voice_a_good_manifest_survives', cleanManifest(good), good);

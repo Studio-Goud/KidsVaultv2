@@ -3,8 +3,8 @@
  * offering beside the right one.
  *
  * Nothing in this file draws anything. It is the rules of the arithmetic a Dutch school teaches in
- * the order it teaches them - splitsen, erbij, eraf, de tien vol, tientallen, over het tiental,
- * verschil, keersommen, de tafels - and each level has its own generator that can only produce
+ * the order it teaches them - erbij tot vijf, splitsen, erbij, eraf, de tien vol, tientallen,
+ * over het tiental, verschil, keersommen, de tafels - and each level has its own generator that can only produce
  * sums inside its own rule. `inRule` says what that rule is, in one place, so the tests can hold
  * every generator to it rather than to a description in a comment.
  *
@@ -64,6 +64,15 @@ export interface Level {
 }
 
 export const LEVELS: Level[] = [
+  {
+    // The way in. The ladder used to open on splitting to ten, which asks a child to hold a whole
+    // and a part in mind at once - too much as a first thing, as a parent found. This is the
+    // same crates as adding to ten, with totals no bigger than a hand, and three buttons at most.
+    id: 'tot5', name: 'Adding to five', nameNl: 'Erbij tot 5',
+    op: 'add', stage: 'crates', rounds: 6, options: 3,
+    hint: 'Push the two crates together and count all the apples.',
+    hintNl: 'Schuif de twee kisten tegen elkaar en tel alle appels.',
+  },
   {
     id: 'splitsen', name: 'Splitting to ten', nameNl: 'Splitsen tot 10',
     op: 'split', stage: 'rack', rounds: 8, options: 4,
@@ -156,6 +165,8 @@ export function inRule(level: Level, q: Question): boolean {
       // a whole from three to ten, split into a part you are shown and a part you work out; both
       // parts are real, so 7 = 0 + 7 never comes up
       return q.a >= 3 && q.a <= 10 && q.b >= 1 && q.b <= q.a - 1 && q.answer === q.a - q.b;
+    case 'tot5':
+      return q.a >= 1 && q.b >= 1 && q.a + q.b <= 5 && q.answer === q.a + q.b;
     case 'erbij':
       return q.a >= 1 && q.b >= 1 && q.a + q.b <= 10 && q.answer === q.a + q.b;
     case 'eraf':
@@ -339,12 +350,19 @@ function rollSum(level: Level, rng: () => number, index: number): Bare {
 
   switch (level.id) {
     case 'splitsen': {
-      // the whole grows through the level, so it starts at four and ends at ten rather than
-      // throwing a ten at a child on the first question
-      const lo = index < 2 ? 4 : index < 4 ? 5 : 6;
-      const a = between(rng, lo, 10);
+      // the whole grows through the level, so it starts no bigger than five and only reaches ten
+      // in the second half, rather than throwing a ten at a child on the first question
+      const lo = index < 3 ? 3 : index < 5 ? 4 : 5;
+      const hi = index < 3 ? 5 : index < 5 ? 7 : 10;
+      const a = between(rng, lo, hi);
       const b = between(rng, 1, a - 1);
       return shell(a, b, a - b);
+    }
+    case 'tot5': {
+      // two and three first, so the very first sums can be counted on one hand at a glance
+      const total = between(rng, 2, index < 3 ? 3 : 5);
+      const a = between(rng, 1, total - 1);
+      return shell(a, total - a, total);
     }
     case 'erbij': {
       const total = between(rng, index < 2 ? 4 : 5, 10);
