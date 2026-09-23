@@ -100,6 +100,51 @@ const synth = (): SpeechSynthesis | null => {
   } catch { return null; }
 };
 
+/** The parts of a `SpeechSynthesisVoice` the ranking looks at, so it can be tested without one. */
+export interface VoiceLike { name: string; lang: string; localService: boolean }
+
+/**
+ * How good a device voice is likely to sound as Suri, highest first.
+ *
+ * The owner asked for a voice as natural as possible, and a woman's. A browser does not say either
+ * of those things about a voice, so this goes by name, and the names are what the platforms ship:
+ * Apple's Dutch voices are Claire and Ellen (women) and Xander (a man); Microsoft's are Fenna,
+ * Colette and Dena (women) against Maarten, Arnaud and Frank; Chrome's own is "Google Nederlands",
+ * a woman. Apple marks its better downloads "Enhanced" or "Premium", Microsoft its neural ones
+ * "Natural". eSpeak, which is what a Linux machine falls back on, is the robot the owner heard, and
+ * comes last.
+ *
+ * A voice that runs on the device always beats one that does not, whatever it sounds like: a
+ * network voice sends the line it reads to somebody's server, and nothing is supposed to leave
+ * the device (the first rule in `CLAUDE.md`). A network voice is only ever used when there is no
+ * Dutch voice on the device at all, which is what this module did before it ranked anything.
+ */
+export function voiceScore(v: VoiceLike, want: string): number {
+  const name = v.name.toLowerCase();
+  const tag = v.lang.toLowerCase().replace('_', '-');
+  if (!tag.startsWith(want)) return -Infinity;
+  let score = v.localService ? 1000 : 0;
+  if (/natural|neural|premium|enhanced|verbeterd/.test(name)) score += 100;
+  if (/claire|ellen|fenna|colette|dena|google nederlands|female|vrouw/.test(name)) score += 50;
+  if (/xander|maarten|arnaud|frank|\bmale\b|\bman\b/.test(name)) score -= 50;
+  if (/espeak|compact/.test(name)) score -= 200;
+  // Dutch as spoken in the Netherlands, since that is what the app is written in; Flemish next
+  if (want === 'nl' && tag === 'nl-nl') score += 5;
+  if (want === 'en' && tag === 'en-gb') score += 5;
+  return score;
+}
+
+/** The best of what the device offers, or null. */
+export function bestVoice<T extends VoiceLike>(all: T[], want: string): T | null {
+  let best: T | null = null;
+  let bestScore = -Infinity;
+  for (const v of all) {
+    const sc = voiceScore(v, want);
+    if (sc > bestScore) { best = v; bestScore = sc; }
+  }
+  return best;
+}
+
 /**
  * Pick a voice in the app's language.
  *
@@ -114,9 +159,7 @@ function findVoice(): SpeechSynthesisVoice | null {
   let all: SpeechSynthesisVoice[] = [];
   try { all = s.getVoices(); } catch { all = []; }
   if (!all.length) return null;
-  const want = lang();
-  const mine = all.filter(v => v.lang.toLowerCase().replace('_', '-').startsWith(want));
-  picked = mine.find(v => v.localService) ?? mine[0] ?? null;
+  picked = bestVoice(all, lang());
   if (!picked && looked) absent = true;
   looked = true;
   return picked;
@@ -169,7 +212,8 @@ function speakOut(text: string, rate: number): void {
     // a child needs it slower than an adult does, and slower again when something is being
     // taken apart rather than read out
     u.rate = Math.max(0.5, Math.min(1.2, 0.92 * rate));
-    u.pitch = 1.05;
+    // the voice's own pitch: nudging it up made every voice sound more synthetic, not younger
+    u.pitch = 1;
     s.speak(u);
   } catch { /* a voice that throws is a voice we do not have */ }
 }
