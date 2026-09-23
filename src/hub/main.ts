@@ -13,6 +13,7 @@ import { lastGoNow, startClock } from '../platform/clock';
 import { drawGuide } from '../platform/guide';
 import { loadVoice } from '../platform/voice';
 import { playingChild, yearsNow } from '../platform/who';
+import { soundThenGo } from './homebtn';
 
 
 
@@ -46,6 +47,7 @@ function card(g: Entry): HTMLElement {
   const a = document.createElement('a');
   a.className = 'gamecard';
   a.href = `./${g.id}.html`;
+  a.addEventListener('click', e => soundThenGo(e, a.href, 'open'));
   // the age is a span now rather than a floor: the app runs from two to ten and a thing a child
   // has outgrown should say so
   a.innerHTML = `
@@ -131,6 +133,8 @@ head.innerHTML = `
   </div>
   <a class="grownups" href="./parents.html">${T('For grown-ups', 'Voor ouders')}</a>`;
 root.appendChild(head);
+const grown = head.querySelector('.grownups') as HTMLAnchorElement;
+grown.addEventListener('click', e => soundThenGo(e, grown.href, 'tap'));
 
 /**
  * The shelf, for the child who is playing.
@@ -167,7 +171,10 @@ if (rows.earlier.length) {
   root.appendChild(shelfHead('From when you were smaller', 'Van toen je kleiner was'));
   root.appendChild(grid(rows.earlier));
 }
-root.appendChild(promise());
+const card0 = promise();
+const plink = card0.querySelector('.parentlink') as HTMLAnchorElement;
+plink.addEventListener('click', e => soundThenGo(e, plink.href, 'tap'));
+root.appendChild(card0);
 
 /**
  * "This is your last one today."

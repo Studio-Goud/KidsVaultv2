@@ -312,14 +312,18 @@ function playClips(list: Clip[], text: string, rate: number): void {
 export function sayRecorded(texts: string[], append = false): boolean {
   if (!save.sound) return true;
   if (!loaded) { ensureManifest(); return false; }
-  const which = lang();
-  const all: Clip[] = [];
-  for (const t of texts) {
-    const l = clipsForLine(clips, which, t);
-    if (!l) return false;
-    all.push(...l);
-  }
-  if (!all.length) return false;
+  // the app's language first, then Dutch: Letterbos' words and sounds are Dutch in both apps
+  const find = (which: 'nl' | 'en'): Clip[] | null => {
+    const all: Clip[] = [];
+    for (const t of texts) {
+      const l = clipsForLine(clips, which, t) ?? (which === 'en' ? clipsForLine(clips, 'nl', t) : null);
+      if (!l) return null;
+      all.push(...l);
+    }
+    return all.length ? all : null;
+  };
+  const all = find(lang());
+  if (!all) return false;
   if (append && playing && !playing.paused && !playing.ended) { queued.push(...all); return true; }
   stopSpeaking();
   said++;

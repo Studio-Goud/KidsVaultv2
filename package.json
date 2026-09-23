@@ -20,7 +20,8 @@
     "voice": "node scripts/voice.mjs",
     "voicecheck": "node scripts/voicecheck.mjs",
     "voicecrawl": "node scripts/voicecrawl.mjs",
-    "sfx": "node scripts/sfx.mjs"
+    "sfx": "node scripts/sfx.mjs",
+    "radio": "node scripts/radio.mjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

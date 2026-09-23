@@ -40,7 +40,10 @@ async function render(row) {
       method: 'POST',
       headers: { 'xi-api-key': k, 'content-type': 'application/json' },
       // a prompt influence above the default: these are specific little sounds, not a mood
-      body: JSON.stringify({ text: row.prompt, duration_seconds: Math.max(0.5, row.secs), prompt_influence: 0.6 }),
+      body: JSON.stringify({
+        text: row.prompt, duration_seconds: Math.max(0.5, row.secs), prompt_influence: 0.6,
+        ...(row.loop ? { loop: true } : {}),
+      }),
     });
     if ((r.status === 429 || r.status >= 500) && attempt < 5) {
       await new Promise(res => setTimeout(res, 1500 * 2 ** attempt));
@@ -51,7 +54,33 @@ async function render(row) {
   }
 }
 
-const SFX = await spec();
+/**
+ * The animals that get their own call in the Animal Book. Not all 3744: most of them make no sound
+ * a child would know, and the renderer invents one if asked. The best-known mammals and birds, the
+ * frogs and toads (not the silent salamanders), and the insects that really buzz or chirp - in the
+ * book's own order, which is how often people photograph them.
+ */
+function animalCalls() {
+  const all = JSON.parse(readFileSync('public/animals/animals.json', 'utf8')).species;
+  const pick = (g, n, test = () => true) => all.filter(x => x.g === g && test(x)).slice(0, n);
+  const chosen = [
+    ...pick('mam', 120),
+    ...pick('bir', 150),
+    ...pick('amp', 40, x => !/salamander|newt|axolotl|caecilian|mudpuppy|siren|hellbender/i.test(x.e)),
+    ...pick('ins', 30, x => /\b(bee|bumble bee|cricket|cicada|grasshopper|katydid|mosquito|hornet|wasp)\b/i.test(x.e)),
+  ];
+  const rows = {};
+  for (const x of chosen) {
+    const kind = x.g === 'bir' ? 'its call or song' : x.g === 'ins' ? 'the buzzing or chirping it makes' : 'its call';
+    rows[`animal.${x.i}`] = {
+      prompt: `the natural sound of a ${x.e} (${x.s}), ${kind}, a clear close nature recording of one animal, no music, no voice, no other animals`,
+      secs: 3, max: 4,
+    };
+  }
+  return rows;
+}
+
+const SFX = { ...(await spec()), ...animalCalls() };
 const raw = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : {};
 const files = raw.files ?? {};
 const prompts = raw.prompts ?? {};
@@ -76,11 +105,12 @@ const worker = async () => {
   for (let job = queue.shift(); job; job = queue.shift()) {
     const [key, row] = job;
     const [game, name] = key.split('.');
+    const dir = game === 'animal' ? 'animals' : game;
     try {
       const mp3 = await render(row);
-      mkdirSync(join('public/sfx', game), { recursive: true });
-      writeFileSync(join('public/sfx', game, `${name}.mp3`), mp3);
-      files[key] = `${game}/${name}.mp3`;
+      mkdirSync(join('public/sfx', dir), { recursive: true });
+      writeFileSync(join('public/sfx', dir, `${name}.mp3`), mp3);
+      files[key] = `${dir}/${name}.mp3`;
       prompts[key] = hash(row.prompt + row.secs);
     } catch (e) {
       failed++;
