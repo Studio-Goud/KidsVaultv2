@@ -28,6 +28,13 @@ import {
   type Animal, type GroupId,
 } from './rules';
 import { speakLine } from '../../platform/voice';
+import { unlockAudio } from '../../util/audio';
+import { ui } from '../../platform/uisfx';
+import { hasSample, playOnce } from '../../platform/samples';
+import type { SfxRow } from '../../platform/sfxspec';
+
+/** An animal's call: up to four seconds of it, a little under the house level. */
+const CALL: SfxRow = { prompt: '', secs: 4, max: 4, gain: 0.9 };
 
 type Ctx = CanvasRenderingContext2D;
 type View = 'loading' | 'shelves' | 'grid' | 'detail' | 'search';
@@ -263,6 +270,13 @@ export class AnimalBook {
       persist();
     }
     this.go('detail');
+    // its call, if it has one, after its name has been said - not on top of it
+    if (a) {
+      const which = a.i;
+      setTimeout(() => {
+        if (this.view === 'detail' && this.list[this.at]?.i === which) playOnce(`animal.${which}`, CALL);
+      }, 1400);
+    }
   }
 
   private surprise(): void {
@@ -281,16 +295,18 @@ export class AnimalBook {
   }
 
   private act(id: string): void {
-    if (id === 'back') { this.back(); return; }
-    if (id === 'surprise') { this.surprise(); return; }
-    if (id === 'search') { this.query = ''; this.list = []; this.go('search'); return; }
-    if (id === 'prev') { if (this.at > 0) this.openAnimal(this.at - 1); return; }
-    if (id === 'next') { if (this.at < this.list.length - 1) this.openAnimal(this.at + 1); return; }
-    if (id === 'taller') { save.animals.childCm = Math.min(180, save.animals.childCm + 5); persist(); return; }
-    if (id === 'shorter') { save.animals.childCm = Math.max(80, save.animals.childCm - 5); persist(); return; }
-    if (id.startsWith('shelf:')) { this.openGroup(id.slice(6) as GroupId); return; }
-    if (id.startsWith('card:')) { this.openAnimal(Number(id.slice(5))); return; }
+    if (id === 'back') { ui.back(); this.back(); return; }
+    if (id === 'surprise') { ui.surprise(); this.surprise(); return; }
+    if (id === 'search') { ui.open(); this.query = ''; this.list = []; this.go('search'); return; }
+    if (id === 'prev') { if (this.at > 0) { ui.page(); this.openAnimal(this.at - 1); } return; }
+    if (id === 'next') { if (this.at < this.list.length - 1) { ui.page(); this.openAnimal(this.at + 1); } return; }
+    if (id === 'taller') { ui.stepper(); save.animals.childCm = Math.min(180, save.animals.childCm + 5); persist(); return; }
+    if (id === 'shorter') { ui.stepper(); save.animals.childCm = Math.max(80, save.animals.childCm - 5); persist(); return; }
+    if (id === 'call') { const a = this.list[this.at]; if (a) playOnce(`animal.${a.i}`, CALL); return; }
+    if (id.startsWith('shelf:')) { ui.open(); this.openGroup(id.slice(6) as GroupId); return; }
+    if (id.startsWith('card:')) { ui.page(); this.openAnimal(Number(id.slice(5))); return; }
     if (id.startsWith('key:')) {
+      ui.key();
       const k = id.slice(4);
       if (k === 'del') this.query = this.query.slice(0, -1);
       else if (k === 'clear') this.query = '';
@@ -312,6 +328,7 @@ export class AnimalBook {
   }
 
   private onDown(e: PointerEvent): void {
+    unlockAudio();
     const p = this.point(e);
     this.dragging = true;
     this.dragged = false;
@@ -817,6 +834,21 @@ export class AnimalBook {
     // the photograph, as big as the column allows
     const ph = Math.min(colW * 0.7, two ? this.h * 0.74 : this.h * 0.42);
     this.picture(a, pad, y, colW, ph, 18 * u, SIZES.page);
+    // an animal with a recorded call: tap the photograph to hear it again, and a note in the
+    // corner says so without words
+    if (hasSample(`animal.${a.i}`)) {
+      this.hits.push({ id: 'call', x: pad, y, w: colW, h: ph - 20 * u });
+      const r = 17 * u, bx = pad + colW - r - 10 * u, by = y + r + 10 * u;
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = INK;
+      ctx.font = this.font('900', 17);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('♪', bx, by + 1 * u);
+      ctx.restore();
+    }
     // who took it
     ctx.save();
     roundRectPath(ctx, pad, y, colW, ph, 18 * u);

@@ -24,3 +24,14 @@ export function lineKey(text: string): string {
   }
   return `t${h.toString(16).padStart(8, '0')}`;
 }
+
+/**
+ * The key for a piece of radio talk. Cloudhopper puts its radio calls together from pieces -
+ * a callsign, "cleared to land runway", two digits, "wind", a number - so they are matched without
+ * case or punctuation: "Tower," at the end of a phrase is the same recording as "tower" inside one.
+ */
+export const radioWords = (text: string): string[] =>
+  text.toLowerCase().replace(/[.,!?:;]/g, ' ').split(/\s+/).filter(Boolean);
+
+export const radioKey = (words: string | string[]): string =>
+  lineKey((Array.isArray(words) ? words : radioWords(words)).join(' '));

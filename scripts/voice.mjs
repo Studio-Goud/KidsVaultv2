@@ -29,7 +29,9 @@ import { join } from 'node:path';
 
 const API = 'https://api.elevenlabs.io';
 const MANIFEST = 'public/voice/clips.json';
-const OUT = 'public/voice/nl';
+/** which half of the app to record: `--lang en` for the English lines, in the same voice */
+const LANG = arg('--lang') === 'en' ? 'en' : 'nl';
+const OUT = `public/voice/${LANG}`;
 /** the model: multilingual v2 is ElevenLabs' steadiest for long-form Dutch. Override with --model */
 const MODEL = arg('--model') ?? 'eleven_multilingual_v2';
 /** 32 kbit/s mono at 22 kHz: a voice on a phone speaker needs no more, and 700 lines ship inside the app */
@@ -92,6 +94,16 @@ async function letterbos() {
   });
   const L = await import(file);
   rmSync(dir, { recursive: true, force: true });
+  const animals = JSON.parse(readFileSync('public/animals/animals.json', 'utf8')).species;
+  if (LANG === 'en') {
+    // the Dutch words and sounds stay Dutch in the English app; only the talk around them changes
+    return [
+      ...L.UNITS.map(u => L.exampleLine(u, false)),
+      ...Array.from({ length: 12 }, (_, i) => `Find ${i + 1} fossils first.`),
+      // last, so that if the credit runs out it is the animal names that wait
+      ...animals.map(x => x.e),
+    ];
+  }
   return [
     ...L.WORDS.map(w => w.w),
     ...L.LADDERS.flat(),
@@ -101,6 +113,8 @@ async function letterbos() {
     ...L.UNITS.map(u => L.exampleLine(u, true)),
     // lines that carry a number, said with every number they can carry
     ...Array.from({ length: 12 }, (_, i) => `Vind eerst ${i + 1} fossielen.`),
+    // the Animal Book says an animal's name as the heading of its page: all 3737 of them
+    ...animals.map(x => x.n),
   ];
 }
 
@@ -120,33 +134,44 @@ function harvest(extra = []) {
   for (const f of files) {
     const sf = ts.createSourceFile(f, readFileSync(f, 'utf8'), ts.ScriptTarget.Latest, true);
     const visit = n => {
+      const half = LANG === 'nl' ? 1 : 0;
       if (ts.isCallExpression(n) && ts.isIdentifier(n.expression) && n.expression.text === 'T'
-        && n.arguments.length === 2 && lit(n.arguments[1])) lines.add(n.arguments[1].text);
-      if (ts.isPropertyAssignment(n) && /Nl$/.test(n.name.getText(sf)) && lit(n.initializer)) lines.add(n.initializer.text);
+        && n.arguments.length === 2 && lit(n.arguments[half])) lines.add(n.arguments[half].text);
+      if (LANG === 'nl' && ts.isPropertyAssignment(n) && /Nl$/.test(n.name.getText(sf)) && lit(n.initializer)) lines.add(n.initializer.text);
+      // English: a field whose Dutch twin sits beside it, `hint` next to `hintNl`
+      if (LANG === 'en' && ts.isPropertyAssignment(n) && lit(n.initializer) && ts.isObjectLiteralExpression(n.parent)) {
+        const name = n.name.getText(sf);
+        if (n.parent.properties.some(pr => pr.name && pr.name.getText(sf) === `${name}Nl`)) lines.add(n.initializer.text);
+      }
       // `NL() ? 'Dutch' : 'English'`, and the same with a plain `nl` flag
-      if (ts.isConditionalExpression(n) && lit(n.whenTrue)
+      if (ts.isConditionalExpression(n)
         && ((ts.isCallExpression(n.condition) && n.condition.expression.getText(sf) === 'NL')
-          || (ts.isIdentifier(n.condition) && n.condition.text === 'nl'))) lines.add(n.whenTrue.text);
+          || (ts.isIdentifier(n.condition) && n.condition.text === 'nl'))) {
+        const pick = LANG === 'nl' ? n.whenTrue : n.whenFalse;
+        if (lit(pick)) lines.add(pick.text);
+      }
       // Moonshot says "<mission> - <speed> m/s als de brandstof op is" for every rung of its ladder
       if (f.endsWith(join('moonshot', 'design.ts')) && ts.isObjectLiteralExpression(n)) {
         const get = k => n.properties.find(pr => ts.isPropertyAssignment(pr) && pr.name.getText(sf) === k);
         const sp = get('speed'), nm = get('nameNl');
+        const en = get('name');
         if (sp && nm && ts.isNumericLiteral(sp.initializer) && lit(nm.initializer)) {
-          lines.add(`${nm.initializer.text} - ${sp.initializer.text} m/s als de brandstof op is`);
+          if (LANG === 'nl') lines.add(`${nm.initializer.text} - ${sp.initializer.text} m/s als de brandstof op is`);
+          else if (en && lit(en.initializer)) lines.add(`${en.initializer.text} - ${sp.initializer.text} m/s when the fuel runs out`);
         }
       }
       // Stroomkring says "<part> gedraaid." when a part with a plus and a minus is turned round
-      if (f.endsWith(join('circuit', 'sim.ts')) && ts.isPropertyAssignment(n) && n.name.getText(sf) === 'nameNl'
-        && lit(n.initializer)) lines.add(`${n.initializer.text} gedraaid.`);
-      // a row whose Dutch field is simply `nl` (the animal groups)
-      if (ts.isPropertyAssignment(n) && n.name.getText(sf) === 'nl' && lit(n.initializer)) lines.add(n.initializer.text);
-      // a table of Dutch names, `const CONTINENT_NL = { eu: 'Europa' }`
-      if (ts.isVariableDeclaration(n) && /_NL$/.test(n.name.getText(sf)) && n.initializer
+      if (f.endsWith(join('circuit', 'sim.ts')) && ts.isPropertyAssignment(n) && lit(n.initializer)
+        && n.name.getText(sf) === (LANG === 'nl' ? 'nameNl' : 'name')) lines.add(`${n.initializer.text} ${LANG === 'nl' ? 'gedraaid' : 'turned'}.`);
+      // a row whose Dutch field is simply `nl` (the animal groups), and its `en` twin
+      if (ts.isPropertyAssignment(n) && n.name.getText(sf) === LANG && lit(n.initializer)) lines.add(n.initializer.text);
+      // a table of names, `const CONTINENT_NL = { eu: 'Europa' }` and `CONTINENT_EN`
+      if (ts.isVariableDeclaration(n) && new RegExp(`_${LANG.toUpperCase()}$`).test(n.name.getText(sf)) && n.initializer
         && ts.isObjectLiteralExpression(n.initializer)) {
         for (const pr of n.initializer.properties) if (ts.isPropertyAssignment(pr) && lit(pr.initializer)) lines.add(pr.initializer.text);
       }
-      // the Dutch half of an old-style dictionary, `const nl = { key: '...' }` (src/i18n.ts)
-      if (ts.isVariableDeclaration(n) && n.name.getText(sf) === 'nl' && n.initializer
+      // one half of an old-style dictionary, `const nl = { key: '...' }` (src/i18n.ts)
+      if (ts.isVariableDeclaration(n) && n.name.getText(sf) === LANG && n.initializer
         && ts.isObjectLiteralExpression(n.initializer)) {
         for (const pr of n.initializer.properties) if (ts.isPropertyAssignment(pr) && lit(pr.initializer)) lines.add(pr.initializer.text);
       }
@@ -157,20 +182,26 @@ function harvest(extra = []) {
   // Short labels are kept too: the first run left them out as "read, not said", and then the animal
   // book said "Zoeken" and the night sky said "Kijk goed" in the phone's voice. A label costs a few
   // credits; a gap costs a second voice.
-  return [...new Set([...lines, ...extra].map(s => s.replace(/\s+/g, ' ').trim()))]
-    .filter(s => /[a-zà-ÿ]/i.test(s) && !/[<>{}]/.test(s))
-    .sort();
+  const norm = x => x.replace(/\s+/g, ' ').trim();
+  const keep = x => /[a-zà-ÿ]/i.test(x) && !/[<>{}]/.test(x);
+  // the source's own lines first, sorted; then the extra lists in their own order, so that what
+  // is put last (the animal names) is what waits if the credit runs out
+  return [...new Set([...[...lines].map(norm).filter(keep).sort(), ...extra.map(norm).filter(keep)])];
 }
 
 /**
  * What the voice is actually given to read. The line is still filed under its own words; only the
  * reading changes, because "m/s" read letter by letter is not what anybody would say to a child.
  */
-const readable = text => text
+const readable = text => (LANG === 'nl' ? text
   .replace(/(\d)\s*m\/s\b/g, '$1 meter per seconde')
   .replace(/(\d)\s*km\/s\b/g, '$1 kilometer per seconde')
   .replace(/(\d)\s*km\/h\b/g, '$1 kilometer per uur')
-  .replace(/(\d)\s*×/g, '$1 keer');
+  .replace(/(\d)\s*×/g, '$1 keer') : text
+  .replace(/(\d)\s*m\/s\b/g, '$1 metres per second')
+  .replace(/(\d)\s*km\/s\b/g, '$1 kilometres per second')
+  .replace(/(\d)\s*km\/h\b/g, '$1 kilometres per hour')
+  .replace(/(\d)\s*×/g, '$1 times'));
 
 async function tts(voice, text) {
   const body = {
@@ -224,7 +255,7 @@ async function render(voice, dry) {
   const raw = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : {};
   // a different voice or model means every recording is out of date, so start again
   const same = raw._voice === voice && raw._model === MODEL;
-  const kept = same ? (raw.nl ?? []).filter(c => existsSync(join('public/voice', c.file))) : [];
+  const kept = same ? (raw[LANG] ?? []).filter(c => existsSync(join('public/voice', c.file))) : [];
   const have = new Set(kept.map(c => c.id));
   const todo = all.filter(t => !have.has(lineKey(t)));
   const chars = todo.reduce((a, t) => a + t.length, 0);
@@ -236,8 +267,8 @@ async function render(voice, dry) {
   const save = () => writeFileSync(MANIFEST, JSON.stringify({
     _: 'Recorded lines, rendered by scripts/voice.mjs. Filed under lineKey() of their words; a line not in here falls back to the device voice. See docs/voice.md.',
     _voice: voice, _model: MODEL,
-    nl: rows.sort((a, b) => a.id.localeCompare(b.id)),
-    en: raw.en ?? [],
+    nl: LANG === 'nl' ? rows.slice().sort((a, b) => a.id.localeCompare(b.id)) : raw.nl ?? [],
+    en: LANG === 'en' ? rows.slice().sort((a, b) => a.id.localeCompare(b.id)) : raw.en ?? [],
   }, null, 1) + '\n');
 
   let done = 0, failed = 0;
@@ -248,7 +279,7 @@ async function render(voice, dry) {
       try {
         const mp3 = await tts(voice, t);
         writeFileSync(join(OUT, `${id}.mp3`), mp3);
-        rows.push({ id, file: `nl/${id}.mp3`, secs: Math.round((mp3.length * 8 / (KBPS * 1000)) * 10) / 10, text: t });
+        rows.push({ id, file: `${LANG}/${id}.mp3`, secs: Math.round((mp3.length * 8 / (KBPS * 1000)) * 10) / 10, text: t });
       } catch (e) {
         failed++;
         console.error(`\n  failed: ${t.slice(0, 60)} - ${String(e.message).slice(0, 160)}`);

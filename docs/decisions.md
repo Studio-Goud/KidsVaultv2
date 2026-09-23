@@ -314,3 +314,29 @@ Drie grenzen:
 De prijs: 13 MB stem en 1,5 MB effecten in de download, en een regel of effect dat verandert moet
 opnieuw door het script. Wat ik niet heb kunnen doen, is ernaar luisteren: deze omgeving heeft
 geen luidspreker. Dat een opname laadt en afspeelt is nagelopen, niet hoe hij klinkt.
+
+---
+
+## 2026-09-23 — Geluid overal, en alles Ruth
+
+De eigenaar: "letterlijk alles in de hele app moet de stem van Ruth zijn", en "het allerbelangrijkste
+is dat alle geluidseffecten er zijn, van klikken tot misschien wel dierengeluiden".
+
+**Stem.** De 3737 Nederlandse diernamen zijn ingesproken, want het Dierenboek zegt de naam als kop van
+elke pagina. Het Engels is ook met Ruth ingesproken (`npm run voice -- render <id> --lang en`), met de
+Engelse diernamen als laatste in de rij zodat die wachten als het tegoed op is. Letterbos houdt zijn
+Nederlandse woorden en klanken ook in de Engelse app. De radio van Cloudhopper is opgenomen in
+stukjes (`scripts/radio.mjs`): de toren is Ruth, de piloten zijn "Chris", een Engelse mannenstem uit
+het account van de eigenaar, en de radio zet een oproep uit de langste passende stukjes in elkaar en
+speelt die door de smalle band van een echte portofoon.
+
+**Geluid.** Wat stil was, klinkt nu: de voorpagina, de ronde knoppen in elke hoek, het ouderscherm
+(één luisteraar voor alles), het hele Dierenboek, en de twee ontdekreizen, met vertrek, aankomst en
+een zacht achtergrondgeluid zolang het voertuig reist. En 340 dieren hebben hun eigen geluid: de
+bekendste zoogdieren en vogels, kikkers en padden, en insecten die echt zoemen of tjirpen. Het speelt
+na de naam als je het dier opent, en nog eens als je op de foto tikt; een ♪ in de hoek zegt dat er iets
+te horen is.
+
+Grenzen die blijven: Suri in de hoek maakt geen klik, want hij praat al; de noten van Klankhuis en de
+doorlopende motoren blijven code. De meeste van de 3744 dieren hebben geen geluid, omdat een vis of
+een spin er geen heeft dat een kind kent, en de generator er dan een verzint.

@@ -1,5 +1,7 @@
 import { save } from './storage';
 import { withSamples } from '../platform/samples';
+import { radioKey, radioWords } from '../platform/voicekey';
+import { noteMiss } from '../platform/voice';
 
 /**
  * All sound is synthesized with WebAudio: no audio files, works offline inside Capacitor.
@@ -342,10 +344,69 @@ export class EngineMixer {
 
 export type Speaker = 'tower' | 'pilot';
 
-/** Radio chatter through speech synthesis, made to sound like a real VHF radio: squelch, static bed, two voices. */
+/**
+ * Radio chatter, made to sound like a real VHF radio: squelch, static bed, two voices.
+ *
+ * Since 2026-09-23 the voices are recordings - the tower is Ruth, the pilots an English man - put
+ * together from pieces by `scripts/radio.mjs`, and played through the narrow band a real radio
+ * passes. A call with a piece nobody recorded falls back to the device's speech, whole.
+ */
+type RadioItem = { text: string; urgent: boolean; who: Speaker; t: number };
+
 export class Radio {
-  private queue: Array<{ text: string; urgent: boolean; who: Speaker; t: number }> = [];
+  private queue: RadioItem[] = [];
   private speaking = false;
+  private recorded: Record<Speaker, Record<string, string>> | null = null;
+  private loading: Promise<void> | null = null;
+  private buffers = new Map<string, AudioBuffer>();
+  private playing: AudioBufferSourceNode[] = [];
+
+  private loadRecorded(): Promise<void> {
+    this.loading ??= fetch('./voice/radio.json')
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => { if (j) this.recorded = { tower: j.tower ?? {}, pilot: j.pilot ?? {} }; })
+      .catch(() => { /* no recordings: the device speaks */ });
+    return this.loading;
+  }
+
+  /** The recordings that say this call in this voice, longest pieces first, or null if one is missing. */
+  private piecesFor(who: Speaker, text: string): string[] | null {
+    const m = this.recorded?.[who];
+    if (!m) return null;
+    const w = radioWords(text);
+    const out: string[] = [];
+    for (let i = 0; i < w.length;) {
+      let j = Math.min(w.length, i + 8);
+      let file: string | undefined;
+      for (; j > i; j--) { file = m[radioKey(w.slice(i, j))]; if (file) break; }
+      if (!file) return null;
+      out.push(file);
+      i = j;
+    }
+    return out.length ? out : null;
+  }
+
+  private async buffersFor(files: string[]): Promise<Array<{ buf: AudioBuffer; from: number; to: number }> | null> {
+    const c = ctx;
+    if (!c) return null;
+    try {
+      return await Promise.all(files.map(async f => {
+        let b = this.buffers.get(f);
+        if (!b) {
+          b = await c.decodeAudioData(await (await fetch(`./voice/${f}`)).arrayBuffer());
+          this.buffers.set(f, b);
+        }
+        // the silence a renderer leaves at both ends would put a gap between every digit
+        const d = b.getChannelData(0);
+        let peak = 0;
+        for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i]));
+        let a = 0, z = d.length - 1;
+        while (a < z && Math.abs(d[a]) < peak * 0.05) a++;
+        while (z > a && Math.abs(d[z]) < peak * 0.05) z--;
+        return { buf: b, from: Math.max(0, a / b.sampleRate - 0.01), to: Math.min(b.duration, z / b.sampleRate + 0.04) };
+      }));
+    } catch { return null; }
+  }
   private voices: Record<Speaker, SpeechSynthesisVoice | null> = { tower: null, pilot: null };
   private static: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
 
@@ -370,7 +431,8 @@ export class Radio {
   }
 
   say(text: string, opts: { urgent?: boolean; who?: Speaker } = {}): void {
-    if (!save.radio || !save.sound || !('speechSynthesis' in window)) return;
+    if (!save.radio || !save.sound) return;
+    this.loadRecorded();
     const urgent = !!opts.urgent, who = opts.who ?? 'tower';
     if (!urgent && this.queue.length >= 2) return; // no pile-up of chatter
     this.queue.push({ text, urgent, who, t: performance.now() });
@@ -397,23 +459,65 @@ export class Radio {
     if (this.speaking || this.queue.length === 0) return;
     const item = this.queue.shift()!;
     if (!item.urgent && performance.now() - item.t > 6000) { this.pump(); return; }
-    this.pickVoices();
     this.speaking = true;
     sfx.squelch(true); this.staticOn(true);
+    const done = (): void => {
+      if (!this.speaking) return;
+      this.speaking = false; this.staticOn(false); sfx.squelch(false);
+      setTimeout(() => this.pump(), 650);
+    };
+    setTimeout(() => { if (this.speaking) done(); }, 12000);
+    // the first call of a game comes before the list of recordings has arrived; wait for it briefly
+    if (!this.recorded) {
+      void Promise.race([this.loadRecorded(), new Promise(r => setTimeout(r, 1500))])
+        .then(() => { if (this.speaking) this.playItem(item, done); });
+      return;
+    }
+    this.playItem(item, done);
+  }
+
+  private playItem(item: RadioItem, done: () => void): void {
+    const files = this.piecesFor(item.who, item.text);
+    if (!files || !ctx || !master) { noteMiss(`[radio ${item.who}] ${item.text}`); this.speakSynth(item, done); return; }
+    void this.buffersFor(files).then(parts => {
+      if (!this.speaking) return;
+      if (!parts || !ctx || !master) { this.speakSynth(item, done); return; }
+      // the band a VHF radio passes, roughly 300 Hz to 3 kHz, is what makes it sound like one
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 320;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
+      const g = ctx.createGain(); g.gain.value = item.who === 'pilot' ? 0.75 : 0.85;
+      hp.connect(lp).connect(g).connect(master);
+      let t = ctx.currentTime + 0.06;
+      this.playing = parts.map(p => {
+        const s = ctx!.createBufferSource();
+        s.buffer = p.buf;
+        s.connect(hp);
+        s.start(t, p.from, p.to - p.from);
+        t += (p.to - p.from) + 0.02;
+        return s;
+      });
+      setTimeout(done, (t - ctx.currentTime) * 1000 + 120);
+    });
+  }
+
+  /** The old radio: the device's own English voices. Only for a call with a piece nobody recorded. */
+  private speakSynth(item: RadioItem, done: () => void): void {
+    if (!('speechSynthesis' in window)) { done(); return; }
+    this.pickVoices();
     const u = new SpeechSynthesisUtterance(item.text);
     const v = this.voices[item.who];
     u.lang = v?.lang ?? 'en-US';
     // natural pace, no pitch shifting: pitch tricks are what makes TTS sound robotic
     u.rate = item.who === 'pilot' ? 1.02 : 1.06; u.pitch = 1.0; u.volume = item.who === 'pilot' ? 0.7 : 0.8;
     if (v) u.voice = v;
-    const done = (): void => { if (!this.speaking) return; this.speaking = false; this.staticOn(false); sfx.squelch(false); setTimeout(() => this.pump(), 650); };
     u.onend = done; u.onerror = done;
     try { speechSynthesis.speak(u); } catch { done(); }
-    setTimeout(() => { if (this.speaking) done(); }, 8000);
   }
 
   stop(): void {
     this.queue = [];
+    for (const s of this.playing) { try { s.stop(); } catch { /* already over */ } }
+    this.playing = [];
     try { speechSynthesis.cancel(); } catch { /* ok */ }
     this.speaking = false; this.staticOn(false);
   }

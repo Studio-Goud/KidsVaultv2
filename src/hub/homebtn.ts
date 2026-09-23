@@ -6,6 +6,17 @@
  * house on it now, in the same corner, the same size, in every game on the site.
  */
 import { NL } from '../util/lang';
+import { uiSound } from '../platform/uisfx';
+
+/**
+ * Follow a link a moment after its sound has started, so leaving a page is heard rather than cut
+ * off by the page going away.
+ */
+export function soundThenGo(e: Event, href: string, kind: 'home' | 'open' | 'tap'): void {
+  e.preventDefault();
+  uiSound(kind);
+  setTimeout(() => { location.href = href; }, 170);
+}
 /**
  * Put the forced insets on the page as well, so the buttons the stylesheet places and the chrome
  * the canvas draws are measured against the same edge during an audit.
@@ -27,6 +38,7 @@ export function addHomeButton(): void {
   a.href = './';
   a.setAttribute('aria-label', nl ? 'Terug naar Suri' : 'Back to Suri');
   a.title = nl ? 'Terug naar Suri' : 'Back to Suri';
+  a.addEventListener('click', e => soundThenGo(e, a.href, 'home'));
   a.innerHTML =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -54,7 +66,7 @@ export function addBackButton(opts: { back: () => void; canBack: () => boolean }
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M15 5 8 12l7 7"/></svg>';
-  b.addEventListener('click', e => { e.preventDefault(); opts.back(); });
+  b.addEventListener('click', e => { e.preventDefault(); uiSound('back'); opts.back(); });
   document.body.appendChild(b);
   const sync = (): void => { b.style.display = opts.canBack() ? 'grid' : 'none'; };
   sync();

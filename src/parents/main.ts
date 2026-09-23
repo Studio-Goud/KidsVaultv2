@@ -10,6 +10,7 @@ import { cleanGate, needsSetup, setPin, tryPin, waitingFor, type GateState } fro
 import { QUESTIONS, domainsWithCounts } from './faq';
 import { NL, T } from '../util/lang';
 import { persist, save } from '../util/storage';
+import { uiSound } from '../platform/uisfx';
 
 /**
  * The parent's half of the app.
@@ -24,6 +25,15 @@ import { persist, save } from '../util/storage';
  */
 
 const root = document.getElementById('parents')!;
+
+// Every press on this screen is heard, the same small sounds as everywhere else in Suri: a switch
+// for anything that turns something on or off, a tap for the rest. One listener rather than one per
+// button, because this screen builds its buttons afresh every time it changes.
+root.addEventListener('pointerdown', e => {
+  const hit = (e.target as HTMLElement | null)?.closest('button, a, input, summary, label');
+  if (!hit) return;
+  uiSound(hit.classList.contains('chip') || (hit as HTMLInputElement).type === 'checkbox' ? 'toggle' : 'tap');
+});
 
 // ---------------------------------------------------------------- the save, as this page sees it
 

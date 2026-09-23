@@ -31,6 +31,8 @@ export interface SfxRow {
   gap?: number;
   /** relative loudness, 1 is the house level */
   gain?: number;
+  /** a background that runs on its own and repeats, rather than a one-shot */
+  loop?: boolean;
 }
 
 const SOFT = 'soft, warm, gentle, for a calm children\'s game, clean studio recording, no music, no voice';
@@ -198,6 +200,35 @@ export const SFX: Record<string, SfxRow> = {
   'tidepool.complete': done('a warm happy seaside celebration, soft chimes and gentle waves'),
   'tidepool.fail': wrong('a soft descending bubbly tone, the tide went out, gentle'),
   'tidepool.tap': tap(),
+
+  // ---- everywhere: the front page, the round buttons, the parent screen, the Animal Book
+  'ui.tap': tap(),
+  'ui.open': { prompt: `a soft friendly pop with a tiny rising whoosh, opening something, ${SOFT}`, secs: 0.5, max: 0.35 },
+  'ui.home': { prompt: `a soft warm descending two note wooden chime, going home, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'ui.back': { prompt: `a soft short reversed whoosh, going back one step, ${SOFT}`, secs: 0.5, max: 0.25, gain: 0.8 },
+  'ui.toggle': { prompt: `a small soft switch click, like a light switch on a toy, ${SOFT}`, secs: 0.5, max: 0.12, gain: 0.8 },
+  'ui.key': { prompt: `a single soft wooden keyboard key press, ${SOFT}`, secs: 0.5, max: 0.08, gap: 40, gain: 0.6 },
+  'ui.page': { prompt: `a single page of a thick book being turned, soft paper, ${SOFT}`, secs: 0.6, max: 0.45 },
+  'ui.surprise': { prompt: `a short magical sparkle and shimmer, a surprise, ${SOFT}`, secs: 0.8, max: 0.7 },
+  'ui.stepper': { prompt: `a tiny soft ratchet click, one notch, ${SOFT}`, secs: 0.5, max: 0.1, gain: 0.7 },
+
+  // ---- De grote reis: in a rocket from the sun to the edge
+  'reis.go': { prompt: `a friendly rocket lifting off, a warm rumble rising into a whoosh, exciting but not loud, ${SOFT}`, secs: 2.5, max: 2.3 },
+  'reis.arrive': { prompt: `a soft glassy space chime, arriving at a planet, ${SOFT}`, secs: 1, max: 0.9 },
+  'reis.more': { prompt: `a soft curious twinkle, there is more to tell, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'reis.on': { prompt: `a rocket engine starting again with a soft whoosh, moving on, ${SOFT}`, secs: 1.2, max: 1 },
+  'reis.index': tap('a soft click, opening a map'),
+  'reis.done': done('a warm dreamy celebration in space, soft chimes, the journey is complete'),
+  'reis.bed': { prompt: `a calm steady low hum of a spaceship travelling through space, gentle, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.35 },
+
+  // ---- De diepzee: in a submarine from the waves to the deepest place there is
+  'diepzee.go': { prompt: `a small submarine hatch closing and diving under water with a splash and bubbles, ${SOFT}`, secs: 2.5, max: 2.3 },
+  'diepzee.arrive': { prompt: `a soft submarine sonar ping under water, arriving somewhere, ${SOFT}`, secs: 1.2, max: 1.1 },
+  'diepzee.more': { prompt: `a few soft bubbles rising, there is more to see, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'diepzee.on': { prompt: `a small submarine propeller starting again under water, soft bubbles, ${SOFT}`, secs: 1.2, max: 1 },
+  'diepzee.index': tap('a soft click, opening a map'),
+  'diepzee.done': done('a warm gentle celebration under the sea, soft chimes and bubbles'),
+  'diepzee.bed': { prompt: `calm deep underwater ambience inside a small submarine, soft hum and distant bubbles, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.35 },
 
   // ---- Cloudhopper
   'cloudhopper.landed': done('a soft airport chime, a plane landed safely'),

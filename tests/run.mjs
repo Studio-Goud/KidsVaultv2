@@ -2917,6 +2917,9 @@ const group = name => console.log(`\n${name}`);
   is('test_sfx_every_generation_is_at_least_the_api_floor', rows.every(([, r]) => r.secs >= 0.5), true);
   is('test_sfx_nothing_plays_longer_than_it_was_made', rows.every(([, r]) => r.max > 0 && r.max <= r.secs), true);
   is('test_sfx_every_prompt_asks_for_the_house_sound', rows.every(([, r]) => r.prompt.includes('for a calm children')), true);
+  is('test_sfx_a_background_is_long_enough_to_loop', rows.filter(([, r]) => r.loop).every(([, r]) => r.secs >= 8), true);
+  is('test_sfx_both_journeys_have_their_own_sounds',
+    ['go', 'arrive', 'more', 'on', 'bed'].every(m => SFX[`reis.${m}`] && SFX[`diepzee.${m}`]), true);
   is('test_sfx_klankhuis_notes_are_never_recorded',
     rows.some(([k]) => /^rhythm\.(play|playChord|click|drum)$/.test(k)), false);
   // the sfx files are the other half of the contract: every row has to name a method that exists
@@ -2925,11 +2928,15 @@ const group = name => console.log(`\n${name}`);
     letters: 'letters/lettersfx', market: 'market/marketsfx', mill: 'mill/millsfx', moonshot: 'moonshot/rocketsfx',
     nightwatch: 'nightwatch/nightsfx', numbers: 'numbers/numbersfx', orbit: 'orbit/orbitsfx', puffball: 'puffball/puffsfx',
     rhythm: 'rhythm/chimesfx', tidepool: 'tidepool/tidesfx' };
-  const text = g => g === 'cloudhopper' ? readFileSync('src/util/audio.ts', 'utf8') : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
-  is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k]) => {
+  const text = g => g === 'cloudhopper' ? readFileSync('src/util/audio.ts', 'utf8')
+    : g === 'ui' ? readFileSync('src/platform/uisfx.ts', 'utf8')
+    : g === 'reis' || g === 'diepzee' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
+    : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
+  is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k, r]) => {
     const [g, m] = k.split('.');
+    if (r.loop) return false;   // a background is started by its key, not by a method
     const t = text(g);
-    return !(new RegExp(`\\n  ${m}\\(`).test(t) || new RegExp(`function ${m}Synth\\(`).test(t));
+    return !(new RegExp(`\\n\\s+${m}\\(`).test(t) || new RegExp(`function ${m}Synth\\(`).test(t));
   }).map(([k]) => k), []);
 
   const { measure } = await bundle('src/platform/sfxlevel.ts', 'sfxlevel.mjs');

@@ -27,6 +27,7 @@ import { unlockAudio } from '../util/audio';
 import { persist, save } from '../util/storage';
 import { NL, T } from '../util/lang';
 import { speakLine } from '../platform/voice';
+import { journeySfx } from './journeysfx';
 import { countFinished } from '../platform/clock';
 import { bleedEdges, chunkyButton, glassPanel, heading, hexA, vignette } from '../render/look';
 import { drawCraft } from './craft';
@@ -66,10 +67,14 @@ export class JourneyScreen {
   /** how bright the engine is: it comes up when you set off and dies away when you stop */
   private burn = 0;
   private arrive = 0;
+  /** the journey's own sounds: a rocket is not a submarine */
+  private fx: ReturnType<typeof journeySfx>;
+  private hummed = false;
   /** the end has been counted for this ride; pressing "again" starts a new one */
   private counted = false;
 
   constructor(private canvas: HTMLCanvasElement, private j: Journey) {
+    this.fx = journeySfx(j.id);
     this.ctx = canvas.getContext('2d', { alpha: false })!;
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -177,11 +182,14 @@ export class JourneyScreen {
     if (this.trip.held && this.trip.held !== was) {
       this.arrive = 1;
       this.remember();
+      this.fx.arrive();
     }
     this.arrive = Math.max(0, this.arrive - dt * 1.6);
     // a journey ridden to its end is a thing played to its end, once per ride
-    if (this.trip.done && !this.counted) { this.counted = true; countFinished(); }
+    if (this.trip.done && !this.counted) { this.counted = true; countFinished(); this.fx.done(); }
     const want = this.trip.going && !this.trip.held && !this.trip.done ? 1 : 0;
+    // the hum of the craft while it moves, faded in and out rather than switched
+    if (!!want !== this.hummed) { this.hummed = !!want; this.fx.travelling(this.hummed); }
     this.burn += (want - this.burn) * Math.min(1, dt * 4);
     const line = this.trip.done
       ? T(this.j.closing, this.j.closingNl)
@@ -210,8 +218,8 @@ export class JourneyScreen {
     this.held0 = id;
     setTimeout(() => { this.held0 = null; }, 130);
     if (!id) return;
-    if (id === 'index') { this.index = !this.index; return; }
-    if (id === 'close') { this.index = false; return; }
+    if (id === 'index') { this.fx.index(); this.index = !this.index; return; }
+    if (id === 'close') { this.fx.index(); this.index = false; return; }
     if (id.startsWith('stop:')) {
       this.trip = goTo(this.j, this.trip, id.slice(5));
       this.index = false;
@@ -220,14 +228,15 @@ export class JourneyScreen {
       return;
     }
     if (id === 'go') {
+      this.fx.go();
       this.trip = setOff(this.trip);
       const open = T(this.j.opening, this.j.openingNl);
       this.said = open; speakLine(open);
       return;
     }
-    if (id === 'more') { this.trip = tellMore(this.j, this.trip); return; }
-    if (id === 'on') { this.trip = onward(this.j, this.trip); return; }
-    if (id === 'again') { this.trip = { ...begin(), seen: this.trip.seen }; this.said = ''; this.counted = false; return; }
+    if (id === 'more') { this.fx.more(); this.trip = tellMore(this.j, this.trip); return; }
+    if (id === 'on') { this.fx.on(); this.trip = onward(this.j, this.trip); return; }
+    if (id === 'again') { this.fx.index(); this.trip = { ...begin(), seen: this.trip.seen }; this.said = ''; this.counted = false; return; }
   }
 
   // ---------- drawing ----------

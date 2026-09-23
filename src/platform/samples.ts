@@ -58,19 +58,49 @@ function preload(game: string): void {
   });
 }
 
+const decoded = new Map<string, Promise<boolean>>();
+
+/** Decode one recording, once; the promise says whether there is one to play. */
+function decodeKey(ctx: AudioContext, key: string): Promise<boolean> {
+  const have = decoded.get(key);
+  if (have) return have;
+  const p = raw.get(key);
+  if (!p) return Promise.resolve(false);
+  decoding.add(key);
+  const d = p.then(ab => (ab ? ctx.decodeAudioData(ab.slice(0)) : null))
+    .then(buf => {
+      if (!buf) return false;
+      const m = measure(buf.getChannelData(0), buf.sampleRate);
+      ready.set(key, { buf, start: m.start, level: m.level });
+      return true;
+    })
+    .catch(() => false);   // a broken file is a file we do not have
+  decoded.set(key, d);
+  return d;
+}
+
 /** Decode everything fetched so far, once there is a context to decode into. */
 function decodeAll(ctx: AudioContext): void {
-  for (const [key, p] of raw) {
-    if (ready.has(key) || decoding.has(key)) continue;
-    decoding.add(key);
-    p.then(ab => (ab ? ctx.decodeAudioData(ab.slice(0)) : null))
-      .then(buf => {
-        if (!buf) return;
-        const m = measure(buf.getChannelData(0), buf.sampleRate);
-        ready.set(key, { buf, start: m.start, level: m.level });
-      })
-      .catch(() => { /* a broken file is a file we do not have */ });
-  }
+  for (const key of raw.keys()) if (!decoding.has(key)) void decodeKey(ctx, key);
+}
+
+/**
+ * Play the recording, or wait a moment for it. The first tap on a page is also the one that makes
+ * the audio context, so its recording cannot have been decoded yet; rather than answer that tap
+ * with the old synthesised sound, it waits up to a quarter of a second for the real one.
+ */
+function playOrWait(key: string, row: SfxRow, arg: unknown, fallback: () => void): void {
+  if (play(key, row, arg)) return;
+  const ctx = audioContext();
+  if (!ctx || !raw.has(key) || ready.has(key)) { fallback(); return; }
+  let settled = false;
+  const timer = setTimeout(() => { if (!settled) { settled = true; fallback(); } }, 250);
+  void decodeKey(ctx, key).then(ok => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    if (!(ok && play(key, row, arg))) fallback();
+  });
 }
 
 /** Play the recording for `key`. False means "not this time", and the synthesised one plays. */
@@ -116,7 +146,7 @@ export function withSamples<T extends object>(game: string, obj: T): T {
     const key = `${game}.${name}`;
     const row = SFX[key];
     if (!row || typeof fn !== 'function') continue;
-    out[name] = (...args: unknown[]): unknown => (play(key, row, args[0]) ? undefined : fn.apply(obj, args));
+    out[name] = (...args: unknown[]): void => { playOrWait(key, row, args[0], () => { fn.apply(obj, args); }); };
   }
   return out as T;
 }
@@ -126,8 +156,81 @@ export function sampled<A extends unknown[]>(key: string, fn: (...a: A) => void)
   const row = SFX[key];
   if (!row) return fn;
   queueMicrotask(() => preload(key.split('.')[0]));
-  return (...a: A): void => { if (!play(key, row, a[0])) fn(...a); };
+  return (...a: A): void => { playOrWait(key, row, a[0], () => fn(...a)); };
 }
+
+const loops = new Map<string, { src: AudioBufferSourceNode; g: GainNode }>();
+const wanted = new Set<string>();
+
+/**
+ * Start or stop a background that repeats: the hum of the rocket, the sea around the submarine.
+ * It fades in and out rather than starting and stopping, and there is no synthesised version
+ * underneath - a missing background is simply quiet, which is how the journeys always were.
+ */
+export function loopSample(key: string, on: boolean): void {
+  const row = SFX[key];
+  const ctx = audioContext();
+  if (!row || !ctx) return;
+  decodeAll(ctx);
+  const cur = loops.get(key);
+  if (!on || save.sound === false) {
+    wanted.delete(key);
+    if (cur) {
+      cur.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.35);
+      try { cur.src.stop(ctx.currentTime + 1.6); } catch { /* already stopped */ }
+      loops.delete(key);
+    }
+    return;
+  }
+  if (cur) return;
+  wanted.add(key);
+  const r = ready.get(key);
+  if (!r) {
+    // asked for before it was decoded: start it the moment it is, if it is still wanted then
+    void decodeKey(ctx, key).then(ok => { if (ok && wanted.has(key) && !loops.has(key)) loopSample(key, true); });
+    return;
+  }
+  try {
+    const src = ctx.createBufferSource();
+    src.buffer = r.buf;
+    src.loop = true;
+    src.loopStart = r.start;
+    src.loopEnd = r.buf.duration;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.setTargetAtTime(r.level * (row.gain ?? 1), ctx.currentTime, 0.5);
+    src.connect(g); g.connect(ctx.destination);
+    src.start(ctx.currentTime, r.start);
+    loops.set(key, { src, g });
+  } catch { /* no background, no harm */ }
+}
+
+/**
+ * Play one recording that is not worth fetching in advance - an animal's call, of which there are
+ * hundreds and a child hears a handful. It is fetched when asked for and played as soon as it has
+ * been decoded, which on a phone is a fraction of a second.
+ */
+export function playOnce(key: string, row: SfxRow): void {
+  const ctx = audioContext();
+  if (!ctx) return;
+  manifest().then(() => {
+    const file = files?.[key];
+    if (!file) return;
+    if (!raw.has(key)) raw.set(key, fetch(`./sfx/${file}`).then(r => (r.ok ? r.arrayBuffer() : null)).catch(() => null));
+    decodeAll(ctx);
+    const attempt = (left: number): void => {
+      if (ready.has(key)) { play(key, row, undefined); return; }
+      if (left > 0) setTimeout(() => attempt(left - 1), 120);
+    };
+    attempt(25);
+  });
+}
+
+/** Whether a recording exists for this key, once the list has loaded. */
+export const hasSample = (key: string): boolean => !!files?.[key];
+
+/** Ask for a game's recordings to be fetched, for a sound set that has no methods to wrap. */
+export function preloadSamples(game: string): void { queueMicrotask(() => preload(game)); }
 
 /** For the debug handles: which effects have a recording decoded and ready. */
 export const samplesReady = (): string[] => [...ready.keys()].sort();
