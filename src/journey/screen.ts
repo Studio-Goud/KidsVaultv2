@@ -322,7 +322,7 @@ export class JourneyScreen {
   }
 
   private nextAhead(): Stop | null {
-    for (const s of this.j.stops) if (s.at >= this.trip.at - 1e-6 && !this.trip.seen.includes(s.id)) return s;
+    for (const s of this.j.stops) if (s.at >= this.trip.at - 1e-6 && !this.trip.passed.includes(s.id)) return s;
     return this.j.stops[this.j.stops.length - 1] ?? null;
   }
 
