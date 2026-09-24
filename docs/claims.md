@@ -20,7 +20,7 @@ document leeg is en er een naam onder staat.
 
 ## A. Wat elk onderdeel zegt te oefenen
 
-Bron: het veld `practises` per rij in `src/platform/catalog.ts`. Zestien rijen, elk één zin.
+Bron: het veld `practises` per rij in `src/platform/catalog.ts`. Negentien rijen, elk één zin.
 
 Wat een pedagoog zou moeten nakijken, per rij:
 
@@ -41,6 +41,7 @@ Concreet te toetsen rijen, met wat erachter zit:
 | Rekenrijk | uittellen, vergelijken, hoeveel erbij | tellen als handeling met voorwerpen; §4.2 |
 | Marktdag | uittellen, eerlijk delen, hoeveel erbij | idem |
 | Klokkijken | wijzerplaat en de Nederlandse manier van zeggen | geen bron; mijn inschatting |
+| Het jaar rond | dagen en maanden op volgorde, gisteren en morgen, seizoenen, dagdelen | geen bron; mijn inschatting. De zonnestand per seizoen in de tekening is wel natuurkunde: 52° NB plus de declinatie |
 | Getijdenpoel | denkflexibiliteit, van regel wisselen | regelwissel-taken (DCCS-achtig); §4.3 |
 | Nachtwacht | visueel werkgeheugen | §4.3 |
 | Klankhuis | de tel vasthouden, lang/kort, hoog/laag | §4.4 |
@@ -56,7 +57,7 @@ Concreet te toetsen rijen, met wat erachter zit:
 | De grote reis | luisteren, afstanden, volgorde van de planeten | geen bron; mijn inschatting |
 | De diepzee | luisteren, hoe diep diep is, wat waar leeft | geen bron; mijn inschatting |
 
-Elf van de achttien staan op "mijn inschatting". Dat is de grootste open post in dit document.
+Dertien van de negentien staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
 
 ## B. Schermtijd
 

@@ -163,6 +163,17 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
+    // asked for by the owner: the calendar a child lives in, with a tree that changes under their
+    // finger. Four to eight, because a two-year-old has no use for Tuesday
+    id: 'seasons', title: 'Het jaar rond',
+    line: 'The days of the week, the months and the seasons, in a Dutch landscape that changes with the year and the day.',
+    lineNl: 'De dagen van de week, de maanden en de seizoenen, in een Hollands landschap dat meeverandert met het jaar en de dag.',
+    practises: 'The days and months in order, yesterday and tomorrow, the seasons, the parts of the day',
+    practisesNl: 'De dagen en maanden op volgorde, gisteren en morgen, de seizoenen, de delen van de dag',
+    from: 4, to: 8, domains: ['tijd', 'natuur'], nature: 'beide', minutes: [4, 10],
+    reads: false, speaks: true,
+  },
+  {
     id: 'puffball', title: 'Stuifzwam',
     line: 'Put down a puffball, count how far it reaches, and be somewhere else when it pops.',
     lineNl: 'Leg een stuifzwam neer, tel hoe ver hij reikt, en sta ergens anders als hij afgaat.',

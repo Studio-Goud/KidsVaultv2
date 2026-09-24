@@ -142,6 +142,12 @@
    "text": "Maak eerst het tienveld vol: tien. Tel dan door met wat er nog over is."
   },
   {
+   "id": "t00cd659c",
+   "file": "nl/t00cd659c.mp3",
+   "secs": 1.6,
+   "text": "Welke dag komt hierna?"
+  },
+  {
    "id": "t00ce8b09",
    "file": "nl/t00ce8b09.mp3",
    "secs": 1.5,
@@ -152,6 +158,12 @@
    "file": "nl/t00d528c7.mp3",
    "secs": 1.7,
    "text": "Vind eerst 8 fossielen."
+  },
+  {
+   "id": "t00d7073d",
+   "file": "nl/t00d7073d.mp3",
+   "secs": 1,
+   "text": "Zaterdag"
   },
   {
    "id": "t00dd8eae",
@@ -458,6 +470,12 @@
    "file": "nl/t0305442d.mp3",
    "secs": 1.3,
    "text": "Bruine Kiekendief"
+  },
+  {
+   "id": "t0307a280",
+   "file": "nl/t0307a280.mp3",
+   "secs": 3.6,
+   "text": "Als vandaag zondag is, welke dag was het gisteren?"
   },
   {
    "id": "t030cc086",
@@ -1474,6 +1492,12 @@
    "text": "De Vlieger"
   },
   {
+   "id": "t0acedc2c",
+   "file": "nl/t0acedc2c.mp3",
+   "secs": 0.9,
+   "text": "Winter"
+  },
+  {
    "id": "t0ad3d46f",
    "file": "nl/t0ad3d46f.mp3",
    "secs": 1.5,
@@ -1550,6 +1574,12 @@
    "file": "nl/t0b3a3c6d.mp3",
    "secs": 1.4,
    "text": "Yellow Sandshell"
+  },
+  {
+   "id": "t0b465a05",
+   "file": "nl/t0b465a05.mp3",
+   "secs": 1.7,
+   "text": "Welke maand komt na juni?"
   },
   {
    "id": "t0b483eea",
@@ -1646,6 +1676,12 @@
    "file": "nl/t0c9de72b.mp3",
    "secs": 0.8,
    "text": "ngk"
+  },
+  {
+   "id": "t0ca78f63",
+   "file": "nl/t0ca78f63.mp3",
+   "secs": 1.2,
+   "text": "Februari"
   },
   {
    "id": "t0caf07bc",
@@ -2050,6 +2086,18 @@
    "text": "Batterij gedraaid."
   },
   {
+   "id": "t101731f0",
+   "file": "nl/t101731f0.mp3",
+   "secs": 1.7,
+   "text": "Wanneer ga je naar bed?"
+  },
+  {
+   "id": "t1017a997",
+   "file": "nl/t1017a997.mp3",
+   "secs": 0.9,
+   "text": "Lente"
+  },
+  {
    "id": "t101d577c",
    "file": "nl/t101d577c.mp3",
    "secs": 1.2,
@@ -2116,6 +2164,12 @@
    "text": "Koningsstern"
   },
   {
+   "id": "t1095fc6d",
+   "file": "nl/t1095fc6d.mp3",
+   "secs": 1.7,
+   "text": "Wanneer is Koningsdag?"
+  },
+  {
    "id": "t10a72245",
    "file": "nl/t10a72245.mp3",
    "secs": 2.4,
@@ -2164,6 +2218,12 @@
    "text": "Pygmy Rattlesnake"
   },
   {
+   "id": "t10feb291",
+   "file": "nl/t10feb291.mp3",
+   "secs": 0.9,
+   "text": "Dat klopt!"
+  },
+  {
    "id": "t110003eb",
    "file": "nl/t110003eb.mp3",
    "secs": 0.9,
@@ -2200,6 +2260,12 @@
    "text": "Naar de werkbank"
   },
   {
+   "id": "t111cb94f",
+   "file": "nl/t111cb94f.mp3",
+   "secs": 1,
+   "text": "Juli"
+  },
+  {
    "id": "t111ed484",
    "file": "nl/t111ed484.mp3",
    "secs": 1.1,
@@ -2210,6 +2276,12 @@
    "file": "nl/t11471cd4.mp3",
    "secs": 1.2,
    "text": "Ringslang"
+  },
+  {
+   "id": "t1151ade5",
+   "file": "nl/t1151ade5.mp3",
+   "secs": 2.9,
+   "text": "Als vandaag dinsdag is, welke dag is het morgen?"
   },
   {
    "id": "t1158387a",
@@ -2642,6 +2714,12 @@
    "file": "nl/t14e2477f.mp3",
    "secs": 1.4,
    "text": "Kind toevoegen"
+  },
+  {
+   "id": "t14e5e92d",
+   "file": "nl/t14e5e92d.mp3",
+   "secs": 3.7,
+   "text": "Gisteren is een dag terug, morgen is een dag verder."
   },
   {
    "id": "t14e8e8de",
@@ -3172,6 +3250,12 @@
    "text": "Leptosia nina"
   },
   {
+   "id": "t190ad8ab",
+   "file": "nl/t190ad8ab.mp3",
+   "secs": 1,
+   "text": "Woensdag"
+  },
+  {
    "id": "t193ba12c",
    "file": "nl/t193ba12c.mp3",
    "secs": 1.5,
@@ -3236,6 +3320,12 @@
    "file": "nl/t19ad0d74.mp3",
    "secs": 1.5,
    "text": "Cardisoma guanhumi"
+  },
+  {
+   "id": "t19c0cff0",
+   "file": "nl/t19c0cff0.mp3",
+   "secs": 2,
+   "text": "Welke maand komt na september?"
   },
   {
    "id": "t19c8ff48",
@@ -3356,6 +3446,12 @@
    "file": "nl/t1a8f628e.mp3",
    "secs": 1.3,
    "text": "Blauwe Vinvis"
+  },
+  {
+   "id": "t1a98f253",
+   "file": "nl/t1a98f253.mp3",
+   "secs": 1.8,
+   "text": "Welke dag komt na vrijdag?"
   },
   {
    "id": "t1aa0abdf",
@@ -3610,6 +3706,12 @@
    "text": "Allemaal meteen op de goede plek."
   },
   {
+   "id": "t1cbadc70",
+   "file": "nl/t1cbadc70.mp3",
+   "secs": 3.6,
+   "text": "Als vandaag maandag is, welke dag was het gisteren?"
+  },
+  {
    "id": "t1cbcb3ac",
    "file": "nl/t1cbcb3ac.mp3",
    "secs": 1.3,
@@ -3662,6 +3764,12 @@
    "file": "nl/t1cf445ee.mp3",
    "secs": 1.1,
    "text": "Chumzalm"
+  },
+  {
+   "id": "t1d01d22b",
+   "file": "nl/t1d01d22b.mp3",
+   "secs": 3.5,
+   "text": "In de avond gaat de zon onder en eet je je avondeten."
   },
   {
    "id": "t1d03344d",
@@ -3818,6 +3926,12 @@
    "file": "nl/t1e34fc0d.mp3",
    "secs": 1.8,
    "text": "Cymatogaster aggregata"
+  },
+  {
+   "id": "t1e5781a4",
+   "file": "nl/t1e5781a4.mp3",
+   "secs": 1.4,
+   "text": "Draai aan het wiel."
   },
   {
    "id": "t1e65e3f0",
@@ -4012,6 +4126,12 @@
    "text": "Europese Moerasschildpad"
   },
   {
+   "id": "t1f9e9848",
+   "file": "nl/t1f9e9848.mp3",
+   "secs": 7.6,
+   "text": "In de winter staat de boom kaal, kan er sneeuw vallen en blijven liggen, en draag je een jas en een muts."
+  },
+  {
    "id": "t1fadb538",
    "file": "nl/t1fadb538.mp3",
    "secs": 1.9,
@@ -4168,10 +4288,22 @@
    "text": "Prairie Kingsnake"
   },
   {
+   "id": "t20d7eafd",
+   "file": "nl/t20d7eafd.mp3",
+   "secs": 3.3,
+   "text": "In de ochtend komt de zon op en eet je je ontbijt."
+  },
+  {
    "id": "t20dbc487",
    "file": "nl/t20dbc487.mp3",
    "secs": 1.5,
    "text": "Thamnophis elegans"
+  },
+  {
+   "id": "t20ed6481",
+   "file": "nl/t20ed6481.mp3",
+   "secs": 1.6,
+   "text": "Wanneer ga je naar school?"
   },
   {
    "id": "t20f17e88",
@@ -4882,6 +5014,12 @@
    "text": "Die akker heeft genoeg gehad."
   },
   {
+   "id": "t26a851fb",
+   "file": "nl/t26a851fb.mp3",
+   "secs": 3.6,
+   "text": "Als vandaag dinsdag is, welke dag was het gisteren?"
+  },
+  {
    "id": "t26b65686",
    "file": "nl/t26b65686.mp3",
    "secs": 1.8,
@@ -5554,6 +5692,12 @@
    "text": "Een kap over iets dat net iets te breed is."
   },
   {
+   "id": "t2cf22e7d",
+   "file": "nl/t2cf22e7d.mp3",
+   "secs": 2,
+   "text": "In welk seizoen valt december?"
+  },
+  {
    "id": "t2cf2c445",
    "file": "nl/t2cf2c445.mp3",
    "secs": 1,
@@ -5758,6 +5902,12 @@
    "text": "Twee parallelle banen, non-stop vol, terminals er middenin."
   },
   {
+   "id": "t2e83b724",
+   "file": "nl/t2e83b724.mp3",
+   "secs": 1.5,
+   "text": "Geluid en trillen"
+  },
+  {
    "id": "t2e862925",
    "file": "nl/t2e862925.mp3",
    "secs": 1.5,
@@ -5930,6 +6080,12 @@
    "file": "nl/t300f9a2f.mp3",
    "secs": 4.9,
    "text": "Een kort blikje vaste brandstof. Gaat een keer aan en is zo voorbij."
+  },
+  {
+   "id": "t30141eab",
+   "file": "nl/t30141eab.mp3",
+   "secs": 1.7,
+   "text": "Welke maand komt na juli?"
   },
   {
    "id": "t301f5dcd",
@@ -6256,6 +6412,12 @@
    "text": "Kettingschallebijter"
   },
   {
+   "id": "t3287f645",
+   "file": "nl/t3287f645.mp3",
+   "secs": 0.8,
+   "text": "Nacht"
+  },
+  {
    "id": "t32b8d0db",
    "file": "nl/t32b8d0db.mp3",
    "secs": 1.5,
@@ -6394,6 +6556,12 @@
    "text": "rijdt"
   },
   {
+   "id": "t33b262ea",
+   "file": "nl/t33b262ea.mp3",
+   "secs": 1.2,
+   "text": "Mei"
+  },
+  {
    "id": "t33b42257",
    "file": "nl/t33b42257.mp3",
    "secs": 1.7,
@@ -6494,6 +6662,12 @@
    "file": "nl/t3450d2ff.mp3",
    "secs": 1.7,
    "text": "Camponotus floridanus"
+  },
+  {
+   "id": "t346718bc",
+   "file": "nl/t346718bc.mp3",
+   "secs": 1.6,
+   "text": "Wanneer is Nieuwjaar?"
   },
   {
    "id": "t347690cb",
@@ -6746,6 +6920,12 @@
    "file": "nl/t368b7c7f.mp3",
    "secs": 1.4,
    "text": "Aphrophora alni"
+  },
+  {
+   "id": "t3690f994",
+   "file": "nl/t3690f994.mp3",
+   "secs": 7.3,
+   "text": "De dagen van de week, de maanden en de seizoenen, in een Hollands landschap dat meeverandert met het jaar en de dag."
   },
   {
    "id": "t36911de9",
@@ -7156,6 +7336,12 @@
    "text": "Gewone velduil"
   },
   {
+   "id": "t39708e7a",
+   "file": "nl/t39708e7a.mp3",
+   "secs": 1.7,
+   "text": "Welke maand komt na mei?"
+  },
+  {
    "id": "t3971e6b0",
    "file": "nl/t3971e6b0.mp3",
    "secs": 1.2,
@@ -7360,6 +7546,12 @@
    "text": "De Deltawerken"
   },
   {
+   "id": "t3ab060e5",
+   "file": "nl/t3ab060e5.mp3",
+   "secs": 2.3,
+   "text": "Wanneer is het meestal het warmst?"
+  },
+  {
    "id": "t3ac5b484",
    "file": "nl/t3ac5b484.mp3",
    "secs": 1.1,
@@ -7388,6 +7580,12 @@
    "file": "nl/t3b0c5e3f.mp3",
    "secs": 1.6,
    "text": "Veldparelmoervlinder"
+  },
+  {
+   "id": "t3b0c95e2",
+   "file": "nl/t3b0c95e2.mp3",
+   "secs": 2.1,
+   "text": "Welke maand komt na augustus?"
   },
   {
    "id": "t3b1a5c18",
@@ -7526,6 +7724,12 @@
    "file": "nl/t3be37973.mp3",
    "secs": 1.4,
    "text": "Groot zonnepaneel"
+  },
+  {
+   "id": "t3bfc02b2",
+   "file": "nl/t3bfc02b2.mp3",
+   "secs": 2.2,
+   "text": "Tik op de wagon met het antwoord."
   },
   {
    "id": "t3c00f728",
@@ -7702,6 +7906,12 @@
    "text": "Huiszebraspin"
   },
   {
+   "id": "t3d3a43aa",
+   "file": "nl/t3d3a43aa.mp3",
+   "secs": 1.8,
+   "text": "Tik de dag die hierna komt."
+  },
+  {
    "id": "t3d3b5281",
    "file": "nl/t3d3b5281.mp3",
    "secs": 1.2,
@@ -7828,6 +8038,12 @@
    "text": "ik zie een uil"
   },
   {
+   "id": "t3e3a23ba",
+   "file": "nl/t3e3a23ba.mp3",
+   "secs": 4,
+   "text": "Dagen, maanden, seizoenen, en de delen van de dag."
+  },
+  {
    "id": "t3e3b17fa",
    "file": "nl/t3e3b17fa.mp3",
    "secs": 1.4,
@@ -7874,6 +8090,12 @@
    "file": "nl/t3e9e2529.mp3",
    "secs": 2.3,
    "text": "Tel de staven en dan de blokjes."
+  },
+  {
+   "id": "t3ea53a3f",
+   "file": "nl/t3ea53a3f.mp3",
+   "secs": 1,
+   "text": "November"
   },
   {
    "id": "t3eaa3daa",
@@ -7946,6 +8168,12 @@
    "file": "nl/t3f1e9224.mp3",
    "secs": 1.5,
    "text": "Augochlora pura"
+  },
+  {
+   "id": "t3f347112",
+   "file": "nl/t3f347112.mp3",
+   "secs": 2.2,
+   "text": "Wanneer gaan de eerste bloemen open?"
   },
   {
    "id": "t3f3d3656",
@@ -8360,6 +8588,12 @@
    "file": "nl/t4230cbf3.mp3",
    "secs": 1.5,
    "text": "Anasaitis canosa"
+  },
+  {
+   "id": "t4232f9b0",
+   "file": "nl/t4232f9b0.mp3",
+   "secs": 0.9,
+   "text": "Maandag"
   },
   {
    "id": "t424bd433",
@@ -8818,6 +9052,12 @@
    "text": "Gestreepte kathaai"
   },
   {
+   "id": "t45f32023",
+   "file": "nl/t45f32023.mp3",
+   "secs": 2.1,
+   "text": "Welke maand komt na januari?"
+  },
+  {
    "id": "t460b5fd2",
    "file": "nl/t460b5fd2.mp3",
    "secs": 1.7,
@@ -8846,6 +9086,12 @@
    "file": "nl/t462d32bf.mp3",
    "secs": 1.3,
    "text": "Schijftongkikker"
+  },
+  {
+   "id": "t4630d76f",
+   "file": "nl/t4630d76f.mp3",
+   "secs": 1.7,
+   "text": "Wanneer zie je de sterren?"
   },
   {
    "id": "t46332299",
@@ -9670,6 +9916,12 @@
    "text": "De grote jager van de Jura, met drie vingers aan elke hand."
   },
   {
+   "id": "t4c903cb3",
+   "file": "nl/t4c903cb3.mp3",
+   "secs": 1.7,
+   "text": "In welk seizoen valt maart?"
+  },
+  {
    "id": "t4c9f2259",
    "file": "nl/t4c9f2259.mp3",
    "secs": 6.5,
@@ -9758,6 +10010,12 @@
    "file": "nl/t4d1d33ed.mp3",
    "secs": 1,
    "text": "Berslag"
+  },
+  {
+   "id": "t4d215302",
+   "file": "nl/t4d215302.mp3",
+   "secs": 1.8,
+   "text": "In welk seizoen valt juli?"
   },
   {
    "id": "t4d267305",
@@ -9940,6 +10198,12 @@
    "text": "Archilestes grandis"
   },
   {
+   "id": "t4eb9ff57",
+   "file": "nl/t4eb9ff57.mp3",
+   "secs": 1.8,
+   "text": "Welke maand komt na november?"
+  },
+  {
    "id": "t4ebf548c",
    "file": "nl/t4ebf548c.mp3",
    "secs": 1.2,
@@ -9992,6 +10256,12 @@
    "file": "nl/t4ee71564.mp3",
    "secs": 1.5,
    "text": "Tirumala limniace"
+  },
+  {
+   "id": "t4efd340d",
+   "file": "nl/t4efd340d.mp3",
+   "secs": 1.6,
+   "text": "Wanneer zie je de maan?"
   },
   {
    "id": "t4efd9456",
@@ -10124,6 +10394,12 @@
    "file": "nl/t4ff4b01f.mp3",
    "secs": 1.2,
    "text": "Stierhaai"
+  },
+  {
+   "id": "t4ffbaba8",
+   "file": "nl/t4ffbaba8.mp3",
+   "secs": 1,
+   "text": "Augustus"
   },
   {
    "id": "t500ca3a4",
@@ -10576,6 +10852,12 @@
    "text": "Bruinrode heidelibel"
   },
   {
+   "id": "t544151cf",
+   "file": "nl/t544151cf.mp3",
+   "secs": 3.4,
+   "text": "Als vandaag woensdag is, welke dag was het gisteren?"
+  },
+  {
    "id": "t545d0563",
    "file": "nl/t545d0563.mp3",
    "secs": 1.8,
@@ -10802,6 +11084,12 @@
    "file": "nl/t55878cfe.mp3",
    "secs": 1.3,
    "text": "Windevedermot"
+  },
+  {
+   "id": "t558c1ca6",
+   "file": "nl/t558c1ca6.mp3",
+   "secs": 2,
+   "text": "cm · streepjes zijn mm"
   },
   {
    "id": "t559f4a8e",
@@ -11296,6 +11584,12 @@
    "text": "Graaf geulen en het water vindt zelf zijn weg naar de akkers en de molen."
   },
   {
+   "id": "t5929ec6e",
+   "file": "nl/t5929ec6e.mp3",
+   "secs": 3.4,
+   "text": "Als vandaag vrijdag is, welke dag is het morgen?"
+  },
+  {
    "id": "t5932c76b",
    "file": "nl/t5932c76b.mp3",
    "secs": 1.6,
@@ -11408,6 +11702,12 @@
    "file": "nl/t5a13f683.mp3",
    "secs": 6,
    "text": "Negen klankstaven om op te spelen, en negen niveaus van tel, maat en melodie."
+  },
+  {
+   "id": "t5a163c16",
+   "file": "nl/t5a163c16.mp3",
+   "secs": 1,
+   "text": "Vrijdag"
   },
   {
    "id": "t5a2f00f6",
@@ -11668,6 +11968,12 @@
    "text": "13,75 ton brandstof, 5 rijen hoog."
   },
   {
+   "id": "t5be5dbfa",
+   "file": "nl/t5be5dbfa.mp3",
+   "secs": 1.8,
+   "text": "gemiddeld voor zijn familie"
+  },
+  {
    "id": "t5bfbefc9",
    "file": "nl/t5bfbefc9.mp3",
    "secs": 5.6,
@@ -11798,6 +12104,12 @@
    "file": "nl/t5c93de02.mp3",
    "secs": 1.5,
    "text": "Neverita duplicata"
+  },
+  {
+   "id": "t5ca133e8",
+   "file": "nl/t5ca133e8.mp3",
+   "secs": 1.8,
+   "text": "Welke dag komt na donderdag?"
   },
   {
    "id": "t5ca79832",
@@ -12034,6 +12346,12 @@
    "text": "Witmaskeribis"
   },
   {
+   "id": "t5e511fb6",
+   "file": "nl/t5e511fb6.mp3",
+   "secs": 1.2,
+   "text": "Op volgorde"
+  },
+  {
    "id": "t5e54fe97",
    "file": "nl/t5e54fe97.mp3",
    "secs": 1.4,
@@ -12134,6 +12452,12 @@
    "file": "nl/t5f14c024.mp3",
    "secs": 1.3,
    "text": "Hoffmannluiaard"
+  },
+  {
+   "id": "t5f2d9243",
+   "file": "nl/t5f2d9243.mp3",
+   "secs": 7.9,
+   "text": "In de herfst worden de blaadjes oranje en vallen ze naar beneden, waait het harder, en groeien er paddenstoelen."
   },
   {
    "id": "t5f311833",
@@ -12532,6 +12856,12 @@
    "text": "Zuidelijke alligatorhagedis"
   },
   {
+   "id": "t6205da1d",
+   "file": "nl/t6205da1d.mp3",
+   "secs": 3.4,
+   "text": "Als vandaag donderdag is, welke dag is het morgen?"
+  },
+  {
    "id": "t620f5f9e",
    "file": "nl/t620f5f9e.mp3",
    "secs": 1.5,
@@ -12586,6 +12916,12 @@
    "text": "Polycera atra"
   },
   {
+   "id": "t627563d8",
+   "file": "nl/t627563d8.mp3",
+   "secs": 2,
+   "text": "Welke maand komt na december?"
+  },
+  {
    "id": "t6287165b",
    "file": "nl/t6287165b.mp3",
    "secs": 5,
@@ -12602,6 +12938,12 @@
    "file": "nl/t62941d9d.mp3",
    "secs": 3.7,
    "text": "Een klein vosje; je hebt een donkere nacht nodig."
+  },
+  {
+   "id": "t62cc34dc",
+   "file": "nl/t62cc34dc.mp3",
+   "secs": 3.9,
+   "text": "Twaalf maanden maken een jaar. Januari komt eerst."
   },
   {
    "id": "t62d07894",
@@ -12818,6 +13160,12 @@
    "file": "nl/t642f8dd2.mp3",
    "secs": 4.3,
    "text": "Rechts is kwart over, onder is half, links is kwart voor."
+  },
+  {
+   "id": "t64358c7c",
+   "file": "nl/t64358c7c.mp3",
+   "secs": 3,
+   "text": "Als vandaag maandag is, welke dag is het morgen?"
   },
   {
    "id": "t6440358b",
@@ -13090,6 +13438,12 @@
    "text": "Abonnement"
   },
   {
+   "id": "t662dcc9e",
+   "file": "nl/t662dcc9e.mp3",
+   "secs": 1,
+   "text": "December"
+  },
+  {
    "id": "t662faaf6",
    "file": "nl/t662faaf6.mp3",
    "secs": 1.3,
@@ -13118,6 +13472,12 @@
    "file": "nl/t6651a4ec.mp3",
    "secs": 3.4,
    "text": "De zwaan vliegt de Melkweg af, staart vol licht."
+  },
+  {
+   "id": "t666aed78",
+   "file": "nl/t666aed78.mp3",
+   "secs": 2,
+   "text": "Wanneer staat de zon het hoogst?"
   },
   {
    "id": "t66822218",
@@ -14218,6 +14578,12 @@
    "text": "Orthetrum caledonicum"
   },
   {
+   "id": "t6f0113c9",
+   "file": "nl/t6f0113c9.mp3",
+   "secs": 1.4,
+   "text": "Wanneer is Kerst?"
+  },
+  {
    "id": "t6f039104",
    "file": "nl/t6f039104.mp3",
    "secs": 1.5,
@@ -14434,6 +14800,12 @@
    "text": "Kukulcania hibernalis"
   },
   {
+   "id": "t70cab883",
+   "file": "nl/t70cab883.mp3",
+   "secs": 2,
+   "text": "In welk seizoen valt september?"
+  },
+  {
    "id": "t70ccc92e",
    "file": "nl/t70ccc92e.mp3",
    "secs": 1.1,
@@ -14534,6 +14906,12 @@
    "file": "nl/t719593dc.mp3",
    "secs": 1.7,
    "text": "Gewone Maskerzanger"
+  },
+  {
+   "id": "t719f65c8",
+   "file": "nl/t719f65c8.mp3",
+   "secs": 1.8,
+   "text": "In welk seizoen valt juni?"
   },
   {
    "id": "t71a4538e",
@@ -15562,6 +15940,12 @@
    "text": "Spotted Lanternfly"
   },
   {
+   "id": "t7a70444c",
+   "file": "nl/t7a70444c.mp3",
+   "secs": 2.9,
+   "text": "Als vandaag zondag is, welke dag is het morgen?"
+  },
+  {
    "id": "t7a76fa6f",
    "file": "nl/t7a76fa6f.mp3",
    "secs": 1.7,
@@ -16070,6 +16454,12 @@
    "file": "nl/t7e69cd7d.mp3",
    "secs": 1.3,
    "text": "Canadese Otter"
+  },
+  {
+   "id": "t7e6c6285",
+   "file": "nl/t7e6c6285.mp3",
+   "secs": 1.9,
+   "text": "Welke maand komt na oktober?"
   },
   {
    "id": "t7e74e6bf",
@@ -16694,6 +17084,12 @@
    "file": "nl/t822c9d02.mp3",
    "secs": 1.2,
    "text": "De zaagmolen"
+  },
+  {
+   "id": "t822e2110",
+   "file": "nl/t822e2110.mp3",
+   "secs": 2.1,
+   "text": "Wanneer eet je je avondeten?"
   },
   {
    "id": "t825a1ae5",
@@ -17446,6 +17842,12 @@
    "text": "Hitteschild"
   },
   {
+   "id": "t88bfce27",
+   "file": "nl/t88bfce27.mp3",
+   "secs": 2,
+   "text": "In welk seizoen valt augustus?"
+  },
+  {
    "id": "t88c53aa7",
    "file": "nl/t88c53aa7.mp3",
    "secs": 1.5,
@@ -17486,6 +17888,12 @@
    "file": "nl/t8924484e.mp3",
    "secs": 1.2,
    "text": "Grijze Marmot"
+  },
+  {
+   "id": "t8931726b",
+   "file": "nl/t8931726b.mp3",
+   "secs": 2.4,
+   "text": "In de middag staat de zon hoog aan de hemel."
   },
   {
    "id": "t89418efa",
@@ -17836,6 +18244,12 @@
    "text": "Robust Kajika Frog"
   },
   {
+   "id": "t8bcb5c42",
+   "file": "nl/t8bcb5c42.mp3",
+   "secs": 2,
+   "text": "In welk seizoen valt november?"
+  },
+  {
    "id": "t8bcc20d1",
    "file": "nl/t8bcc20d1.mp3",
    "secs": 4.6,
@@ -18058,6 +18472,12 @@
    "text": "Southern Moon Jelly"
   },
   {
+   "id": "t8da1d03f",
+   "file": "nl/t8da1d03f.mp3",
+   "secs": 1,
+   "text": "Donderdag"
+  },
+  {
    "id": "t8db052f0",
    "file": "nl/t8db052f0.mp3",
    "secs": 4.9,
@@ -18122,6 +18542,12 @@
    "file": "nl/t8e229a7d.mp3",
    "secs": 1.4,
    "text": "Dorantes Longtail"
+  },
+  {
+   "id": "t8e29644a",
+   "file": "nl/t8e29644a.mp3",
+   "secs": 1.3,
+   "text": "De seizoenen"
   },
   {
    "id": "t8e304c90",
@@ -18356,6 +18782,12 @@
    "file": "nl/t8fd0c94e.mp3",
    "secs": 1.3,
    "text": "Junonia villida"
+  },
+  {
+   "id": "t8fe4f84a",
+   "file": "nl/t8fe4f84a.mp3",
+   "secs": 6.9,
+   "text": "De dagen van de week, de maanden en de seizoenen, met een boom die verandert als je het jaar ronddraait."
   },
   {
    "id": "t8fea1c6c",
@@ -19132,6 +19564,12 @@
    "text": "Amerikaanse oester"
   },
   {
+   "id": "t94fb93e5",
+   "file": "nl/t94fb93e5.mp3",
+   "secs": 1.7,
+   "text": "Welke dag komt na maandag?"
+  },
+  {
    "id": "t9528016b",
    "file": "nl/t9528016b.mp3",
    "secs": 1.1,
@@ -19294,6 +19732,12 @@
    "text": "Halsbandpekari"
   },
   {
+   "id": "t9637925f",
+   "file": "nl/t9637925f.mp3",
+   "secs": 1,
+   "text": "Dinsdag"
+  },
+  {
    "id": "t964fefd6",
    "file": "nl/t964fefd6.mp3",
    "secs": 1.7,
@@ -19408,6 +19852,12 @@
    "text": "Gestippelde Egelvis"
   },
   {
+   "id": "t96f60915",
+   "file": "nl/t96f60915.mp3",
+   "secs": 1.7,
+   "text": "Wanneer kan het sneeuwen?"
+  },
+  {
    "id": "t96fbe097",
    "file": "nl/t96fbe097.mp3",
    "secs": 7.6,
@@ -19514,6 +19964,12 @@
    "file": "nl/t97ba6686.mp3",
    "secs": 3.1,
    "text": "Dezelfde, met een klok waar je in kunt zitten."
+  },
+  {
+   "id": "t97c11f96",
+   "file": "nl/t97c11f96.mp3",
+   "secs": 1.8,
+   "text": "In welk seizoen valt april?"
   },
   {
    "id": "t97cb039f",
@@ -19654,6 +20110,12 @@
    "text": "Rosse Kolibrie"
   },
   {
+   "id": "t989616d8",
+   "file": "nl/t989616d8.mp3",
+   "secs": 1.2,
+   "text": "Dag en nacht"
+  },
+  {
    "id": "t989b4863",
    "file": "nl/t989b4863.mp3",
    "secs": 2.1,
@@ -19688,6 +20150,12 @@
    "file": "nl/t98d621f0.mp3",
    "secs": 1.6,
    "text": "Dat is de code niet."
+  },
+  {
+   "id": "t98dbac97",
+   "file": "nl/t98dbac97.mp3",
+   "secs": 0.9,
+   "text": "April"
   },
   {
    "id": "t98dca97d",
@@ -19850,6 +20318,12 @@
    "file": "nl/t9a82dabd.mp3",
    "secs": 1.4,
    "text": "Groot dikkopje"
+  },
+  {
+   "id": "t9a9d0e75",
+   "file": "nl/t9a9d0e75.mp3",
+   "secs": 14.1,
+   "text": "Een kort tikje dat je voelt bij knoppen, goede antwoorden en afgemaakte spelletjes. Op een iPhone in de browser werkt het alleen zolang er een vinger op het scherm is; in de app altijd."
   },
   {
    "id": "t9aa62e53",
@@ -21124,6 +21598,12 @@
    "text": "Kievit"
   },
   {
+   "id": "ta3de4d8f",
+   "file": "nl/ta3de4d8f.mp3",
+   "secs": 1,
+   "text": "Oktober"
+  },
+  {
    "id": "ta3de599f",
    "file": "nl/ta3de599f.mp3",
    "secs": 1,
@@ -21338,6 +21818,12 @@
    "file": "nl/ta597111f.mp3",
    "secs": 1.5,
    "text": "Argia apicalis"
+  },
+  {
+   "id": "ta5a6417c",
+   "file": "nl/ta5a6417c.mp3",
+   "secs": 2,
+   "text": "In welk seizoen valt januari?"
   },
   {
    "id": "ta5a82141",
@@ -21800,6 +22286,12 @@
    "file": "nl/ta8e7912b.mp3",
    "secs": 3.1,
    "text": "Uittellen, eerlijk delen, hoeveel erbij"
+  },
+  {
+   "id": "ta8ecaf74",
+   "file": "nl/ta8ecaf74.mp3",
+   "secs": 1.6,
+   "text": "Wanneer komt Sinterklaas?"
   },
   {
    "id": "ta8f75b91",
@@ -22354,6 +22846,12 @@
    "text": "Dertig motoren"
   },
   {
+   "id": "tad2d14ad",
+   "file": "nl/tad2d14ad.mp3",
+   "secs": 1,
+   "text": "Januari"
+  },
+  {
    "id": "tad403f36",
    "file": "nl/tad403f36.mp3",
    "secs": 1.7,
@@ -22414,6 +22912,12 @@
    "text": "Grutto"
   },
   {
+   "id": "tad98801a",
+   "file": "nl/tad98801a.mp3",
+   "secs": 3.3,
+   "text": "Als vandaag vrijdag is, welke dag was het gisteren?"
+  },
+  {
    "id": "tada663c6",
    "file": "nl/tada663c6.mp3",
    "secs": 1.1,
@@ -22460,6 +22964,12 @@
    "file": "nl/tadd4e83d.mp3",
    "secs": 1.4,
    "text": "Heermanns Meeuw"
+  },
+  {
+   "id": "tadd91ca3",
+   "file": "nl/tadd91ca3.mp3",
+   "secs": 1.9,
+   "text": "Schuif de zon over de hemel."
   },
   {
    "id": "tadde45ab",
@@ -22652,6 +23162,12 @@
    "file": "nl/taf6acf66.mp3",
    "secs": 1.6,
    "text": "Violette draadslak"
+  },
+  {
+   "id": "taf728ae3",
+   "file": "nl/taf728ae3.mp3",
+   "secs": 0.9,
+   "text": "Middag"
   },
   {
    "id": "taf7f8de2",
@@ -22892,6 +23408,12 @@
    "file": "nl/tb1eaeb15.mp3",
    "secs": 1.4,
    "text": "Ringspikkelspanner"
+  },
+  {
+   "id": "tb1eb288a",
+   "file": "nl/tb1eb288a.mp3",
+   "secs": 0.9,
+   "text": "Zomer"
   },
   {
    "id": "tb1ef6254",
@@ -23252,6 +23774,12 @@
    "file": "nl/tb4ab88e4.mp3",
    "secs": 1.2,
    "text": "Blinde haai"
+  },
+  {
+   "id": "tb4af9118",
+   "file": "nl/tb4af9118.mp3",
+   "secs": 0.9,
+   "text": "Zondag"
   },
   {
    "id": "tb4b28696",
@@ -23978,6 +24506,12 @@
    "file": "nl/tba5c0603.mp3",
    "secs": 1.5,
    "text": "Roodstreeplipvis"
+  },
+  {
+   "id": "tba626334",
+   "file": "nl/tba626334.mp3",
+   "secs": 4.2,
+   "text": "Zeven wagons, zeven dagen. Maandag rijdt voorop."
   },
   {
    "id": "tba648395",
@@ -24940,6 +25474,18 @@
    "text": "Gestreepte bokvis"
   },
   {
+   "id": "tc20c1c54",
+   "file": "nl/tc20c1c54.mp3",
+   "secs": 1.8,
+   "text": "Welke dag komt na woensdag?"
+  },
+  {
+   "id": "tc212b600",
+   "file": "nl/tc212b600.mp3",
+   "secs": 1.1,
+   "text": "September"
+  },
+  {
    "id": "tc231014e",
    "file": "nl/tc231014e.mp3",
    "secs": 1.6,
@@ -24974,6 +25520,12 @@
    "file": "nl/tc275b89e.mp3",
    "secs": 1.7,
    "text": "Amerikaanse Klapekster"
+  },
+  {
+   "id": "tc2890d31",
+   "file": "nl/tc2890d31.mp3",
+   "secs": 1.7,
+   "text": "In welk seizoen valt mei?"
   },
   {
    "id": "tc28be896",
@@ -25570,6 +26122,12 @@
    "text": "Drie volt uit daglicht, en hij raakt nooit op. Zwakker dan een batterij."
   },
   {
+   "id": "tc718b0f9",
+   "file": "nl/tc718b0f9.mp3",
+   "secs": 0.9,
+   "text": "Avond"
+  },
+  {
    "id": "tc71c79a0",
    "file": "nl/tc71c79a0.mp3",
    "secs": 1.6,
@@ -25670,6 +26228,12 @@
    "file": "nl/tc81d40dd.mp3",
    "secs": 0.9,
    "text": "Verschil"
+  },
+  {
+   "id": "tc824404d",
+   "file": "nl/tc824404d.mp3",
+   "secs": 1.7,
+   "text": "Welke dag komt na zondag?"
   },
   {
    "id": "tc835c524",
@@ -25888,6 +26452,12 @@
    "text": "Portugees oorlogsschip"
   },
   {
+   "id": "tc9fbb1c2",
+   "file": "nl/tc9fbb1c2.mp3",
+   "secs": 7.1,
+   "text": "In de zomer staat de boom vol en groen, schijnt de zon fel, en is het warm genoeg voor korte mouwen."
+  },
+  {
    "id": "tca065ffc",
    "file": "nl/tca065ffc.mp3",
    "secs": 1.4,
@@ -25910,6 +26480,12 @@
    "file": "nl/tca44d608.mp3",
    "secs": 1.7,
    "text": "Chrysomya megacephala"
+  },
+  {
+   "id": "tca4c1817",
+   "file": "nl/tca4c1817.mp3",
+   "secs": 1.5,
+   "text": "Gisteren en morgen"
   },
   {
    "id": "tca5440a1",
@@ -26068,6 +26644,12 @@
    "text": "Gedomesticeerd Rund"
   },
   {
+   "id": "tcbc8d344",
+   "file": "nl/tcbc8d344.mp3",
+   "secs": 1.7,
+   "text": "Welke maand komt na maart?"
+  },
+  {
    "id": "tcbca5f24",
    "file": "nl/tcbca5f24.mp3",
    "secs": 1.5,
@@ -26204,6 +26786,12 @@
    "file": "nl/tcccd78ca.mp3",
    "secs": 10.5,
    "text": "Boven de zes is er geen Nederlandse richtlijn om naar te wijzen, dus dit getal is van ons. Zie het als een beginpunt, niet als advies."
+  },
+  {
+   "id": "tccce3af1",
+   "file": "nl/tccce3af1.mp3",
+   "secs": 3.5,
+   "text": "Veeg over de tekening en kijk hoe de boom verandert."
   },
   {
    "id": "tccd51ee7",
@@ -26674,6 +27262,12 @@
    "text": "Ceres"
   },
   {
+   "id": "td00a1ec3",
+   "file": "nl/td00a1ec3.mp3",
+   "secs": 3.7,
+   "text": "Als vandaag donderdag is, welke dag was het gisteren?"
+  },
+  {
    "id": "td01edd33",
    "file": "nl/td01edd33.mp3",
    "secs": 1.7,
@@ -26690,6 +27284,12 @@
    "file": "nl/td0295876.mp3",
    "secs": 1.4,
    "text": "Patiria miniata"
+  },
+  {
+   "id": "td0369d42",
+   "file": "nl/td0369d42.mp3",
+   "secs": 1.5,
+   "text": "Wanneer sta je op?"
   },
   {
    "id": "td040ffc5",
@@ -27022,6 +27622,12 @@
    "text": "Amerikaanse venusschelp"
   },
   {
+   "id": "td324fe61",
+   "file": "nl/td324fe61.mp3",
+   "secs": 5.8,
+   "text": "In de lente gaan de knoppen open, komen de vogels terug, en valt er een zachte regen."
+  },
+  {
    "id": "td327cc9e",
    "file": "nl/td327cc9e.mp3",
    "secs": 2.8,
@@ -27140,6 +27746,12 @@
    "file": "nl/td3dd5d24.mp3",
    "secs": 1.4,
    "text": "Zandtijgerhaai"
+  },
+  {
+   "id": "td3ea650a",
+   "file": "nl/td3ea650a.mp3",
+   "secs": 2.4,
+   "text": "Wanneer vallen de blaadjes van de bomen?"
   },
   {
    "id": "td3f955bd",
@@ -27362,6 +27974,12 @@
    "file": "nl/td5834163.mp3",
    "secs": 4,
    "text": "Dit is een maanvis, de zwaarste beenvis van de zee."
+  },
+  {
+   "id": "td5835c7c",
+   "file": "nl/td5835c7c.mp3",
+   "secs": 4.2,
+   "text": "In de nacht staan de maan en de sterren aan de hemel en slaap je."
   },
   {
    "id": "td588e931",
@@ -27658,6 +28276,12 @@
    "text": "Lithobates blairi"
   },
   {
+   "id": "td7c39399",
+   "file": "nl/td7c39399.mp3",
+   "secs": 3.4,
+   "text": "Als vandaag woensdag is, welke dag is het morgen?"
+  },
+  {
    "id": "td7d61dd0",
    "file": "nl/td7d61dd0.mp3",
    "secs": 0.9,
@@ -27752,6 +28376,12 @@
    "file": "nl/td87ca5f4.mp3",
    "secs": 1.1,
    "text": "Naar Mars"
+  },
+  {
+   "id": "td8907184",
+   "file": "nl/td8907184.mp3",
+   "secs": 1.8,
+   "text": "Wanneer eet je je ontbijt?"
   },
   {
    "id": "td8ac5157",
@@ -28066,6 +28696,12 @@
    "text": "Townsendchipmunk"
   },
   {
+   "id": "tdb1bafe8",
+   "file": "nl/tdb1bafe8.mp3",
+   "secs": 1.8,
+   "text": "Welke dag komt na dinsdag?"
+  },
+  {
    "id": "tdb1d2098",
    "file": "nl/tdb1d2098.mp3",
    "secs": 0.9,
@@ -28234,10 +28870,22 @@
    "text": "Aziatische honingbij"
   },
   {
+   "id": "tdc79592f",
+   "file": "nl/tdc79592f.mp3",
+   "secs": 3,
+   "text": "Als vandaag zaterdag is, welke dag is het morgen?"
+  },
+  {
    "id": "tdc95f31d",
    "file": "nl/tdc95f31d.mp3",
    "secs": 1.8,
    "text": "Echinothrix calamaris"
+  },
+  {
+   "id": "tdc99b40a",
+   "file": "nl/tdc99b40a.mp3",
+   "secs": 2,
+   "text": "In welk seizoen valt februari?"
   },
   {
    "id": "tdc9beb2a",
@@ -28552,6 +29200,12 @@
    "text": "Grote Kuiftiran"
   },
   {
+   "id": "tdf69d578",
+   "file": "nl/tdf69d578.mp3",
+   "secs": 0.9,
+   "text": "Ochtend"
+  },
+  {
    "id": "tdf72eda9",
    "file": "nl/tdf72eda9.mp3",
    "secs": 5.3,
@@ -28862,6 +29516,12 @@
    "file": "nl/te17c3951.mp3",
    "secs": 0.8,
    "text": "Eet"
+  },
+  {
+   "id": "te18a3915",
+   "file": "nl/te18a3915.mp3",
+   "secs": 1.3,
+   "text": "Het jaar rond"
   },
   {
    "id": "te1a05903",
@@ -29218,6 +29878,12 @@
    "text": "Zonnecel gedraaid."
   },
   {
+   "id": "te3e16b63",
+   "file": "nl/te3e16b63.mp3",
+   "secs": 7.2,
+   "text": "De dagen en maanden op volgorde, gisteren en morgen, de seizoenen, de delen van de dag"
+  },
+  {
    "id": "te3e7ddef",
    "file": "nl/te3e7ddef.mp3",
    "secs": 1.2,
@@ -29446,6 +30112,12 @@
    "text": "hok"
   },
   {
+   "id": "te5c56fae",
+   "file": "nl/te5c56fae.mp3",
+   "secs": 1.9,
+   "text": "In welk seizoen valt oktober?"
+  },
+  {
    "id": "te5f1e62a",
    "file": "nl/te5f1e62a.mp3",
    "secs": 5.8,
@@ -29528,6 +30200,12 @@
    "file": "nl/te6907397.mp3",
    "secs": 1.2,
    "text": "De Waddenzee"
+  },
+  {
+   "id": "te6c3eea0",
+   "file": "nl/te6c3eea0.mp3",
+   "secs": 0.8,
+   "text": "Maart"
   },
   {
    "id": "te6c91f14",
@@ -29678,6 +30356,12 @@
    "file": "nl/te7f352d8.mp3",
    "secs": 0.9,
    "text": "reis"
+  },
+  {
+   "id": "te7f5ebb9",
+   "file": "nl/te7f5ebb9.mp3",
+   "secs": 1,
+   "text": "Herfst"
   },
   {
    "id": "te7fb8b6a",
@@ -29840,6 +30524,12 @@
    "file": "nl/te8f5a159.mp3",
    "secs": 1.5,
    "text": "Vloeibare aanbouw"
+  },
+  {
+   "id": "te8fcab6d",
+   "file": "nl/te8fcab6d.mp3",
+   "secs": 3.2,
+   "text": "Als vandaag zaterdag is, welke dag was het gisteren?"
   },
   {
    "id": "te911921b",
@@ -30232,6 +30922,12 @@
    "text": "Spot-legged Tree Frog"
   },
   {
+   "id": "tebe434f8",
+   "file": "nl/tebe434f8.mp3",
+   "secs": 1.6,
+   "text": "Veeg over de tekening."
+  },
+  {
    "id": "tebeaac17",
    "file": "nl/tebeaac17.mp3",
    "secs": 4.3,
@@ -30434,6 +31130,12 @@
    "file": "nl/ted1cba05.mp3",
    "secs": 1.5,
    "text": "Krombekspotlijster"
+  },
+  {
+   "id": "ted20fdd1",
+   "file": "nl/ted20fdd1.mp3",
+   "secs": 0.9,
+   "text": "Juni"
   },
   {
    "id": "ted31954e",
@@ -31384,6 +32086,12 @@
    "text": "Gobiesox maeandricus"
   },
   {
+   "id": "tf410ba17",
+   "file": "nl/tf410ba17.mp3",
+   "secs": 2.2,
+   "text": "Welke maand komt na februari?"
+  },
+  {
    "id": "tf41a71f6",
    "file": "nl/tf41a71f6.mp3",
    "secs": 1.6,
@@ -31414,6 +32122,12 @@
    "text": "Nu doet de kleur er niet toe. Kijk wat het is."
   },
   {
+   "id": "tf459789e",
+   "file": "nl/tf459789e.mp3",
+   "secs": 1.1,
+   "text": "De maanden"
+  },
+  {
    "id": "tf4a4d608",
    "file": "nl/tf4a4d608.mp3",
    "secs": 3.1,
@@ -31430,6 +32144,12 @@
    "file": "nl/tf4cd9531.mp3",
    "secs": 1.4,
    "text": "Klank voor klank"
+  },
+  {
+   "id": "tf4d11b85",
+   "file": "nl/tf4d11b85.mp3",
+   "secs": 1.8,
+   "text": "Welke maand komt na april?"
   },
   {
    "id": "tf4d71e34",
@@ -31702,6 +32422,12 @@
    "text": "Smalle tank 1"
   },
   {
+   "id": "tf6ea263a",
+   "file": "nl/tf6ea263a.mp3",
+   "secs": 1,
+   "text": "De week"
+  },
+  {
    "id": "tf6f02336",
    "file": "nl/tf6f02336.mp3",
    "secs": 1.5,
@@ -31964,6 +32690,12 @@
    "file": "nl/tf8e7de69.mp3",
    "secs": 0.9,
    "text": "Wolf"
+  },
+  {
+   "id": "tf8ee320e",
+   "file": "nl/tf8ee320e.mp3",
+   "secs": 1.9,
+   "text": "Welke dag komt na zaterdag?"
   },
   {
    "id": "tf8f62f3e",
@@ -33066,6 +33798,18 @@
    "text": "Swellshark"
   },
   {
+   "id": "t011ca01f",
+   "file": "en/t011ca01f.mp3",
+   "secs": 1,
+   "text": "July"
+  },
+  {
+   "id": "t0122590c",
+   "file": "en/t0122590c.mp3",
+   "secs": 1.9,
+   "text": "Tap the day that comes next."
+  },
+  {
    "id": "t0124e57f",
    "file": "en/t0124e57f.mp3",
    "secs": 1.5,
@@ -33340,6 +34084,12 @@
    "file": "en/t02ca0bda.mp3",
    "secs": 1.3,
    "text": "Thin tank 4"
+  },
+  {
+   "id": "t02e055cf",
+   "file": "en/t02e055cf.mp3",
+   "secs": 0.9,
+   "text": "Morning"
   },
   {
    "id": "t02ff0734",
@@ -34146,6 +34896,12 @@
    "text": "Drab Tree Frog"
   },
   {
+   "id": "t09a75942",
+   "file": "en/t09a75942.mp3",
+   "secs": 1.8,
+   "text": "cm · marks are mm"
+  },
+  {
    "id": "t09a98408",
    "file": "en/t09a98408.mp3",
    "secs": 1.7,
@@ -34266,6 +35022,12 @@
    "text": "Bee Moth"
   },
   {
+   "id": "t0acedc2c",
+   "file": "en/t0acedc2c.mp3",
+   "secs": 0.9,
+   "text": "Winter"
+  },
+  {
    "id": "t0add61dd",
    "file": "en/t0add61dd.mp3",
    "secs": 1.1,
@@ -34368,6 +35130,12 @@
    "text": "Green-eyed White"
   },
   {
+   "id": "t0b89799b",
+   "file": "en/t0b89799b.mp3",
+   "secs": 1.6,
+   "text": "Which day comes next?"
+  },
+  {
    "id": "t0bbcba27",
    "file": "en/t0bbcba27.mp3",
    "secs": 1,
@@ -34390,6 +35158,12 @@
    "file": "en/t0bf49df9.mp3",
    "secs": 0.9,
    "text": "Titan"
+  },
+  {
+   "id": "t0bf63733",
+   "file": "en/t0bf63733.mp3",
+   "secs": 0.9,
+   "text": "Autumn"
   },
   {
    "id": "t0c006d1d",
@@ -34480,6 +35254,12 @@
    "file": "en/t0cbc13a3.mp3",
    "secs": 1.6,
    "text": "Florida Stone Crab"
+  },
+  {
+   "id": "t0cc20db7",
+   "file": "en/t0cc20db7.mp3",
+   "secs": 1,
+   "text": "Afternoon"
   },
   {
    "id": "t0cd0f6a4",
@@ -34678,6 +35458,12 @@
    "file": "en/t0e4c0569.mp3",
    "secs": 1.4,
    "text": "Big methane engine"
+  },
+  {
+   "id": "t0e68b936",
+   "file": "en/t0e68b936.mp3",
+   "secs": 1,
+   "text": "Saturday"
   },
   {
    "id": "t0e708712",
@@ -36072,6 +36858,12 @@
    "text": "Morimus asper"
   },
   {
+   "id": "t1a0a382e",
+   "file": "en/t1a0a382e.mp3",
+   "secs": 1.2,
+   "text": "The seasons"
+  },
+  {
    "id": "t1a0dc0d9",
    "file": "en/t1a0dc0d9.mp3",
    "secs": 1.4,
@@ -36402,6 +37194,12 @@
    "text": "Chestnut Cowry"
   },
   {
+   "id": "t1c90940e",
+   "file": "en/t1c90940e.mp3",
+   "secs": 1.6,
+   "text": "typical for its family"
+  },
+  {
    "id": "t1ca3fb4a",
    "file": "en/t1ca3fb4a.mp3",
    "secs": 1.2,
@@ -36484,6 +37282,12 @@
    "file": "en/t1d0c939c.mp3",
    "secs": 1.8,
    "text": "Which chime fills the gap?"
+  },
+  {
+   "id": "t1d0ef0a0",
+   "file": "en/t1d0ef0a0.mp3",
+   "secs": 7,
+   "text": "The days of the week, the months and the seasons, with a tree that changes as you turn the year."
   },
   {
    "id": "t1d17955c",
@@ -36814,6 +37618,12 @@
    "file": "en/t1fb0383b.mp3",
    "secs": 1.8,
    "text": "Obscure Darkling Beetle"
+  },
+  {
+   "id": "t1fc0c929",
+   "file": "en/t1fc0c929.mp3",
+   "secs": 1.2,
+   "text": "Round the year"
   },
   {
    "id": "t1fc8e616",
@@ -37458,6 +38268,12 @@
    "text": "Bluefish"
   },
   {
+   "id": "t2458ddf3",
+   "file": "en/t2458ddf3.mp3",
+   "secs": 12.5,
+   "text": "A short tap you can feel on buttons, right answers and finished games. On an iPhone in the browser it only works while a finger is on the screen; in the app it always does."
+  },
+  {
    "id": "t24685077",
    "file": "en/t24685077.mp3",
    "secs": 1.5,
@@ -37540,6 +38356,12 @@
    "file": "en/t24f65578.mp3",
    "secs": 1.2,
    "text": "Spring tide"
+  },
+  {
+   "id": "t25158b25",
+   "file": "en/t25158b25.mp3",
+   "secs": 3,
+   "text": "Days, months, seasons, and the parts of the day."
   },
   {
    "id": "t251b13e7",
@@ -37774,6 +38596,12 @@
    "file": "en/t26f38071.mp3",
    "secs": 0.9,
    "text": "done"
+  },
+  {
+   "id": "t26fbae1b",
+   "file": "en/t26fbae1b.mp3",
+   "secs": 1,
+   "text": "The months"
   },
   {
    "id": "t27025acf",
@@ -39630,6 +40458,12 @@
    "text": "Fantail Darter"
   },
   {
+   "id": "t3680fb78",
+   "file": "en/t3680fb78.mp3",
+   "secs": 1,
+   "text": "The week"
+  },
+  {
    "id": "t368b22a1",
    "file": "en/t368b22a1.mp3",
    "secs": 1.2,
@@ -40134,6 +40968,12 @@
    "text": "American Oystercatcher"
   },
   {
+   "id": "t3a56e759",
+   "file": "en/t3a56e759.mp3",
+   "secs": 0.9,
+   "text": "Monday"
+  },
+  {
    "id": "t3a5d0ceb",
    "file": "en/t3a5d0ceb.mp3",
    "secs": 1.2,
@@ -40344,6 +41184,12 @@
    "text": "missed"
   },
   {
+   "id": "t3ba7e226",
+   "file": "en/t3ba7e226.mp3",
+   "secs": 0.9,
+   "text": "May"
+  },
+  {
    "id": "t3bada46b",
    "file": "en/t3bada46b.mp3",
    "secs": 1.7,
@@ -40438,6 +41284,12 @@
    "file": "en/t3c4f50f4.mp3",
    "secs": 1.2,
    "text": "Painted Turtle"
+  },
+  {
+   "id": "t3c4f988c",
+   "file": "en/t3c4f988c.mp3",
+   "secs": 3.3,
+   "text": "Yesterday is one day back, tomorrow is one day on."
   },
   {
    "id": "t3c53f7b9",
@@ -40702,6 +41554,12 @@
    "file": "en/t3ea448fe.mp3",
    "secs": 3.5,
    "text": "A pair of the big ones. The stack leaves in a hurry."
+  },
+  {
+   "id": "t3ea53a3f",
+   "file": "en/t3ea53a3f.mp3",
+   "secs": 1,
+   "text": "November"
   },
   {
    "id": "t3eb22d09",
@@ -41248,6 +42106,12 @@
    "file": "en/t42f5111c.mp3",
    "secs": 0.9,
    "text": "Kina"
+  },
+  {
+   "id": "t42f6a154",
+   "file": "en/t42f6a154.mp3",
+   "secs": 0.8,
+   "text": "Summer"
   },
   {
    "id": "t42f9cd36",
@@ -42264,10 +43128,22 @@
    "text": "Atlantic Jackknife"
   },
   {
+   "id": "t4a4f02e3",
+   "file": "en/t4a4f02e3.mp3",
+   "secs": 1.6,
+   "text": "Sound and vibration"
+  },
+  {
    "id": "t4a55476f",
    "file": "en/t4a55476f.mp3",
    "secs": 3.5,
    "text": "A lumpy little moon that races round Mars three times a day."
+  },
+  {
+   "id": "t4a5908cf",
+   "file": "en/t4a5908cf.mp3",
+   "secs": 0.9,
+   "text": "Evening"
   },
   {
    "id": "t4a5f45ee",
@@ -44682,6 +45558,12 @@
    "text": "Bornean Orangutan"
   },
   {
+   "id": "t5ddb609c",
+   "file": "en/t5ddb609c.mp3",
+   "secs": 0.9,
+   "text": "August"
+  },
+  {
    "id": "t5ddd155a",
    "file": "en/t5ddd155a.mp3",
    "secs": 1.5,
@@ -45534,6 +46416,12 @@
    "text": "Mottled Umber"
   },
   {
+   "id": "t662dcc9e",
+   "file": "en/t662dcc9e.mp3",
+   "secs": 1,
+   "text": "December"
+  },
+  {
    "id": "t663278c4",
    "file": "en/t663278c4.mp3",
    "secs": 1.6,
@@ -45934,6 +46822,12 @@
    "file": "en/t69fd707b.mp3",
    "secs": 1.7,
    "text": "Devil's Coach Horse Beetle"
+  },
+  {
+   "id": "t6a220bad",
+   "file": "en/t6a220bad.mp3",
+   "secs": 1.2,
+   "text": "That is right!"
   },
   {
    "id": "t6a3b82ce",
@@ -46426,6 +47320,12 @@
    "file": "en/t6e8fe7ea.mp3",
    "secs": 1.7,
    "text": "The wheel has done its work."
+  },
+  {
+   "id": "t6e9d9322",
+   "file": "en/t6e9d9322.mp3",
+   "secs": 6.9,
+   "text": "The days and months in order, yesterday and tomorrow, the seasons, the parts of the day"
   },
   {
    "id": "t6ea2c7ad",
@@ -50208,6 +51108,12 @@
    "text": "Bobak Marmot"
   },
   {
+   "id": "t8c9a1101",
+   "file": "en/t8c9a1101.mp3",
+   "secs": 0.9,
+   "text": "Night"
+  },
+  {
    "id": "t8cb68ca2",
    "file": "en/t8cb68ca2.mp3",
    "secs": 2,
@@ -50614,6 +51520,12 @@
    "file": "en/t8f871c86.mp3",
    "secs": 3.7,
    "text": "It fills the rooms with gas to rise and with water to sink."
+  },
+  {
+   "id": "t8f9999f2",
+   "file": "en/t8f9999f2.mp3",
+   "secs": 1.1,
+   "text": "In order"
   },
   {
    "id": "t8fa4e68f",
@@ -51810,6 +52722,12 @@
    "text": "Hooded Merganser"
   },
   {
+   "id": "t98dbac97",
+   "file": "en/t98dbac97.mp3",
+   "secs": 0.9,
+   "text": "April"
+  },
+  {
    "id": "t98f6c0f1",
    "file": "en/t98f6c0f1.mp3",
    "secs": 1.2,
@@ -51954,6 +52872,12 @@
    "text": "Cricket-bat Orbweaver"
   },
   {
+   "id": "t99eb4fd7",
+   "file": "en/t99eb4fd7.mp3",
+   "secs": 1,
+   "text": "Thursday"
+  },
+  {
    "id": "t99f0d384",
    "file": "en/t99f0d384.mp3",
    "secs": 0.9,
@@ -52078,6 +53002,12 @@
    "file": "en/t9ac13042.mp3",
    "secs": 1,
    "text": "km/h"
+  },
+  {
+   "id": "t9aca03e6",
+   "file": "en/t9aca03e6.mp3",
+   "secs": 7,
+   "text": "The days of the week, the months and the seasons, in a Dutch landscape that changes with the year and the day."
   },
   {
    "id": "t9ad0829c",
@@ -52426,6 +53356,12 @@
    "file": "en/t9d286118.mp3",
    "secs": 1.5,
    "text": "Baltimore Oriole"
+  },
+  {
+   "id": "t9d2cfb7d",
+   "file": "en/t9d2cfb7d.mp3",
+   "secs": 1,
+   "text": "January"
   },
   {
    "id": "t9d50a423",
@@ -54156,6 +55092,12 @@
    "text": "Filmy Dome Spider"
   },
   {
+   "id": "tac7c5760",
+   "file": "en/tac7c5760.mp3",
+   "secs": 1.7,
+   "text": "Slide across the picture."
+  },
+  {
    "id": "tac7d4031",
    "file": "en/tac7d4031.mp3",
    "secs": 1.4,
@@ -54486,6 +55428,12 @@
    "text": "Acmon Blue"
   },
   {
+   "id": "taf5972cc",
+   "file": "en/taf5972cc.mp3",
+   "secs": 2.2,
+   "text": "Slide the sun across the sky."
+  },
+  {
    "id": "taf5b8ced",
    "file": "en/taf5b8ced.mp3",
    "secs": 1.7,
@@ -54508,6 +55456,12 @@
    "file": "en/taf8a922c.mp3",
    "secs": 1.3,
    "text": "Calico Pennant"
+  },
+  {
+   "id": "taf92f8aa",
+   "file": "en/taf92f8aa.mp3",
+   "secs": 4.1,
+   "text": "Seven wagons, seven days. Monday rides up front."
   },
   {
    "id": "taf969be6",
@@ -54640,6 +55594,12 @@
    "file": "en/tb0e9b907.mp3",
    "secs": 1.8,
    "text": "Vestal Cuckoo Bumble bee"
+  },
+  {
+   "id": "tb0ea7e3a",
+   "file": "en/tb0ea7e3a.mp3",
+   "secs": 3.4,
+   "text": "Twelve months make a year. January comes first."
   },
   {
    "id": "tb0f9b33d",
@@ -54784,6 +55744,12 @@
    "file": "en/tb1d2f90c.mp3",
    "secs": 5.3,
    "text": "Ordering, comparing sizes, predicting motion, knowing the solar system"
+  },
+  {
+   "id": "tb1d3d618",
+   "file": "en/tb1d3d618.mp3",
+   "secs": 2.1,
+   "text": "Tap the wagon with the answer."
   },
   {
    "id": "tb1d840e3",
@@ -55956,6 +56922,12 @@
    "text": "close to people"
   },
   {
+   "id": "tbc09cf52",
+   "file": "en/tbc09cf52.mp3",
+   "secs": 0.9,
+   "text": "Friday"
+  },
+  {
    "id": "tbc151340",
    "file": "en/tbc151340.mp3",
    "secs": 3.3,
@@ -56478,6 +57450,12 @@
    "text": "long hand"
   },
   {
+   "id": "tc0846390",
+   "file": "en/tc0846390.mp3",
+   "secs": 0.9,
+   "text": "March"
+  },
+  {
    "id": "tc09ee39a",
    "file": "en/tc09ee39a.mp3",
    "secs": 1.3,
@@ -56668,6 +57646,12 @@
    "file": "en/tc2067115.mp3",
    "secs": 1.6,
    "text": "Peppered Jumping Spider"
+  },
+  {
+   "id": "tc212b600",
+   "file": "en/tc212b600.mp3",
+   "secs": 1.1,
+   "text": "September"
   },
   {
    "id": "tc2149eb4",
@@ -58548,6 +59532,12 @@
    "text": "Sardinian Warbler"
   },
   {
+   "id": "td0f065f9",
+   "file": "en/td0f065f9.mp3",
+   "secs": 0.9,
+   "text": "Sunday"
+  },
+  {
    "id": "td0fa5707",
    "file": "en/td0fa5707.mp3",
    "secs": 1.7,
@@ -58762,6 +59752,12 @@
    "file": "en/td2e89130.mp3",
    "secs": 1.5,
    "text": "Scalloped Hammerhead"
+  },
+  {
+   "id": "td304aee9",
+   "file": "en/td304aee9.mp3",
+   "secs": 1.6,
+   "text": "Yesterday and tomorrow"
   },
   {
    "id": "td30d504a",
@@ -59220,6 +60216,12 @@
    "text": "Water"
   },
   {
+   "id": "td643be8c",
+   "file": "en/td643be8c.mp3",
+   "secs": 0.9,
+   "text": "Spring"
+  },
+  {
    "id": "td64dcc3d",
    "file": "en/td64dcc3d.mp3",
    "secs": 1.2,
@@ -59416,6 +60418,12 @@
    "file": "en/td8048b55.mp3",
    "secs": 1.7,
    "text": "Diamondback Watersnake"
+  },
+  {
+   "id": "td81ec5ef",
+   "file": "en/td81ec5ef.mp3",
+   "secs": 3.1,
+   "text": "Slide across the picture and watch the tree change."
   },
   {
    "id": "td833ee76",
@@ -59746,6 +60754,12 @@
    "file": "en/tdb3a9832.mp3",
    "secs": 1.2,
    "text": "Aerospike"
+  },
+  {
+   "id": "tdb3aabf8",
+   "file": "en/tdb3aabf8.mp3",
+   "secs": 1.3,
+   "text": "Turn the wheel."
   },
   {
    "id": "tdb3de61f",
@@ -61494,6 +62508,12 @@
    "text": "Nyala"
   },
   {
+   "id": "te8239b77",
+   "file": "en/te8239b77.mp3",
+   "secs": 1,
+   "text": "Wednesday"
+  },
+  {
    "id": "te832a430",
    "file": "en/te832a430.mp3",
    "secs": 1.4,
@@ -61588,6 +62608,12 @@
    "file": "en/te911921b.mp3",
    "secs": 1.7,
    "text": "Large Mossy Glyph"
+  },
+  {
+   "id": "te920f785",
+   "file": "en/te920f785.mp3",
+   "secs": 0.9,
+   "text": "June"
   },
   {
    "id": "te935c4a3",
@@ -62068,6 +63094,12 @@
    "file": "en/tecf1e91d.mp3",
    "secs": 1.8,
    "text": "Red-bellied Jumping Spider"
+  },
+  {
+   "id": "tecf21807",
+   "file": "en/tecf21807.mp3",
+   "secs": 1,
+   "text": "October"
   },
   {
    "id": "tecf90bbe",
@@ -62674,6 +63706,12 @@
    "file": "en/tf20bf3f8.mp3",
    "secs": 6,
    "text": "This wire is joined to nothing. Drag the line with your finger from one part to the next."
+  },
+  {
+   "id": "tf214a6f6",
+   "file": "en/tf214a6f6.mp3",
+   "secs": 1.2,
+   "text": "Day and night"
   },
   {
    "id": "tf221a11b",
@@ -63984,6 +65022,12 @@
    "text": "It lies on its side, so each pole gets 42 years of daylight and then 42 years of night."
   },
   {
+   "id": "tfca77633",
+   "file": "en/tfca77633.mp3",
+   "secs": 1,
+   "text": "February"
+  },
+  {
    "id": "tfcc39100",
    "file": "en/tfcc39100.mp3",
    "secs": 1.2,
@@ -64138,6 +65182,12 @@
    "file": "en/tfe14e43b.mp3",
    "secs": 1.5,
    "text": "Southern Rock Agama"
+  },
+  {
+   "id": "tfe18fbb0",
+   "file": "en/tfe18fbb0.mp3",
+   "secs": 1,
+   "text": "Tuesday"
   },
   {
    "id": "tfe1a639e",

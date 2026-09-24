@@ -360,3 +360,26 @@ Daarnaast: op de pagina van een dier veeg je naar links voor het volgende dier o
 naar rechts voor het vorige. De pagina schuift mee onder de vinger, veert terug bij een korte veeg,
 en geeft aan het eind van de plank een beetje mee en stopt dan. De knoppen Vorige en Volgende
 blijven staan voor wie niet veegt.
+
+## 2026-09-24 — Het jaar rond: een levend landschap in plaats van plaatjes
+
+De eigenaar vroeg om een spel over dagen, maanden en seizoenen, "met leuke interactieve elementen,
+uitleg en bewegende illustraties". De eerste versie had per niveau een los plaatje: een boom in vier
+standen, een hemel met een zon. Na zijn opmerking over de Wereldatlas ("we leven anno 2026") is dat
+vervangen door één getekend Hollands landschap dat alle niveaus delen (`src/games/seasons/world.ts`):
+een boom, een huis met een trapgevel, een molen, een sloot, en een hemel.
+
+Een seizoen is daarin geen schakelaar maar een getal. Een kind dat over de tekening veegt ziet de
+bloesem dunner worden, het blad verkleuren en vallen, de sneeuw komen en de sloot bevriezen, en niet
+vier dia's. Hetzelfde voor de dag: de zon komt links op en gaat rechts onder, de lucht kleurt mee,
+en 's nachts gaan de ramen aan. De achtergrond van de week en van het jaarwiel is het seizoen van
+vandaag, en bij het jaarwiel het seizoen van de maand onder de wijzer.
+
+De zon staat 's winters lager dan 's zomers, op schaal: op 52 graden noorderbreedte staat hij 's
+middags op 90 - 52 plus de declinatie, ongeveer 48 graden half april, 59 half juli, 29 half oktober
+en 17 half januari. Dat is het enige getal in de tekening dat iets beweert, en het is natuurkunde,
+geen inschatting.
+
+Het spel zegt elke vraag hardop, na de uitleg van het niveau bij de eerste, en zegt bij een fout
+antwoord het goede antwoord. Dat deed de eerste versie niet, en dan is het een leesspel voor een
+kind dat niet leest.
