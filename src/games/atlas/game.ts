@@ -18,7 +18,7 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
-import { safeArea, uiScale } from '../../util/ui';
+import { GUIDE_KEEP, safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
@@ -34,15 +34,19 @@ import {
   runFor, SEA_OFF, SEA_STORM, starsFor, teachLine, VIEWS, type Level,
 } from './model';
 import {
-  drawDesk, drawFlag, drawGraticule, drawHeightMap, drawLine, drawLineAt, drawPieceAt, drawPin,
-  drawSea, drawShape, scaleToFit, INK, SEA,
+  drawDesk, drawFlag, drawFlow, drawGraticule, drawHeightMap, drawLine, drawLineAt, drawPieceAt, drawPin,
+  drawSatellite, drawSea, drawShape, scaleToFit, INK, SEA,
 } from './paint';
 import { atlassfx } from './atlassfx';
 import { NL, T } from '../../util/lang';
-import { speakLine } from '../../platform/voice';
+import { forgetLine, sayRecorded, speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
-type Phase = 'levels' | 'play' | 'won';
+type Phase = 'levels' | 'explore' | 'play' | 'won';
+
+/** The two paths that are dykes rather than water: drawn as a wall, not as something that flows. */
+const DYKES = new Set(['afsluitdijk', 'deltawerken']);
+const flows = (f: Feature): boolean => !!f.path?.length && !DYKES.has(f.id);
 
 const levelName = (l: Level): string => (NL() ? l.nameNl : l.name);
 const saveKey = (l: Level): string => `atlas:${l.id}`;
@@ -108,6 +112,13 @@ export class Atlas {
   /** the feature the map is pointing at right now */
   private shown: Feature | null = null;
   private showT = 0;
+
+  /** in the look-first round, which place Ruth is telling about */
+  private exploreAt = 0;
+  /** when the hint was asked for, so the map can glow round the right part of it for a while */
+  private hintT = 0;
+  /** whether the photograph was under the map this frame: pieces are then glass, not paint */
+  private sat = false;
 
   /** the sea level outside the dykes, in metres, or null for dykes on */
   private sea: number | null = null;
@@ -178,7 +189,9 @@ export class Atlas {
       sea: this.sea,
       outlines: save.atlas.outlines,
       /** every place this level can be asked about, at its spot on the screen */
-      targets: this.phase === 'play' ? poolFor(this.level).map(f => {
+      explore: this.phase === 'explore' ? poolFor(this.level)[this.exploreAt]?.id ?? null : null,
+      satellite: this.sat,
+      targets: this.phase === 'play' || this.phase === 'explore' ? poolFor(this.level).map(f => {
         const q = project(anchorOf(f), view, L.board);
         return { id: f.id, x: Math.round(q.x), y: Math.round(q.y) };
       }) : [],
@@ -306,8 +319,41 @@ export class Atlas {
     this.sea = null;
     this.ps.clear();
     this.pop = 0;
+    this.hintT = 0;
+    // Every level opens by looking before it asks. The owner's point was that a child was left to
+    // guess where a stretch of river went without anyone ever having shown them the map, so
+    // Ruth first walks through every place in the level with its name and what is worth knowing
+    // about it, and the puzzle comes after. A child who already knows presses Puzzelen.
+    this.phase = 'explore';
+    this.exploreAt = 0;
+    this.tellAbout(poolFor(this.level)[0], true);
+  }
+
+  /** The puzzle itself, after the look round. */
+  private startPuzzle(): void {
     this.phase = 'play';
+    this.shown = null;
+    this.showT = 0;
     this.say(NL() ? this.level.hintNl : this.level.hint, 6);
+  }
+
+  /**
+   * Say one place out loud: its name, its capital where the level is about capitals, and its fact.
+   * Each of those is a whole sentence Ruth recorded on its own, played back to back.
+   */
+  private tellAbout(f: Feature | undefined, first = false): void {
+    if (!f) return;
+    const nl = NL();
+    const lines: string[] = [];
+    if (first) lines.push(T('First we look together. Tap a place on the map, or Next.', 'Eerst kijken we samen. Tik op een plek op de kaart, of op Volgende.'));
+    lines.push(nameOf(f, nl));
+    if (this.level.piece === 'name' && f.capNl) lines.push(capitalOf(f, nl));
+    lines.push(factOf(f, nl));
+    this.note = lines.join(' ');
+    this.noteT = 0;
+    this.shown = f;
+    this.showT = 0;
+    if (!sayRecorded(lines)) { forgetLine(); speakLine(lines.join(' ')); }
   }
 
   /** The last thing the game said, so the guide in the corner can say it again. */
@@ -365,6 +411,7 @@ export class Atlas {
       this.showT = 0;
       this.missed = null;
       atlassfx.snap(this.streak);
+      this.sayPlace(p);
       const home = project(anchorOf(p), VIEWS[this.level.board], L.board);
       this.ps.spawn('spark', home.x, home.y, 14, {
         colour: '#ffd873', speed: 200, size: 7 * this.u(), max: 0.8, spread: TAU,
@@ -386,12 +433,21 @@ export class Atlas {
     this.showT = WRONG_FOR;
     this.shake.add(0.45);
     atlassfx.miss();
+    // the correction is heard as well as shown: where it really was, and why it is worth knowing
+    this.sayPlace(p);
     this.flight = {
       from: at,
       to: { x: L.hand.x + L.hand.w / 2, y: L.hand.y + L.hand.h / 2 },
       t: 0, dur: 0.32, into: false,
     };
     this.drag = null;
+  }
+
+  /** A place's name and its fact, out loud, from Ruth's recordings where she has them. */
+  private sayPlace(f: Feature): void {
+    const nl = NL();
+    const lines = [nameOf(f, nl), factOf(f, nl)];
+    if (!sayRecorded(lines)) { forgetLine(); speakLine(lines.join(' ')); }
   }
 
   /** The way on from a correction: the piece goes home by itself, so nobody can get stuck. */
@@ -408,6 +464,7 @@ export class Atlas {
   private update(dt: number): void {
     this.noteT = Math.max(0, this.noteT - dt);
     this.showT = Math.max(0, this.showT - dt);
+    this.hintT = Math.max(0, this.hintT - dt);
     this.ps.update(dt);
     this.shake.update(dt);
     this.pop = Math.min(1, this.pop + dt * 2.8);
@@ -450,6 +507,19 @@ export class Atlas {
     const p = this.at(e);
     const hit = this.hitAt(p);
     if (hit) { this.held = hit; this.press(hit); return; }
+    if (this.phase === 'explore') {
+      // in the look round the map itself is the thing to press: a place tapped is a place told
+      const L = this.layout();
+      const b = L.board;
+      if (p.x < b.x || p.x > b.x + b.w || p.y < b.y || p.y > b.y + b.h) return;
+      const f = dropTarget(this.level, unproject(p.x, p.y, VIEWS[this.level.board], b));
+      const i = f ? poolFor(this.level).findIndex(g => g.id === f.id) : -1;
+      if (i < 0) return;
+      atlassfx.tap();
+      this.exploreAt = i;
+      this.tellAbout(f!);
+      return;
+    }
     if (this.phase !== 'play' || this.fb === 'wrong' || this.flight) return;
     // anywhere in the tray picks the piece up, and so does the piece itself wherever it has got to
     const L = this.layout();
@@ -516,6 +586,32 @@ export class Atlas {
       return;
     }
     if (id === 'go') { this.carryOn(); return; }
+    if (id === 'explore:next' || id === 'explore:prev') {
+      const pool = poolFor(this.level);
+      atlassfx.tap();
+      this.exploreAt = (this.exploreAt + (id === 'explore:next' ? 1 : pool.length - 1)) % pool.length;
+      this.tellAbout(pool[this.exploreAt]);
+      return;
+    }
+    if (id === 'explore:play') { atlassfx.tap(); this.startPuzzle(); return; }
+    if (id === 'explore:again') { atlassfx.tap(); this.phase = 'explore'; this.tellAbout(poolFor(this.level)[this.exploreAt]); return; }
+    if (id === 'hint') {
+      // A hint that explains rather than points: the fact about the place is said again, which
+      // nearly always says where it is (in the north, on the border, where three countries meet),
+      // and a wide soft glow lies over the part of the map it is in - a region, not the spot.
+      // The piece no longer counts as first time, the same as after a wrong drop.
+      const f = this.piece();
+      if (!f) return;
+      atlassfx.tap();
+      this.tried = true;
+      this.hintT = 6;
+      const nl = NL();
+      const lines = [nameOf(f, nl), factOf(f, nl)];
+      this.note = factOf(f, nl);
+      this.noteT = 6;
+      if (!sayRecorded(lines)) { forgetLine(); speakLine(lines.join(' ')); }
+      return;
+    }
     if (id === 'retry') { atlassfx.tap(); this.start(this.levelIndex); return; }
     if (id === 'next') { atlassfx.tap(); this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1)); return; }
     if (id.startsWith('animals:')) {
@@ -551,13 +647,19 @@ export class Atlas {
 
     this.labels = [];
 
-    // ---- the map
-    drawSea(ctx, L.board, Math.min(L.board.w, L.board.h) * 0.04);
-    drawGraticule(ctx, view, L.board, this.level.board === 'world' ? 30 : this.level.board === 'eu' ? 10 : 1);
+    // ---- the map: the earth from space where the picture has loaded, the painted sea until then
+    this.sat = drawSatellite(ctx, this.level.board, view, L.board, this.t);
+    if (!this.sat) {
+      drawSea(ctx, L.board, Math.min(L.board.w, L.board.h) * 0.04);
+      drawGraticule(ctx, view, L.board, this.level.board === 'world' ? 30 : this.level.board === 'eu' ? 10 : 1);
+    }
 
     const board = boardFor(this.level);
     const pool = poolFor(this.level);
-    const placedIds = new Set(this.placed.map(f => f.id));
+    const exploring = this.phase === 'explore';
+    // in the look round everything is on the map already, named, the way an atlas is
+    const home = exploring ? pool : this.placed;
+    const placedIds = new Set(home.map(f => f.id));
 
     // everything from here to the end of the map is cut to the sea, because a coarse outline runs
     // off the edge of the window it is drawn in - Germany reaches past a map of the neighbours,
@@ -567,10 +669,21 @@ export class Atlas {
       Math.min(L.board.w, L.board.h) * 0.04);
     ctx.clip();
 
-    if (this.level.dykes) {
+    if (this.level.dykes && (this.sea != null || !this.sat)) {
       drawHeightMap(ctx, view, L.board, this.sea, PROVINCES.flatMap(p => p.rings ?? []));
       for (const f of board) {
         drawShape(ctx, f.rings ?? [], view, L.board, { stroke: 'rgba(255,255,255,0.65)', width: 1 });
+      }
+    } else if (this.level.dykes || this.sat) {
+      // on the photograph the land is already there: an outline is all a border needs, and a
+      // piece that is home is tinted glass over the real ground rather than paint over it
+      for (const f of board) {
+        const done = placedIds.has(f.id) && !this.level.dykes;
+        drawShape(ctx, f.rings ?? [], view, L.board, {
+          fill: done ? hexA(f.tone, 0.42) : undefined,
+          stroke: 'rgba(255,255,255,0.8)',
+          width: 1.1,
+        });
       }
     } else {
       for (const f of board) {
@@ -584,7 +697,13 @@ export class Atlas {
       // The IJsselmeer is the hole in the outline of the country, and without it the Netherlands
       // is a lump rather than a shape you would recognise. It is drawn on every map of the
       // Netherlands except the one where finding the water is the game itself.
-      if (this.level.board === 'nl' && !this.level.dykes) {
+      if (this.level.board === 'nl' && !this.level.dykes && this.sat) {
+        // on the photograph the IJsselmeer is summer-green with algae and reads as a field, so it
+        // gets a wash of water over it: the hole in the country has to look like water to be one
+        const lake = NL_WATERS.find(f => f.id === 'ijsselmeer');
+        if (lake?.rings) drawShape(ctx, lake.rings, view, L.board, { fill: 'rgba(40, 110, 160, 0.55)' });
+      }
+      if (this.level.board === 'nl' && !this.level.dykes && !this.sat) {
         const lake = NL_WATERS.find(f => f.id === 'ijsselmeer');
         if (lake?.rings) {
           drawShape(ctx, lake.rings, view, L.board, {
@@ -595,7 +714,7 @@ export class Atlas {
     }
 
     // the empty places, outlined, for a child still finding the holes
-    if (save.atlas.outlines && outlinable(this.level)) {
+    if (!exploring && save.atlas.outlines && outlinable(this.level)) {
       for (const f of pool) {
         if (placedIds.has(f.id) || f.id === piece?.id) continue;
         if (f.rings?.length && this.level.piece === 'shape' && f.kind !== 'ocean') {
@@ -615,13 +734,17 @@ export class Atlas {
     }
 
     // ---- what is already home
-    for (const f of this.placed) this.drawPlaced(f, view, L.board);
+    for (const f of home) this.drawPlaced(f, view, L.board);
     // every name after every shape: Limburg goes down after Noord-Brabant and would otherwise
     // cover the tail of its neighbour's label
-    for (const f of this.placed) this.drawPlacedLabel(f, view, L.board);
+    // (the one being told about is named by the light on it instead, further down)
+    for (const f of home) if (!(exploring && f === this.shown)) this.drawPlacedLabel(f, view, L.board);
+
+    // ---- the hint: a soft light over the part of the map the piece is in, never on the spot
+    if (this.phase === 'play' && this.hintT > 0 && piece) this.drawHintGlow(piece, view, L.board);
 
     // ---- the one the map is pointing at, after a wrong drop
-    if (this.shown && this.showT > 0) this.drawPointedAt(this.shown, view, L.board);
+    if (this.shown && (this.showT > 0 || exploring)) this.drawPointedAt(this.shown, view, L.board);
     if (this.fb === 'wrong' && this.missed) {
       drawShape(ctx, this.missed.rings ?? [], view, L.board, {
         stroke: '#c0512f', width: 2, dash: [5, 4],
@@ -629,6 +752,8 @@ export class Atlas {
     }
     this.ps.draw(ctx);
     ctx.restore();
+
+    if (exploring) { this.drawExplore(L); return; }
 
     // ---- the tray, the piece, and the piece under the finger
     this.drawPrompt(L.prompt, piece);
@@ -648,7 +773,12 @@ export class Atlas {
     // an ocean is not filled in: its outline is only a region to aim at, and what has been learnt
     // is that the name goes there
     if (f.rings?.length && f.kind !== 'ocean') {
-      drawShape(ctx, f.rings, view, box, { fill: f.tone, stroke: 'rgba(255,255,255,0.95)', width: 1.8 });
+      drawShape(ctx, f.rings, view, box, {
+        fill: this.sat ? hexA(f.tone, f.kind === 'water' ? 0.35 : 0.5) : f.tone,
+        stroke: 'rgba(255,255,255,0.95)', width: 1.8,
+      });
+    } else if (f.path?.length && flows(f)) {
+      drawFlow(ctx, f.path, view, box, f.tone, Math.max(2.6, 3.4 * u), this.t);
     } else if (f.path?.length) {
       drawLine(ctx, f.path, view, box, f.tone, Math.max(2.6, 3.4 * u));
     }
@@ -728,6 +858,84 @@ export class Atlas {
     const ly = clamp(q.y + dy, box.y + 15 * u, box.y + box.h - 7 * u);
     outlinedText(ctx, nameOf(f, NL()), lx, ly,
       this.font('900', 12), '#7a3d10', 'rgba(255,255,255,0.96)', 5);
+  }
+
+  /**
+   * The hint's light: a wide soft glow over the part of the map the piece belongs in. Its middle is
+   * pushed off the piece's own spot by a fixed amount in a direction that depends on the piece, so
+   * it says "up here, in the north" without putting a finger on Groningen.
+   */
+  private drawHintGlow(f: Feature, view: typeof VIEWS['nl'], box: Box): void {
+    const ctx = this.ctx;
+    const q = project(anchorOf(f), view, box);
+    const r = Math.min(box.w, box.h) * 0.3;
+    let hsh = 0;
+    for (const ch of f.id) hsh = (hsh * 31 + ch.charCodeAt(0)) >>> 0;
+    const a = (hsh % 360) * Math.PI / 180;
+    const cx = q.x + Math.cos(a) * r * 0.4, cy = q.y + Math.sin(a) * r * 0.4;
+    const k = clamp(this.hintT, 0, 1) * (0.75 + 0.25 * breathe(this.t, 3));
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, `rgba(255, 236, 150, ${0.6 * k})`);
+    g.addColorStop(0.75, `rgba(255, 236, 150, ${0.35 * k})`);
+    g.addColorStop(1, 'rgba(255, 236, 150, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    ctx.save();
+    ctx.strokeStyle = `rgba(255, 244, 200, ${0.8 * k})`;
+    ctx.lineWidth = 2.5 * this.u();
+    ctx.setLineDash([8 * this.u(), 6 * this.u()]);
+    ctx.lineDashOffset = -this.t * 20;
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.85, 0, TAU); ctx.stroke();
+    ctx.restore();
+  }
+
+  /**
+   * The look round: the place Ruth is telling about lit on the map, its name and fact on the card,
+   * and three buttons where the tray will be - back, on, and to the puzzle.
+   */
+  private drawExplore(L: Layout): void {
+    const ctx = this.ctx, u = this.u();
+    const pool = poolFor(this.level);
+    const f = pool[this.exploreAt];
+    const nl = NL();
+
+    // the prompt: what this round is, and how far through it
+    const r = L.prompt;
+    glassPanel(ctx, r.x, r.y, r.w, r.h, 16 * u, 0.93);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(18,48,71,0.6)';
+    ctx.font = this.font('800', 11);
+    ctx.fillText(T('Look and listen first', 'Eerst kijken en luisteren'), r.x + r.w / 2, r.y + 19 * u, r.w - 20 * u);
+    ctx.fillStyle = '#123047';
+    ctx.font = this.font('900', 17);
+    ctx.fillText(`${levelName(this.level)} · ${this.exploreAt + 1} / ${pool.length}`, r.x + r.w / 2, r.y + 40 * u, r.w - 20 * u);
+
+    // the card: the name, the capital where that is the subject, the fact
+    const b = L.card;
+    if (f) {
+      glassPanel(ctx, b.x, b.y, b.w, b.h, 16 * u, 0.96);
+      const top = this.cardTop(b);
+      const tx = b.x + b.w / 2, textW = b.w - 24 * u;
+      ctx.fillStyle = '#7a3d10';
+      ctx.font = this.font('900', 14);
+      const title = this.level.piece === 'name' && f.capNl ? `${nameOf(f, nl)} · ${capitalOf(f, nl)}` : nameOf(f, nl);
+      ctx.fillText(title, tx, top + 15 * u, textW);
+      ctx.fillStyle = 'rgba(18,48,71,0.85)';
+      ctx.font = this.font('700', 10.5);
+      this.wrapText(factOf(f, nl), tx, top + 48 * u, textW, 12.5 * u, 4);
+    }
+
+    // the buttons, clear of the guide in the bottom corner
+    const h = L.hand;
+    const x0 = Math.max(h.x, GUIDE_KEEP), x1 = h.x + h.w;
+    const gap = 8 * u, bh = Math.min(52 * u, h.h - 12 * u);
+    const by = h.y + (h.h - bh) / 2;
+    const small = 52 * u;
+    const playW = Math.min(150 * u, (x1 - x0 - small * 2 - gap * 2) * 0.55);
+    const nextW = x1 - x0 - small - playW - gap * 2;
+    this.button('explore:prev', '<', x0, by, small, bh);
+    this.button('explore:next', T('Next', 'Volgende'), x0 + small + gap, by, nextW, bh);
+    this.button('explore:play', T('Puzzle', 'Puzzelen'), x1 - playW, by, playW, bh, '#4fae6e', '#ffffff');
   }
 
   /** The instruction and the name of the thing being looked for. */
@@ -955,14 +1163,22 @@ export class Atlas {
   /** The bar across the top, and how far through the level you are. */
   private drawChrome(): void {
     const ctx = this.ctx, u = this.u();
-    if (this.phase !== 'play') return;
+    if (this.phase !== 'play' && this.phase !== 'explore') return;
     this.button('levels', T('Levels', 'Niveaus'), 13 * u, 9 * u, 82 * u, 40 * u);
-    const nx = 13 * u + 89 * u;
+    let nx = 13 * u + 89 * u;
+    const playing = this.phase === 'play';
+    // back to the look round, and the hint, in the puzzle only
+    if (playing) {
+      this.iconButton('explore:again', nx, 9 * u, 'look');
+      nx += 51 * u;
+      if (this.piece() && this.fb === 'none') { this.iconButton('hint', nx, 9 * u, 'hint'); }
+      nx += 51 * u;
+    }
     // the outline switch, but only where there is something for it to outline. On the water, the
     // capitals and the flags the piece is a line, a name or a flag, and the places it can go are
     // already drawn on the board - so the button had nothing to do there, and a button that does
     // nothing when a child presses it is worse than no button at all.
-    const canOutline = outlinable(this.level);
+    const canOutline = playing && outlinable(this.level);
     if (canOutline) {
       const on = save.atlas.outlines;
       const face = chunkyButton(ctx, nx, 9 * u, 44 * u, 40 * u, {
@@ -1002,6 +1218,7 @@ export class Atlas {
       this.hits.push({ id: 'dykes', x: dx, y: 9 * u, w: 44 * u, h: 40 * u });
     }
 
+    if (!playing) { ctx.textAlign = 'left'; return; }
     const n = this.level.rounds;
     const dot = 4.5 * u, gap = 4.5 * u;
     const total = n * dot * 2 + (n - 1) * gap;
@@ -1016,6 +1233,33 @@ export class Atlas {
       ctx.fill();
     }
     ctx.textAlign = 'left';
+  }
+
+  /** A small square button in the top bar with a drawn sign on it: an eye to look, a bulb for a hint. */
+  private iconButton(id: string, x: number, y: number, sign: 'look' | 'hint'): void {
+    const ctx = this.ctx, u = this.u();
+    const on = sign === 'hint' && this.hintT > 0;
+    const face = chunkyButton(ctx, x, y, 44 * u, 40 * u, { tone: on ? '#ffe08a' : '#fffdf6', pressed: this.held === id });
+    const cx = x + 22 * u, cy = face.y + 20 * u;
+    ctx.save();
+    ctx.strokeStyle = '#1d4763';
+    ctx.fillStyle = '#1d4763';
+    ctx.lineWidth = 2 * u;
+    if (sign === 'look') {
+      ctx.beginPath();
+      ctx.moveTo(cx - 12 * u, cy);
+      ctx.quadraticCurveTo(cx, cy - 11 * u, cx + 12 * u, cy);
+      ctx.quadraticCurveTo(cx, cy + 11 * u, cx - 12 * u, cy);
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, 4 * u, 0, TAU); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(cx, cy - 3 * u, 7 * u, Math.PI * 0.8, Math.PI * 2.2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx - 4 * u, cy + 3 * u); ctx.lineTo(cx - 4 * u, cy + 7 * u);
+      ctx.lineTo(cx + 4 * u, cy + 7 * u); ctx.lineTo(cx + 4 * u, cy + 3 * u); ctx.stroke();
+      ctx.fillRect(cx - 3 * u, cy + 9 * u, 6 * u, 2 * u);
+    }
+    ctx.restore();
+    this.hits.push({ id, x, y, w: 44 * u, h: 40 * u });
   }
 
   private button(

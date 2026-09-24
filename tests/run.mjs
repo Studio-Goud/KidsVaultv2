@@ -1569,6 +1569,14 @@ const group = name => console.log(`\n${name}`);
     placeable, poolFor, rngFor, runFor, starsFor, teachLine,
   } = mod;
 
+  // the light on a river runs from its first point to its last, so the first point has to be the
+  // source: the Rhine, Waal, Maas and Scheldt reach the sea in the west, the IJssel in the north
+  const river = id => NL_WATERS.find(f => f.id === id).path;
+  const first = id => river(id)[0], last = id => river(id)[river(id).length - 1];
+  is('test_atlas_rivers_westward_rivers_are_listed_from_their_source',
+    ['rijn', 'waal', 'maas', 'westerschelde'].filter(id => !(first(id)[0] > last(id)[0])), []);
+  is('test_atlas_rivers_the_ijssel_is_listed_from_arnhem_northwards', first('ijssel')[1] < last('ijssel')[1], true);
+
   const byId = id => ALL_FEATURES.find(f => f.id === id);
   const box = { x: 0, y: 0, w: 300, h: 300 };
   const square = [[[0, 0], [0, 2], [2, 2], [2, 0]]];

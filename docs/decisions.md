@@ -383,3 +383,27 @@ geen inschatting.
 Het spel zegt elke vraag hardop, na de uitleg van het niveau bij de eerste, en zegt bij een fout
 antwoord het goede antwoord. Dat deed de eerste versie niet, en dan is het een leesspel voor een
 kind dat niet leest.
+
+## 2026-09-24 — De Wereldatlas: de aarde van boven, en eerst kijken
+
+De eigenaar vond de atlas een kinderpuzzel: "echt water, echt Nederland, we leven anno 2026", en
+een kind dat moet raden waar een stuk rivier hoort zonder dat iemand het ooit de kaart heeft laten
+zien. Twee veranderingen.
+
+Onder elke kaart ligt nu de aarde zoals een satelliet haar ziet: NASA's Blue Marble, publiek
+domein, één keer op de bouwmachine opgehaald en uitgesneden per kaart (`scripts/atlasimg.mjs`,
+1,8 MB samen). De telefoon vraagt niets bij NASA; regel 1 blijft staan. Omdat de atlas al in
+lengte- en breedtegraden tekent, ligt de foto zonder passen en meten onder de omtrekken. De zee
+glinstert, alleen waar de foto zee is (open zee is in Blue Marble bijna zwart, het donkerste bos is
+drie keer zo licht). Een stuk dat thuis is, is getint glas over de echte grond in plaats van verf.
+Het IJsselmeer is op de foto zomergroen van de algen en krijgt daarom een waas water, anders leest
+het als land. Rivieren stromen: er loopt licht van de bron naar zee, zodat je ziet welke kant het
+water op gaat. Daarvoor moest de Westerschelde omgedraaid worden; die stond van zee naar Antwerpen.
+
+Elk niveau begint nu met een kijkronde. Ruth loopt alle plekken van het niveau langs met de naam
+en het weetje, de plek licht op de kaart op en alles staat erop met naam, zoals in een atlas. Een
+kind kan op de kaart tikken om een plek te horen, of Puzzelen kiezen wie het al weet. In de puzzel
+zegt Ruth bij elk goed en elk fout stuk de naam en het weetje hardop (dat deed de atlas niet, en
+dan is het een leesspel), en er is een hintknop die het weetje nog eens zegt en een brede gloed
+over het deel van de kaart legt waar het stuk hoort, met opzet niet op de plek zelf. Een stuk met
+een hint telt niet meer als in één keer goed, net als na een foute poging.

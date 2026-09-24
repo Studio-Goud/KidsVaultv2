@@ -371,7 +371,8 @@ export const NL_WATERS: Feature[] = [
   },
   {
     id: 'westerschelde', nl: 'De Westerschelde', en: 'The Western Scheldt', kind: 'water', tone: '#57a6c8',
-    path: P([3.40, 51.44], [3.65, 51.42], [3.85, 51.41], [4.05, 51.40], [4.22, 51.38]),
+    // from Antwerp out to sea, the way the water runs: every river here is listed from its source
+    path: P([4.22, 51.38], [4.05, 51.40], [3.85, 51.41], [3.65, 51.42], [3.40, 51.44]),
     factNl: 'Over de Westerschelde varen de zeeschepen naar Antwerpen, dat in België ligt. Het water is Nederlands, de haven Belgisch.',
     factEn: 'Sea ships sail up the Western Scheldt to Antwerp, which is in Belgium. The water is Dutch, the port Belgian.',
   },
