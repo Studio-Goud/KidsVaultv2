@@ -24,7 +24,7 @@ import { SIZES, drawCover, onPhoto, photo, photoCount, photoUrl } from '../../pl
 import { worldMap } from './worldmap';
 import {
   CONTINENT_EN, CONTINENT_NL, GROUPS, STATUS_EN, STATUS_NL, STATUS_TONE,
-  clipBox, facts, groupById, joinNames, rulerFor, search, shapeOf, shelf, sizeLabel,
+  clipBox, facts, groupById, joinNames, search, shapeOf, shelf, sizeLabel,
   type Animal, type GroupId,
 } from './rules';
 import { speakLine } from '../../platform/voice';
@@ -975,22 +975,19 @@ export class AnimalBook {
   }
 
   /**
-   * How long the animal is, on a ruler in centimetres and millimetres.
+   * How long the animal is: the length, large, and whether it is its own or its family's.
    *
-   * This used to be the animal next to a drawn child whose height the child could set, and the
-   * owner found it distracting: a comparison to look at, not something to learn from. A ruler is
-   * something a child can hold a real one against. The animal stands on it at its true length on
-   * that ruler, the marks are as fine as the screen allows (`rulerFor` in rules.ts), and the length
-   * is written large above it.
+   * This was first the animal beside a drawn child, then the animal on a ruler. The owner found
+   * both out of proportion: a flat silhouette stood on a ruler next to a real photograph looks like
+   * a toy, and for most animals the length is only a family average anyway. The number is what is
+   * true, so the number is what stays.
    */
   private sizeCard(a: Animal, x: number, y: number, w: number): number {
     const ctx = this.ctx;
     const u = this.u();
     const nl = NL();
-    const h = 196 * u;
+    const h = (a.z && !a.x ? 82 : 66) * u;
     this.card(x, y, w, h, t('animalsHowBig'));
-
-    // the length, large, and whether it is this animal's own or its family's
     ctx.textAlign = 'left';
     ctx.fillStyle = INK;
     ctx.font = this.font('900', 22);
@@ -998,64 +995,8 @@ export class AnimalBook {
     if (a.z && !a.x) {
       ctx.fillStyle = SOFT;
       ctx.font = this.font('700', 11);
-      ctx.fillText(T('typical for its family', 'gemiddeld voor zijn familie'), x + 14 * u, y + 68 * u);
+      ctx.fillText(T('typical for its family', 'gemiddeld voor zijn familie'), x + 14 * u, y + 70 * u);
     }
-    if (!a.z) return y + h;
-
-    const rx = x + 16 * u, rw = w - 32 * u;
-    const ry = y + h - 58 * u, rh = 34 * u;
-    const r = rulerFor(a.z, rw);
-    const perCm = rw / r.span;
-
-    // the animal, standing on the ruler at its true length on it
-    const len = Math.max(4 * u, a.z * perCm);
-    const shape = shapeOf(a);
-    const room = ry - (y + 78 * u) - 12 * u;
-    const ah = Math.min(len * (ASPECT[shape] ?? 1) * 0.86, room);
-    creature(ctx, shape, rx, ry - 12 * u - ah, len, ah, groupById(a.g)?.tone ?? '#8aa6b8');
-    // a bracket from nose to tail, so it is clear which part of the ruler is the animal
-    ctx.strokeStyle = 'rgba(23, 58, 79, 0.55)';
-    ctx.lineWidth = 1.6 * u;
-    ctx.beginPath();
-    ctx.moveTo(rx, ry - 9 * u); ctx.lineTo(rx, ry - 4 * u); ctx.lineTo(rx + len, ry - 4 * u); ctx.lineTo(rx + len, ry - 9 * u);
-    ctx.stroke();
-
-    // the ruler: a strip of pale wood with its marks along the top edge
-    ctx.save();
-    ctx.fillStyle = '#f3d98b';
-    roundRectPath(ctx, rx - 6 * u, ry, rw + 12 * u, rh, 5 * u);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(120, 88, 30, 0.35)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    const n = Math.round(r.span / r.minor);
-    const per = Math.round(r.major / r.minor);
-    const half = per % 2 === 0 ? per / 2 : 0;
-    ctx.strokeStyle = '#5b4214';
-    ctx.fillStyle = '#5b4214';
-    ctx.font = this.font('800', 9.5);
-    ctx.textAlign = 'center';
-    for (let i = 0; i <= n; i++) {
-      const tx = rx + i * r.minor * perCm;
-      const big = i % per === 0, mid = half > 0 && i % half === 0;
-      ctx.lineWidth = big ? 1.4 : 1;
-      ctx.beginPath();
-      ctx.moveTo(tx, ry);
-      ctx.lineTo(tx, ry + (big ? 13 : mid ? 9 : 5) * u);
-      ctx.stroke();
-      if (big) {
-        const v = i * r.minor;
-        const shown = r.unit === 'm' ? v / 100 : v;
-        const txt = String(Math.round(shown * 10) / 10);
-        ctx.fillText(nl ? txt.replace('.', ',') : txt, tx, ry + 25 * u);
-      }
-    }
-    // which unit the numbers are in, and that the small marks are millimetres when they are
-    ctx.textAlign = 'right';
-    ctx.font = this.font('800', 9);
-    const unit = r.unit === 'm' ? 'm' : r.minor < 1 ? T('cm · marks are mm', 'cm · streepjes zijn mm') : 'cm';
-    ctx.fillText(unit, rx + rw, ry + rh + 12 * u);
-    ctx.restore();
     return y + h;
   }
 
