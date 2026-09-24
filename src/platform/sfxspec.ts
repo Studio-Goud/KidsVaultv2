@@ -77,6 +77,18 @@ export const SFX: Record<string, SfxRow> = {
   'clock.wrong': wrong(),
   'clock.complete': done('a soft small clock chiming the hour, warm and gentle, three chimes'),
 
+  // Het jaar rond: the week train, the year wheel, and what each season sounds like outside
+  'seasons.tap': tap(),
+  'seasons.pick': tap('a soft wooden button being pressed, a gentle click'),
+  'seasons.right': right(),
+  'seasons.wrong': wrong(),
+  'seasons.complete': done('a warm little celebration of four soft chimes, one for each season'),
+  'seasons.turn': { prompt: `a single soft ratchet click of a wooden wheel turning one notch, ${SOFT}`, secs: 0.5, max: 0.1, gap: 90, gain: 0.55 },
+  'seasons.wagon': { prompt: `a small toy train, one soft toot of its whistle and a gentle clack of the wheels, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'seasons.leaves': { prompt: `a gust of wind rustling dry autumn leaves, a few leaves falling, ${SOFT}`, secs: 1.5, max: 1.3, gain: 0.5 },
+  'seasons.snow': { prompt: `quiet winter hush, soft wind and snowflakes, a very gentle crunch of snow, ${SOFT}`, secs: 1.5, max: 1.3, gain: 0.45 },
+  'seasons.bird': { prompt: `a single blackbird singing a short sweet phrase in a spring garden, ${SOFT}`, secs: 1.2, max: 1.1, gain: 0.5 },
+
   // ---- Opgraving
   'dig.brush': { prompt: `a soft bristle brush sweeping sand off a rock, one short stroke, ${SOFT}`, secs: 0.5, max: 0.2, gap: 90, gain: 0.6 },
   'dig.chisel': { prompt: `a small metal chisel tapping stone once, a light tink, ${SOFT}`, secs: 0.5, max: 0.15, gap: 120, gain: 0.7 },

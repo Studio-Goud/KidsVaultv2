@@ -1231,3 +1231,50 @@ export function drawDiveThumb(c: HTMLCanvasElement): void {
 
   drawCraft(ctx, 'sub', w * 0.5, h * 0.44, Math.min(w, h) * 0.5, Math.PI, 1);
 }
+
+/**
+ * Het jaar rond: one tree through the four seasons at once. The sky behind it is split in four,
+ * spring to winter clockwise, and the crown in front takes the colour of whichever quarter it is
+ * in - blossom, full green, orange, bare with snow - so the card says "seasons" without a word.
+ */
+export function drawSeasonsThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const cx = w / 2, cy = h * 0.46;
+  const skies = ['#cdeccf', '#bfe3fb', '#f7d9a8', '#dfe8f0'];
+  const quarter = [[0, 0], [1, 0], [1, 1], [0, 1]] as const;
+  quarter.forEach(([qx, qy], i) => { ctx.fillStyle = skies[i]; ctx.fillRect(qx * cx, qy * cy, cx, qy ? h - cy : cy); });
+
+  // the ground, green going to white on the winter side
+  const ground = ctx.createLinearGradient(0, 0, w, 0);
+  ground.addColorStop(0, '#8fcf7a'); ground.addColorStop(0.5, '#a6d56b'); ground.addColorStop(0.75, '#d9b36a'); ground.addColorStop(1, '#f4f7fb');
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, h * 0.8, w, h * 0.2);
+
+  // the trunk
+  const s = Math.min(w, h);
+  ctx.fillStyle = '#7a5433';
+  ctx.beginPath();
+  ctx.moveTo(cx - s * 0.05, h * 0.82); ctx.lineTo(cx - s * 0.03, cy); ctx.lineTo(cx + s * 0.03, cy); ctx.lineTo(cx + s * 0.05, h * 0.82);
+  ctx.closePath(); ctx.fill();
+
+  // the crown in four quarters
+  const r = s * 0.3;
+  const crowns = ['#f4a7c4', '#4caf50', '#e8892f', '#b8c6d2'];
+  for (let i = 0; i < 4; i++) {
+    const a0 = -Math.PI + i * (Math.PI / 2);
+    ctx.fillStyle = crowns[i];
+    ctx.beginPath(); ctx.moveTo(cx, cy - r * 0.2);
+    ctx.arc(cx, cy - r * 0.2, r, a0, a0 + Math.PI / 2);
+    ctx.closePath(); ctx.fill();
+  }
+  // a little life in each quarter: blossom dots, the sun, a falling leaf, snowflakes
+  ctx.fillStyle = '#ffffff';
+  for (const [dx, dy] of [[-0.55, -0.45], [-0.3, -0.7], [-0.7, -0.15]]) { ctx.beginPath(); ctx.arc(cx + dx * r, cy - r * 0.2 + dy * r, s * 0.018, 0, TAU); ctx.fill(); }
+  ctx.fillStyle = '#ffd54a';
+  ctx.beginPath(); ctx.arc(w * 0.86, h * 0.14, s * 0.07, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#e07a2a';
+  ctx.beginPath(); ctx.ellipse(w * 0.78, h * 0.66, s * 0.035, s * 0.018, 0.6, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  for (const [x, y] of [[0.12, 0.62], [0.2, 0.72], [0.08, 0.76], [0.28, 0.6]]) { ctx.beginPath(); ctx.arc(w * x, h * y, s * 0.014, 0, TAU); ctx.fill(); }
+}

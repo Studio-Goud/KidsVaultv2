@@ -2953,7 +2953,7 @@ const group = name => console.log(`\n${name}`);
   const src = { atlas: 'atlas/atlassfx', circuit: 'circuit/sfx', clock: 'clock/clocksfx', dig: 'dig/digsfx',
     letters: 'letters/lettersfx', market: 'market/marketsfx', mill: 'mill/millsfx', moonshot: 'moonshot/rocketsfx',
     nightwatch: 'nightwatch/nightsfx', numbers: 'numbers/numbersfx', orbit: 'orbit/orbitsfx', puffball: 'puffball/puffsfx',
-    rhythm: 'rhythm/chimesfx', tidepool: 'tidepool/tidesfx' };
+    rhythm: 'rhythm/chimesfx', seasons: 'seasons/seasonsfx', tidepool: 'tidepool/tidesfx' };
   const text = g => g === 'cloudhopper' ? readFileSync('src/util/audio.ts', 'utf8')
     : g === 'ui' ? readFileSync('src/platform/uisfx.ts', 'utf8')
     : g === 'reis' || g === 'diepzee' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
@@ -3347,6 +3347,64 @@ const group = name => console.log(`\n${name}`);
   is('test_tally_a_finished_level_stays_finished', recordLevelResult('test:a', 1, 0, false).completed, true);
   is('test_tally_the_best_result_is_the_one_that_is_kept',
     [recordLevelResult('test:a', 1, 0, false).best, recordLevelResult('test:a', 1, 0, false).stars], [10, 3]);
+}
+
+// ---------------------------------------------------------------- Het jaar rond: days, months, seasons
+
+{
+  const {
+    DAYS, LEVELS, MONTHS, SEASONS, dayAfter, dayBefore, isRight, makeQuestion, monthAfter,
+    remainingShuffled, rngFor, seasonOfMonth, starsFor,
+  } = await bundle('src/games/seasons/model.ts', 'seasons.mjs');
+  group('Het jaar rond — dagen, maanden en seizoenen');
+
+  is('test_seasons_week_starts_on_maandag', DAYS[0].id, 'maandag');
+  is('test_seasons_day_after_zondag_is_maandag', DAYS[dayAfter(6)].id, 'maandag');
+  is('test_seasons_day_before_maandag_is_zondag', DAYS[dayBefore(0)].id, 'zondag');
+  is('test_seasons_month_after_december_is_januari', MONTHS[monthAfter(11)].id, 'januari');
+  is('test_seasons_juli_is_in_de_zomer', seasonOfMonth(MONTHS.findIndex(m => m.id === 'juli')).id, 'zomer');
+  is('test_seasons_december_is_in_de_winter', seasonOfMonth(MONTHS.findIndex(m => m.id === 'december')).id, 'winter');
+  is('test_seasons_every_season_has_three_months', SEASONS.every(s => s.months.length === 3), true);
+
+  for (const level of LEVELS.filter(l => l.id !== 'order')) {
+    const rng = rngFor(level, 1);
+    let avoid = -1;
+    const seen = [];
+    let onlyOneRightEveryTime = true;
+    let answerAmongOptions = true;
+    let noImmediateRepeat = true;
+    for (let i = 0; i < level.rounds; i++) {
+      const { q, poolIndex } = makeQuestion(level, rng, avoid);
+      const rightCount = q.options.filter((_, idx) => isRight(q, idx)).length;
+      if (rightCount !== 1) onlyOneRightEveryTime = false;
+      if (!(q.answer >= 0 && q.answer < q.options.length)) answerAmongOptions = false;
+      if (poolIndex === avoid) noImmediateRepeat = false;
+      seen.push(q.textNl);
+      avoid = poolIndex;
+    }
+    is(`test_seasons_${level.id}_produces_six_questions`, seen.length, 6);
+    is(`test_seasons_${level.id}_every_question_has_exactly_one_right_answer`, onlyOneRightEveryTime, true);
+    is(`test_seasons_${level.id}_the_answer_is_among_the_options`, answerAmongOptions, true);
+    is(`test_seasons_${level.id}_no_question_repeats_twice_in_a_row`, noImmediateRepeat, true);
+  }
+
+  is('test_seasons_remaining_shuffled_keeps_all_six_other_days',
+    remainingShuffled(rngFor(LEVELS.find(l => l.id === 'order'), 1), 1).sort((a, b) => a - b), [1, 2, 3, 4, 5, 6]);
+  is('test_seasons_stars_for_a_perfect_level_is_three', starsFor(6, 6), 3);
+  is('test_seasons_stars_for_a_level_with_no_first_tries_is_zero', starsFor(0, 6), 0);
+}
+
+{
+  const { weight, seasonOfMonthValue } = await bundle('src/games/seasons/world.ts', 'seasonsworld.mjs');
+  group('Het jaar rond — the landscape between the seasons');
+  // Arrange: the middle month of each meteorological season, and a point halfway between two
+  const mid = [3, 6, 9, 0].map(m => seasonOfMonthValue(m));
+  // Act and assert: april is lente, juli zomer, oktober herfst, januari winter, on the nose
+  is('test_seasons_world_middle_months_sit_on_their_own_season', mid.map(v => Math.round(v * 100) / 100).join(','), '0,1,2,3');
+  is('test_seasons_world_weights_at_any_point_add_up_to_one',
+    [0, 0.3, 1.5, 2.9, 3.6, 5.25].every(s => Math.abs([0, 1, 2, 3].reduce((a, i) => a + weight(s, i), 0) - 1) < 1e-9), true);
+  is('test_seasons_world_late_winter_blends_into_spring_not_summer', weight(3.7, 0) > 0.6 && weight(3.7, 1) === 0, true);
+  is('test_seasons_world_december_is_mostly_winter', weight(seasonOfMonthValue(11), 3) > weight(seasonOfMonthValue(11), 2), true);
 }
 
 rmSync(out, { recursive: true, force: true });
