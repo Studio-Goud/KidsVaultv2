@@ -18,7 +18,7 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
-import { uiScale, safeArea } from '../../util/ui';
+import { uiScale, safeArea, GUIDE_KEEP } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { persist, save } from '../../util/storage';
 import { countFinished } from '../../platform/clock';
@@ -675,7 +675,7 @@ export class Circuit {
     }
     if (hit === 'next') { this.goTo(Math.min(PUZZLES.length - 1, this.puzzle + 1)); return; }
     if (hit === 'stay') { this.cheerOpen = false; bench.tap(); return; }
-    if (hit === 'undo') { this.undo(); return; }
+    if (hit === 'undo') { bench.tap(); this.undo(); return; }
     if (hit === 'reset') {
       this.push();
       this.boards[this.puzzle] = startBoard(this.quiz());
@@ -1286,7 +1286,9 @@ export class Circuit {
   /** Undo, a fresh battery, and start this one again. */
   private drawBar(b: Bands): void {
     const ctx = this.ctx, u = this.u();
-    const r = b.bar;
+    // the bar starts right of Suri's corner: its undo used to sit under the guide button
+    const bx0 = Math.max(b.bar.x, GUIDE_KEEP);
+    const r = { ...b.bar, x: bx0, w: b.bar.x + b.bar.w - bx0 };
     const side = Math.min(78 * u, r.w * 0.26);
     const gap = 8 * u;
     const midW = r.w - side * 2 - gap * 2;

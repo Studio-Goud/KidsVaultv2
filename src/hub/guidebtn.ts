@@ -56,7 +56,10 @@ export function addGuideButton(opts: { line: () => string }): void {
 
   // He hides when there is nothing to repeat, rather than sitting there doing nothing when
   // pressed. A button that does nothing teaches a child to stop pressing buttons.
-  const sync = (): void => { b.style.display = opts.line() ? 'grid' : 'none'; };
+  // the audit sees him always, because the corner he takes is the corner a game must keep free
+  // whether or not he has anything to say yet: Stroomkring's undo sat under him for months
+  const always = (window as unknown as { __guideAlways?: boolean }).__guideAlways === true;
+  const sync = (): void => { b.style.display = always || opts.line() ? 'grid' : 'none'; };
   sync();
   setInterval(sync, 400);
 }

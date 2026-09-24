@@ -516,7 +516,7 @@ export class Clock {
     }
     if (id === 'retry') { clocksfx.tap(); this.start(this.levelIndex); return; }
     if (id === 'next') { clocksfx.tap(); this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1)); return; }
-    if (id === 'go') { if (this.fb !== 'none') this.advance(); return; }
+    if (id === 'go') { if (this.fb !== 'none') { clocksfx.tap(); this.advance(); } return; }
     if (id === 'check') {
       if (this.fb === 'none') this.answer({ ...this.hands });
       return;

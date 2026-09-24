@@ -252,7 +252,7 @@ export class MarketDay {
     this.held0 = hit;
     setTimeout(() => { this.held0 = null; }, 130);
     if (!hit) return;
-    if (hit.startsWith('level:')) { const i = Number(hit.slice(6)); if (this.unlocked(i)) this.start(i); else market.puzzled(); return; }
+    if (hit.startsWith('level:')) { const i = Number(hit.slice(6)); if (this.unlocked(i)) { market.tap(); this.start(i); } else market.puzzled(); return; }
     if (hit === 'levels') { this.phase = 'levels'; this.square.stop(); market.tap(); return; }
     if (hit === 'retry') { this.start(this.levelIndex); return; }
     if (hit === 'next') { this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1)); return; }

@@ -92,3 +92,10 @@ if (typeof window !== 'undefined') {
   window.addEventListener('load', forget);
   window.addEventListener('pageshow', forget);
 }
+
+/**
+ * How much of the bottom-left corner the guide button takes, in CSS pixels from the safe edge: 46
+ * for the button, 10 of margin, and 6 so a finger aimed beside it does not land on it. Nothing a
+ * game draws to be pressed may start left of this at the bottom of the screen; the audit checks.
+ */
+export const GUIDE_KEEP = 62;

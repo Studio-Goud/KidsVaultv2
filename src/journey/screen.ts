@@ -221,6 +221,7 @@ export class JourneyScreen {
     if (id === 'index') { this.fx.index(); this.index = !this.index; return; }
     if (id === 'close') { this.fx.index(); this.index = false; return; }
     if (id.startsWith('stop:')) {
+      this.fx.index();
       this.trip = goTo(this.j, this.trip, id.slice(5));
       this.index = false;
       this.arrive = 1;

@@ -77,6 +77,9 @@ for (const size of SIZES) {
     locale: 'nl-NL', ignoreHTTPSErrors: true,
   });
   if (size.insets) await ctx.addInitScript(i => { window.__insets = i; }, size.insets);
+  // Suri in the corner is there as soon as a game has said anything; the audit shows him from the
+  // start, so a button under his corner is found even on a page that has not spoken yet
+  await ctx.addInitScript(() => { window.__guideAlways = true; });
   for (const [page, handle, years] of pages) {
     const where = `${label(page, years)} @ ${size.name}`;
     const p = await ctx.newPage();
