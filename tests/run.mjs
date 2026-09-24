@@ -2919,6 +2919,20 @@ const group = name => console.log(`\n${name}`);
     [3, 4, 5, 6, 7, 8].every(a => coverage(a) >= coverage(2)), true);
 }
 
+// ---------------------------------------------------------------- Vibration
+
+{
+  const { feelFor } = await bundle('src/platform/feel.ts', 'feel.mjs');
+  group('Platform — trillen');
+  {
+    is('test_feel_a_tap_is_a_tap', feelFor('tap'), 'tap');
+    is('test_feel_a_right_answer_is_felt_as_good', feelFor('right'), 'good');
+    is('test_feel_a_mistake_is_two_soft_taps', feelFor('wrong'), 'wrong');
+    is('test_feel_a_finished_level_is_felt_as_done', feelFor('complete'), 'done');
+    is('test_feel_scenery_is_not_felt', [feelFor('creak'), feelFor('flood'), feelFor('bed')], [null, null, null]);
+  }
+}
+
 // ---------------------------------------------------------------- Recorded sound effects
 
 {
@@ -3275,8 +3289,13 @@ const group = name => console.log(`\n${name}`);
   is('test_mix_halfway_is_halfway', mix('#000000', '#ffffff', 0.5), '#808080');
   is('test_mix_past_the_end_stays_at_the_end', mix('#000000', '#ffffff', 4), '#ffffff');
 
-  is('test_journey_nothing_is_ahead_once_everything_is_seen',
-    ahead(J, { ...begin(), seen: ['a', 'b', 'c'] }), null);
+  is('test_journey_nothing_is_ahead_once_everything_is_passed',
+    ahead(J, { ...begin(), passed: ['a', 'b', 'c'] }), null);
+  // the owner's bug: a journey ridden to its end once was over the moment it was started again
+  is('test_journey_a_journey_seen_before_still_starts_at_the_first_stop',
+    ahead(J, { ...begin(), seen: ['a', 'b', 'c'] }).id, 'a');
+  is('test_journey_riding_again_after_the_end_reaches_the_first_stop',
+    run(setOff({ ...begin(), seen: ['a', 'b', 'c'] }), LEG_SECONDS + 0.1).held, 'a');
 }
 
 // ---------------------------------------------------------------- the journeys themselves

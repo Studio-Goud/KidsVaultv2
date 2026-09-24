@@ -23,6 +23,7 @@ import { SFX, type SfxRow } from './sfxspec';
 import { audioContext } from '../util/audio';
 import { save } from '../util/storage';
 import { measure } from './sfxlevel';
+import { feel, feelFor } from './feel';
 
 interface Ready { buf: AudioBuffer; start: number; level: number }
 
@@ -146,7 +147,11 @@ export function withSamples<T extends object>(game: string, obj: T): T {
     const key = `${game}.${name}`;
     const row = SFX[key];
     if (!row || typeof fn !== 'function') continue;
-    out[name] = (...args: unknown[]): void => { playOrWait(key, row, args[0], () => { fn.apply(obj, args); }); };
+    const how = feelFor(name);
+    out[name] = (...args: unknown[]): void => {
+      if (how) feel(how);
+      playOrWait(key, row, args[0], () => { fn.apply(obj, args); });
+    };
   }
   return out as T;
 }
@@ -156,7 +161,8 @@ export function sampled<A extends unknown[]>(key: string, fn: (...a: A) => void)
   const row = SFX[key];
   if (!row) return fn;
   queueMicrotask(() => preload(key.split('.')[0]));
-  return (...a: A): void => { playOrWait(key, row, a[0], () => fn(...a)); };
+  const how = feelFor(key.split('.')[1] ?? '');
+  return (...a: A): void => { if (how) feel(how); playOrWait(key, row, a[0], () => fn(...a)); };
 }
 
 const loops = new Map<string, { src: AudioBufferSourceNode; g: GainNode }>();

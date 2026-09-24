@@ -23,8 +23,14 @@ export interface Trip {
   held: string | null;
   /** which line of the held stop is on: 0 is the arrival line, then one per extra beat */
   beat: number;
-  /** every stop that has been reached, in order */
+  /** every stop that has ever been reached, across rides: what the overview colours in */
   seen: string[];
+  /**
+   * the stops passed on this ride, which is what the route steers by. It used to steer by `seen`,
+   * and a journey ridden to its end once was then over the moment it was started again: every stop
+   * was already behind it. The owner found that on a phone - Pluto on the screen at 0 km.
+   */
+  passed: string[];
   /** the route is finished and the last stop has been left */
   done: boolean;
   /** the engine has been started at all */
@@ -35,7 +41,7 @@ export interface Trip {
 export const LEG_SECONDS = 2.6;
 
 export function begin(): Trip {
-  return { at: 0, held: null, beat: 0, seen: [], done: false, going: false };
+  return { at: 0, held: null, beat: 0, seen: [], passed: [], done: false, going: false };
 }
 
 /** Press start. Does nothing to a trip that is already going. */
@@ -48,7 +54,7 @@ export const stopById = (j: Journey, id: string | null): Stop | null =>
 
 /** The next stop ahead of `at` that has not been reached. */
 export function ahead(j: Journey, t: Trip): Stop | null {
-  for (const s of j.stops) if (!t.seen.includes(s.id) && s.at >= t.at - 1e-6) return s;
+  for (const s of j.stops) if (!t.passed.includes(s.id) && s.at >= t.at - 1e-6) return s;
   return null;
 }
 
@@ -67,7 +73,11 @@ export function travel(j: Journey, t: Trip, dt: number): Trip {
   const span = Math.max(1e-4, next.at - from);
   const at = Math.min(next.at, t.at + (span / LEG_SECONDS) * dt);
   if (at >= next.at - 1e-6) {
-    return { ...t, at: next.at, held: next.id, beat: 0, seen: [...t.seen, next.id] };
+    return {
+      ...t, at: next.at, held: next.id, beat: 0,
+      seen: t.seen.includes(next.id) ? t.seen : [...t.seen, next.id],
+      passed: [...t.passed, next.id],
+    };
   }
   return { ...t, at };
 }
@@ -75,7 +85,7 @@ export function travel(j: Journey, t: Trip, dt: number): Trip {
 /** Where the last leg started: the stop behind us, or the beginning. */
 function lastAt(j: Journey, t: Trip): number {
   let out = 0;
-  for (const s of j.stops) if (t.seen.includes(s.id) && s.at <= t.at + 1e-6) out = s.at;
+  for (const s of j.stops) if (t.passed.includes(s.id) && s.at <= t.at + 1e-6) out = s.at;
   return out;
 }
 
@@ -105,6 +115,8 @@ export function goTo(j: Journey, t: Trip, id: string): Trip {
   return {
     ...t, at: s.at, held: s.id, beat: 0, going: true, done: false,
     seen: t.seen.includes(id) ? t.seen : [...t.seen, id],
+    // everything up to the stop jumped to counts as passed, so the ride goes on from there
+    passed: j.stops.filter(x => x.at <= s.at + 1e-6).map(x => x.id),
   };
 }
 

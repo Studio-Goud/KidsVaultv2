@@ -2,6 +2,7 @@ import { save } from './storage';
 import { withSamples } from '../platform/samples';
 import { radioKey, radioWords } from '../platform/voicekey';
 import { noteMiss } from '../platform/voice';
+import { feel } from '../platform/feel';
 
 /**
  * All sound is synthesized with WebAudio: no audio files, works offline inside Capacitor.
@@ -122,13 +123,8 @@ export const sfx = withSamples('cloudhopper', {
   },
 });
 
-export function haptic(kind: 'light' | 'medium' | 'heavy' = 'light'): void {
-  if (!save.haptics) return;
-  try {
-    const pattern: number | number[] = kind === 'light' ? 10 : kind === 'medium' ? 25 : [30, 40, 60];
-    if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern);
-  } catch { /* unsupported */ }
-}
+/** Cloudhopper's own calls to vibrate, now through the one place that knows every device. */
+export function haptic(kind: 'light' | 'medium' | 'heavy' = 'light'): void { feel(kind); }
 
 // ---------------- ambience & music ----------------
 

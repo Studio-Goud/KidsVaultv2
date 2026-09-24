@@ -238,6 +238,7 @@ function overview(): void {
       button(T('Add a child', 'Kind toevoegen'), 'mint', () => addChild())),
     promisePanel(),
     subscriptionPanel(),
+    feelPanel(),
     panel(T('The code', 'De code'),
       el('p', 'note quiet', T(
         'A code stops the everyday thing: a child wandering in here and turning off their own time limit. It is not a safe. A determined ten-year-old on a desktop computer can get past it.',
@@ -246,6 +247,30 @@ function overview(): void {
     faqLink(overview),
     homeLink(),
   );
+}
+
+/**
+ * Sound and vibration, for the whole app. Both switches were only inside Cloudhopper's own settings,
+ * where no parent would look; they write the same two values every game reads.
+ */
+function feelPanel(): HTMLElement {
+  const line = (label: string, key: 'sound' | 'haptics'): HTMLElement => {
+    const box = el('input') as HTMLInputElement;
+    box.type = 'checkbox';
+    box.checked = save[key] !== false;
+    box.addEventListener('change', () => { save[key] = box.checked; persist(); });
+    const row = el('div', 'line');
+    const l = el('label');
+    l.textContent = label;
+    row.append(l, box);
+    return row;
+  };
+  return panel(T('Sound and vibration', 'Geluid en trillen'),
+    line(T('Sound', 'Geluid'), 'sound'),
+    line(T('Vibration', 'Trillen'), 'haptics'),
+    el('p', 'note quiet', T(
+      'A short tap you can feel on buttons, right answers and finished games. On an iPhone in the browser it only works while a finger is on the screen; in the app it always does.',
+      'Een kort tikje dat je voelt bij knoppen, goede antwoorden en afgemaakte spelletjes. Op een iPhone in de browser werkt het alleen zolang er een vinger op het scherm is; in de app altijd.')));
 }
 
 function addChild(): void {
