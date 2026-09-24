@@ -1,10 +1,12 @@
 /**
  * Everything Wereldatlas draws.
  *
- * There is not a photograph or a map tile anywhere in here. A map is a fill, an outline and a
- * name, and that turns out to be exactly what a child needs: the shape of Italy is the shape of
- * Italy whether it is drawn from a satellite or from twenty-six points, and twenty-six points can
- * be picked up with a finger and carried across the screen.
+ * Under every map is the earth as a satellite sees it: NASA's Blue Marble, cut to each view by
+ * scripts/atlasimg.mjs and laid under the outlines by longitude and latitude (satellite.json). The
+ * owner asked for a real Netherlands and real water rather than a drawn puzzle, and a child who
+ * has seen the Wadden islands from space once knows them. The pieces are still outlines, because a
+ * shape can be picked up with a finger and carried across the screen and a patch of photograph
+ * cannot; on the photograph they are drawn as lines and glass, so the land shows through.
  *
  * The one thing drawn from numbers rather than outlines is the height of the Netherlands, because
  * that is the only honest way to show a child why half their country is behind a wall.
@@ -15,6 +17,7 @@ import { contactShadow, grainOver, hexA, mix, roundRectPath, shade } from '../..
 import {
   HEIGHT, bounds, fit, project, type Box, type Flag, type Pt, type Ring, type View,
 } from './geo';
+import SAT from './satellite.json';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -394,5 +397,150 @@ export function drawGraticule(ctx: Ctx, view: View, box: Box, step: number): voi
     const y = f.y + (view.lat1 - lat) * f.s;
     ctx.beginPath(); ctx.moveTo(box.x, y); ctx.lineTo(box.x + box.w, y); ctx.stroke();
   }
+  ctx.restore();
+}
+
+// ---------------------------------------------------------------- the satellite picture
+
+type Board = keyof typeof SAT;
+const pics = new Map<string, HTMLImageElement>();
+const ready = new Set<string>();
+const masks = new Map<string, HTMLCanvasElement>();
+let shimmer: HTMLCanvasElement | null = null;
+
+/** The picture for a board, once it has loaded; null until then, and the painted map stands in. */
+function picture(board: Board): HTMLImageElement | null {
+  let img = pics.get(board);
+  if (!img) {
+    img = new Image();
+    img.onload = () => { ready.add(board); };
+    img.src = `./img/atlas/${board}.jpg`;
+    pics.set(board, img);
+  }
+  return ready.has(board) ? img : null;
+}
+
+/**
+ * Where the water is in a picture, worked out once from its colours. Blue Marble's open sea is
+ * nearly black (0,11,13 off the Dutch coast) and its darkest forest is still three times as bright
+ * (32,42,17 in the Eifel), so darkness alone tells them apart; the muddy water right along a coast
+ * is as bright as the land and is left out. The glitter is drawn only where this says water.
+ */
+function seaMask(board: Board, img: HTMLImageElement): HTMLCanvasElement | null {
+  const have = masks.get(board);
+  if (have) return have;
+  try {
+    const w = 900, h = Math.round(900 * img.naturalHeight / img.naturalWidth);
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    if (!g) return null;
+    g.drawImage(img, 0, 0, w, h);
+    const d = g.getImageData(0, 0, w, h);
+    for (let i = 0; i < d.data.length; i += 4) {
+      const r = d.data[i], gg = d.data[i + 1], b = d.data[i + 2];
+      const water = r + gg + b < 50 && r < 14;
+      d.data[i] = d.data[i + 1] = d.data[i + 2] = 255;
+      d.data[i + 3] = water ? 255 : 0;
+    }
+    g.putImageData(d, 0, 0);
+    masks.set(board, c);
+    return c;
+  } catch { return null; }
+}
+
+/**
+ * The earth under a map: the photograph, lightened for a phone held in daylight, and the sea
+ * glittering slowly. Returns false while the picture is still loading.
+ */
+export function drawSatellite(ctx: Ctx, board: Board, view: View, box: Box, t: number): boolean {
+  const img = picture(board);
+  const b = SAT[board];
+  if (!img || !b) return false;
+  const a = project([b.lon0, b.lat1], view, box);
+  const z = project([b.lon1, b.lat0], view, box);
+  const r = Math.min(box.w, box.h) * 0.04;
+  ctx.save();
+  roundRectPath(ctx, box.x, box.y, box.w, box.h, r);
+  ctx.clip();
+  ctx.drawImage(img, a.x, a.y, z.x - a.x, z.y - a.y);
+  // Blue Marble is a dark picture: lifted a little, the way a screen in the sun needs it
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = 'rgba(70, 82, 74, 0.42)';
+  ctx.fillRect(box.x, box.y, box.w, box.h);
+  ctx.globalCompositeOperation = 'source-over';
+
+  // the sea: long soft bands of light drifting across it, only where there is water
+  const m = seaMask(board, img);
+  if (m) {
+    const sw = Math.max(1, Math.round(box.w / 2)), sh = Math.max(1, Math.round(box.h / 2));
+    shimmer ??= document.createElement('canvas');
+    if (shimmer.width !== sw || shimmer.height !== sh) { shimmer.width = sw; shimmer.height = sh; }
+    const g = shimmer.getContext('2d');
+    if (g) {
+      g.globalCompositeOperation = 'source-over';
+      g.clearRect(0, 0, sw, sh);
+      g.drawImage(m, (a.x - box.x) / 2, (a.y - box.y) / 2, (z.x - a.x) / 2, (z.y - a.y) / 2);
+      g.globalCompositeOperation = 'source-in';
+      g.fillStyle = 'rgba(40, 110, 160, 0.55)';
+      g.fillRect(0, 0, sw, sh);
+      g.globalCompositeOperation = 'source-atop';
+      for (let k = 0; k < 7; k++) {
+        const y = ((k / 7) * sh * 1.4 + t * (6 + k * 1.3)) % (sh * 1.4) - sh * 0.2;
+        const band = g.createLinearGradient(0, y - 10, 0, y + 10);
+        band.addColorStop(0, 'rgba(255,255,255,0)');
+        band.addColorStop(0.5, `rgba(210,240,255,${0.18 + 0.08 * Math.sin(t * 0.7 + k)})`);
+        band.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = band;
+        g.save();
+        g.translate(0, y);
+        g.rotate(-0.08);
+        g.fillRect(-20, -12, sw + 40, 24);
+        g.restore();
+      }
+      ctx.globalAlpha = 0.9;
+      ctx.drawImage(shimmer, box.x, box.y, box.w, box.h);
+      ctx.globalAlpha = 1;
+    }
+  }
+  ctx.restore();
+  ctx.strokeStyle = hexA(INK, 0.3);
+  ctx.lineWidth = 1.5;
+  roundRectPath(ctx, box.x + 0.75, box.y + 0.75, box.w - 1.5, box.h - 1.5, r);
+  ctx.stroke();
+  return true;
+}
+
+/**
+ * A river as water that moves: its own blue, and light running along it from where it rises to
+ * where it reaches the sea. Every river in geo.ts is listed that way, source first, so the light
+ * always shows which way the water goes - which is the thing a child cannot see on a drawn line.
+ * The two dykes are paths too, and are drawn with `drawLine`: a dyke does not flow.
+ */
+export function drawFlow(ctx: Ctx, path: Ring, view: View, box: Box, colour: string, width: number, t: number): void {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  const trace = (): void => {
+    ctx.beginPath();
+    path.forEach((p, i) => {
+      const q = project(p, view, box);
+      if (i === 0) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+    });
+  };
+  trace();
+  ctx.strokeStyle = 'rgba(8, 40, 70, 0.55)';
+  ctx.lineWidth = width * 1.9;
+  ctx.stroke();
+  trace();
+  ctx.strokeStyle = colour;
+  ctx.lineWidth = width;
+  ctx.stroke();
+  trace();
+  ctx.setLineDash([width * 1.6, width * 3.4]);
+  ctx.lineDashOffset = -t * width * 6;
+  ctx.strokeStyle = 'rgba(225, 245, 255, 0.85)';
+  ctx.lineWidth = width * 0.45;
+  ctx.stroke();
   ctx.restore();
 }

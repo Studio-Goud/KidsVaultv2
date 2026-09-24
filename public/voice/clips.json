@@ -1408,6 +1408,12 @@
    "text": "Afrikaanse Wilde Hond"
   },
   {
+   "id": "t0a1d330a",
+   "file": "nl/t0a1d330a.mp3",
+   "secs": 1.7,
+   "text": "Eerst kijken en luisteren"
+  },
+  {
    "id": "t0a1f387b",
    "file": "nl/t0a1f387b.mp3",
    "secs": 1,
@@ -3248,6 +3254,12 @@
    "file": "nl/t19024e36.mp3",
    "secs": 1.3,
    "text": "Leptosia nina"
+  },
+  {
+   "id": "t19094de8",
+   "file": "nl/t19094de8.mp3",
+   "secs": 4.9,
+   "text": "Eerst kijken we samen. Tik op een plek op de kaart, of op Volgende."
   },
   {
    "id": "t190ad8ab",
@@ -16256,6 +16268,12 @@
    "file": "nl/t7c7738b1.mp3",
    "secs": 0.7,
    "text": "eet"
+  },
+  {
+   "id": "t7c7864fc",
+   "file": "nl/t7c7864fc.mp3",
+   "secs": 0.9,
+   "text": "Puzzelen"
   },
   {
    "id": "t7c8e1cd9",
@@ -45138,6 +45156,12 @@
    "text": "Common Roach"
   },
   {
+   "id": "t5a29dca1",
+   "file": "en/t5a29dca1.mp3",
+   "secs": 3.8,
+   "text": "First we look together. Tap a place on the map, or Next."
+  },
+  {
    "id": "t5a2f00f6",
    "file": "en/t5a2f00f6.mp3",
    "secs": 1.8,
@@ -45310,6 +45334,12 @@
    "file": "en/t5c08d24b.mp3",
    "secs": 1.5,
    "text": "Yellow-banded Dart"
+  },
+  {
+   "id": "t5c0f5d7c",
+   "file": "en/t5c0f5d7c.mp3",
+   "secs": 1.5,
+   "text": "Look and listen first"
   },
   {
    "id": "t5c2f054d",
