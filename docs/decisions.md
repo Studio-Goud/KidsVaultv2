@@ -407,3 +407,12 @@ zegt Ruth bij elk goed en elk fout stuk de naam en het weetje hardop (dat deed d
 dan is het een leesspel), en er is een hintknop die het weetje nog eens zegt en een brede gloed
 over het deel van de kaart legt waar het stuk hoort, met opzet niet op de plek zelf. Een stuk met
 een hint telt niet meer als in één keer goed, net als na een foute poging.
+
+## 2026-09-24 — De liniaal bij het Dierenboek is weg
+
+Een dag later vond de eigenaar de liniaal uit verhouding bij alle dieren, en dat klopte: een platte
+getekende vorm op een liniaal naast een echte foto ziet eruit als speelgoed, een kikker werd een
+groene vlek, en bij een tussenmaat stond er "streepjes zijn mm" onder streepjes van een halve
+centimeter. Voor de meeste dieren is de lengte bovendien een gemiddelde van de familie. Wat waar is,
+is het getal, dus onder "Hoe groot" staat nu alleen de lengte, groot, en of die van het dier zelf of
+van zijn familie is. `rulerFor()` en zijn tests zijn met de liniaal verdwenen.
