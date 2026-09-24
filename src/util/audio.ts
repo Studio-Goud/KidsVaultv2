@@ -18,6 +18,25 @@ let noiseBuffer: AudioBuffer | null = null;
 
 export function audioContext(): AudioContext | null { return ctx; }
 
+/**
+ * Two things an iPhone does that made the owner hear Ruth but not the sound effects.
+ *
+ * On silent, iOS mutes everything played through WebAudio - every effect in Suri - while an
+ * <audio> element, which is what Ruth's voice is, plays on. The fix Safari offers is to declare the
+ * page's audio as "playback", which is what a music app is, and then effects and voice follow the
+ * same rule. And Safari only lets sound start inside certain gestures: a finger lifting counts, a
+ * finger landing does not always, so the context is also woken on every touchend and click.
+ */
+try {
+  const nav = navigator as unknown as { audioSession?: { type: string } };
+  if (nav.audioSession) nav.audioSession.type = 'playback';
+} catch { /* an older Safari: the silent switch wins, as it always did */ }
+if (typeof document !== 'undefined') {
+  for (const ev of ['touchend', 'click', 'keydown'] as const) {
+    document.addEventListener(ev, () => unlockAudio(), { capture: true, passive: true });
+  }
+}
+
 export function unlockAudio(): void {
   if (ctx) { if (ctx.state === 'suspended') void ctx.resume(); return; }
   try {

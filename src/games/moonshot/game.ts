@@ -16,7 +16,7 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
-import { uiScale, safeArea } from '../../util/ui';
+import { uiScale, safeArea, GUIDE_KEEP } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { persist, save } from '../../util/storage';
 import { countFinished } from '../../platform/clock';
@@ -1118,7 +1118,7 @@ export class Moonshot {
       return;
     }
     if (hit === 'launch') { this.picking = false; this.tuning = -1; this.launch(); return; }
-    if (hit === 'undo') { this.undo(); return; }
+    if (hit === 'undo') { rocket.tap(); this.undo(); return; }
     if (hit === 'clear') {
       this.tuning = -1;
       if (!this.design.length) { rocket.blocked(); return; }
@@ -1771,8 +1771,15 @@ export class Moonshot {
     const ctx = this.ctx, u = this.u();
     const bh = b.launchH, by = b.launchY;
     const side = 50 * u;
-    const bw = Math.min(230 * u, this.w - side * 2 - 28 * u);
-    const bx = this.w / 2 - bw / 2;
+    const gap = 8 * u;
+    // Undo, Launch and Empty in one row that starts right of Suri's corner. Undo used to sit in
+    // that corner, under the guide, and a finger aimed at it made him talk instead.
+    const left = Math.max(8 * u, GUIDE_KEEP);
+    const bw = Math.min(230 * u, this.w - 8 * u - left - side * 2 - gap * 2);
+    const rowW = side * 2 + gap * 2 + bw;
+    const ux = left + (this.w - 8 * u - left - rowW) / 2;
+    const bx = ux + side + gap;
+    const cx0 = bx + bw + gap;
     const ready = isFlyable(this.design);
     const face = chunkyButton(ctx, bx, by, bw, bh, { tone: ready ? '#65d48c' : '#6d7787', pressed: this.held === 'launch' });
     ctx.fillStyle = ready ? '#0b2a1c' : 'rgba(255,255,255,0.7)';
@@ -1782,15 +1789,15 @@ export class Moonshot {
     this.hits.push({ id: 'launch', x: bx, y: by, w: bw, h: bh });
 
     ctx.font = this.font('900', 11);
-    const uf = chunkyButton(ctx, 8 * u, by, side, bh, { tone: '#46516a', pressed: this.held === 'undo' });
+    const uf = chunkyButton(ctx, ux, by, side, bh, { tone: '#46516a', pressed: this.held === 'undo' });
     ctx.fillStyle = this.history.length ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.4)';
-    ctx.fillText(T('Undo', 'Terug'), 8 * u + side / 2, uf.y + bh * 0.62, side - 6 * u);
-    this.hits.push({ id: 'undo', x: 8 * u, y: by, w: side, h: bh });
+    ctx.fillText(T('Undo', 'Terug'), ux + side / 2, uf.y + bh * 0.62, side - 6 * u);
+    this.hits.push({ id: 'undo', x: ux, y: by, w: side, h: bh });
 
-    const cf = chunkyButton(ctx, this.w - side - 8 * u, by, side, bh, { tone: '#46516a', pressed: this.held === 'clear' });
+    const cf = chunkyButton(ctx, cx0, by, side, bh, { tone: '#46516a', pressed: this.held === 'clear' });
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.fillText(T('Empty', 'Leeg'), this.w - side / 2 - 8 * u, cf.y + bh * 0.62, side - 6 * u);
-    this.hits.push({ id: 'clear', x: this.w - side - 8 * u, y: by, w: side, h: bh });
+    ctx.fillText(T('Empty', 'Leeg'), cx0 + side / 2, cf.y + bh * 0.62, side - 6 * u);
+    this.hits.push({ id: 'clear', x: cx0, y: by, w: side, h: bh });
     ctx.textAlign = 'left';
   }
 
