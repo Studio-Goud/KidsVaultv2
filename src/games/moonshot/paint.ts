@@ -328,16 +328,24 @@ function paintSpecial(
       return true;
     }
     case 'ring': {
-      ctx.fillStyle = tube(ctx, x, w, '#9aa3ae');
-      roundRectPath(ctx, x, y + h * 0.2, w, h * 0.6, w * 0.06);
-      ctx.fill();
+      // The whole row, top to bottom: a decoupler is a stretch of the rocket's own skin with the
+      // cut in it, not a washer floating between two stages. It used to be drawn at sixty per cent
+      // of its height, which left a band of sky above and below it that no real rocket has.
+      ctx.fillStyle = tube(ctx, x, w, '#b7bec8');
+      ctx.fillRect(x, y, w, h);
+      // the separation line near the top, with the little charges along it
+      const cutY = y + h * 0.22;
+      ctx.fillStyle = 'rgba(30, 34, 42, 0.75)';
+      ctx.fillRect(x, cutY - Math.max(0.8, h * 0.025), w, Math.max(1.6, h * 0.05));
       ctx.fillStyle = '#c0392b';
       const n = 6;
       for (let i = 0; i < n; i++) {
         ctx.beginPath();
-        ctx.arc(x + w * (0.1 + (0.8 * i) / (n - 1)), y + h * 0.5, Math.max(1, w * 0.035), 0, TAU);
+        ctx.arc(x + w * (0.1 + (0.8 * i) / (n - 1)), cutY + h * 0.14, Math.max(1, w * 0.03), 0, TAU);
         ctx.fill();
       }
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.fillRect(x + w * 0.3, y, w * 0.07, h);
       return true;
     }
     case 'strut': {
@@ -503,6 +511,93 @@ function paintSpecial(
     default:
       return false;
   }
+}
+
+/**
+ * A nose cone on top of a capsule, drawn as what really sits there: a launch escape tower.
+ *
+ * A capsule is already pointed, and a second cone balanced on its tip read as two cones stacked on
+ * each other, which is not how anything flies. Apollo, Soyuz and Orion all carry a thin tower on
+ * the capsule's point instead: a lattice, a small rocket that could pull the crew clear, and a
+ * sharp tip. It stands on the capsule's point and is no wider than the point is.
+ */
+export function paintEscapeTower(ctx: Ctx, cx: number, bottomY: number, w: number, h: number): void {
+  const tw = w * 0.34;
+  const latticeTop = bottomY - h * 0.42;
+  ctx.save();
+  ctx.strokeStyle = '#c0473a';
+  ctx.lineWidth = Math.max(0.8, w * 0.035);
+  ctx.lineCap = 'round';
+  // the lattice: two legs and crossed braces
+  ctx.beginPath();
+  ctx.moveTo(cx - tw * 0.5, bottomY); ctx.lineTo(cx - tw * 0.18, latticeTop);
+  ctx.moveTo(cx + tw * 0.5, bottomY); ctx.lineTo(cx + tw * 0.18, latticeTop);
+  const steps = 3;
+  for (let i = 0; i < steps; i++) {
+    const k0 = i / steps, k1 = (i + 1) / steps;
+    const y0 = bottomY - (bottomY - latticeTop) * k0, y1 = bottomY - (bottomY - latticeTop) * k1;
+    const hw0 = tw * (0.5 - 0.32 * k0), hw1 = tw * (0.5 - 0.32 * k1);
+    ctx.moveTo(cx - hw0, y0); ctx.lineTo(cx + hw1, y1);
+    ctx.moveTo(cx + hw0, y0); ctx.lineTo(cx - hw1, y1);
+  }
+  ctx.stroke();
+  // the escape motor, with its nozzles angled out at the foot
+  const mw = tw * 0.42, mTop = bottomY - h * 0.86;
+  ctx.fillStyle = tube(ctx, cx - mw / 2, mw, WHITE);
+  ctx.fillRect(cx - mw / 2, mTop, mw, latticeTop - mTop);
+  ctx.fillStyle = DARK;
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(cx + s * mw * 0.3, latticeTop - h * 0.02);
+    ctx.lineTo(cx + s * mw * 0.95, latticeTop + h * 0.05);
+    ctx.lineTo(cx + s * mw * 0.55, latticeTop + h * 0.07);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.fillStyle = '#c0473a';
+  ctx.fillRect(cx - mw / 2, mTop + (latticeTop - mTop) * 0.35, mw, Math.max(1, h * 0.04));
+  // and the sharp tip
+  ctx.fillStyle = tube(ctx, cx - mw / 2, mw, WHITE);
+  ctx.beginPath();
+  ctx.moveTo(cx, bottomY - h);
+  ctx.lineTo(cx + mw / 2, mTop);
+  ctx.lineTo(cx - mw / 2, mTop);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * The interstage: the skin that closes the gap between a decoupler and the stage above it, with
+ * that stage's engine inside. On a real rocket you never see the upper engine until the stage
+ * under it has gone - it is hidden in this skirt, and the skirt falls away with the decoupler.
+ * In the workshop it is drawn as glass, so a child still sees the engine they have just put there.
+ */
+export function paintSkirt(
+  ctx: Ctx, cx: number, bottomY: number, wBottom: number, wTop: number, h: number, ghost: boolean,
+): void {
+  ctx.save();
+  if (ghost) ctx.globalAlpha = 0.38;
+  const xb = cx - wBottom / 2;
+  ctx.fillStyle = tube(ctx, xb, wBottom, '#d9dee5');
+  ctx.beginPath();
+  ctx.moveTo(cx - wBottom / 2, bottomY);
+  ctx.lineTo(cx - wTop / 2, bottomY - h);
+  ctx.lineTo(cx + wTop / 2, bottomY - h);
+  ctx.lineTo(cx + wBottom / 2, bottomY);
+  ctx.closePath();
+  ctx.fill();
+  // stringers down the skirt, the way an interstage is built
+  ctx.strokeStyle = 'rgba(40, 48, 60, 0.18)';
+  ctx.lineWidth = Math.max(0.6, wBottom * 0.012);
+  for (let k = 1; k < 6; k++) {
+    const f = k / 6 - 0.5;
+    ctx.beginPath();
+    ctx.moveTo(cx + f * wBottom, bottomY);
+    ctx.lineTo(cx + f * wTop, bottomY - h);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 /** What a part looks like when nothing more specific is asked for. */
@@ -810,7 +905,7 @@ export function boxOf(
  */
 export function paintDesign(
   ctx: Ctx, design: Design, ox: number, oy: number, u: number, t: number,
-  opts: { dropped?: ReadonlySet<number>; centre?: number; fade?: number } = {},
+  opts: { dropped?: ReadonlySet<number>; centre?: number; fade?: number; ghostSkirts?: boolean } = {},
 ): Box[] {
   const boxes: Box[] = [];
   const dropped = opts.dropped;
@@ -834,11 +929,40 @@ export function paintDesign(
     const wTop = part.id === 'adapter' ? taperSpan(design, i).top : wu;
     const wBottom = part.id === 'adapter' ? taperSpan(design, i).bottom : wu;
     if (opts.fade !== undefined) { ctx.save(); ctx.globalAlpha = opts.fade; }
-    paintPart(ctx, part, cx, bottom, u, t, side, wBottom, wTop);
+    const under = below(design, i, dropped);
+    const base = under ? partById(under.id) : null;
+    if (part.kind === 'nose' && base && POINTED_PODS.has(base.art ?? DEFAULT_ART[base.kind])) {
+      paintEscapeTower(ctx, cx, bottom, base.w * u, part.rows * u);
+    } else if (part.kind === 'nose' && base && (base.art ?? DEFAULT_ART[base.kind]) === 'solid' && (base.tubes ?? 1) === 1 && (part.art ?? 'cone') === 'cone') {
+      // A booster already ends in a pointed cap, so a cone on it used to float over a second
+      // point. The cone takes the cap's place instead: one nose, as wide as the casing it closes.
+      const cap = base.rows * 0.17;
+      paintPart(ctx, { ...part, rows: part.rows + cap }, cx, bottom + cap * u, u, t, side, base.w, base.w);
+    } else {
+      paintPart(ctx, part, cx, bottom, u, t, side, wBottom, wTop);
+    }
     if (opts.fade !== undefined) ctx.restore();
     boxes.push({ i, x: cx - (wu * u) / 2, y: bottom - part.rows * u, w: wu * u, h: part.rows * u });
   }
+  // the skirts go on last, over the engines they hide
+  design.forEach((p, i) => {
+    if (dropped?.has(i) || partById(p.id).art !== 'ring') return;
+    const k = design.findIndex((q, j) => j !== i && !dropped?.has(j) && q.col === p.col && q.row === topRow(p) + 1);
+    if (k < 0 || partById(design[k].id).kind !== 'engine') return;
+    const eng = partById(design[k].id);
+    const cx = ox + (p.col + 0.5) * u;
+    paintSkirt(ctx, cx, oy - (topRow(p) + 1) * u, widthOf(design, i) * u, eng.w * u, eng.rows * u, !!opts.ghostSkirts);
+  });
   return boxes;
+}
+
+/** Pods with a point of their own, on which a nose cone is drawn as an escape tower. */
+const POINTED_PODS = new Set(['capsule', 'probe']);
+
+/** The part standing directly under this one in its column, if any is still attached. */
+function below(design: Design, i: number, dropped?: ReadonlySet<number>): Design[number] | null {
+  const p = design[i];
+  return design.find((q, j) => j !== i && !dropped?.has(j) && q.col === p.col && topRow(q) + 1 === p.row) ?? null;
 }
 
 /** How tall and wide the built rocket is, in grid cells, for fitting it on the screen. */

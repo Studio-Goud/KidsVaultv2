@@ -416,3 +416,16 @@ groene vlek, en bij een tussenmaat stond er "streepjes zijn mm" onder streepjes 
 centimeter. Voor de meeste dieren is de lengte bovendien een gemiddelde van de familie. Wat waar is,
 is het getal, dus onder "Hoe groot" staat nu alleen de lengte, groot, en of die van het dier zelf of
 van zijn familie is. `rulerFor()` en zijn tests zijn met de liniaal verdwenen.
+
+## 2026-09-25 — Moonshot: geen twee kegels op elkaar, en geen lucht tussen de trappen
+
+De eigenaar zag dat een neuskegel op een capsule twee punten op elkaar gaf, en dat er tussen de
+trappen lucht zat. Allebei klopte. De capsule is zelf al spits; een kegel erop wordt nu getekend als
+wat daar bij Apollo, Sojoez en Orion echt staat: een reddingstoren, een dun vakwerk met een klein
+raketje en een punt. Een kegel op een enkele booster neemt de plek van diens eigen puntdop in, zodat
+er één neus is. De ontkoppelaar werd op zestig procent van zijn hoogte getekend, met een strook
+lucht erboven en eronder; hij vult nu zijn hele rij, met de scheidingsnaad erin. En staat er een
+motor direct op, dan sluit een tussentrap de ruimte tot de tank erboven, zoals bij elke echte
+meertrapsraket: de bovenste motor zie je pas als de trap eronder weg is. In de werkplaats is die
+tussentrap van glas, zodat een kind de motor die het net neerzette nog ziet. Alleen de tekening is
+veranderd; de luchtweerstand rekende al met de spitsheid van de bovenste punt per kolom.
