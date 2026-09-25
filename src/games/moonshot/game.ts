@@ -1507,7 +1507,7 @@ export class Moonshot {
 
     const bounds = designBounds(this.design);
     const boxes = paintDesign(ctx, this.design, ox, oy, unit, this.t, {
-      dropped: ignore, centre: (bounds.c0 + bounds.c1) / 2,
+      dropped: ignore, centre: (bounds.c0 + bounds.c1) / 2, ghostSkirts: true,
     });
     for (const box of boxes) {
       // a fin sticks out well past its column, so what you grab it by is its column, not its span
