@@ -163,6 +163,15 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
+    id: 'lichaam', title: 'Het menselijk lichaam',
+    line: 'Shrink smaller than a grain of sand and travel from the top of your head to your toes.',
+    lineNl: 'Word kleiner dan een zandkorrel en reis van je kruin tot je tenen, langs je hersenen, je hart en je botten.',
+    practises: 'Being read to, where things are in your own body, what they are for',
+    practisesNl: 'Luisteren naar een verhaal, waar alles in je eigen lijf zit, en waar het voor is',
+    from: 4, to: 10, domains: ['natuur'], nature: 'leren', minutes: [5, 12],
+    reads: false, speaks: true,
+  },
+  {
     id: 'orbit', title: 'Planetarium',
     line: 'Order the planets, explore them in NASA photographs, and launch probes to reach them.',
     lineNl: 'Zet de planeten op volgorde, verken ze in NASA-opnamen en lanceer sondes om ze te bereiken.',

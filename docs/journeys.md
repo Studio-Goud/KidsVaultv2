@@ -1,6 +1,6 @@
 # De ontdekreis
 
-Status: gebouwd. Drie reizen live (`reis.html`, `diepzee.html`, `dino.html`), motor in `src/journey/`.
+Status: gebouwd. Vier reizen live (`reis.html`, `diepzee.html`, `dino.html`, `lichaam.html`), motor in `src/journey/`.
 
 ## Wat het is
 
@@ -70,7 +70,7 @@ Vier soorten, en de motor merkt het verschil niet:
 Bij elke foto staat de fotograaf en de licentie, op het scherm waar hij groot te zien is. Dat is
 geen nettigheid maar wat die licenties vragen: een deel ervan is CC BY-SA.
 
-## De drie die er zijn
+## De vier die er zijn
 
 **De grote reis** (`src/journeys/solar.ts`). Elf haltes, van de zon tot Pluto. Kostte geen enkele
 nieuwe asset: de foto's lagen er al voor Planetarium.
@@ -90,9 +90,18 @@ gefotografeerde de tekening tot feit maakt. De ene getekende halte is de inslag
 Maastricht, de Iguanodons uit de kolenmijn van Bernissart. De motor kreeg alleen een vierde
 voertuig, de boor.
 
+**Het menselijk lichaam** (`src/journeys/body.ts`). Elf haltes, van je kruin tot je tenen: de
+hersenen, het oog, de tanden, de stembanden, de longen, het hart, het bloed, de maag, de darmen,
+de knie, de voet. Van boven naar beneden omdat het je eigen lijf is en een kind elke halte bij
+zichzelf kan aanwijzen. De meter telt centimeters vanaf de kruin van een kind van 1,20 m, de
+lengte van een zesjarige volgens de groeicurven van TNO; dat is een keuze, geen meting. Vier
+haltes zijn foto's (een oog, bloed onder de microscoop, röntgenfoto's van een knie en een voet);
+de organen zijn getekend (`bodyart.ts`), omdat een foto van een echt orgaan uit een operatiekamer
+komt en een vierjarige bang maakt in plaats van nieuwsgierig. Geen regel motor.
+
 ## Wat er nog niet is
 
-- De twee andere reizen uit de opdracht: het lichaam en een fabriek. Die zijn elk een
-  databestand plus wat tekenwerk voor de haltes zonder foto.
+- De laatste reis uit de opdracht: een fabriek. Een databestand plus tekenwerk, en die loopt
+  horizontaal.
 - Een horizontale reis. De as kan `up` of `down`; een fabriek loopt van links naar rechts en dat
   is tekenwerk in `screen.ts`, geen verandering in de data.

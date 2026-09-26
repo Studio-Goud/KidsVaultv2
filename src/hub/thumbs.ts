@@ -1310,3 +1310,31 @@ export function drawDinoThumb(c: HTMLCanvasElement): void {
   ctx.fillRect(w * 0.6 - h * 0.1, 0, h * 0.2, h * 0.5);
   drawCraft(ctx, 'drill', w * 0.6, h * 0.58, Math.min(w, h) * 0.5, Math.PI, 1);
 }
+
+/** The body journey: a warm pink inside, a heart beating in it, and the pod on its way down. */
+export function drawBodyThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#e7a3b3'); g.addColorStop(0.55, '#b8485a'); g.addColorStop(1, '#5a1a26');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  // a few blood cells drifting past
+  for (let i = 0; i < 9; i++) {
+    const x = ((Math.sin(i * 45.233) * 43758.5453) % 1 + 1) % 1;
+    const y = ((Math.sin(i * 91.7) * 43758.5453) % 1 + 1) % 1;
+    const r = Math.min(w, h) * (0.04 + x * 0.03);
+    ctx.fillStyle = 'rgba(200, 40, 60, 0.75)';
+    ctx.beginPath(); ctx.ellipse(x * w, y * h, r, r * 0.7, x * 3, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(120, 20, 35, 0.5)';
+    ctx.beginPath(); ctx.ellipse(x * w, y * h, r * 0.45, r * 0.3, x * 3, 0, TAU); ctx.fill();
+  }
+  // a heart on the left
+  const hx = w * 0.26, hy = h * 0.58, s = Math.min(w, h) * 0.2;
+  ctx.fillStyle = '#e04a5e';
+  ctx.beginPath();
+  ctx.moveTo(hx, hy + s * 0.9);
+  ctx.bezierCurveTo(hx - s * 1.2, hy + s * 0.1, hx - s * 0.6, hy - s * 0.8, hx, hy - s * 0.2);
+  ctx.bezierCurveTo(hx + s * 0.6, hy - s * 0.8, hx + s * 1.2, hy + s * 0.1, hx, hy + s * 0.9);
+  ctx.fill();
+  drawCraft(ctx, 'pod', w * 0.64, h * 0.44, Math.min(w, h) * 0.5, Math.PI, 1);
+}

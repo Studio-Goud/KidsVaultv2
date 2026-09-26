@@ -248,6 +248,14 @@ export const SFX: Record<string, SfxRow> = {
   'dino.index': tap('a soft click, opening a map'),
   'dino.done': done('a warm gentle celebration with soft marimba and a friendly distant dinosaur call'),
   'dino.bed': { prompt: `a steady low rumble of a drill boring slowly through rock, muffled inside a cabin, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  // ---- Het menselijk lichaam: a tiny pod from the top of the head to the toes
+  'lichaam.go': { prompt: `a tiny magical shrinking sound followed by a soft whoosh into something warm, ${SOFT}`, secs: 2, max: 1.8 },
+  'lichaam.arrive': { prompt: `a soft slow heartbeat, two gentle thumps, ${SOFT}`, secs: 1.2, max: 1.1 },
+  'lichaam.more': { prompt: `a soft gentle bubbly gurgle, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'lichaam.on': { prompt: `a tiny pod whooshing off again through something soft, ${SOFT}`, secs: 1.2, max: 1 },
+  'lichaam.index': tap('a soft click, opening a map'),
+  'lichaam.done': done('a warm gentle celebration with soft chimes and a calm heartbeat underneath'),
+  'lichaam.bed': { prompt: `calm muffled sound inside a body, a slow steady heartbeat and soft flowing blood, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
   'diepzee.bed': { prompt: `calm deep underwater ambience inside a small submarine, soft hum and distant bubbles, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.35 },
 
   // ---- Cloudhopper

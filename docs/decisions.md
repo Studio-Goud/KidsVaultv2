@@ -440,3 +440,14 @@ een geschilderde dino naast een gefotografeerde maakt de schildering tot het fei
 is getekend. Trix in Leiden, de Mosasaurus uit Maastricht en de Iguanodons uit Bernissart staan
 erin omdat ze dichtbij zijn. De leeftijden zijn de gangbare afgeronde per dier; de eerste halte,
 de ijstijd van twintigduizend jaar geleden, staat op de meter als nul omdat die in miljoenen telt.
+
+## 2026-09-26 — Het menselijk lichaam: van kruin tot tenen, en organen getekend
+
+De vierde ontdekreis gaat van boven naar beneden door een lichaam, omdat het het lijf van het kind
+zelf is: elke halte kan het bij zichzelf aanwijzen. De meter telt centimeters vanaf de kruin van
+een kind van 1,20 m, ongeveer een zesjarige volgens de TNO-groeicurven; een productkeuze, en zo
+staat het ook in de kop van `body.ts`. De organen zijn getekend en niet gefotografeerd: een foto
+van een echt hart of een echte maag komt uit een operatiekamer, en dat maakt een vierjarige bang in
+plaats van nieuwsgierig. Wat wel zonder schrik te fotograferen is, is een foto: een oog, bloed
+onder de microscoop, röntgenfoto's van een knie en een voet. Elke halte blijft één van de twee,
+nooit een tekening en een foto door elkaar (`docs/research.md` §2.3).
