@@ -451,3 +451,29 @@ van een echt hart of een echte maag komt uit een operatiekamer, en dat maakt een
 plaats van nieuwsgierig. Wat wel zonder schrik te fotograferen is, is een foto: een oog, bloed
 onder de microscoop, röntgenfoto's van een knie en een voet. Elke halte blijft één van de twee,
 nooit een tekening en een foto door elkaar (`docs/research.md` §2.3).
+
+## 2026-09-26 — De verhaalreis: Suri en de reuzentand
+
+De eigenaar vond de ontdekreizen gedateerd: een puntje dat langs een lijn zakt, een foto in een
+cirkel, en een kind dat alleen kijkt. Hij vroeg om een echt verhaal en een echte reis, zo virtueel
+als kan en interactief. Dit is het antwoord: een verhaal met een vraag aan het begin (van wie is de
+reuzentand uit opa's kist?) en het antwoord aan het eind (van een T. rex), in zeven hoofdstukken.
+
+Elke plek is een wereld van 360 graden om je heen (`src/story/world.ts`): je kijkt rond door je
+telefoon te draaien of met je vinger te vegen (`look.ts`), en het dier waar het om gaat staat vaak
+achter je. Dingen die verder weg staan zijn kleiner en waziger, dingen dichtbij groot, en dat is
+genoeg om het als een plek te voelen. De dieren (`beasts.ts`) zijn in code getekend met echte
+benen: de voet staat op de grond waar hij neerkomt en de knie zoekt zijn plek, zodat ze lopen in
+plaats van schuiven. Hun maten zijn de echte; hun kleuren zijn een gok en dat staat erbij.
+
+In elk hoofdstuk doet het kind iets waardoor het verhaal verdergaat: zand wegvegen, de hendel van
+de tijdboor overhalen, het dier zoeken door rond te kijken, de tand ernaast houden, een varen voeren,
+stil blijven zitten. Niets kan mislukken en niets heeft een klok. Het spannendste moment, stilzitten
+terwijl de T. rex langsloopt, loopt altijd goed af: raakt het kind het scherm aan, dan snuffelt hij
+even en loopt toch door (regel 2).
+
+Eén ding is voor de eerlijkheid omgebouwd. Een T. rex-tand in een Nederlandse tuin kan niet: de
+T. rex leefde in Noord-Amerika. Daarom komt de tand uit een oude kist van opa zonder kaartje, gaat
+de tijdboor eerst door de Nederlandse tijd (de ijstijd, de krijtzee boven Limburg) en reist hij
+daarna naar Amerika. Het blijft in canvas 2D, zonder 3D-bibliotheek, zodat het ook op een oudere
+telefoon soepel loopt en de vaste regels van het project blijven staan.

@@ -20,7 +20,7 @@ document leeg is en er een naam onder staat.
 
 ## A. Wat elk onderdeel zegt te oefenen
 
-Bron: het veld `practises` per rij in `src/platform/catalog.ts`. Eenentwintig rijen, elk één zin.
+Bron: het veld `practises` per rij in `src/platform/catalog.ts`. Tweeëntwintig rijen, elk één zin.
 
 Wat een pedagoog zou moeten nakijken, per rij:
 
@@ -57,9 +57,10 @@ Concreet te toetsen rijen, met wat erachter zit:
 | De grote reis | luisteren, afstanden, volgorde van de planeten | geen bron; mijn inschatting |
 | De diepzee | luisteren, hoe diep diep is, wat waar leeft | geen bron; mijn inschatting |
 | Het menselijk lichaam | luisteren, waar alles in je eigen lijf zit en waarvoor | geen bron; mijn inschatting. De centimeters zijn voor een kind van 1,20 m (TNO-groeicurven, zesjarige) |
+| Suri en de reuzentand | luisteren naar een verhaal, goed kijken en vergelijken, ouder is dieper | geen bron; mijn inschatting |
 | De tijd van de dino's | luisteren, hoe lang geleden lang geleden is, diepere grond is oudere grond | geen bron; mijn inschatting. De leeftijden zijn de gangbare afgeronde per dier |
 
-Vijftien van de eenentwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
+Zestien van de tweeëntwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
 
 ## B. Schermtijd
 

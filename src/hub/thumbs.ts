@@ -1338,3 +1338,41 @@ export function drawBodyThumb(c: HTMLCanvasElement): void {
   ctx.fill();
   drawCraft(ctx, 'pod', w * 0.64, h * 0.44, Math.min(w, h) * 0.5, Math.PI, 1);
 }
+
+/** The story: a T. rex head in the forest, looking at the giant tooth. */
+export function drawToothThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#7fb4d4'); g.addColorStop(0.55, '#f2e2b8'); g.addColorStop(0.56, '#6f8a44'); g.addColorStop(1, '#4f6a2a');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  // a fern or two, and the head coming in from the right
+  ctx.strokeStyle = '#3f6a2a'; ctx.lineWidth = Math.max(1.5, w * 0.015);
+  for (const fx of [0.12, 0.3]) {
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (i - 2) * 0.35;
+      ctx.beginPath(); ctx.moveTo(w * fx, h * 0.95); ctx.lineTo(w * fx + Math.cos(a) * h * 0.3, h * 0.95 + Math.sin(a) * h * 0.3); ctx.stroke();
+    }
+  }
+  const s = h / 90;
+  ctx.save();
+  ctx.translate(w * 0.62, h * 0.18);
+  ctx.scale(s, s);
+  ctx.fillStyle = '#6d7446';
+  ctx.beginPath(); ctx.moveTo(0, 20); ctx.quadraticCurveTo(20, 0, 55, 8); ctx.quadraticCurveTo(66, 16, 62, 30); ctx.lineTo(8, 36); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#b6a57a';
+  ctx.beginPath(); ctx.moveTo(10, 36); ctx.lineTo(58, 34); ctx.quadraticCurveTo(58, 44, 48, 46); ctx.lineTo(12, 46); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#f2ead2';
+  for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(18 + i * 7, 32); ctx.lineTo(21 + i * 7, 38); ctx.lineTo(24 + i * 7, 32); ctx.fill(); }
+  ctx.fillStyle = '#2a2016'; ctx.beginPath(); ctx.arc(22, 16, 3, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#e8c048'; ctx.beginPath(); ctx.arc(22.6, 15.4, 1.2, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#6d7446'; ctx.fillRect(-4, 22, 16, 60);
+  ctx.restore();
+  // the tooth, glowing on the ground
+  const tx = w * 0.3, ty = h * 0.72;
+  const gl = ctx.createRadialGradient(tx, ty, 0, tx, ty, h * 0.25);
+  gl.addColorStop(0, 'rgba(255,250,210,0.9)'); gl.addColorStop(1, 'rgba(255,250,210,0)');
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(tx, ty, h * 0.25, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#efe2c2';
+  ctx.beginPath(); ctx.moveTo(tx - h * 0.05, ty + h * 0.05); ctx.quadraticCurveTo(tx - h * 0.05, ty - h * 0.1, tx + h * 0.03, ty - h * 0.15); ctx.quadraticCurveTo(tx + h * 0.01, ty - h * 0.05, tx + h * 0.05, ty + h * 0.05); ctx.closePath(); ctx.fill();
+}

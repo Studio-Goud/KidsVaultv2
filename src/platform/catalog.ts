@@ -154,6 +154,15 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
+    id: 'tand', title: 'Suri en de reuzentand',
+    line: 'A story to step into: whose is the giant tooth from Grandpa’s box? Back in time to the mammoth, the chalk sea and the T. rex.',
+    lineNl: 'Een verhaal om in te stappen: van wie is de reuzentand uit opa’s kist? Terug in de tijd naar de mammoet, de oerzee en de T. rex.',
+    practises: 'Listening to a story, looking and comparing, older is deeper',
+    practisesNl: 'Luisteren naar een verhaal, goed kijken en vergelijken, ouder is dieper',
+    from: 4, to: 10, domains: ['dinos', 'natuur'], nature: 'beide', minutes: [8, 15],
+    reads: false, speaks: true,
+  },
+  {
     id: 'dino', title: 'De tijd van de dino’s',
     line: 'Drill down through the ground and back in time, past real fossils from Trix to one of the very first dinosaurs.',
     lineNl: 'Boor door de grond naar beneden en terug in de tijd, langs echte fossielen, van Trix tot een van de allereerste dino’s.',
