@@ -69,22 +69,23 @@ Alles hieronder is nagelopen, niet aangenomen.
 | 9 | Het jaar rond | 4-8 | dagen, maanden, seizoenen, dag en nacht, in een levend landschap |
 | 10 | De grote reis | 4-10 | ontdekreis: de zon tot Pluto |
 | 11 | De diepzee | 4-10 | ontdekreis: de golven tot de Challengerdiepte |
-| 12 | Planetarium | 4-10 | planeten ordenen en verkennen |
-| 13 | Stuifzwam | 5-9 | vakjes tellen en een uitweg plannen |
-| 14 | Rekenrijk | 5-9 | rekenen met spullen op tafel |
-| 15 | Klokkijken | 5-9 | de wijzerplaat en de Nederlandse manier |
-| 16 | Stroomkring | 6-10 | schakelingen die wel of niet branden |
-| 17 | Moonshot | 6-10 | een raket in trappen bouwen |
-| 18 | Wereldatlas | 6-10 | provincies, landen, vlaggen |
-| 19 | Cloudhopper | 7-10 | luchtverkeersleiding; het oudste deel |
+| 12 | De tijd van de dino's | 4-10 | ontdekreis: boren door de tijd, van de mammoet tot de eerste dino |
+| 13 | Planetarium | 4-10 | planeten ordenen en verkennen |
+| 14 | Stuifzwam | 5-9 | vakjes tellen en een uitweg plannen |
+| 15 | Rekenrijk | 5-9 | rekenen met spullen op tafel |
+| 16 | Klokkijken | 5-9 | de wijzerplaat en de Nederlandse manier |
+| 17 | Stroomkring | 6-10 | schakelingen die wel of niet branden |
+| 18 | Moonshot | 6-10 | een raket in trappen bouwen |
+| 19 | Wereldatlas | 6-10 | provincies, landen, vlaggen |
+| 20 | Cloudhopper | 7-10 | luchtverkeersleiding; het oudste deel |
 
 **Werkt en is nagelopen:** alle vijftien nieuwe spellen praten en dragen Suri in de hoek.
 Opgraving en Klankhuis hebben twee vormen, gekozen op de leeftijd die de ouder invult. De ontdekreis-motor
-draagt twee reizen en een derde is een databestand. Het ouderscherm heeft een pincode, per kind
+draagt drie reizen; een vierde is een databestand. Het ouderscherm heeft een pincode, per kind
 een tijdslimiet met de NJi-onderbouwing erbij, en vijftien vragen die vóór de code te lezen zijn.
 De dagteller telt. De keuzes van de ouder bereiken de voorpagina: uitgevinkte onderwerpen zijn
 weg, en wat nog te oud of al ontgroeid is staat in een eigen rij in plaats van te verdwijnen
-(`shelf()` in `src/platform/catalog.ts`). 1430 checks groen, `npm run audit` 0 fouten over 25 schermen x 5 schermmaten.
+(`shelf()` in `src/platform/catalog.ts`). 1433 checks groen, `npm run audit` 0 fouten over 26 schermen x 5 schermmaten.
 
 **Wat er níét is, en wat dus niet beweerd mag worden:** geen pedagoog heeft hier ooit naar
 gekeken. Er is geen afrekening, dus de €3,99 bestaat nog niet. Er is geen service worker, dus
@@ -99,7 +100,7 @@ gebruiker anders zegt.
 
 ### 1. De kloof bij twee en drie jaar
 
-Van de negentien dingen passen er drie bij een tweejarige, en twee daarvan hebben een eenvoudige vorm. De eenvoudige vorm uit
+Van de twintig dingen passen er drie bij een tweejarige, en twee daarvan hebben een eenvoudige vorm. De eenvoudige vorm uit
 `src/platform/who.ts` is één keer uitgevoerd (Opgraving) en het patroon staat er nu: hetzelfde
 spel met de regels eruit, niet een kleiner spel.
 
@@ -112,8 +113,8 @@ klinken die hij raakt. Daarna Getijdenpoel (één regel in plaats van wisselende
 
 De motor draagt ze al: `src/journey/` is af en `docs/journeys.md` beschrijft het formaat. Een
 nieuwe reis is een databestand met haltes, kleuren, foto's en een voertuig — de diepzee kostte
-geen regel motor. Gevraagd zijn: **de tijd van de dino's**, **het menselijk lichaam** en **een
-fabriek**. Die laatste loopt horizontaal en dat is het enige stuk tekenwerk dat de motor nog mist
+geen regel motor. Gevraagd zijn: **de tijd van de dino's** (gedaan, 2026-09-26: `dino.html`), **het menselijk
+lichaam** en **een fabriek**. Die laatste loopt horizontaal en dat is het enige stuk tekenwerk dat de motor nog mist
 (de as kan nu `up` of `down`).
 
 Dit is waarschijnlijk het beste rendement in de hele lijst: het is het formaat dat Suri
@@ -150,11 +151,11 @@ een demo. De tekst op het ouderscherm zegt nu al eerlijk dat het nog niet gebouw
   moet worden. Zie de kop van `src/platform/catalog.ts`.
 - **De 7-10-schermtijd** is van mij en niet van het NJi. Staat zo in `src/platform/session.ts` en
   in het ouderscherm, maar het hoort onderzocht te worden.
-- **Cloudhopper draagt Suri niet**, als enige van de negentien. De radio praat sinds 2026-09-23 wel: de toren is Ruth, de piloot een Engelse mannenstem.
+- **Cloudhopper draagt Suri niet**, als enige van de twintig. De radio praat sinds 2026-09-23 wel: de toren is Ruth, de piloot een Engelse mannenstem.
 
 ### Niet-code, maar wel blokkerend
 
-- **Een orthopedagoog** die `docs/claims.md` doorneemt. Dertien van de negentien onderdelen zeggen iets
+- **Een orthopedagoog** die `docs/claims.md` doorneemt. Veertien van de twintig onderdelen zeggen iets
   te oefenen op grond van mijn inschatting en niets anders.
 - **Merknaam, domein en app stores** nakijken op "Suri". Een naam die je later moet inruilen is
   duurder dan een rename nu.

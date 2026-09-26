@@ -61,7 +61,7 @@ export interface Stop {
 }
 
 /** What you are riding in. Each is a drawing; the engine knows how to point it along the route. */
-export type Craft = 'rocket' | 'sub' | 'pod';
+export type Craft = 'rocket' | 'sub' | 'pod' | 'drill';
 
 export interface Journey {
   id: string;

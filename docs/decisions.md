@@ -429,3 +429,14 @@ motor direct op, dan sluit een tussentrap de ruimte tot de tank erboven, zoals b
 meertrapsraket: de bovenste motor zie je pas als de trap eronder weg is. In de werkplaats is die
 tussentrap van glas, zodat een kind de motor die het net neerzette nog ziet. Alleen de tekening is
 veranderd; de luchtweerstand rekende al met de spitsheid van de bovenste punt per kolom.
+
+## 2026-09-26 — De tijd van de dino's: echte fossielen, en boren als terug in de tijd
+
+De derde ontdekreis. Je zit in een boor, omdat diepere grond oudere grond is: dat is hoe de bodem
+werkt en hoe de mensen die deze dieren vonden ze vonden. De meter telt miljoenen jaren geleden.
+Tien van de elf haltes zijn foto's van echte skeletten en fossielen in echte musea, met maker en
+licentie in beeld, omdat niemand ooit een levende dino heeft gezien: wat we weten zijn botten, en
+een geschilderde dino naast een gefotografeerde maakt de schildering tot het feit. Alleen de inslag
+is getekend. Trix in Leiden, de Mosasaurus uit Maastricht en de Iguanodons uit Bernissart staan
+erin omdat ze dichtbij zijn. De leeftijden zijn de gangbare afgeronde per dier; de eerste halte,
+de ijstijd van twintigduizend jaar geleden, staat op de meter als nul omdat die in miljoenen telt.

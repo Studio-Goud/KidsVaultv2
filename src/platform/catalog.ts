@@ -154,6 +154,15 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
+    id: 'dino', title: 'De tijd van de dino’s',
+    line: 'Drill down through the ground and back in time, past real fossils from Trix to one of the very first dinosaurs.',
+    lineNl: 'Boor door de grond naar beneden en terug in de tijd, langs echte fossielen, van Trix tot een van de allereerste dino’s.',
+    practises: 'Being read to, how long ago long ago is, deeper ground is older ground',
+    practisesNl: 'Luisteren naar een verhaal, hoe lang geleden lang geleden is, diepere grond is oudere grond',
+    from: 4, to: 10, domains: ['dinos', 'natuur'], nature: 'leren', minutes: [5, 12],
+    reads: false, speaks: true,
+  },
+  {
     id: 'orbit', title: 'Planetarium',
     line: 'Order the planets, explore them in NASA photographs, and launch probes to reach them.',
     lineNl: 'Zet de planeten op volgorde, verken ze in NASA-opnamen en lanceer sondes om ze te bereiken.',
