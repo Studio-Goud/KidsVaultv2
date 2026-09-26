@@ -2942,7 +2942,7 @@ const group = name => console.log(`\n${name}`);
   is('test_sfx_every_prompt_asks_for_the_house_sound', rows.every(([, r]) => r.prompt.includes('for a calm children')), true);
   is('test_sfx_a_background_is_long_enough_to_loop', rows.filter(([, r]) => r.loop).every(([, r]) => r.secs >= 8), true);
   is('test_sfx_both_journeys_have_their_own_sounds',
-    ['go', 'arrive', 'more', 'on', 'bed'].every(m => SFX[`reis.${m}`] && SFX[`diepzee.${m}`]), true);
+    ['go', 'arrive', 'more', 'on', 'bed'].every(m => SFX[`reis.${m}`] && SFX[`diepzee.${m}`] && SFX[`dino.${m}`]), true);
   is('test_sfx_klankhuis_notes_are_never_recorded',
     rows.some(([k]) => /^rhythm\.(play|playChord|click|drum)$/.test(k)), false);
   // the sfx files are the other half of the contract: every row has to name a method that exists
@@ -2953,7 +2953,7 @@ const group = name => console.log(`\n${name}`);
     rhythm: 'rhythm/chimesfx', seasons: 'seasons/seasonsfx', tidepool: 'tidepool/tidesfx' };
   const text = g => g === 'cloudhopper' ? readFileSync('src/util/audio.ts', 'utf8')
     : g === 'ui' ? readFileSync('src/platform/uisfx.ts', 'utf8')
-    : g === 'reis' || g === 'diepzee' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
+    : g === 'reis' || g === 'diepzee' || g === 'dino' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
     : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
   is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k, r]) => {
     const [g, m] = k.split('.');
@@ -3299,6 +3299,7 @@ const group = name => console.log(`\n${name}`);
 
 {
   const { SOLAR } = await bundle('src/journeys/solar.ts', 'solar.mjs');
+  const { DINO } = await bundle('src/journeys/dino.ts', 'dino.mjs');
   const { seenAll } = await bundle('src/journey/route.ts', 'route2.mjs');
   group('Ontdekreis - the routes that ship');
 
@@ -3322,6 +3323,15 @@ const group = name => console.log(`\n${name}`);
     spoken: true, beats: true, tones: true, done: true,
   });
   is('test_solar_route_stops_at_every_planet_and_the_sun', SOLAR.stops.length, 11);
+  is('test_dino_route_is_whole_and_in_order', check(DINO), {
+    id: 'dino', first: 0, last: 1, ordered: true, rising: true, unique: true,
+    spoken: true, beats: true, tones: true, done: true,
+  });
+  // every picture but the impact is a photograph of a real fossil, and every photograph says who took it
+  is('test_dino_route_every_photo_carries_its_photographer_and_licence',
+    DINO.stops.filter(s => s.picture.kind === 'remote' && !/, /.test(s.picture.credit)).map(s => s.id), []);
+  is('test_dino_route_only_the_impact_is_drawn',
+    DINO.stops.filter(s => s.picture.kind !== 'remote').map(s => s.id), ['impact']);
 }
 
 // ---------------------------------------------------------------- what the parent is shown

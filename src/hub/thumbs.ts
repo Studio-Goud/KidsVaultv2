@@ -1278,3 +1278,35 @@ export function drawSeasonsThumb(c: HTMLCanvasElement): void {
   ctx.fillStyle = '#ffffff';
   for (const [x, y] of [[0.12, 0.62], [0.2, 0.72], [0.08, 0.76], [0.28, 0.6]]) { ctx.beginPath(); ctx.arc(w * x, h * y, s * 0.014, 0, TAU); ctx.fill(); }
 }
+
+/** The dino journey: layers of rock going down into the dark, with the drill boring through them. */
+export function drawDinoThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const bands = ['#b9d3dc', '#8a6a4a', '#b59d68', '#7e5a3a', '#a0643a', '#5a3a2a', '#2a1a14'];
+  bands.forEach((col, i) => {
+    ctx.fillStyle = col;
+    const y0 = (i / bands.length) * h, y1 = ((i + 1) / bands.length) * h;
+    ctx.beginPath();
+    ctx.moveTo(0, y0 + Math.sin(i * 1.7) * 3);
+    ctx.quadraticCurveTo(w * 0.5, y0 + Math.sin(i * 2.3) * 6, w, y0 + Math.cos(i) * 3);
+    ctx.lineTo(w, y1 + 3); ctx.lineTo(0, y1 + 3);
+    ctx.closePath(); ctx.fill();
+  });
+  // a fossil in the rock: a curl of bone on the left
+  ctx.strokeStyle = 'rgba(245, 232, 205, 0.8)';
+  ctx.lineWidth = Math.max(1.5, w * 0.02);
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(w * 0.22, h * 0.72, h * 0.1, Math.PI * 0.2, Math.PI * 1.7); ctx.stroke();
+  for (let k = 0; k < 4; k++) {
+    const a = Math.PI * (0.4 + k * 0.32);
+    ctx.beginPath();
+    ctx.moveTo(w * 0.22 + Math.cos(a) * h * 0.1, h * 0.72 + Math.sin(a) * h * 0.1);
+    ctx.lineTo(w * 0.22 + Math.cos(a) * h * 0.16, h * 0.72 + Math.sin(a) * h * 0.16);
+    ctx.stroke();
+  }
+  // the shaft it has bored, and the drill at the bottom of it
+  ctx.fillStyle = 'rgba(20, 14, 10, 0.35)';
+  ctx.fillRect(w * 0.6 - h * 0.1, 0, h * 0.2, h * 0.5);
+  drawCraft(ctx, 'drill', w * 0.6, h * 0.58, Math.min(w, h) * 0.5, Math.PI, 1);
+}

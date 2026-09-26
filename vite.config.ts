@@ -32,6 +32,7 @@ export default defineConfig({
         circuit: resolve(__dirname, 'circuit.html'),
         reis: resolve(__dirname, 'reis.html'),
         diepzee: resolve(__dirname, 'diepzee.html'),
+        dino: resolve(__dirname, 'dino.html'),
       },
     },
   },

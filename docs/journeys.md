@@ -1,6 +1,6 @@
 # De ontdekreis
 
-Status: gebouwd. Twee reizen live (`reis.html`, `diepzee.html`), motor in `src/journey/`.
+Status: gebouwd. Drie reizen live (`reis.html`, `diepzee.html`, `dino.html`), motor in `src/journey/`.
 
 ## Wat het is
 
@@ -28,7 +28,7 @@ De motor is daarom vier bestanden en de reizen zijn data:
 | `src/journey/types.ts` | de vorm van een reis: haltes, kleuren, plaatjes, schaal, voertuig |
 | `src/journey/route.ts` | het gedrag, zonder canvas: rijden, stilstaan, doorvragen, verder, springen |
 | `src/journey/screen.ts` | het scherm: de wereld, de rail, de regel, de knoppen, het overzicht |
-| `src/journey/craft.ts` | drie voertuigen: raket, duikboot, capsule |
+| `src/journey/craft.ts` | vier voertuigen: raket, duikboot, capsule, boor |
 | `src/journey/picture.ts` | het plaatje bij een halte, van welke soort dan ook |
 
 `route.ts` bevat geen canvas, geen geluid en geen opslag, en is daarom volledig getest zonder
@@ -70,7 +70,7 @@ Vier soorten, en de motor merkt het verschil niet:
 Bij elke foto staat de fotograaf en de licentie, op het scherm waar hij groot te zien is. Dat is
 geen nettigheid maar wat die licenties vragen: een deel ervan is CC BY-SA.
 
-## De twee die er zijn
+## De drie die er zijn
 
 **De grote reis** (`src/journeys/solar.ts`). Elf haltes, van de zon tot Pluto. Kostte geen enkele
 nieuwe asset: de foto's lagen er al voor Planetarium.
@@ -81,10 +81,18 @@ waren al nagekeken - en drie getekende haltes in `deepart.ts`.
 
 Dat die tweede geen regel motor kostte is het punt van het hele formaat.
 
+**De tijd van de dino's** (`src/journeys/dino.ts`). Elf haltes, van de mammoet in de ijstijd tot
+Herrerasaurus, 231 miljoen jaar geleden. Je zit in een boor: hoe dieper, hoe ouder de grond en hoe
+verder terug in de tijd, want zo werkt de bodem echt. Tien haltes zijn foto's van echte fossielen
+in echte musea, omdat niemand ooit een levende dino heeft gezien en een getekende dino naast een
+gefotografeerde de tekening tot feit maakt. De ene getekende halte is de inslag
+(`dinoart.ts`). Drie haltes zijn dichtbij huis gekozen: Trix in Naturalis, de Mosasaurus uit
+Maastricht, de Iguanodons uit de kolenmijn van Bernissart. De motor kreeg alleen een vierde
+voertuig, de boor.
+
 ## Wat er nog niet is
 
-- De drie andere reizen uit de opdracht: de tijd van de dino's, het lichaam, een fabriek. Die
-  zijn elk een databestand plus wat tekenwerk voor de haltes zonder foto.
+- De twee andere reizen uit de opdracht: het lichaam en een fabriek. Die zijn elk een
+  databestand plus wat tekenwerk voor de haltes zonder foto.
 - Een horizontale reis. De as kan `up` of `down`; een fabriek loopt van links naar rechts en dat
   is tekenwerk in `screen.ts`, geen verandering in de data.
-- Geluid. Een reis is nu stil op de stem na. Een duik hoort te klinken.
