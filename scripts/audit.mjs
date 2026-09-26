@@ -34,7 +34,7 @@ const PAGES = [
   ['orbit', '__orbit'], ['circuit', '__circuit'], ['mill', '__mill'], ['tidepool', '__tide'],
   ['market', '__market'], ['puffball', '__puff'], ['dig', '__dig'], ['clock', '__clock'], ['seasons', '__seasons'],
   ['atlas', '__atlas'], ['animals', '__animals'], ['letters', '__letters'], ['rhythm', '__rhythm'],
-  ['numbers', '__numbers'], ['reis', '__reis'], ['diepzee', '__diepzee'], ['dino', '__dino'],
+  ['numbers', '__numbers'], ['reis', '__reis'], ['diepzee', '__diepzee'], ['dino', '__dino'], ['lichaam', '__lichaam'],
   // The same pages again as a particular age, through the `__years` hook in src/platform/who.ts.
   // A toddler shape and a split shelf are different screens, and neither is seen without a profile.
   ['index', null, 3], ['index', null, 10], ['dig', '__dig', 2], ['rhythm', '__rhythm', 2],

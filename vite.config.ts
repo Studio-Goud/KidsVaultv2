@@ -33,6 +33,7 @@ export default defineConfig({
         reis: resolve(__dirname, 'reis.html'),
         diepzee: resolve(__dirname, 'diepzee.html'),
         dino: resolve(__dirname, 'dino.html'),
+        lichaam: resolve(__dirname, 'lichaam.html'),
       },
     },
   },
