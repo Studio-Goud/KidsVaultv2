@@ -233,6 +233,16 @@ export function stopSpeaking(): void {
 let playing: HTMLAudioElement | null = null;
 
 /**
+ * Whether a line is still being said, recorded or by the device. The story journey waits on this
+ * before its next line, so a child hears one sentence finish before the next one starts.
+ */
+export function isSpeaking(): boolean {
+  if (playing && !playing.paused && !playing.ended) return true;
+  if (queued.length) return true;
+  try { return !!synth()?.speaking; } catch { return false; }
+}
+
+/**
  * Say a line.
  *
  * `id` names the line so it can be upgraded to a recording later; `text` is what to fall back to

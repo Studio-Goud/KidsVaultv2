@@ -2954,6 +2954,7 @@ const group = name => console.log(`\n${name}`);
   const text = g => g === 'cloudhopper' ? readFileSync('src/util/audio.ts', 'utf8')
     : g === 'ui' ? readFileSync('src/platform/uisfx.ts', 'utf8')
     : g === 'reis' || g === 'diepzee' || g === 'dino' || g === 'lichaam' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
+    : g === 'tand' ? readFileSync('src/story/storysfx.ts', 'utf8')
     : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
   is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k, r]) => {
     const [g, m] = k.split('.');
@@ -3341,6 +3342,33 @@ const group = name => console.log(`\n${name}`);
     BODY.stops.filter(s => s.picture.kind === 'remote' && !/, /.test(s.picture.credit)).map(s => s.id), []);
   is('test_dino_route_only_the_impact_is_drawn',
     DINO.stops.filter(s => s.picture.kind !== 'remote').map(s => s.id), ['impact']);
+}
+
+// ---------------------------------------------------------------- Suri en de reuzentand: the story
+
+{
+  const { CHAPTERS, ASIDES, nextPlace, readSeconds } = await bundle('src/story/script.ts', 'storyscript.mjs');
+  const { wrapAngle } = await bundle('src/story/look.ts', 'storylook.mjs');
+  group('Suri en de reuzentand — the story holds together');
+  const steps = CHAPTERS.flatMap(c => c.steps.map(s => ({ c: c.id, s })));
+  is('test_story_every_line_is_said_in_both_languages',
+    steps.filter(({ s }) => 'say' in s && !(s.say && s.sayNl)).length, 0);
+  // every thing the story waits for is something a scene can actually set
+  const known = { garden: ['dug'], drill: ['lever', 'arrived'], ice: ['found', 'compared'], sea: ['found', 'compared'],
+    forest: ['found', 'fed'], trex: ['passed', 'picked'], home: ['arrived'] };
+  is('test_story_every_wait_is_one_the_scene_knows',
+    steps.filter(({ c, s }) => 'wait' in s && !known[c].includes(s.wait)).map(({ c, s }) => `${c}:${s.wait}`), []);
+  is('test_story_it_opens_in_the_garden_and_ends_at_home', [CHAPTERS[0].id, CHAPTERS[CHAPTERS.length - 1].id], ['garden', 'home']);
+  // walking the whole script from the first step reaches the last and stops there
+  let p = { chapter: 0, step: 0 }, n = 1;
+  while (nextPlace(p)) { p = nextPlace(p); n++; }
+  is('test_story_walking_the_script_visits_every_step_once', n, steps.length);
+  is('test_story_the_last_step_is_the_end_cue', CHAPTERS[p.chapter].steps[p.step].cue ?? CHAPTERS[p.chapter].steps[p.step].sayNl, 'Einde. Zullen we nog een keer gaan?');
+  is('test_story_the_asides_are_said_in_both_languages', Object.values(ASIDES).every(a => a.say && a.sayNl), true);
+  is('test_story_a_line_with_no_voice_still_stays_up_long_enough_to_read', readSeconds('een twee drie vier vijf zes zeven acht negen tien') >= 3, true);
+  is('test_story_the_camera_turns_the_short_way_round', Math.round(wrapAngle(Math.PI * 1.5) * 100) / 100, Math.round(-Math.PI / 2 * 100) / 100);
+  is('test_story_the_tooth_is_never_said_to_have_lived_in_the_netherlands',
+    steps.some(({ s }) => 'sayNl' in s && /T\. rex/.test(s.sayNl) && /Nederland|tuin/.test(s.sayNl)), false);
 }
 
 // ---------------------------------------------------------------- what the parent is shown

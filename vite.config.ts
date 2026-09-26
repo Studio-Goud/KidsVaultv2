@@ -34,6 +34,7 @@ export default defineConfig({
         diepzee: resolve(__dirname, 'diepzee.html'),
         dino: resolve(__dirname, 'dino.html'),
         lichaam: resolve(__dirname, 'lichaam.html'),
+        tand: resolve(__dirname, 'tand.html'),
       },
     },
   },
