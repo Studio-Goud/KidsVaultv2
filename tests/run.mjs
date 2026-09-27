@@ -2955,6 +2955,7 @@ const group = name => console.log(`\n${name}`);
     : g === 'ui' ? readFileSync('src/platform/uisfx.ts', 'utf8')
     : g === 'reis' || g === 'diepzee' || g === 'dino' || g === 'lichaam' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
     : g === 'tand' ? readFileSync('src/story/storysfx.ts', 'utf8')
+    : g === 'lichtje' ? readFileSync('src/story/lichtsfx.ts', 'utf8')
     : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
   is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k, r]) => {
     const [g, m] = k.split('.');
@@ -3369,6 +3370,41 @@ const group = name => console.log(`\n${name}`);
   is('test_story_the_camera_turns_the_short_way_round', Math.round(wrapAngle(Math.PI * 1.5) * 100) / 100, Math.round(-Math.PI / 2 * 100) / 100);
   is('test_story_the_tooth_is_never_said_to_have_lived_in_the_netherlands',
     steps.some(({ s }) => 'sayNl' in s && /T\. rex/.test(s.sayNl) && /Nederland|tuin/.test(s.sayNl)), false);
+}
+
+// ---------------------------------------------------------------- Suri en het lichtje in de diepte
+
+{
+  const { CHAPTERS, ASIDES, DEPTH, nextPlace, zoneAt } = await bundle('src/story/lichtscript.ts', 'lichtscript.mjs');
+  group('Suri en het lichtje in de diepte — the second story holds together');
+  const steps = CHAPTERS.flatMap(c => c.steps.map(s => ({ c: c.id, s })));
+  is('test_lichtje_every_line_is_said_in_both_languages',
+    steps.filter(({ s }) => 'say' in s && !(s.say && s.sayNl)).length, 0);
+  // every wait is one licht.ts sets: the screen tapped, arriving, finding, holding the button down,
+  // parting the fish, the lamps on and off
+  const known = { boat: ['spotted', 'arrived'], reef: ['found', 'deeper'], twilight: ['parted', 'found', 'deeper'],
+    dark: ['lamps', 'dark'], angler: ['found', 'lamps'], up: ['arrived'] };
+  is('test_lichtje_every_wait_is_one_the_scene_knows',
+    steps.filter(({ c, s }) => 'wait' in s && !known[c].includes(s.wait)).map(({ c, s }) => `${c}:${s.wait}`), []);
+  let p = { chapter: 0, step: 0 }, n = 1;
+  while (nextPlace(p)) { p = nextPlace(p); n++; }
+  is('test_lichtje_walking_the_script_visits_every_step_once', n, steps.length);
+  is('test_lichtje_the_last_step_is_the_same_goodbye_as_the_tooth', CHAPTERS[p.chapter].steps[p.step].sayNl, 'Einde. Zullen we nog een keer gaan?');
+  is('test_lichtje_the_end_cue_comes_before_the_goodbye', CHAPTERS[p.chapter].steps[p.step - 1].cue, 'end');
+  is('test_lichtje_the_asides_are_said_in_both_languages', Object.values(ASIDES).every(a => a.say && a.sayNl), true);
+  // the zones by depth, with the boundaries oceanography uses
+  is('test_lichtje_zone_the_reef_is_in_the_sunlight', zoneAt(DEPTH.reef), 'sunlight');
+  is('test_lichtje_zone_two_hundred_metres_is_where_the_twilight_starts', [zoneAt(199), zoneAt(200)], ['sunlight', 'twilight']);
+  is('test_lichtje_zone_a_thousand_metres_is_where_the_night_starts', [zoneAt(999), zoneAt(1000)], ['twilight', 'midnight']);
+  is('test_lichtje_zone_each_chapter_is_in_the_zone_it_is_named_after',
+    [zoneAt(DEPTH.twilight), zoneAt(DEPTH.dark), zoneAt(DEPTH.boat)], ['twilight', 'midnight', 'surface']);
+  // what is said about the depth matches the depth the scene is at
+  const said = id => CHAPTERS.find(c => c.id === id).steps.filter(s => 'sayNl' in s).map(s => s.sayNl).join(' ');
+  is('test_lichtje_the_twilight_is_said_to_be_five_hundred_metres', /Vijfhonderd meter/.test(said('twilight')) && DEPTH.twilight === 500, true);
+  is('test_lichtje_the_dark_is_said_to_be_fifteen_hundred_metres', /Vijftienhonderd meter/.test(said('dark')) && DEPTH.dark === 1500, true);
+  // rule 3: nothing in the story claims the child learns
+  is('test_lichtje_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
+  is('test_lichtje_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
 }
 
 // ---------------------------------------------------------------- what the parent is shown

@@ -261,6 +261,20 @@ export const SFX: Record<string, SfxRow> = {
   'tand.seaBed': { prompt: `calm deep underwater ambience in a warm sea, soft bubbles, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
   'tand.forestBed': { prompt: `a warm prehistoric forest, insects buzzing softly, distant strange bird calls, leaves rustling, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
 
+  // ---- Suri en het lichtje in de diepte: the second story journey
+  'lichtje.spotted': { prompt: `a soft curious electronic blip on a ship's monitor, two gentle notes, ${SOFT}`, secs: 0.8, max: 0.7 },
+  'lichtje.splash': { prompt: `a small submarine slipping under the waves, a soft splash and then bubbles rising, ${SOFT}`, secs: 2, max: 1.8 },
+  'lichtje.swish': { prompt: `a school of small fish darting away under water, a quick soft swirl of bubbles, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'lichtje.clicks': { prompt: `a sperm whale clicking far away under water, a slow series of deep hollow clicks, ${SOFT}`, secs: 2, max: 1.8 },
+  'lichtje.lamp': { prompt: `a heavy switch turning submarine floodlights on with a soft click and a low electric hum, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'lichtje.reveal': { prompt: `a soft mysterious magical shimmer under water, something wonderful discovered, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'lichtje.arrive': { prompt: `a small submarine breaking the surface with a soft splash, waves lapping, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'lichtje.done': done('a warm gentle story ending under the stars, soft chimes and a happy flourish'),
+  'lichtje.surfaceBed': { prompt: `calm evening sea, small waves lapping against the hull of a ship, a soft breeze, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'lichtje.reefBed': { prompt: `bright shallow underwater ambience on a coral reef, soft bubbles and gentle crackling of the reef, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'lichtje.deepBed': { prompt: `the deep sea in total darkness, a very low calm hum of water pressure, far away soft creaks, peaceful not scary, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'lichtje.motorBed': { prompt: `the soft steady whirr of a small submarine's electric propellers heard from inside, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+
   // ---- De tijd van de dino's: in a drill, down through the rock and back in time
   'dino.go': { prompt: `a small drilling machine starting up and boring down into rock and earth, rumbling, ${SOFT}`, secs: 2.5, max: 2.3 },
   'dino.arrive': { prompt: `a drill winding down and stopping, then a soft deep dinosaur rumble far away, ${SOFT}`, secs: 1.5, max: 1.3 },

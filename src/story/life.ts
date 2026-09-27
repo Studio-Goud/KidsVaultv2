@@ -16,19 +16,21 @@
  * close by passes in front of a fern, a runner far away passes behind one.
  */
 
-import { TAU } from './look';
+import { TAU, wrapAngle } from './look';
 import { screenX, spot, type View } from './world';
 import { drawPterosaur, drawRunner } from './beasts';
 
 type Ctx = CanvasRenderingContext2D;
-export type Place = 'garden' | 'ice' | 'sea' | 'forest';
+export type Place = 'garden' | 'ice' | 'sea' | 'forest' | 'reef' | 'twilight' | 'deep';
 
 /** Something to draw at a distance, for sorting in with the props. */
 export interface Drawable { d: number; draw: () => void }
 
 interface Critter {
-  kind: 'fish' | 'ammonite' | 'jelly' | 'dragonfly' | 'butterfly' | 'runner';
+  kind: 'fish' | 'ammonite' | 'jelly' | 'dragonfly' | 'butterfly' | 'runner' | 'lantern';
   x: number; z: number; y: number;
+  /** seconds left of darting away from a finger */
+  flee?: number;
   vx: number; vz: number;
   phase: number;
   seed: number;
@@ -71,6 +73,29 @@ export class Life {
       }
       around(6, 6, 18, (x, z) => ({ kind: 'ammonite', x, z, y: 1 + r() * 4, vx: (r() - 0.5) * 0.3, vz: (r() - 0.5) * 0.3, phase: r() * TAU, seed: r(), colour: '#c89a6a' }));
       around(5, 5, 16, (x, z) => ({ kind: 'jelly', x, z, y: 2 + r() * 5, vx: 0, vz: 0, phase: r() * TAU, seed: r(), colour: 'rgba(230, 200, 255, 0.45)' }));
+    } else if (place === 'reef') {
+      // the reef today: schools of blue, yellow and orange reef fish turning round you
+      for (let sch = 0; sch < 4; sch++) {
+        const a = r() * TAU, d = 5 + r() * 9, cx = Math.sin(a) * d, cz = Math.cos(a) * d, cy = 0.8 + r() * 3;
+        const colour = ['#3f8ff0', '#f7d23c', '#ff8a3d', '#9fe0f0'][sch];
+        for (let i = 0; i < 12; i++) {
+          this.critters.push({ kind: 'fish', x: cx + (r() - 0.5) * 2.5, z: cz + (r() - 0.5) * 2.5, y: cy + (r() - 0.5) * 1.2, vx: 0, vz: 0, phase: r() * TAU, seed: sch, colour });
+        }
+      }
+    } else if (place === 'twilight') {
+      // one enormous school of lanternfish all round you, close enough to part with a finger,
+      // and a few jellyfish drifting through
+      around(70, 1.6, 7, (x, z) => ({ kind: 'lantern', x, z, y: -0.2 + r() * 2.8, vx: 0, vz: 0, phase: r() * TAU, seed: Math.floor(r() * 2), colour: '#8497ab' }));
+      // most of them in front of you, where the story asks you to part them
+      for (let i = 0; i < 70; i++) {
+        const a = (r() - 0.5) * 1.6, d = 1.4 + r() * 4;
+        this.critters.push({ kind: 'lantern', x: Math.sin(a) * d, z: Math.cos(a) * d, y: 0.2 + r() * 2, vx: 0, vz: 0, phase: r() * TAU, seed: Math.floor(r() * 2), colour: '#8497ab' });
+      }
+      around(5, 5, 14, (x, z) => ({ kind: 'jelly', x, z, y: 0 + r() * 4, vx: 0, vz: 0, phase: r() * TAU, seed: r(), colour: 'rgba(200, 220, 255, 0.35)' }));
+    } else if (place === 'deep') {
+      // a few lanternfish and the deep red jellyfish that flash when something touches them
+      around(14, 3, 12, (x, z) => ({ kind: 'lantern', x, z, y: -1 + r() * 4, vx: 0, vz: 0, phase: r() * TAU, seed: Math.floor(r() * 2), colour: '#4d5866' }));
+      around(6, 3, 10, (x, z) => ({ kind: 'jelly', x, z, y: -0.5 + r() * 3.5, vx: 0, vz: 0, phase: r() * TAU, seed: r(), colour: 'rgba(190, 40, 70, 0.6)' }));
     } else if (place === 'forest') {
       around(5, 2.5, 7, (x, z) => ({ kind: 'dragonfly', x, z, y: 0.8 + r() * 1.2, vx: 0, vz: 0, phase: r() * TAU, seed: r(), colour: '#3aa0b0' }));
     } else if (place === 'garden') {
@@ -83,12 +108,16 @@ export class Life {
     const t = this.t;
     for (const c of this.critters) {
       c.phase += dt;
-      if (c.kind === 'fish') {
+      if (c.kind === 'fish' || c.kind === 'lantern') {
         // each school circles round you, one school one way and the next the other, and every fish
         // wobbles on its own: from the middle it looks as if the sea is turning
         const cx = 0, cz = 0;
-        const a = Math.atan2(c.x - cx, c.z - cz) + dt * (0.12 + c.seed * 0.03) * (c.seed % 2 ? 1 : -1);
-        const d = Math.hypot(c.x - cx, c.z - cz);
+        const fleeing = (c.flee ?? 0) > 0;
+        // lanternfish hang almost still in the dim water; reef fish swim round
+        const turn = c.kind === 'lantern' ? 0.025 : 0.12 + c.seed * 0.03;
+        const a = Math.atan2(c.x - cx, c.z - cz) + dt * turn * (c.seed % 2 ? 1 : -1) * (fleeing ? 6 : 1);
+        let d = Math.hypot(c.x - cx, c.z - cz);
+        if (fleeing) { c.flee! -= dt; d = Math.min(12, d + dt * 2.2 * c.flee!); c.y += Math.sin(c.phase * 7) * dt * 1.5; }
         const nx = Math.sin(a) * d, nz = Math.cos(a) * d;
         c.vx = (nx - c.x) / dt; c.vz = (nz - c.z) / dt;
         c.x = nx; c.z = nz;
@@ -96,7 +125,7 @@ export class Life {
       } else if (c.kind === 'ammonite' || c.kind === 'jelly') {
         c.x += c.vx * dt; c.z += c.vz * dt;
         if (c.kind === 'jelly') c.y += (Math.sin(c.phase * 1.4) > 0.6 ? 0.25 : -0.05) * dt;
-        if (c.y > 8) c.y = 1;
+        if (c.y > 8) c.y = this.place === 'sea' ? 1 : -1;
       } else if (c.kind === 'dragonfly' || c.kind === 'butterfly') {
         // a dart, a hover, a dart: the way a dragonfly actually flies
         const dart = c.kind === 'dragonfly' ? (Math.sin(c.phase * 0.9 + c.seed * 10) > 0.7 ? 3 : 0.1) : 0.6;
@@ -126,6 +155,60 @@ export class Life {
         }
       }
     }
+  }
+
+  /**
+   * A finger on the screen, in a direction (radians, world): the fish that way dart off, apart and
+   * outwards, the way a real school opens round a diver. Returns how many moved.
+   */
+  part(angle: number): number {
+    let n = 0;
+    for (const c of this.critters) {
+      if (c.kind !== 'fish' && c.kind !== 'lantern') continue;
+      if (Math.abs(wrapAngle(Math.atan2(c.x, c.z) - angle)) > 0.7) continue;
+      c.flee = 1.4 + this.r() * 0.8;
+      n++;
+    }
+    return n;
+  }
+
+  /**
+   * The light the animals make themselves, drawn over the dark so it shows when nothing else does:
+   * the rows of lamps along a lanternfish's belly, and the ring of blue a deep jellyfish flashes.
+   */
+  drawGlows(ctx: Ctx, v: View, k: number): void {
+    if (k <= 0.01) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const c of this.critters) {
+      if (c.kind !== 'lantern' && !(c.kind === 'jelly' && this.place === 'deep')) continue;
+      const sp = spot(v, c.x, c.z, c.y);
+      if (!sp.on) continue;
+      if (c.kind === 'lantern') {
+        const w = 0.07 * sp.s;
+        const blink = 0.55 + 0.45 * Math.sin(this.t * 2 + c.phase * 5);
+        const ahead = spot(v, c.x + c.vx * 0.1, c.z + c.vz * 0.1, c.y);
+        const face = ahead.x >= sp.x ? 1 : -1;
+        for (let i = 0; i < 5; i++) {
+          const px = sp.x + face * (w * 0.7 - i * w * 0.35), py = sp.y + w * 0.22;
+          const r = Math.max(1.3, w * 0.1);
+          ctx.fillStyle = `rgba(120, 220, 255, ${0.8 * blink * k})`;
+          ctx.beginPath(); ctx.arc(px, py, r, 0, TAU); ctx.fill();
+        }
+      } else {
+        // the "burglar alarm": now and then a ring of blue light chases round the bell
+        const cyc = (this.t * 0.35 + c.seed * 7) % 3;
+        if (cyc > 1) continue;
+        const r = 0.35 * sp.s;
+        for (let i = 0; i < 10; i++) {
+          const a = (i / 10) * TAU;
+          const on = Math.max(0, Math.sin(cyc * TAU * 2 - a));
+          ctx.fillStyle = `rgba(90, 170, 255, ${0.9 * on * k})`;
+          ctx.beginPath(); ctx.arc(sp.x + Math.cos(a) * r, sp.y - Math.abs(Math.sin(a)) * r * 0.5, Math.max(1.5, r * 0.08), 0, TAU); ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
   }
 
   /** Things in the sky, drawn behind everything on the ground: birds, the pterosaur. */
@@ -174,14 +257,14 @@ export class Life {
     const face = ahead.x >= sp.x ? 1 : -1;
     ctx.save();
     ctx.translate(sp.x, sp.y);
-    if (c.kind === 'fish') {
-      const w = 0.35 * s, wig = Math.sin(t * 9 + c.phase * 3) * 0.3;
+    if (c.kind === 'fish' || c.kind === 'lantern') {
+      const w = (c.kind === 'lantern' ? 0.07 : 0.35) * s, wig = Math.sin(t * 9 + c.phase * 3) * 0.3;
       ctx.scale(face, 1);
       ctx.fillStyle = c.colour;
       ctx.beginPath(); ctx.ellipse(0, 0, w, w * 0.35, 0, 0, TAU); ctx.fill();
       ctx.beginPath(); ctx.moveTo(-w * 0.8, 0); ctx.lineTo(-w * 1.4, -w * 0.35 + wig * w * 0.3); ctx.lineTo(-w * 1.4, w * 0.35 + wig * w * 0.3); ctx.closePath(); ctx.fill();
       ctx.fillStyle = 'rgba(20,30,40,0.8)';
-      ctx.beginPath(); ctx.arc(w * 0.55, -w * 0.05, Math.max(0.6, w * 0.07), 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(w * 0.55, -w * 0.05, Math.max(0.6, w * (c.kind === 'lantern' ? 0.16 : 0.07)), 0, TAU); ctx.fill();
     } else if (c.kind === 'ammonite') {
       // a coiled shell with its tentacles trailing: the ammonites died out with the dinosaurs
       const r = 0.3 * s;

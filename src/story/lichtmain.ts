@@ -1,15 +1,14 @@
 /**
- * Opening the first story journey. The page furniture is the same as every other page's, so a
- * child finds the way home and the guide in the same corners.
+ * Opening the second story journey, with the same page furniture as the first.
  */
 import '../style.css';
 import { addHomeButton } from '../hub/homebtn';
 import { addGuideButton } from '../hub/guidebtn';
 import { startClock } from '../platform/clock';
 import { loadVoice } from '../platform/voice';
-import { Tand } from './tand';
+import { Licht } from './licht';
 
-const story = new Tand(document.getElementById('tand') as HTMLCanvasElement);
+const story = new Licht(document.getElementById('lichtje') as HTMLCanvasElement);
 addHomeButton();
 loadVoice();
 addGuideButton({ line: () => story.spoken() });

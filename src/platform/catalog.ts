@@ -163,6 +163,15 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
+    id: 'lichtje', title: 'Suri en het lichtje in de diepte',
+    line: 'A story to step into: far down in the sea a light is blinking. Down in the submarine, past the reef, the lanternfish and a sperm whale, to see who makes it.',
+    lineNl: 'Een verhaal om in te stappen: diep in de zee knippert een lichtje. Met de duikboot langs het rif, de lantaarnvissen en een potvis naar beneden, om te zien wie het maakt.',
+    practises: 'Listening to a story, looking carefully, how deep is deep',
+    practisesNl: 'Luisteren naar een verhaal, goed kijken, hoe diep diep is',
+    from: 4, to: 10, domains: ['dieren', 'natuur'], nature: 'beide', minutes: [8, 15],
+    reads: false, speaks: true,
+  },
+  {
     id: 'dino', title: 'De tijd van de dino’s',
     line: 'Drill down through the ground and back in time, past real fossils from Trix to one of the very first dinosaurs.',
     lineNl: 'Boor door de grond naar beneden en terug in de tijd, langs echte fossielen, van Trix tot een van de allereerste dino’s.',

@@ -6,7 +6,7 @@ itself is `docs/prompt.md`; the reasoning behind every big choice is `docs/decis
 ## What this is
 
 A Dutch-first hub of small things for children of two to ten, sold to parents at €3,99 a month.
-Twenty-two entries: seventeen games, four discovery journeys and one story journey. One guide, a meerkat called Suri, who
+Twenty-three entries: seventeen games, four discovery journeys and two story journeys. One guide, a meerkat called Suri, who
 is also the app. English and Dutch throughout, Dutch written first.
 
 ## The rules that are not negotiable
@@ -52,8 +52,8 @@ Three gates, all of which must be green before a commit claims to be finished:
 
 ```
 npx tsc --noEmit        # types
-npm test                # 1445 checks, no browser, tests/run.mjs
-npm run audit           # 28 screens x 5 screen shapes in a real browser, 0 faults
+npm test                # 1459 checks, no browser, tests/run.mjs
+npm run audit           # 29 screens x 5 screen shapes in a real browser, 0 faults
 ```
 
 `npm run audit` is the one that catches what unit tests cannot: two things drawn in the same

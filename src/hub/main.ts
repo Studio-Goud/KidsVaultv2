@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawSeasonsThumb, drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawTripThumb, drawDiveThumb, drawDinoThumb, drawBodyThumb, drawToothThumb, drawValleyThumb } from './thumbs';
+import { drawSeasonsThumb, drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawTripThumb, drawDiveThumb, drawDinoThumb, drawBodyThumb, drawToothThumb, drawLightThumb, drawValleyThumb } from './thumbs';
 import { NL, T } from '../util/lang';
 import { shelf, type Entry } from '../platform/catalog';
 import { lastGoNow, startClock } from '../platform/clock';
@@ -44,6 +44,7 @@ const ART: Record<string, { img?: string; tint?: string; paint?: (c: HTMLCanvasE
   dino: { paint: drawDinoThumb },
   lichaam: { paint: drawBodyThumb },
   tand: { paint: drawToothThumb },
+  lichtje: { paint: drawLightThumb },
 };
 
 function card(g: Entry): HTMLElement {

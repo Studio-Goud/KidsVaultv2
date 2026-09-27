@@ -18,17 +18,13 @@
  * the T. rex goes by - ends the same way whatever the child does (rule 2 in CLAUDE.md).
  */
 
-export type Step =
-  | { say: string; sayNl: string }
-  | { wait: string }
-  | { cue: string }
-  | { pause: number };
+import type { Chapter as TaleChapter, Place } from './tale';
+import { nextPlaceIn } from './tale';
+export { readSeconds } from './tale';
+export type { Step, Place } from './tale';
 
-export interface Chapter {
+export interface Chapter extends TaleChapter {
   id: 'garden' | 'drill' | 'ice' | 'sea' | 'forest' | 'trex' | 'home';
-  title: string;
-  titleNl: string;
-  steps: Step[];
 }
 
 export const CHAPTERS: Chapter[] = [
@@ -169,16 +165,5 @@ export const ASIDES = {
   notYet: { say: 'Not yet. First find the animal.', sayNl: 'Nog niet. Zoek eerst het dier.' },
 };
 
-/** How long a line stays up when there is no voice at all, so a reading parent still gets it. */
-export const readSeconds = (text: string): number => Math.max(1.6, text.split(/\s+/).length * 0.34);
-
-/** Where the story is: which chapter, which step. */
-export interface Place { chapter: number; step: number }
-
-/** The step after this one, running on into the next chapter; null at the very end. */
-export function nextPlace(p: Place): Place | null {
-  const c = CHAPTERS[p.chapter];
-  if (p.step + 1 < c.steps.length) return { chapter: p.chapter, step: p.step + 1 };
-  if (p.chapter + 1 < CHAPTERS.length) return { chapter: p.chapter + 1, step: 0 };
-  return null;
-}
+/** The step after this one in this story, running on into the next chapter; null at the very end. */
+export const nextPlace = (p: Place): Place | null => nextPlaceIn(CHAPTERS, p);

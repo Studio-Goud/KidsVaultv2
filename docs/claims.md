@@ -58,9 +58,10 @@ Concreet te toetsen rijen, met wat erachter zit:
 | De diepzee | luisteren, hoe diep diep is, wat waar leeft | geen bron; mijn inschatting |
 | Het menselijk lichaam | luisteren, waar alles in je eigen lijf zit en waarvoor | geen bron; mijn inschatting. De centimeters zijn voor een kind van 1,20 m (TNO-groeicurven, zesjarige) |
 | Suri en de reuzentand | luisteren naar een verhaal, goed kijken en vergelijken, ouder is dieper | geen bron; mijn inschatting |
+| Suri en het lichtje in de diepte | luisteren naar een verhaal, goed kijken, hoe diep diep is | geen bron; mijn inschatting |
 | De tijd van de dino's | luisteren, hoe lang geleden lang geleden is, diepere grond is oudere grond | geen bron; mijn inschatting. De leeftijden zijn de gangbare afgeronde per dier |
 
-Zestien van de tweeëntwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
+Zeventien van de drieëntwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
 
 ## B. Schermtijd
 
@@ -105,6 +106,15 @@ en zijn geen pedagogische claim. Die horen hier niet thuis, maar wel de vorm erv
 
 - **Te toetsen:** of een zin als "De Mount Everest zou er in passen en er zou nog water boven
   staan" op vijf jaar iets betekent, of dat het alleen klinkt alsof het iets betekent.
+- **Het lichtje in de diepte** zegt deze feiten hardop, elk nagezocht maar door niemand met
+  verstand van zeebiologie nagelezen: de zones (zonlicht tot 200 m, schemer tot 1000 m, daaronder
+  geen daglicht; de indeling van NOAA); lantaarnvissen maken zelf licht; een potvis duikt naar
+  beneden voor inktvis en kan een uur onder water blijven (gemiddeld zo'n drie kwartier, soms
+  langer dan anderhalf uur); water op anderhalve kilometer is een graad of vier; zeesneeuw bestaat
+  uit dalende kruimels van boven; veel diepzeedieren maken licht om elkaar te vinden of te jagen;
+  alleen vrouwtjes hengelaarsvissen hebben een lichtje, en daar leven bacteriën in; Melanocetus is
+  ongeveer achttien centimeter, zo groot als een banaan. Eén ding is een verhaalkeuze en geen feit:
+  zo snel als in het verhaal zakt geen duikboot anderhalve kilometer.
 
 ## G. Wat de app níét beweert, en zo moet blijven
 
