@@ -85,6 +85,63 @@ function shadeRgb(c: string, k: number): string {
   return `rgb(${f(r)},${f(g)},${f(b)})`;
 }
 
+/**
+ * The finish on a filled part, drawn while its outline is still the current path: a thin dark rim
+ * so the shape reads crisply against any background, a scatter of scales or spots inside it, and a
+ * soft sheen along the top where the light catches. At the size of a thumbnail it is just a
+ * texture; up close, when the T. rex walks past at eleven metres, it is skin.
+ */
+function detail(ctx: Ctx, box: [number, number, number, number], dot: string, seed: number, n: number, size = 0.07): void {
+  const [x0, y0, x1, y1] = box;
+  ctx.strokeStyle = 'rgba(20, 22, 12, 0.22)';
+  ctx.lineWidth = 0.045;
+  ctx.stroke();
+  ctx.save();
+  ctx.clip();
+  ctx.fillStyle = dot;
+  for (let i = 0; i < n; i++) {
+    const a = Math.sin((i + seed) * 12.9898) * 43758.5453, b = Math.sin((i + seed) * 78.233) * 12543.123;
+    const fx = a - Math.floor(a), fy = b - Math.floor(b);
+    const r = size * (0.6 + fx * 0.8);
+    ctx.beginPath(); ctx.ellipse(x0 + fx * (x1 - x0), y0 + fy * (y1 - y0), r, r * 0.7, fy * 3, 0, Math.PI * 2); ctx.fill();
+  }
+  const sheen = ctx.createLinearGradient(0, y0, 0, y0 + (y1 - y0) * 0.45);
+  sheen.addColorStop(0, 'rgba(255, 250, 230, 0.22)');
+  sheen.addColorStop(1, 'rgba(255, 250, 230, 0)');
+  ctx.fillStyle = sheen;
+  ctx.fillRect(x0, y0, x1 - x0, (y1 - y0) * 0.45);
+  ctx.restore();
+}
+
+/** An eye: dark, with a gold iris, a spark of light, and a lid that comes down now and then. */
+function eye(ctx: Ctx, x: number, y: number, r: number, t: number, seed: number, lid: string, iris = '#e8c048'): void {
+  ctx.fillStyle = '#1e1810';
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = iris;
+  ctx.beginPath(); ctx.arc(x + r * 0.15, y - r * 0.1, r * 0.55, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#120c06';
+  ctx.beginPath(); ctx.ellipse(x + r * 0.18, y - r * 0.1, r * 0.18, r * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.beginPath(); ctx.arc(x - r * 0.1, y - r * 0.35, r * 0.2, 0, Math.PI * 2); ctx.fill();
+  // a blink about every four seconds, each animal on its own beat
+  const b = (t + seed) % 4.2;
+  if (b < 0.14) {
+    ctx.fillStyle = lid;
+    ctx.beginPath(); ctx.arc(x, y, r * 1.1, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = r * 0.25;
+    ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.stroke();
+  }
+}
+
+/** Claws at the end of a foot, pointing the way it walks. */
+function claws(ctx: Ctx, x: number, y: number, n: number, len: number): void {
+  ctx.fillStyle = '#e8dcc0';
+  for (let i = 0; i < n; i++) {
+    const cx = x + i * len * 0.6;
+    ctx.beginPath(); ctx.moveTo(cx, y - len * 0.3); ctx.lineTo(cx + len, y); ctx.lineTo(cx, y + len * 0.15); ctx.closePath(); ctx.fill();
+  }
+}
+
 function limb(ctx: Ctx, pts: P[], w0: number, w1: number, colour: string): void {
   ctx.strokeStyle = colour;
   ctx.lineCap = 'round';
@@ -131,6 +188,7 @@ export function drawTRex(ctx: Ctx, x: number, y: number, s: number, look: BeastL
     limb(ctx, [ankle, [f[0] + 0.55, f[1]]], 0.3, 0.2, colour);
     ctx.fillStyle = colour;
     ctx.beginPath(); ctx.ellipse(f[0] + 0.35, f[1] - 0.05, 0.55, 0.12, 0, 0, Math.PI * 2); ctx.fill();
+    claws(ctx, f[0] + 0.7, f[1] - 0.04, 3, 0.18);
   };
   legs(ph + 0.5, far, -0.2);
 
@@ -142,6 +200,8 @@ export function drawTRex(ctx: Ctx, x: number, y: number, s: number, look: BeastL
   ctx.quadraticCurveTo(-3.5, hip[1] - 0.6 + sway * 0.5, -6.8, hip[1] + 0.1 + sway);
   ctx.quadraticCurveTo(-3.5, hip[1] + 0.25 + sway * 0.5, -0.6, hip[1] + 0.55);
   ctx.closePath(); ctx.fill();
+  detail(ctx, [-6.8, hip[1] - 1, -0.6, hip[1] + 0.6], 'rgba(40, 46, 24, 0.35)', 3, 90, 0.06);
+  ctx.fillStyle = lit(ctx, skin, hip[1] - 1.5, hip[1] + 1.1);
 
   // the body, breathing
   ctx.beginPath();
@@ -150,6 +210,7 @@ export function drawTRex(ctx: Ctx, x: number, y: number, s: number, look: BeastL
   ctx.quadraticCurveTo(3.1, hip[1] - 0.2, 2.4, hip[1] + 0.5);
   ctx.quadraticCurveTo(0.8, hip[1] + 1.1 + breath, -1.0, hip[1] + 0.6);
   ctx.closePath(); ctx.fill();
+  detail(ctx, [-1.2, hip[1] - 1.5, 3.1, hip[1] + 1.1], 'rgba(40, 46, 24, 0.32)', 7, 160, 0.07);
   ctx.fillStyle = belly;
   ctx.beginPath();
   ctx.moveTo(-0.6, hip[1] + 0.55);
@@ -173,6 +234,7 @@ export function drawTRex(ctx: Ctx, x: number, y: number, s: number, look: BeastL
   ctx.lineTo(neckTop[0] + 0.5, neckTop[1] + 0.6);
   ctx.quadraticCurveTo(2.6, hip[1] - 0.1, 2.2, hip[1] + 0.3);
   ctx.closePath(); ctx.fill();
+  detail(ctx, [2.0, hip[1] - 1.9, 3.6, hip[1] + 0.4], 'rgba(40, 46, 24, 0.32)', 11, 40, 0.06);
   ctx.save();
   ctx.translate(neckTop[0] + 0.1, neckTop[1]);
   ctx.rotate(-hd * 0.25);
@@ -197,14 +259,15 @@ export function drawTRex(ctx: Ctx, x: number, y: number, s: number, look: BeastL
   ctx.lineTo(0.1, 0.35);
   ctx.quadraticCurveTo(-0.35, 0.1, -0.2, -0.45);
   ctx.fill();
+  detail(ctx, [-0.35, -0.75, 1.95, 0.35], 'rgba(40, 46, 24, 0.3)', 13, 40, 0.045);
   ctx.fillStyle = '#f2ead2';
   for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.moveTo(0.3 + i * 0.2, 0.25); ctx.lineTo(0.38 + i * 0.2, 0.42); ctx.lineTo(0.46 + i * 0.2, 0.25); ctx.fill(); }
   ctx.fillStyle = back;
   ctx.beginPath(); ctx.ellipse(0.9, -0.5, 0.45, 0.1, -0.2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#2a2016';
-  ctx.beginPath(); ctx.arc(0.45, -0.3, 0.1, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#e8c048';
-  ctx.beginPath(); ctx.arc(0.47, -0.32, 0.045, 0, Math.PI * 2); ctx.fill();
+  // a bony brow over the eye, and the eye itself
+  ctx.fillStyle = back;
+  ctx.beginPath(); ctx.ellipse(0.42, -0.45, 0.2, 0.07, -0.3, 0, Math.PI * 2); ctx.fill();
+  eye(ctx, 0.45, -0.3, 0.1, t, 1.3, skin);
   ctx.fillStyle = '#2a2016';
   ctx.beginPath(); ctx.arc(1.7, -0.18, 0.04, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
@@ -251,6 +314,7 @@ export function drawTriceratops(ctx: Ctx, x: number, y: number, s: number, look:
   ctx.quadraticCurveTo(2.7, hipY + 1.1, 0.6, hipY + 1.15);
   ctx.quadraticCurveTo(-1.6, hipY + 1.0, -1.8, hipY);
   ctx.fill();
+  detail(ctx, [-1.8, hipY - 1.5, 2.9, hipY + 1.2], 'rgba(60, 46, 26, 0.3)', 21, 150, 0.08);
   ctx.fillStyle = dark;
   for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.ellipse(-1.2 + i * 0.7, hipY - 1.15 + Math.abs(i - 2.5) * 0.06, 0.22, 0.1, 0, 0, Math.PI * 2); ctx.fill(); }
   // head: the frill, three horns and a beak
@@ -276,8 +340,7 @@ export function drawTriceratops(ctx: Ctx, x: number, y: number, s: number, look:
   ctx.beginPath(); ctx.moveTo(0.35, -0.55); ctx.quadraticCurveTo(0.9, -1.3, 1.6, -1.6); ctx.quadraticCurveTo(1.0, -1.1, 0.6, -0.45); ctx.fill();
   ctx.beginPath(); ctx.moveTo(0.55, -0.6); ctx.quadraticCurveTo(1.0, -1.25, 1.75, -1.45); ctx.quadraticCurveTo(1.1, -1.0, 0.75, -0.5); ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
   ctx.beginPath(); ctx.moveTo(1.0, -0.2); ctx.quadraticCurveTo(1.25, -0.6, 1.2, -0.75); ctx.quadraticCurveTo(1.3, -0.4, 1.2, -0.12); ctx.fill();
-  ctx.fillStyle = '#231a12';
-  ctx.beginPath(); ctx.arc(0.55, -0.2, 0.08, 0, Math.PI * 2); ctx.fill();
+  eye(ctx, 0.55, -0.2, 0.085, t, 2.7, skin, '#c9a040');
   ctx.restore();
   leg(-0.7, ph, skin, 2.0); leg(2.1, ph + 0.5, skin, 1.7);
   ctx.restore();
@@ -310,6 +373,26 @@ export function drawMammoth(ctx: Ctx, x: number, y: number, s: number, look: Bea
   ctx.quadraticCurveTo(2.0, -1.0, 1.2, -1.0);
   ctx.lineTo(-1.2, -1.0);
   ctx.closePath(); ctx.fill();
+  // fur all over, long strands lying the way the hair falls, lighter on top
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(-1.6, -1.3);
+  ctx.quadraticCurveTo(-1.8, -2.8, -0.2, top - breath);
+  ctx.quadraticCurveTo(1.4, top - 0.25, 1.9, -2.2);
+  ctx.quadraticCurveTo(2.0, -1.0, 1.2, -1.0);
+  ctx.lineTo(-1.2, -1.0);
+  ctx.closePath();
+  ctx.clip();
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 140; i++) {
+    const a = Math.sin(i * 12.9898) * 43758.5453, b = Math.sin(i * 78.233) * 12543.123;
+    const fx = -1.8 + (a - Math.floor(a)) * 3.8, fy = top + (b - Math.floor(b)) * 2.2;
+    const sw = Math.sin(t * 1.5 + i) * 0.03;
+    ctx.strokeStyle = i % 3 ? 'rgba(40, 24, 12, 0.35)' : 'rgba(170, 120, 80, 0.35)';
+    ctx.lineWidth = 0.05;
+    ctx.beginPath(); ctx.moveTo(fx, fy); ctx.quadraticCurveTo(fx - 0.05, fy + 0.15, fx - 0.1 + sw, fy + 0.3); ctx.stroke();
+  }
+  ctx.restore();
   // shaggy fringe along the belly
   ctx.strokeStyle = dark; ctx.lineWidth = 0.09; ctx.lineCap = 'round';
   for (let i = 0; i < 16; i++) {
@@ -328,8 +411,7 @@ export function drawMammoth(ctx: Ctx, x: number, y: number, s: number, look: Bea
   ctx.beginPath(); ctx.moveTo(2.6 + swing, -0.5); ctx.lineTo(2.75 + swing, -0.3); ctx.stroke();
   ctx.strokeStyle = '#efe4c6'; ctx.lineWidth = 0.18;
   ctx.beginPath(); ctx.moveTo(2.35, -2.0); ctx.bezierCurveTo(3.0, -1.2, 3.9, -1.6, 3.6, -2.6); ctx.stroke();
-  ctx.fillStyle = '#1e140c';
-  ctx.beginPath(); ctx.arc(2.25, -2.75, 0.07, 0, Math.PI * 2); ctx.fill();
+  eye(ctx, 2.25, -2.75, 0.07, t, 0.4, fur, '#6a4020');
   leg(-0.8, ph, fur); leg(1.3, ph + 0.5, fur);
   ctx.restore();
 }
@@ -363,6 +445,7 @@ export function drawMosasaur(ctx: Ctx, x: number, y: number, s: number, look: Be
   top.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
   for (let i = bot.length - 1; i >= 0; i--) ctx.lineTo(bot[i][0], bot[i][1]);
   ctx.closePath(); ctx.fill();
+  detail(ctx, [-8, -1.8, 7, 1.2], 'rgba(20, 40, 50, 0.3)', 31, 120, 0.12);
   ctx.fillStyle = belly;
   ctx.beginPath();
   bot.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1] - 0.12) : ctx.moveTo(p[0], p[1] - 0.12)));
@@ -377,8 +460,75 @@ export function drawMosasaur(ctx: Ctx, x: number, y: number, s: number, look: Be
   ctx.beginPath(); ctx.moveTo(head[0] - 0.4, head[1] - 0.3); ctx.lineTo(head[0] + 1.6, head[1] - 0.05); ctx.lineTo(head[0] + 1.5, head[1] + 0.2); ctx.lineTo(head[0] - 0.4, head[1] + 0.35); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#efe7d0';
   for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.moveTo(head[0] + i * 0.2, head[1] + 0.07); ctx.lineTo(head[0] + i * 0.2 - 0.06, head[1] + 0.2); ctx.lineTo(head[0] + i * 0.2 + 0.07, head[1] + 0.07); ctx.fill(); }
-  ctx.fillStyle = '#16222a';
-  ctx.beginPath(); ctx.arc(head[0] + 0.1, head[1] - 0.12, 0.08, 0, Math.PI * 2); ctx.fill();
+  eye(ctx, head[0] + 0.1, head[1] - 0.12, 0.09, look.t, 3.3, skin, '#d0b050');
   flip(3.2, 0, skin); flip(-0.8, 0, skin);
+  ctx.restore();
+}
+
+// ---------------------------------------------------------------- Ornithomimus
+
+/**
+ * A small fast dinosaur that shared the forest with the T. rex: long legs, a long neck, a small
+ * beaked head and a feathered body, built like an ostrich. It runs past in the distance now and
+ * then, which is most of what makes the forest feel lived in.
+ */
+export function drawRunner(ctx: Ctx, x: number, y: number, s: number, look: BeastLook): void {
+  const body = paint(look, '#9a7a52'), dark = paint(look, '#6a5236'), far = paint(look, '#7a603e');
+  const ph = look.phase;
+  const hip: P = [0, -1.45 - Math.abs(Math.cos(ph * Math.PI * 2)) * 0.06];
+  begin(ctx, x, y, s, look.facing);
+  shadow(ctx, 0, 1.2);
+  const leg = (phase: number, colour: string): void => {
+    const f = foot(0.15, 0.75, 0.35, phase);
+    const k = knee(hip, [f[0] - 0.1, f[1] - 0.3], 0.75, 0.8, -1);
+    limb(ctx, [hip, k, [f[0] - 0.1, f[1] - 0.3], [f[0] + 0.25, f[1]]], 0.16, 0.06, colour);
+  };
+  leg(ph + 0.5, far);
+  // a feathered tail held straight out for balance, and a round feathered body
+  ctx.fillStyle = lit(ctx, body, hip[1] - 0.5, hip[1] + 0.4);
+  ctx.beginPath();
+  ctx.moveTo(0.4, hip[1] - 0.3);
+  ctx.quadraticCurveTo(-1.2, hip[1] - 0.35, -2.2, hip[1] - 0.05);
+  ctx.quadraticCurveTo(-1.2, hip[1] + 0.2, 0.4, hip[1] + 0.3);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0.2, hip[1], 0.7, 0.42, -0.1, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = dark; ctx.lineWidth = 0.04;
+  for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.moveTo(-0.3 - i * 0.22, hip[1] - 0.1); ctx.lineTo(-0.45 - i * 0.22, hip[1] + 0.12); ctx.stroke(); }
+  // the neck, up and forward, and the small beaked head
+  limb(ctx, [[0.7, hip[1] - 0.2], [1.1, hip[1] - 0.8], [1.25, hip[1] - 1.25]], 0.16, 0.1, body);
+  ctx.fillStyle = body;
+  ctx.beginPath(); ctx.ellipse(1.35, hip[1] - 1.3, 0.2, 0.11, 0.1, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#4a3a2a';
+  ctx.beginPath(); ctx.moveTo(1.5, hip[1] - 1.34); ctx.lineTo(1.72, hip[1] - 1.26); ctx.lineTo(1.5, hip[1] - 1.22); ctx.closePath(); ctx.fill();
+  eye(ctx, 1.36, hip[1] - 1.33, 0.04, look.t, 5.1, body, '#e0a040');
+  // arms folded like wings
+  limb(ctx, [[0.6, hip[1] + 0.05], [0.85, hip[1] + 0.25], [1.05, hip[1] + 0.15]], 0.08, 0.05, dark);
+  leg(ph, body);
+  ctx.restore();
+}
+
+// ---------------------------------------------------------------- Quetzalcoatlus
+
+/** One of the biggest flying animals there has ever been, gliding high over the forest. */
+export function drawPterosaur(ctx: Ctx, x: number, y: number, s: number, look: BeastLook): void {
+  const skin = paint(look, '#8a6a58'), wing = paint(look, '#6a4a3e');
+  const flap = Math.sin(look.t * 1.4 + look.phase * 6) * 0.25;
+  begin(ctx, x, y, s, look.facing);
+  // the wings: skin stretched from the long finger to the ankle, about ten metres tip to tip
+  ctx.fillStyle = wing;
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(0.3, -0.1);
+    ctx.quadraticCurveTo(side * 2.5, -1.2 - flap * side * 2, side * 5, -0.4 - flap * 3);
+    ctx.quadraticCurveTo(side * 2.5, 0.3, -0.6, 0.15);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.ellipse(0, 0, 0.9, 0.22, 0, 0, Math.PI * 2); ctx.fill();
+  // the long neck and the huge beak with its crest
+  ctx.beginPath(); ctx.moveTo(0.6, -0.1); ctx.lineTo(1.8, -0.35); ctx.lineTo(1.8, -0.2); ctx.lineTo(0.6, 0.05); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(1.7, -0.45); ctx.lineTo(3.3, -0.25); ctx.lineTo(1.7, -0.15); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = paint(look, '#b8503a');
+  ctx.beginPath(); ctx.moveTo(1.6, -0.45); ctx.lineTo(1.4, -0.9); ctx.lineTo(2.0, -0.45); ctx.closePath(); ctx.fill();
   ctx.restore();
 }

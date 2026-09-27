@@ -13,6 +13,7 @@
  */
 
 import { TAU, wrapAngle } from './look';
+import { hexA } from '../render/look';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -83,16 +84,18 @@ export interface Palette {
   haze: string;
   /** underwater: no horizon, light from above */
   water?: boolean;
+  /** a row of far-off trees along the near ridge */
+  treeline?: string;
 }
 
 export const PALETTES: Record<string, Palette> = {
   garden: {
     skyTop: '#5aa8e0', skyLow: '#d8eef8', sun: '#fff3c0', sunAt: 0.8, sunUp: 0.55,
-    cloud: '#ffffff', clouds: 6, far: '#9cc28a', mid: '#6fa05a', ground: '#7fb562', groundNear: '#5f9444', haze: '#cfe6ee',
+    cloud: '#ffffff', clouds: 6, far: '#9cc28a', mid: '#6fa05a', ground: '#7fb562', groundNear: '#5f9444', haze: '#cfe6ee', treeline: '#5a8a4a',
   },
   ice: {
     skyTop: '#8fb0cc', skyLow: '#e6eef4', sun: '#fbf6e8', sunAt: -0.6, sunUp: 0.25,
-    cloud: '#f2f5f8', clouds: 8, far: '#c8d6e2', mid: '#dfe8ef', ground: '#eef3f7', groundNear: '#d6e1ea', haze: '#e8eef3',
+    cloud: '#f2f5f8', clouds: 8, far: '#b8c9d8', mid: '#dfe8ef', ground: '#eef3f7', groundNear: '#dde6ee', haze: '#e8eef3', treeline: '#9fb2a8',
   },
   sea: {
     skyTop: '#1f6f8f', skyLow: '#0b3a52', sun: '#bfeaf5', sunAt: 0, sunUp: 1,
@@ -101,7 +104,7 @@ export const PALETTES: Record<string, Palette> = {
   },
   forest: {
     skyTop: '#6aa6c9', skyLow: '#f2e2b8', sun: '#fff0b0', sunAt: 1.1, sunUp: 0.35,
-    cloud: '#fff7e6', clouds: 5, far: '#6f8f6a', mid: '#4f7040', ground: '#6f8a44', groundNear: '#56702f', haze: '#d9e2c2',
+    cloud: '#fff7e6', clouds: 5, far: '#8aa58a', mid: '#4f7040', ground: '#6f8a44', groundNear: '#4a6428', haze: '#d9e2c2', treeline: '#46663a',
   },
 };
 
@@ -165,14 +168,90 @@ export function drawBackdrop(ctx: Ctx, v: View, p: Palette, t: number): void {
     ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
   };
   ridge(p.far, v.f * 0.07, 1.2, 1);
+  if (p.treeline) {
+    // the edge of a forest far away: a row of crowns along the near ridge
+    ctx.fillStyle = p.treeline;
+    for (let x = -10; x <= w + 10; x += 7) {
+      const a = v.yaw + (x - w / 2) / v.f;
+      const base = hz - v.f * 0.025 - ridgeHeight(a, 4, 0.7) * v.f * 0.05;
+      const k = Math.sin(a * 211) * 0.5 + 0.5;
+      const th = v.f * (0.018 + k * 0.022);
+      ctx.beginPath(); ctx.moveTo(x - 6, base + 2); ctx.lineTo(x, base - th); ctx.lineTo(x + 6, base + 2); ctx.closePath(); ctx.fill();
+    }
+  }
   ridge(p.mid, v.f * 0.025, 0.7, 4);
 
   // the ground, from the horizon to your feet
   const gy = hz;
   const gg = ctx.createLinearGradient(0, gy, 0, h);
-  gg.addColorStop(0, p.haze); gg.addColorStop(0.08, p.ground); gg.addColorStop(1, p.groundNear);
+  gg.addColorStop(0, p.ground); gg.addColorStop(1, p.groundNear);
   ctx.fillStyle = gg;
   ctx.fillRect(0, gy, w, h - gy);
+  // a soft band of haze where the land meets the sky, so the horizon is far away, not a line
+  const hb = ctx.createLinearGradient(0, gy - v.f * 0.05, 0, gy + v.f * 0.04);
+  hb.addColorStop(0, hexA(p.haze, 0));
+  hb.addColorStop(0.55, hexA(p.haze, 0.55));
+  hb.addColorStop(1, hexA(p.haze, 0));
+  ctx.fillStyle = hb;
+  ctx.fillRect(0, gy - v.f * 0.05, w, v.f * 0.09);
+
+  // Patches on the ground, lying in perspective: the thing that makes the floor read as a floor
+  // going away from you instead of a coloured sheet. They sit at fixed places in the world, so
+  // they slide past as you turn, fast close by and slow far off.
+  const patch = p.water ? 'rgba(255, 245, 210, 0.07)' : 'rgba(0, 0, 0, 0.045)';
+  const light = p.water ? 'rgba(255, 255, 240, 0.06)' : 'rgba(255, 255, 255, 0.06)';
+  for (const d of [2.2, 3, 4, 5.5, 7.5, 10, 14, 20, 30]) {
+    const n = Math.round(d * 9);
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU + d * 1.3;
+      const off = wrapAngle(a - v.yaw);
+      if (Math.abs(off) > fovOf(v) / 2 + 0.2) continue;
+      const sx = w / 2 + off * v.f, s = v.f / d, sy = hz + EYE * s;
+      if (sy > h + 20) continue;
+      const k = Math.sin(i * 12.9898 + d) * 0.5 + 0.5;
+      ctx.fillStyle = k > 0.5 ? patch : light;
+      ctx.beginPath(); ctx.ellipse(sx, sy, s * (0.08 + k * 0.16), s * (0.015 + k * 0.02), 0, 0, TAU); ctx.fill();
+    }
+  }
+  if (p.water) {
+    // light from the waves, wobbling across the sand
+    ctx.strokeStyle = 'rgba(220, 250, 255, 0.10)';
+    ctx.lineWidth = 2;
+    for (let k = 0; k < 14; k++) {
+      const y = hz + (h - hz) * (k / 14) ** 1.6 + 6;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 12) {
+        const a = v.yaw + (x - w / 2) / v.f;
+        const yy = y + Math.sin(a * 9 + t * 1.3 + k) * (3 + k) + Math.sin(a * 23 - t * 0.9) * 2;
+        if (x) ctx.lineTo(x, yy); else ctx.moveTo(x, yy);
+      }
+      ctx.stroke();
+    }
+  }
+}
+
+/**
+ * Sunlight coming down through the air in shafts, in the forest through gaps in the canopy. Drawn
+ * last, over everything, and only when the sun is in view.
+ */
+export function drawShafts(ctx: Ctx, v: View, p: Palette, t: number): void {
+  const sx = screenX(v, p.sunAt);
+  if (sx < -v.w || sx > v.w * 2) return;
+  const sy = v.horizon * (1 - p.sunUp * 0.9);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 6; i++) {
+    const spread = (i - 2.5) * 0.18 + Math.sin(t * 0.2 + i) * 0.02;
+    const len = v.h * 1.3;
+    const ex = sx + Math.sin(spread + 0.25) * len, ey = sy + Math.cos(spread + 0.25) * len;
+    const g = ctx.createLinearGradient(sx, sy, ex, ey);
+    g.addColorStop(0, 'rgba(255, 240, 190, 0.10)');
+    g.addColorStop(1, 'rgba(255, 240, 190, 0)');
+    ctx.fillStyle = g;
+    const wdt = 18 + i * 6;
+    ctx.beginPath(); ctx.moveTo(sx - 4, sy); ctx.lineTo(sx + 4, sy); ctx.lineTo(ex + wdt, ey); ctx.lineTo(ex - wdt, ey); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
 }
 
 // ---------------------------------------------------------------- props

@@ -21,9 +21,10 @@ import { forgetLine, isSpeaking, sayRecorded, speakLine } from '../platform/voic
 import { save, persist } from '../util/storage';
 import { ASIDES, CHAPTERS, nextPlace, readSeconds, type Chapter, type Place, type Step } from './script';
 import { Look, TAU, wrapAngle } from './look';
-import { drawBackdrop, drawProp, makeView, near, PALETTES, scatter, spot, type Palette, type Prop, type View } from './world';
+import { drawBackdrop, drawProp, drawShafts, makeView, near, PALETTES, scatter, spot, type Palette, type Prop, type View } from './world';
 import { drawMammoth, drawMosasaur, drawTRex, drawTriceratops, type BeastLook } from './beasts';
 import { bed, storySfx, thud, type Bed } from './storysfx';
+import { Life } from './life';
 
 type Ctx = CanvasRenderingContext2D;
 type World = 'garden' | 'tunnel' | 'ice' | 'sea' | 'forest';
@@ -74,6 +75,8 @@ export class Story {
   private props: Prop[] = [];
   private beast: Beast | null = null;
   private ps = new Particles();
+  /** the fish, dragonflies, runners and birds around the story's animal */
+  private life: Life | null = null;
 
   // the garden: a grid over the tooth, and which cells the finger has brushed clean
   private sand: boolean[] = [];
@@ -190,7 +193,7 @@ export class Story {
   private boxRect(): { x: number; y: number; w: number; h: number } {
     const u = this.u();
     const wide = this.w > this.h;
-    const bw = Math.min(this.w - 40 * u, wide ? 300 * u : 340 * u), bh = Math.min(bw * 0.5, this.h * (wide ? 0.3 : 0.24));
+    const bw = Math.min(this.w - 70 * u, wide ? 300 * u : 290 * u), bh = Math.min(bw * 0.5, this.h * (wide ? 0.3 : 0.19));
     // above the line of words at the bottom, and in front of Suri rather than over the shed
     return { x: wide ? this.w * 0.58 - bw / 2 : (this.w - bw) / 2, y: this.h - bh - (wide ? 76 : 150) * u, w: bw, h: bh };
   }
@@ -305,6 +308,7 @@ export class Story {
 
   private buildGarden(): void {
     this.world = 'garden';
+    this.life = new Life('garden', 5);
     this.beast = null;
     this.props = [
       { kind: 'shed', x: 1.5, z: 9, size: 1, seed: 1 },
@@ -318,6 +322,7 @@ export class Story {
 
   private buildIce(): void {
     this.world = 'ice';
+    this.life = new Life('ice', 6);
     this.props = [...scatter(21, [['drift', 40, 1.4], ['rock', 16, 1.2], ['conifer', 10, 1.4]], 0.4, 12), ...near(22, [['drift', 16, 0.6], ['rock', 8, 0.35]])];
     // the mammoth walks a slow circle round you, starting behind you, so you have to turn to find him
     this.beast = { kind: 'mammoth', x: 0, z: 0, speed: 0.9, heading: 0, orbit: { r: 14, a: Math.PI * 0.9, w: 0.9 / 14 }, phase: 0, stride: 2.2, head: 0, jaw: 0, lift: 0 };
@@ -326,14 +331,22 @@ export class Story {
 
   private buildSea(): void {
     this.world = 'sea';
+    this.life = new Life('sea', 7);
     this.props = [...scatter(31, [['weed', 40, 1.5], ['rock', 18, 1.3], ['shell', 30, 1]], 0.3, 8), ...near(32, [['weed', 18, 0.7], ['shell', 24, 0.6], ['rock', 6, 0.4]])];
-    this.beast = { kind: 'mosasaur', x: 0, z: 0, speed: 2.2, heading: 0, orbit: { r: 22, a: -Math.PI * 0.75, w: -2.2 / 22 }, phase: 0, stride: 3, head: 0, jaw: 0, lift: 3.2 };
+    this.beast = { kind: 'mosasaur', x: 0, z: 0, speed: 2.2, heading: 0, orbit: { r: 17, a: -Math.PI * 0.75, w: -2.2 / 17 }, phase: 0, stride: 3, head: 0, jaw: 0, lift: 3.2 };
     this.years = YEARS.sea;
   }
 
   private buildForest(): void {
     this.world = 'forest';
-    this.props = [...scatter(41, [['fern', 60, 1.2], ['cycad', 18, 1.4], ['palm', 12, 1.3], ['conifer', 8, 1.8], ['rock', 8, 1]], 0.45, 14), ...near(42, [['fern', 26, 0.8], ['tuft', 30, 0.8]])];
+    this.life = new Life('forest', 8);
+    // Hell Creek was a warm, wet lowland: conifers, palm-like cycads and ferns, and the first
+    // flowering trees. Dense enough that the edge of it is all round you, open in front where the
+    // animals come through.
+    this.props = [
+      ...scatter(41, [['fern', 110, 1.2], ['cycad', 34, 1.4], ['palm', 22, 1.3], ['conifer', 26, 1.9], ['tree', 10, 1.4], ['rock', 8, 1]], 0.45, 16),
+      ...near(42, [['fern', 40, 0.9], ['tuft', 40, 0.8], ['cycad', 6, 0.6]]),
+    ];
     // the Triceratops is grazing behind you and to your left, head down, until you find him
     this.beast = { kind: 'trike', x: Math.sin(-2.3) * 14, z: Math.cos(-2.3) * 14, speed: 0, heading: 0, phase: 0, stride: 1.6, head: -0.8, jaw: 0, lift: 0 };
     this.years = YEARS.forest;
@@ -374,6 +387,8 @@ export class Story {
     this.stepT += dt;
     if (this.tunnel) this.updateTunnel(dt);
     if (this.beast) this.updateBeast(dt);
+    if (this.life && this.world !== 'tunnel') this.life.update(dt);
+    this.breathe(dt);
     this.updateFinding(dt);
     if (this.world === 'ice' && Math.random() < dt * 30) {
       this.ps.spawn('dust', Math.random() * this.w, -10, 1, { colour: '#ffffff', speed: 30, spread: 0.5, max: 4, grav: 25, size: (2 + Math.random() * 3) * this.u() });
@@ -440,6 +455,26 @@ export class Story {
       const target = this.flags.has('found') && !this.flags.has('fed') ? 0.1 : -0.8;
       b.head += (target - b.head) * Math.min(1, dt * 2);
     }
+  }
+
+  private breathT = 0;
+  /**
+   * In the cold, a mammoth's breath shows: a puff of mist from the trunk every couple of seconds.
+   * In the forest the T. rex snorts the same way when he sniffs. Small, but it is the detail that
+   * says the animal is alive and the air is real.
+   */
+  private breathe(dt: number): void {
+    const b = this.beast;
+    if (!b || (b.kind !== 'mammoth' && !(b.kind === 'trex' && this.sniffT > 0))) return;
+    this.breathT -= dt;
+    if (this.breathT > 0) return;
+    this.breathT = b.kind === 'mammoth' ? 2.2 : 0.5;
+    const v = this.view();
+    const sp = spot(v, b.x, b.z, b.lift);
+    if (!sp.on) return;
+    const f = this.facingOf(b);
+    const mx = sp.x + f * sp.s * (b.kind === 'mammoth' ? 2.7 : 4.9), my = sp.y - sp.s * (b.kind === 'mammoth' ? 1.0 : 3.4);
+    this.ps.spawn('dust', mx, my, 6, { colour: 'rgba(245, 250, 255, 0.7)', speed: sp.s * 0.6, spread: 0.8, max: 1.4, grav: -sp.s * 0.2, size: sp.s * 0.18 });
   }
 
   /** After the T. rex, the forest goes back to the Triceratops, grazing where he was. */
@@ -637,6 +672,7 @@ export class Story {
     const v = this.view();
     const pal = this.palette();
     drawBackdrop(ctx, v, pal, this.t);
+    this.life?.drawSky(ctx, v, pal.haze);
 
     // everything standing in the world, far to near, the animal among them at its own distance
     type Item = { d: number; draw: () => void };
@@ -645,6 +681,7 @@ export class Story {
       const d = Math.hypot(p.x, p.z);
       items.push({ d, draw: () => drawProp(ctx, v, p, pal, this.t) });
     }
+    if (this.life) items.push(...this.life.items(ctx, v, pal.haze));
     if (this.beast) {
       const b = this.beast;
       items.push({ d: Math.hypot(b.x, b.z), draw: () => this.drawBeast(v, b, pal) });
@@ -669,6 +706,7 @@ export class Story {
     }
     items.sort((a, b) => b.d - a.d).forEach(i => i.draw());
 
+    if (this.world === 'forest' || this.world === 'garden') drawShafts(ctx, v, pal, this.t);
     if (pal.water) {
       ctx.fillStyle = 'rgba(20, 90, 120, 0.18)';
       ctx.fillRect(0, 0, this.w, this.h);
