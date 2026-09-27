@@ -477,3 +477,16 @@ T. rex leefde in Noord-Amerika. Daarom komt de tand uit een oude kist van opa zo
 de tijdboor eerst door de Nederlandse tijd (de ijstijd, de krijtzee boven Limburg) en reist hij
 daarna naar Amerika. Het blijft in canvas 2D, zonder 3D-bibliotheek, zodat het ook op een oudere
 telefoon soepel loopt en de vaste regels van het project blijven staan.
+
+## 2026-09-27 — De reuzentand: meer leven en meer detail
+
+De eigenaar vond de verhaalreis de goede richting en vroeg om meer detail. De dieren kregen een
+huid (schubben en vlekken binnen hun omtrek, een glans waar het licht valt, een dunne rand), ogen
+die glanzen en knipperen, klauwen, en de mammoet een vacht. Elke wereld kreeg bewoners die niets van
+het kind vragen maar ervoor zorgen dat omdraaien altijd iets oplevert (`src/story/life.ts`): in de
+krijtzee scholen vissen, ammonieten en kwallen, in het bos libellen, rennende Ornithomimus en een
+Quetzalcoatlus hoog in de lucht, in de ijstijd en de tuin vogels en vlinders. Alles hoort bij zijn
+tijd: de dieren in het bos zijn die van de Hell Creek-lagen in Noord-Amerika, waar ook de T. rex
+vandaan komt. De mammoet ademt wolkjes in de kou, er vallen zonnestralen door de lucht, de zeebodem
+heeft lichtspel, de grond heeft plekken in perspectief en de horizon is nevel in plaats van een
+streep.
