@@ -86,6 +86,12 @@ export interface Palette {
   water?: boolean;
   /** a row of far-off trees along the near ridge */
   treeline?: string;
+  /** open sea, above the water: no hills on the horizon */
+  bare?: boolean;
+  /** underwater, far from the bottom: nothing but water all round */
+  midwater?: boolean;
+  /** how much daylight still comes down, 0..1; the deep sea has none */
+  light?: number;
 }
 
 export const PALETTES: Record<string, Palette> = {
@@ -128,14 +134,16 @@ export function drawBackdrop(ctx: Ctx, v: View, p: Palette, t: number): void {
   if (p.water) {
     // light from the surface, shafts that sway, and the sand far below
     const sx = screenX(v, p.sunAt);
-    for (let i = -6; i <= 6; i++) {
+    const lightK = p.light ?? 1;
+    for (let i = -6; i <= 6 && lightK > 0.02; i++) {
       const a = p.sunAt + i * 0.45 + Math.sin(t * 0.3 + i) * 0.04;
       const x = screenX(v, a);
       if (x < -w || x > w * 2) continue;
-      ctx.fillStyle = `rgba(190, 235, 245, ${0.07 + 0.04 * Math.sin(t + i)})`;
+      ctx.fillStyle = `rgba(190, 235, 245, ${(0.07 + 0.04 * Math.sin(t + i)) * lightK})`;
       ctx.beginPath(); ctx.moveTo(x - 20, 0); ctx.lineTo(x + 30, 0); ctx.lineTo(x + 140, hz * 1.4); ctx.lineTo(x + 40, hz * 1.4); ctx.closePath(); ctx.fill();
     }
     void sx;
+    if (p.midwater) return;
   } else {
     // the sun and its glow
     const sx = screenX(v, p.sunAt), sy = hz * (1 - p.sunUp * 0.9);
@@ -167,8 +175,8 @@ export function drawBackdrop(ctx: Ctx, v: View, p: Palette, t: number): void {
     }
     ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
   };
-  ridge(p.far, v.f * 0.07, 1.2, 1);
-  if (p.treeline) {
+  if (!p.bare) ridge(p.far, v.f * 0.07, 1.2, 1);
+  if (p.treeline && !p.bare) {
     // the edge of a forest far away: a row of crowns along the near ridge
     ctx.fillStyle = p.treeline;
     for (let x = -10; x <= w + 10; x += 7) {
@@ -179,7 +187,7 @@ export function drawBackdrop(ctx: Ctx, v: View, p: Palette, t: number): void {
       ctx.beginPath(); ctx.moveTo(x - 6, base + 2); ctx.lineTo(x, base - th); ctx.lineTo(x + 6, base + 2); ctx.closePath(); ctx.fill();
     }
   }
-  ridge(p.mid, v.f * 0.025, 0.7, 4);
+  if (!p.bare) ridge(p.mid, v.f * 0.025, 0.7, 4);
 
   // the ground, from the horizon to your feet
   const gy = hz;
@@ -215,7 +223,7 @@ export function drawBackdrop(ctx: Ctx, v: View, p: Palette, t: number): void {
   }
   if (p.water) {
     // light from the waves, wobbling across the sand
-    ctx.strokeStyle = 'rgba(220, 250, 255, 0.10)';
+    ctx.strokeStyle = `rgba(220, 250, 255, ${0.1 * (p.light ?? 1)})`;
     ctx.lineWidth = 2;
     for (let k = 0; k < 14; k++) {
       const y = hz + (h - hz) * (k / 14) ** 1.6 + 6;

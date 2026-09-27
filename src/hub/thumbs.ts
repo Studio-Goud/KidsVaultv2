@@ -7,6 +7,7 @@
  * worse than no card.
  */
 
+import { drawAnglerfish, drawLureGlow, lurePoint } from '../story/seaart';
 import { drawCraft } from '../journey/craft';
 
 const TAU = Math.PI * 2;
@@ -1375,4 +1376,25 @@ export function drawToothThumb(c: HTMLCanvasElement): void {
   ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(tx, ty, h * 0.25, 0, TAU); ctx.fill();
   ctx.fillStyle = '#efe2c2';
   ctx.beginPath(); ctx.moveTo(tx - h * 0.05, ty + h * 0.05); ctx.quadraticCurveTo(tx - h * 0.05, ty - h * 0.1, tx + h * 0.03, ty - h * 0.15); ctx.quadraticCurveTo(tx + h * 0.01, ty - h * 0.05, tx + h * 0.05, ty + h * 0.05); ctx.closePath(); ctx.fill();
+}
+
+/** The second story: the anglerfish in the dark, her lamp lit, and the snow of the deep. */
+export function drawLightThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#0a2b47'); g.addColorStop(1, '#01050b');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(230, 240, 235, 0.45)';
+  for (let i = 0; i < 26; i++) { ctx.beginPath(); ctx.arc(((i * 37.7) % 1) * w + ((i * 53) % w), ((i * 0.618) % 1) * h, Math.max(0.8, h * 0.008), 0, TAU); ctx.fill(); }
+  // a few lanternfish, just their lights
+  ctx.fillStyle = 'rgba(120, 220, 255, 0.85)';
+  for (const [fx, fy] of [[0.15, 0.25], [0.22, 0.3], [0.85, 0.2], [0.9, 0.75]]) {
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(w * fx + k * h * 0.02, h * fy, Math.max(0.8, h * 0.01), 0, TAU); ctx.fill(); }
+  }
+  const s = h * 4.2, x = w * 0.52, y = h * 0.6;
+  const look = { facing: -1 as const, phase: 0.2, t: 1 };
+  drawAnglerfish(ctx, x, y, s, look, 1);
+  const lp = lurePoint(x, y, s, look);
+  drawLureGlow(ctx, lp.x, lp.y, h * 0.3, 0.95);
 }

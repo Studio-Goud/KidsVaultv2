@@ -35,6 +35,7 @@ export default defineConfig({
         dino: resolve(__dirname, 'dino.html'),
         lichaam: resolve(__dirname, 'lichaam.html'),
         tand: resolve(__dirname, 'tand.html'),
+        lichtje: resolve(__dirname, 'lichtje.html'),
       },
     },
   },

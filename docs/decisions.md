@@ -490,3 +490,34 @@ tijd: de dieren in het bos zijn die van de Hell Creek-lagen in Noord-Amerika, wa
 vandaan komt. De mammoet ademt wolkjes in de kou, er vallen zonnestralen door de lucht, de zeebodem
 heeft lichtspel, de grond heeft plekken in perspectief en de horizon is nevel in plaats van een
 streep.
+
+## 2026-09-27 — De tweede verhaalreis: Suri en het lichtje in de diepte
+
+De eigenaar vond alle reizen de ruimte in, de zee in en terug in de tijd tof, en wilde ze allemaal
+zo uitgebreid als de reuzentand. De diepzee is de eerste. Dezelfde vorm: een vraag aan het begin
+en het antwoord aan het eind. De camera aan een kabel van een onderzoeksschip ziet op anderhalve
+kilometer diepte een lichtje knipperen, waar geen zonlicht komt. Wie maakt daar licht? Met de
+duikboot naar beneden: langs het koraalrif en een zeeschildpad, door een school lantaarnvissen in
+de schemer, achter een potvis aan het donker in, en onderin met de lampen uit vind je het lichtje.
+Het is de hengel van een hengelaarsvis.
+
+Het verhaal begint met een scherm en niet met het lichtje zelf, omdat je zo diep licht vanaf de
+boot niet kunt zien; een camera aan een kabel wel. Zo klopt de aanleiding ook.
+
+De zee is geen reeks losse plaatjes maar één diepte (`src/story/licht.ts`). De kleur van het
+water, hoeveel daglicht er nog komt, wat er leeft en hoe donker het is volgen allemaal uit hoe diep
+de duikboot is. Het kind houdt zelf de knop ingedrukt om te zakken en ziet het rif boven zich in
+het blauw verdwijnen, de lantaarnvissen verschijnen en het zwart dichtkomen. Onderin zie je alleen
+wat de dieren zelf aan licht maken, en wat de lampen verlichten waar je kijkt. De handelingen: op
+het lichtje op het scherm tikken, de schildpad en de potvis zoeken, de knop vasthouden, de school
+opzij tikken, de lampen aan en uit doen. Niets kan mislukken en niets heeft een klok (regel 2).
+
+Om dit en de volgende verhalen niet elk opnieuw te bouwen is de motor van de reuzentand gesplitst:
+`stage.ts` doet wat elk verhaal deelt (het script afspelen en op Ruth wachten, rondkijken, een dier
+vinden, de ondertitel, begin en einde), en een verhaal is een subklasse met alleen zijn eigen
+wereld en handelingen. De reuzentand draait daar nu ook op.
+
+Wat nog niet af is: het ElevenLabs-tegoed is op tot 6 oktober, dus Ruth heeft de zinnen van dit
+verhaal en de twaalf geluiden (`lichtje.*` in `sfxspec.ts`) nog niet ingesproken. Tot dan praat de
+stem van het toestel en klinken de geluiden uit code; de achtergronden zijn tot dan stil.
+

@@ -161,7 +161,7 @@ export abstract class Stage {
       chapter: c.id, step: this.place.step, started: this.started, finished: this.finished,
       waiting: this.waiting(), flags: [...this.flags], yaw: Math.round(this.look.yaw * 100) / 100,
       line: this.line,
-      beast: this.beast ? { kind: this.beast.kind, x: Math.round(this.beast.x), z: Math.round(this.beast.z), ...this.beastScreen() } : null,
+      beast: this.beast ? { kind: this.beast.kind, x: Math.round(this.beast.x * 10) / 10, z: Math.round(this.beast.z * 10) / 10, ...this.beastScreen() } : null,
       buttons: this.hits.map(b => ({ id: b.id, x: Math.round(b.x + b.w / 2), y: Math.round(b.y + b.h / 2) })),
       ...this.debugExtra(),
     };
