@@ -59,6 +59,20 @@ interface Hit { id: string; x: number; y: number; w: number; h: number }
  */
 const IDLE: PartState = { i: 0, v: 0, power: 0, duty: 0, on: false };
 
+/**
+ * How far a finger may wander and still count as a tap, in pixels. It was nine, which a pen can
+ * keep to but a thumb cannot: the owner found the bench hard with bigger fingers, and a thumb
+ * rolling as it lands moves a dozen pixels without meaning to move at all.
+ */
+const SLOP = 16;
+
+/**
+ * How far past the edge of a cell a drawn line has to go before it counts as the next cell, as a
+ * share of a cell. Without it a finger resting on the line between two squares lays wire into both
+ * as it wobbles, which is what made drawing feel fiddly.
+ */
+const STICK = 0.22;
+
 /** A part on its way from the shelf or from somewhere else on the board. */
 interface Drag {
   id: Kind;
@@ -71,6 +85,8 @@ interface Drag {
   row: number;
   rot: number;
   ok: boolean;
+  /** how far above the finger the part rides, so the finger does not hide where it will land */
+  lift: number;
 }
 
 /** A line of wire being drawn under a finger. */
@@ -384,6 +400,54 @@ export class Circuit {
     const row = Math.floor((p.y - oy) / unit);
     if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return null;
     return { col, row };
+  }
+
+  /**
+   * The cell a finger means, forgiving at the edges: a touch up to half a cell outside the board is
+   * taken as the nearest cell on it, because the edge of the board is exactly where the edge of a
+   * thumb lands when aiming at the outer row.
+   */
+  private cellNear(p: Vec): { col: number; row: number } | null {
+    const { ox, oy, unit } = this.cam;
+    const fx = (p.x - ox) / unit, fy = (p.y - oy) / unit;
+    if (fx < -0.5 || fx > COLS + 0.5 || fy < -0.5 || fy > ROWS + 0.5) return null;
+    return { col: clamp(Math.floor(fx), 0, COLS - 1), row: clamp(Math.floor(fy), 0, ROWS - 1) };
+  }
+
+  /** The cell a drawing finger is in, staying put until it is well into the next one. */
+  private cellDrawn(p: Vec, last: [number, number] | null): { col: number; row: number } | null {
+    if (last) {
+      const { ox, oy, unit } = this.cam;
+      const fx = (p.x - ox) / unit - last[0], fy = (p.y - oy) / unit - last[1];
+      if (fx > -STICK && fx < 1 + STICK && fy > -STICK && fy < 1 + STICK) return { col: last[0], row: last[1] };
+    }
+    return this.cellNear(p);
+  }
+
+  /**
+   * Where a part let go of should go: the cell it is over if it fits there, and otherwise the
+   * nearest neighbouring cell it does fit in. A child dropping a lamp a little crooked meant the
+   * square beside the one they got, and "Daar ligt al iets" for that was the bench being pedantic.
+   */
+  private landing(d: Drag, p: Vec): { col: number; row: number; rot: number } | null {
+    const cell = this.cellNear(p);
+    if (!cell) return null;
+    const b = this.board();
+    const { ox, oy, unit } = this.cam;
+    const tries: Array<{ col: number; row: number; dist: number }> = [];
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      const col = cell.col + dc, row = cell.row + dr;
+      if (col < 0 || col >= COLS || row < 0 || row >= ROWS) continue;
+      tries.push({ col, row, dist: Math.hypot(ox + (col + 0.5) * unit - p.x, oy + (row + 0.5) * unit - p.y) });
+    }
+    tries.sort((a, b2) => a.dist - b2.dist);
+    for (const t of tries) {
+      // the cell it is over first; a neighbour only if the finger was near enough to it
+      if (t.dist > unit * 1.05 && (t.col !== cell.col || t.row !== cell.row)) continue;
+      const rot = this.bestRot(d.id, t.col, t.row, d.rot);
+      if (canPlace(b, { id: d.id, col: t.col, row: t.row, rot }, d.from)) return { col: t.col, row: t.row, rot };
+    }
+    return null;
   }
 
   /** How the shelf is cut up, whichever way round the phone is. */
@@ -704,7 +768,7 @@ export class Circuit {
       const cell = this.cellAt(p);
       this.drag = {
         id, from: -1, x: p.x, y: p.y, moved: 0,
-        col: cell?.col ?? 0, row: cell?.row ?? 0, rot: 0, ok: false,
+        col: cell?.col ?? 0, row: cell?.row ?? 0, rot: 0, ok: false, lift: this.liftFor(e),
       };
       bench.tap();
       return;
@@ -718,7 +782,7 @@ export class Circuit {
       if (part.id === 'wire') { this.push(); this.line = { last: [part.col, part.row], laid: 0 }; return; }
       if (part.id === 'button') { part.on = true; bench.click(true); }
       const cell = this.cellAt(p) ?? { col: part.col, row: part.row };
-      this.drag = { id: part.id, from: i, x: p.x, y: p.y, moved: 0, col: cell.col, row: cell.row, rot: part.rot, ok: true };
+      this.drag = { id: part.id, from: i, x: p.x, y: p.y, moved: 0, col: cell.col, row: cell.row, rot: part.rot, ok: true, lift: this.liftFor(e) };
       return;
     }
     if (hit === 'board') {
@@ -728,10 +792,19 @@ export class Circuit {
     }
   }
 
+  /**
+   * On a touch screen a part being carried rides a little above the finger, the way a phone's own
+   * home screen lifts an icon, so the child can see the square it is going to land on. With a mouse
+   * the pointer is thin and the part stays under it.
+   */
+  private liftFor(e: PointerEvent): number {
+    return e.pointerType === 'mouse' ? 0 : this.cam.unit * 0.75;
+  }
+
   private onMove(e: PointerEvent): void {
     const p = this.at(e);
     if (this.line) {
-      const cell = this.cellAt(p);
+      const cell = this.cellDrawn(p, this.line.last);
       if (cell) this.drawTo(cell.col, cell.row);
       return;
     }
@@ -740,12 +813,16 @@ export class Circuit {
     d.moved += Math.hypot(p.x - d.x, p.y - d.y);
     d.x = p.x; d.y = p.y;
     // a button that is being dragged is not being pressed
-    if (d.moved >= 9 && d.from >= 0 && this.board()[d.from]?.id === 'button') this.board()[d.from].on = false;
-    const cell = this.cellAt(p);
-    if (!cell) { d.ok = false; return; }
-    d.col = cell.col; d.row = cell.row;
-    d.rot = this.bestRot(d.id, cell.col, cell.row, d.rot);
-    d.ok = canPlace(this.board(), { id: d.id, col: cell.col, row: cell.row, rot: d.rot }, d.from);
+    if (d.moved >= SLOP && d.from >= 0 && this.board()[d.from]?.id === 'button') this.board()[d.from].on = false;
+    const land = this.landing(d, { x: p.x, y: p.y - d.lift });
+    if (!land) {
+      const cell = this.cellNear({ x: p.x, y: p.y - d.lift });
+      d.ok = false;
+      if (cell) { d.col = cell.col; d.row = cell.row; }
+      return;
+    }
+    d.col = land.col; d.row = land.row; d.rot = land.rot;
+    d.ok = true;
   }
 
   private onUp(e: PointerEvent): void {
@@ -776,9 +853,9 @@ export class Circuit {
     if (!d) return;
 
     const part = d.from >= 0 ? this.board()[d.from] : null;
-    if (part && part.id === 'button' && d.moved < 9) { part.on = false; bench.click(false); return; }
+    if (part && part.id === 'button' && d.moved < SLOP) { part.on = false; bench.click(false); return; }
 
-    if (d.moved < 9) {
+    if (d.moved < SLOP) {
       if (d.from >= 0) { this.tapPart(d.from); return; }
       this.say(`${nameOf(d.id)} — ${noteOf(d.id)}`, 5);
       bench.tap();
@@ -790,8 +867,9 @@ export class Circuit {
       if (d.from >= 0) this.removeAt(d.from);
       return;
     }
-    if (!this.cellAt(p)) return;
-    if (!this.place(d.id, d.col, d.row, d.rot, d.from)) {
+    // where it lands is where the ghost was shown, above the finger, not the point under it
+    if (!this.cellNear({ x: p.x, y: p.y - d.lift })) return;
+    if (!d.ok || !this.place(d.id, d.col, d.row, d.rot, d.from)) {
       bench.blocked();
       this.say(T('Something is already there.', 'Daar ligt al iets.'));
     }
@@ -1054,7 +1132,7 @@ export class Circuit {
 
     // where a held part would land
     const d = this.drag;
-    if (d && d.moved >= 9) {
+    if (d && d.moved >= SLOP) {
       const cells = cellsOf({ id: d.id, col: d.col, row: d.row, rot: d.rot });
       ctx.fillStyle = d.ok ? 'rgba(142, 232, 173, 0.3)' : 'rgba(255, 140, 120, 0.22)';
       for (const [c, r] of cells) {
@@ -1071,7 +1149,7 @@ export class Circuit {
     });
     board.forEach((p, i) => {
       if (p.id === 'wire') return;
-      if (d && d.from === i && d.moved >= 9) return;
+      if (d && d.from === i && d.moved >= SLOP) return;
       const c = centreOf(p, ox, oy, unit);
       paintPart(ctx, p, this.partState(i), c.x, c.y, unit, this.t, this.spin.get(p) ?? 0);
     });
@@ -1195,7 +1273,7 @@ export class Circuit {
   private drawTray(b: Bands): void {
     const ctx = this.ctx, u = this.u();
     const r = b.tray;
-    const binning = !!this.drag && this.drag.from >= 0 && this.drag.moved >= 9;
+    const binning = !!this.drag && this.drag.from >= 0 && this.drag.moved >= SLOP;
     ctx.fillStyle = binning ? 'rgba(62, 18, 26, 0.92)' : 'rgba(8, 16, 26, 0.82)';
     if (b.trayDown) {
       ctx.beginPath();
@@ -1320,12 +1398,12 @@ export class Circuit {
 
   private drawGhost(): void {
     const d = this.drag;
-    if (!d || d.moved < 9) return;
+    if (!d || d.moved < SLOP) return;
     const ctx = this.ctx;
     const unit = this.cam.unit;
     ctx.save();
     ctx.globalAlpha = d.ok ? 0.95 : 0.55;
-    paintPart(ctx, { id: d.id, col: 0, row: 0, rot: d.rot, charge: BATTERY_CHARGE }, null, d.x, d.y, unit, this.t, 0.6);
+    paintPart(ctx, { id: d.id, col: 0, row: 0, rot: d.rot, charge: BATTERY_CHARGE }, null, d.x, d.y - d.lift, unit, this.t, 0.6);
     ctx.restore();
   }
 
