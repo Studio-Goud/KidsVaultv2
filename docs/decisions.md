@@ -565,3 +565,14 @@ geen fotorealisme; de mensen lezen als mensen maar zijn nog vrij strak. Wat nog 
 ElevenLabs-tegoed is op tot 6 oktober, dus Ruth heeft deze zinnen en de twintig geluiden (`evo.*`
 in `sfxspec.ts`) nog niet; tot dan de stem van het toestel en geluid uit code.
 
+
+## 2026-09-28 — Van cel tot mens: gezichten, oren, haar en handen
+
+De eigenaar wilde de mensen en apen gedetailleerder. Het profiel van het hoofd heeft nu de punten
+die een primatengezicht maken: een neus die uitsteekt, de plek waar neus en lip elkaar raken, de
+bovenlip, de mond, de onderlip, de plooi eronder, de kin. Bij een dier met een snuit vallen die
+punten terug op de gewone lijn van de kaak, zodat de overgang van spitsmuis naar mens vloeiend blijft.
+Primaten kregen een echt oor (een omgekrulde rand en een kom), schaduw in de oogkas en onder het
+jukbeen, licht op de wang, en bij mensen iets warmere lippen. Het haar groeit nu uit de schedel
+boven een haarlijn die langs de slaap over het oor naar de nek loopt, met krullen erin, in plaats
+van een losse boog. Hangende handen hebben vingers en een duim, en staande benen een knie en een kuit.

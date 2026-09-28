@@ -384,6 +384,9 @@ function headLandmarks(b: Body): HeadLand {
   const top = -0.5 - dome * 0.28;
   const jawK = b.jaw;
   const sw = b.swim * (1 - b.posture);
+  // lips, a chin and a nose that sticks out belong to the primates and most of all to us; on a snout
+  // these points fold back onto the plain line of the jaw
+  const lk = clamp01((b.eyeFront - 0.5) * 2) * clamp01(1 - s * 1.6);
   const pts: P[] = [
     [0.0 + 0.12 * sw, 0.06],                                  // the back of the skull
     [0.05 + 0.1 * sw, top * mix(0.62, 0.45, sw)],
@@ -391,25 +394,29 @@ function headLandmarks(b: Body): HeadLand {
     [0.4, top],                                               // the crown
     [brow - 0.06 + 0.04 * dome, top * mix(0.82, 0.7, dome)],  // the forehead
     [brow + 0.02 + b.brow * 0.035, -0.2 + 0.08 * s],          // the brow
-    [brow + 0.03, -0.1 + 0.07 * s],                           // the bridge of the nose
-    [mix(brow + 0.05, face - 0.05, s), mix(-0.02, -0.06, s)], // the top of the snout
-    [face + b.nose * 0.09, mix(0.08, 0.0, s)],                // the tip of the nose or snout
-    [face - 0.02 + b.nose * 0.015, mix(0.19, 0.1, s)],        // under the nose
-    [face - 0.005, mix(0.26, 0.2, s)],                        // the upper lip
-    [face - 0.02 - (1 - b.chin) * 0.025, mix(0.33, 0.28, s)], // the lower lip
-    [face - 0.05 + b.chin * 0.045 - (1 - jawK) * 0.08, mix(0.47, 0.4, s)], // the chin
-    [mix(0.58, 0.6, s), mix(0.52, 0.46, s)],                  // under the jaw
-    [0.28, 0.44],                                             // the angle of the jaw
+    [brow + 0.03 - 0.01 * lk, -0.1 + 0.07 * s],               // the bridge of the nose
+    [mix(brow + 0.05, face - 0.05, s) + b.nose * 0.03, mix(-0.02, -0.06, s)], // down the nose or the snout
+    [face + b.nose * 0.13, mix(0.08, 0.0, s)],                // the tip of the nose or snout
+    [face + b.nose * 0.06, mix(0.14, 0.08, s)],               // under the tip
+    [face - 0.012 * lk, mix(0.17, 0.12, s)],                  // where the nose meets the lip
+    [face + 0.014 * lk, mix(0.23, 0.18, s)],                  // the upper lip
+    [face - 0.012 * lk, mix(0.27, 0.22, s)],                  // between the lips
+    [face + 0.004 * lk - (1 - b.chin) * 0.02, mix(0.31, 0.26, s)], // the lower lip
+    [face - 0.035 * lk - (1 - b.chin) * 0.03, mix(0.37, 0.32, s)], // the fold under the lip
+    [face - 0.03 + b.chin * 0.05 - (1 - jawK) * 0.08, mix(0.45, 0.4, s)], // the chin
+    [face - 0.09 + b.chin * 0.02, mix(0.51, 0.45, s)],        // under the chin
+    [mix(0.5, 0.6, s), mix(0.52, 0.46, s)],                   // under the jaw
+    [0.3, 0.45],                                              // the angle of the jaw
     [0.1 + 0.1 * sw, mix(0.34, 0.26, sw)],
   ];
   const eye: P = [brow - mix(0.03, 0.01, s) - 0.04 * (1 - b.eyeFront) * s, mix(-0.08, -0.06, s)];
   return {
     pts, face, brow, top, eye,
-    ear: [mix(0.22, 0.42, b.posture * 0.9 + (1 - s) * 0.1), mix(-0.3, 0.0, clamp01(b.posture + (1 - s) * 0.3))],
-    mouth: [face - mix(0.13, 0.46, s), mix(0.3, 0.24, s)],
-    lip: [face - 0.01, mix(0.3, 0.24, s)],
+    ear: [mix(0.22, 0.4, clamp01(b.posture * 0.9 + lk * 0.6)), mix(-0.3, 0.02, clamp01(b.posture + lk))],
+    mouth: [face - mix(0.13, 0.46, s), mix(0.27, 0.22, s)],
+    lip: [face - 0.012 * lk - 0.004, mix(0.27, 0.22, s)],
     nose: [face + b.nose * 0.06, mix(0.12, 0.04, s)],
-    jaw: [pts[12], pts[13], pts[14]],
+    jaw: [pts[15], pts[16], pts[17], pts[18]],
   };
 }
 
@@ -626,6 +633,39 @@ function drawLimb(ctx: Ctx, l: Limb, b: Body, col: string, dark: boolean, lw: nu
       }
     }
   }
+  // a hanging hand has fingers: four side by side, bending a little towards the palm, and a thumb
+  if (l.front && b.posture > 0.5 && b.fin < 0.3) {
+    const dx = l.tip[0] - l.end[0], dy = l.tip[1] - l.end[1], len = Math.hypot(dx, dy) || 0.01;
+    const ux = dx / len, uy = dy / len, nx = -uy, ny = ux;
+    const wr = (l.front ? mix(b.girth * 0.6, b.arm * 0.17, b.posture) : 0) * 0.36;
+    const fl = len * 0.5;
+    ctx.strokeStyle = dark ? mixHex(col, '#000000', 0.3) : shade(b.skin, 0.02);
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 4; i++) {
+      const off = (i / 3 - 0.5) * wr * 0.7;
+      const bx = l.tip[0] - ux * len * 0.15 + nx * off, by = l.tip[1] - uy * len * 0.15 + ny * off;
+      const curl = 0.25 + i * 0.05;
+      ctx.lineWidth = wr * 0.26;
+      ctx.beginPath(); ctx.moveTo(bx, by);
+      ctx.quadraticCurveTo(bx + ux * fl * 0.6, by + uy * fl * 0.6, bx + ux * fl * 0.9 + nx * fl * curl, by + uy * fl * 0.9 + ny * fl * curl);
+      ctx.stroke();
+    }
+    ctx.lineWidth = wr * 0.3;
+    const tx = l.end[0] + ux * len * 0.35 + nx * wr * 0.45, ty = l.end[1] + uy * len * 0.35 + ny * wr * 0.45;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + ux * fl * 0.5 + nx * fl * 0.35, ty + uy * fl * 0.5 + ny * fl * 0.35); ctx.stroke();
+  }
+  // a knee and a calf, just a touch of light and shade, on legs that stand upright
+  if (!l.front && b.posture > 0.5 && !dark) {
+    ctx.save(); ctx.clip(lp);
+    const kg = ctx.createRadialGradient(l.joint[0] + 0.03, l.joint[1], 0, l.joint[0] + 0.03, l.joint[1], b.leg * 0.08);
+    kg.addColorStop(0, `rgba(255, 235, 210, ${0.14 * b.posture})`); kg.addColorStop(1, 'rgba(255, 235, 210, 0)');
+    ctx.fillStyle = kg; ctx.fillRect(-5, -5, 10, 10);
+    const calf: P = [l.joint[0] + (l.end[0] - l.joint[0]) * 0.3 - 0.04, l.joint[1] + (l.end[1] - l.joint[1]) * 0.3];
+    const cg = ctx.createRadialGradient(calf[0], calf[1], 0, calf[0], calf[1], b.leg * 0.12);
+    cg.addColorStop(0, `rgba(0, 0, 0, ${0.14 * b.posture})`); cg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = cg; ctx.fillRect(-5, -5, 10, 10);
+    ctx.restore();
+  }
   // its outline only where it is outside the body, so the leg grows out of the hip without a seam
   ctx.strokeStyle = 'rgba(15, 10, 5, 0.28)';
   ctx.lineWidth = lw * 1.1;
@@ -817,7 +857,11 @@ export function drawBody(ctx: Ctx, x: number, y: number, s: number, b: Body, pos
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.16)'; ctx.lineWidth = b.girth * 0.2;
     ctx.save(); ctx.translate(-0.012 * Math.sin(sk.theta), -0.02); ctx.stroke(line(bellyPts)); ctx.restore();
     ctx.restore();
-    ctx.save(); ctx.clip(head); ctx.translate(0.008, 0.016);
+    // light along the top of the head only: along the jaw it would read as a collar
+    ctx.save(); ctx.clip(head);
+    const jawY = hp([0.5, 0.2])[1];
+    ctx.beginPath(); ctx.rect(-10, -10, 20, jawY + 10); ctx.clip();
+    ctx.translate(0.008, 0.016);
     ctx.strokeStyle = `rgba(255, 244, 225, ${0.14 * (1 - b.fur * 0.5)})`; ctx.lineWidth = sk.H * 0.12;
     ctx.stroke(head); ctx.restore();
     // form: light on the chest and shoulder, shadow low on the belly and behind the hip
@@ -847,12 +891,12 @@ export function drawBody(ctx: Ctx, x: number, y: number, s: number, b: Body, pos
     furAlong(ctx, back.pts, back.dirs, 0.022, furCol, b.fur, 1, lw);
     furAlong(ctx, under.pts, under.dirs, 0.018, furCol, b.fur * 0.7, 2, lw);
     const hpts: P[] = [], hdirs: P[] = [];
-    for (let i = 0; i < 26; i++) {
-      const k = i / 25;
-      const q = hp([mix(0.02, hl.brow - 0.02, k), mix(0.1, hl.top, Math.sin(Math.min(1, k * 1.5) * Math.PI / 2)) - 0.03]);
-      hpts.push(q); hdirs.push([mix(-1, 0, k), -1]);
+    for (let i = 0; i < 70; i++) {
+      const k = i / 69;
+      const q = hp([mix(0.02, hl.brow - 0.05, k), mix(0.1, hl.top, Math.sin(Math.min(1, k * 1.5) * Math.PI / 2)) + 0.02]);
+      hpts.push(q); hdirs.push([mix(-1, -0.2, k), -1]);
     }
-    furAlong(ctx, hpts, hdirs, 0.022, furCol, b.fur * (1 - b.hair), 7, lw);
+    furAlong(ctx, hpts, hdirs, 0.014, furCol, b.fur * (1 - b.hair), 7, lw);
   }
 
   // the wrap: a hide round the hips, hanging to the middle of the thigh, with a ragged hem
@@ -900,56 +944,115 @@ export function drawBody(ctx: Ctx, x: number, y: number, s: number, b: Body, pos
     ctx.strokeStyle = `rgba(20, 20, 10, ${0.4 * fishK})`; ctx.lineWidth = lw * 1.6;
     ctx.beginPath(); ctx.moveTo(g0[0], g0[1]); ctx.quadraticCurveTo(g1[0], g1[1], g2[0], g2[1]); ctx.stroke();
   }
-  if (b.ear > 0.05) {
-    const [erx, ery] = hp(hl.ear);
-    const er = sk.L * 0.11 * b.ear;
-    const P2 = b.posture;
+  const lk = clamp01((b.eyeFront - 0.5) * 2) * clamp01(1 - b.snout * 1.6);
+  // face shading on a primate: shadow in the eye socket and under the cheekbone, light on the cheek,
+  // the brow and the chin - what turns a flat profile into a face
+  if (lk > 0.05) {
     ctx.save();
-    ctx.translate(erx, ery);
-    ctx.rotate(mix(-0.6, 0.12, P2) - sk.headAng);
-    const eg = ctx.createLinearGradient(0, -er, 0, er);
-    eg.addColorStop(0, shade(headCol, 0.05)); eg.addColorStop(1, shade(headCol, -0.2));
-    ctx.fillStyle = eg;
-    ctx.beginPath(); ctx.ellipse(0, -er * 0.4 * (1 - P2), er * mix(0.62, 0.52, P2), er * mix(1, 0.95, P2), 0, 0, TAU); ctx.fill();
-    ctx.strokeStyle = 'rgba(40, 20, 10, 0.4)'; ctx.lineWidth = lw * 1.3;
-    ctx.beginPath(); ctx.ellipse(0, -er * 0.4 * (1 - P2), er * 0.3, er * 0.6, 0, -1.4, 1.9); ctx.stroke();
+    ctx.clip(head);
+    const cheek = hp([hl.brow - 0.12, 0.1]);
+    const cg = ctx.createRadialGradient(cheek[0], cheek[1], 0, cheek[0], cheek[1], sk.L * 0.22);
+    cg.addColorStop(0, `rgba(255, 225, 195, ${0.16 * lk})`); cg.addColorStop(1, 'rgba(255, 225, 195, 0)');
+    ctx.fillStyle = cg; ctx.fillRect(-5, -5, 10, 10);
+    const sock = hp([hl.eye[0], hl.eye[1] - 0.02]);
+    const sg = ctx.createRadialGradient(sock[0], sock[1], 0, sock[0], sock[1], sk.L * 0.12);
+    sg.addColorStop(0, `rgba(30, 10, 0, ${0.28 * lk})`); sg.addColorStop(1, 'rgba(30, 10, 0, 0)');
+    ctx.fillStyle = sg; ctx.fillRect(-5, -5, 10, 10);
+    const under = hp([hl.brow - 0.1, 0.3]);
+    const ug = ctx.createRadialGradient(under[0], under[1], 0, under[0], under[1], sk.L * 0.2);
+    ug.addColorStop(0, `rgba(30, 10, 0, ${0.14 * lk})`); ug.addColorStop(1, 'rgba(30, 10, 0, 0)');
+    ctx.fillStyle = ug; ctx.fillRect(-5, -5, 10, 10);
+    ctx.strokeStyle = `rgba(40, 15, 5, ${0.25 * lk})`; ctx.lineWidth = lw * 1.2;
+    const n0 = hp([hl.face - 0.02 + b.nose * 0.02, 0.14]), n1 = hp([hl.face - 0.08, 0.24]), n2 = hp([hl.face - 0.06, 0.33]);
+    ctx.beginPath(); ctx.moveTo(n0[0], n0[1]); ctx.quadraticCurveTo(n1[0], n1[1], n2[0], n2[1]); ctx.stroke();
+    if (b.nose > 0.3) {
+      const l0 = hp([hl.face - 0.03, 0.2]), l1 = hp([hl.face + 0.02, 0.32]);
+      ctx.fillStyle = `rgba(120, 40, 35, ${0.25 * b.nose})`;
+      ctx.beginPath(); ctx.ellipse((l0[0] + l1[0]) / 2, (l0[1] + l1[1]) / 2, sk.L * 0.035, sk.H * 0.07, 0.2, 0, TAU); ctx.fill();
+    }
     ctx.restore();
   }
-  // head hair: a mass over the crown, down the back of the head, with curls along its edge
+  if (b.ear > 0.05) {
+    const [erx, ery] = hp(hl.ear);
+    if (lk > 0.3) {
+      // a primate's ear: a rim that curls round from the top to the lobe, and the bowl inside it
+      const eh = sk.H * mix(0.24, 0.3, b.posture) * b.ear / 0.6;
+      const ew = eh * mix(0.75, 0.6, b.posture);
+      ctx.save();
+      ctx.translate(erx, ery);
+      ctx.rotate(-0.15 - sk.headAng);
+      const eg = ctx.createLinearGradient(-ew, 0, ew, 0);
+      eg.addColorStop(0, shade(headCol, -0.18)); eg.addColorStop(1, shade(headCol, 0.08));
+      ctx.fillStyle = eg;
+      const ep = new Path2D();
+      ep.moveTo(ew * 0.3, -eh * 0.45);
+      ep.bezierCurveTo(-ew * 0.4, -eh * 0.7, -ew * 0.9, -eh * 0.1, -ew * 0.55, eh * 0.3);
+      ep.bezierCurveTo(-ew * 0.35, eh * 0.62, ew * 0.05, eh * 0.62, ew * 0.2, eh * 0.35);
+      ep.bezierCurveTo(ew * 0.35, eh * 0.1, ew * 0.55, -eh * 0.1, ew * 0.3, -eh * 0.45);
+      ctx.fill(ep);
+      ctx.strokeStyle = 'rgba(40, 15, 5, 0.45)'; ctx.lineWidth = lw * 1.3; ctx.stroke(ep);
+      ctx.beginPath(); ctx.moveTo(ew * 0.15, -eh * 0.32); ctx.bezierCurveTo(-ew * 0.35, -eh * 0.45, -ew * 0.6, 0, -ew * 0.35, eh * 0.2); ctx.stroke();
+      ctx.fillStyle = 'rgba(50, 20, 10, 0.35)';
+      ctx.beginPath(); ctx.ellipse(ew * 0.02, eh * 0.02, ew * 0.18, eh * 0.2, 0.3, 0, TAU); ctx.fill();
+      ctx.restore();
+    } else {
+      const er = sk.L * 0.11 * b.ear;
+      const P2 = b.posture;
+      ctx.save();
+      ctx.translate(erx, ery);
+      ctx.rotate(mix(-0.6, 0.12, P2) - sk.headAng);
+      const eg = ctx.createLinearGradient(0, -er, 0, er);
+      eg.addColorStop(0, shade(headCol, 0.05)); eg.addColorStop(1, shade(headCol, -0.2));
+      ctx.fillStyle = eg;
+      ctx.beginPath(); ctx.ellipse(0, -er * 0.4 * (1 - P2), er * mix(0.62, 0.52, P2), er * mix(1, 0.95, P2), 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = 'rgba(40, 20, 10, 0.4)'; ctx.lineWidth = lw * 1.3;
+      ctx.beginPath(); ctx.ellipse(0, -er * 0.4 * (1 - P2), er * 0.3, er * 0.6, 0, -1.4, 1.9); ctx.stroke();
+      ctx.restore();
+    }
+  }
+  // head hair: it grows from the skull, above a hairline that runs from the forehead past the
+  // temple, over the ear and down to the nape; its outer edge is the skull pushed out, bumpy with curls
   if (b.hair > 0.05) {
     ctx.save();
-    ctx.globalAlpha *= b.hair;
-    const hk = b.hair;
-    // the hair follows the skull: the head's own outline from the forehead over the crown to the
-    // nape, pushed out by its thickness
-    const th = 0.15 * hk;
-    const capOut: P[] = [];
-    const capIn: P[] = [];
-    const arc: P[] = [
-      [hl.brow - 0.06, hl.top * 0.72], [hl.brow - 0.13, hl.top * 0.92], [0.4, hl.top], [0.22, hl.top * 0.97],
-      [0.05, hl.top * 0.62], [0.0, 0.06], [0.06, 0.26],
+    const hk = Math.min(1.2, b.hair);
+    ctx.globalAlpha *= Math.min(1, b.hair * 1.5);
+    const th = 0.09 * hk;
+    const skull: P[] = [
+      [hl.brow - 0.07, hl.top * 0.74], [hl.brow - 0.14, hl.top * 0.93], [0.4, hl.top], [0.22, hl.top * 0.97],
+      [0.05, hl.top * 0.62], [-0.005, 0.06], [0.06, 0.28],
     ];
-    const thick = [0.15, 0.5, 1, 1, 1, 0.8, 0.4];
-    const cx = 0.38, cy = 0.02;
-    arc.forEach((q, qi) => {
+    const cx = 0.4, cy = 0.05;
+    const outer: P[] = [];
+    skull.forEach((q, i) => {
+      const w = [0.25, 0.7, 1, 1, 1, 0.9, 0.5][i];
       const dx = q[0] - cx, dy = (q[1] - cy) * sk.H / sk.L, d = Math.hypot(dx, dy) || 1;
-      const tq = th * thick[qi];
-      capOut.push(hp([q[0] + dx / d * tq, q[1] + (dy / d * tq) * sk.L / sk.H]));
-      capIn.push(hp([q[0] - dx / d * th * 0.35, q[1] - (dy / d * th * 0.35) * sk.L / sk.H]));
+      outer.push([q[0] + dx / d * th * w, q[1] + (dy / d * th * w) * sk.L / sk.H]);
     });
-    const hpth = smoothPath([...capOut, ...capIn.reverse()]);
-    const ys = capOut.map(p => p[1]);
+    const hairline: P[] = [
+      [0.1, 0.3], [0.2, 0.08], [hl.ear[0] - 0.09, hl.ear[1] - 0.14], [hl.ear[0] + 0.04, hl.ear[1] - 0.26], [hl.brow - 0.13, -0.26], [hl.brow - 0.08, hl.top * 0.62],
+    ];
+    const hpth = smoothPath([...outer, ...hairline].map(hp));
+    const ys = outer.map(q => hp(q)[1]);
     const hg = ctx.createLinearGradient(0, Math.min(...ys), 0, Math.max(...ys));
-    hg.addColorStop(0, shade(b.hairCol, 0.2)); hg.addColorStop(1, shade(b.hairCol, -0.25));
+    hg.addColorStop(0, shade(b.hairCol, 0.22)); hg.addColorStop(1, shade(b.hairCol, -0.2));
     ctx.fillStyle = hg;
     ctx.fill(hpth);
     ctx.save(); ctx.clip(hpth);
-    ctx.strokeStyle = shade(b.hairCol, 0.3); ctx.lineWidth = lw * 1.1;
-    for (let i = 0; i < 160; i++) {
-      const q = hp([mix(-0.06, hl.brow, hash(i, 3)), mix(hl.top - 0.12, 0.28, hash(i, 4))]);
-      ctx.beginPath(); ctx.arc(q[0], q[1], sk.L * 0.012, hash(i, 5) * TAU, hash(i, 5) * TAU + 3.8); ctx.stroke();
+    for (let i = 0; i < 260; i++) {
+      const q = hp([mix(-0.05, hl.brow - 0.02, hash(i, 3)), mix(hl.top - 0.1, 0.3, hash(i, 4))]);
+      const light = 0.12 + 0.2 * (1 - hash(i, 4));
+      ctx.strokeStyle = `rgba(255, 240, 220, ${light})`; ctx.lineWidth = lw * 0.9;
+      ctx.beginPath(); ctx.arc(q[0], q[1], sk.L * 0.011, hash(i, 5) * TAU, hash(i, 5) * TAU + 4); ctx.stroke();
     }
     ctx.restore();
+    ctx.fillStyle = shade(b.hairCol, -0.05);
+    for (let i = 0; i < 48; i++) {
+      const k = i / 47;
+      const seg = Math.min(outer.length - 2, Math.floor(k * (outer.length - 1)));
+      const f = k * (outer.length - 1) - seg;
+      const q = hp([outer[seg][0] + (outer[seg + 1][0] - outer[seg][0]) * f, outer[seg][1] + (outer[seg + 1][1] - outer[seg][1]) * f]);
+      ctx.beginPath(); ctx.arc(q[0], q[1], sk.L * 0.014 * hk, 0, TAU); ctx.fill();
+    }
     ctx.restore();
   }
   // the mouth
