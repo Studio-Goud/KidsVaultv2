@@ -36,6 +36,7 @@ export default defineConfig({
         lichaam: resolve(__dirname, 'lichaam.html'),
         tand: resolve(__dirname, 'tand.html'),
         lichtje: resolve(__dirname, 'lichtje.html'),
+        evolutie: resolve(__dirname, 'evolutie.html'),
       },
     },
   },

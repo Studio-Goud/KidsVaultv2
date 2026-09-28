@@ -532,3 +532,36 @@ getrokken lijn blijft nu in zijn vakje tot de vinger er een vijfde vakje voorbij
 lag onder de vinger die het droeg, zodat je niet zag waar het zou landen; op een aanraakscherm zweeft
 het nu iets boven de vinger, en wie het net naast een vrij vakje loslaat krijgt het vrije buurvakje in
 plaats van "Daar ligt al iets". Een aanraking tot een half vakje buiten het bord telt als de rand.
+
+## 2026-09-28 — Van cel tot mens: één lijf dat onder je vinger verandert
+
+De eigenaar vroeg om menselijke evolutie, "van beginsel tot compleet einde", uitgelegd zo goed als
+het nog nooit is gedaan, met transformaties en beeldwerk. Het antwoord heeft drie keuzes.
+
+Eerst hoe het werkt, gespeeld in plaats van verteld. Het kind is een vogel en zoekt berkenspanners
+op door roet zwartgeworden stammen, het bekende voorbeeld uit Engeland. Het kan alleen tikken wat
+het ziet, dus de lichte vlinders gaan en de donkere krijgen jongen; na twee rondes is de boom
+donkerder, door wat het kind zelf deed (van 2 naar 4 naar 8 donkere van de tien). Een vogel eet er
+vijf per ronde, zodat er van beide soorten overblijft. Zonder dat mechanisme is de rest van de reis
+een rij plaatjes; met dat mechanisme is elke volgende stop "en weer een beetje anders".
+
+Dan de lange lijn: één lijf dat alle dieren kan zijn (`src/evo/body.ts`). Elk dier is een rijtje
+getallen - hoe rechtop, hoe lang de staart, hoe groot de hersenpan, vin of vingers, schubben of
+vacht - en de tekening komt uit de getallen. Halverwege twee dieren is halverwege hun getallen, en
+dus altijd een heel dier. Het kind sleept over de tijdlijn en ziet een vis een vis-met-poten worden,
+een hagedis een spitsmuis, een aap een mens. De lijn is die van onze eigen voorouders, en waar een
+stop een neef is (Acanthostega, de chimpansee) wordt dat gezegd.
+
+En het bewijs dat een kind met eigen ogen kan zien: de röntgen. De botten komen uit hetzelfde
+skelet dat het vlees plaatst, in drie vaste kleuren: bovenarm, onderarm, hand. Dezelfde drie
+kleuren zitten in de vin van Tiktaalik, de poot van een spitsmuis en een mensenarm. Bij elke stop
+doet het kind iets (een cel delen, een ei laten uitkomen, Lucy laten lopen met voetsporen, stenen
+kloppen, vuur maken, een hand op de grotwand), en de meteoriet valt als je langs 66 miljoen jaar
+sleept. Het eind is de hele tijd als één dag: mensen in de laatste zeven seconden, en een knop die
+de hele verandering in één keer afspeelt.
+
+Het blijft canvas 2D zonder bibliotheek. Eerlijk over het beeld: dit is een getekende voorstelling,
+geen fotorealisme; de mensen lezen als mensen maar zijn nog vrij strak. Wat nog niet af is: het
+ElevenLabs-tegoed is op tot 6 oktober, dus Ruth heeft deze zinnen en de twintig geluiden (`evo.*`
+in `sfxspec.ts`) nog niet; tot dan de stem van het toestel en geluid uit code.
+

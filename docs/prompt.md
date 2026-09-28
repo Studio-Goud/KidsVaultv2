@@ -54,7 +54,7 @@ hardop gezegd, want een vierjarige leest niet.
 
 Alles hieronder is nagelopen, niet aangenomen.
 
-**Drieëntwintig dingen, van jong naar oud:**
+**Vierentwintig dingen, van jong naar oud:**
 
 | | | leeftijd | |
 |---|---|---|---|
@@ -73,14 +73,15 @@ Alles hieronder is nagelopen, niet aangenomen.
 | 13 | De diepzee | 4-10 | ontdekreis: de golven tot de Challengerdiepte |
 | 14 | De tijd van de dino's | 4-10 | ontdekreis: boren door de tijd, van de mammoet tot de eerste dino |
 | 15 | Het menselijk lichaam | 4-10 | ontdekreis: van je kruin tot je tenen |
-| 16 | Planetarium | 4-10 | planeten ordenen en verkennen |
-| 17 | Stuifzwam | 5-9 | vakjes tellen en een uitweg plannen |
-| 18 | Rekenrijk | 5-9 | rekenen met spullen op tafel |
-| 19 | Klokkijken | 5-9 | de wijzerplaat en de Nederlandse manier |
-| 20 | Stroomkring | 6-10 | schakelingen die wel of niet branden |
-| 21 | Moonshot | 6-10 | een raket in trappen bouwen |
-| 22 | Wereldatlas | 6-10 | provincies, landen, vlaggen |
-| 23 | Cloudhopper | 7-10 | luchtverkeersleiding; het oudste deel |
+| 16 | Van cel tot mens | 5-10 | verhaalreis: van de eerste cel tot jou, één lijf dat onder je vinger verandert |
+| 17 | Planetarium | 4-10 | planeten ordenen en verkennen |
+| 18 | Stuifzwam | 5-9 | vakjes tellen en een uitweg plannen |
+| 19 | Rekenrijk | 5-9 | rekenen met spullen op tafel |
+| 20 | Klokkijken | 5-9 | de wijzerplaat en de Nederlandse manier |
+| 21 | Stroomkring | 6-10 | schakelingen die wel of niet branden |
+| 22 | Moonshot | 6-10 | een raket in trappen bouwen |
+| 23 | Wereldatlas | 6-10 | provincies, landen, vlaggen |
+| 24 | Cloudhopper | 7-10 | luchtverkeersleiding; het oudste deel |
 
 **Werkt en is nagelopen:** alle vijftien nieuwe spellen praten en dragen Suri in de hoek.
 Opgraving en Klankhuis hebben twee vormen, gekozen op de leeftijd die de ouder invult. De ontdekreis-motor
@@ -88,7 +89,7 @@ draagt vier reizen; een vijfde is een databestand. Het ouderscherm heeft een pin
 een tijdslimiet met de NJi-onderbouwing erbij, en vijftien vragen die vóór de code te lezen zijn.
 De dagteller telt. De keuzes van de ouder bereiken de voorpagina: uitgevinkte onderwerpen zijn
 weg, en wat nog te oud of al ontgroeid is staat in een eigen rij in plaats van te verdwijnen
-(`shelf()` in `src/platform/catalog.ts`). 1459 checks groen, `npm run audit` 0 fouten over 29 schermen x 5 schermmaten.
+(`shelf()` in `src/platform/catalog.ts`). 1480 checks groen, `npm run audit` 0 fouten over 30 schermen x 5 schermmaten.
 
 **Wat er níét is, en wat dus niet beweerd mag worden:** geen pedagoog heeft hier ooit naar
 gekeken. Er is geen afrekening, dus de €3,99 bestaat nog niet. Er is geen service worker, dus

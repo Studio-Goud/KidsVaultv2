@@ -2956,6 +2956,7 @@ const group = name => console.log(`\n${name}`);
     : g === 'reis' || g === 'diepzee' || g === 'dino' || g === 'lichaam' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
     : g === 'tand' ? readFileSync('src/story/storysfx.ts', 'utf8')
     : g === 'lichtje' ? readFileSync('src/story/lichtsfx.ts', 'utf8')
+    : g === 'evo' ? readFileSync('src/evo/evosfx.ts', 'utf8')
     : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
   is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k, r]) => {
     const [g, m] = k.split('.');
@@ -3405,6 +3406,44 @@ const group = name => console.log(`\n${name}`);
   // rule 3: nothing in the story claims the child learns
   is('test_lichtje_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
   is('test_lichtje_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
+}
+
+// ---------------------------------------------------------------- Van cel tot mens
+
+{
+  const { STOPS, MOTH_LINES, secondsInADay } = await bundle('src/evo/data.ts', 'evodata.mjs');
+  const { mixBody, extent } = await bundle('src/evo/body.ts', 'evobody.mjs');
+  const { nextGeneration } = await bundle('src/evo/moths.ts', 'evomoths.mjs');
+  group('Van cel tot mens — the line, the bodies and how selection works');
+  const lines = STOPS.flatMap(s => s.lines);
+  is('test_evo_every_line_is_said_in_both_languages', lines.filter(l => !(l.say && l.sayNl)).length, 0);
+  is('test_evo_the_moth_lines_are_said_in_both_languages', Object.values(MOTH_LINES).every(l => l.say && l.sayNl), true);
+  is('test_evo_the_stops_run_from_oldest_to_now', STOPS.every((s, i) => i === 0 || s.ago < STOPS[i - 1].ago), true);
+  is('test_evo_it_starts_with_a_cell_and_ends_with_you', [STOPS[0].id, STOPS[STOPS.length - 1].id], ['cell', 'now']);
+  is('test_evo_every_stop_after_the_cells_has_a_body', STOPS.filter(s => !s.early && !s.body).map(s => s.id), []);
+  is('test_evo_a_wait_is_always_on_a_line_that_exists', STOPS.filter(s => s.wait !== undefined && (s.wait < 0 || s.wait >= s.lines.length - 1)).map(s => s.id), []);
+  is('test_evo_a_stop_that_waits_has_something_to_do', STOPS.filter(s => s.wait !== undefined && !s.act).map(s => s.id), []);
+  // halfway between two animals is an animal: every number halfway, never outside the two
+  const a = STOPS.find(s => s.id === 'mammal').body, b = STOPS.find(s => s.id === 'sapiens').body;
+  const m = mixBody(a, b, 0.5);
+  is('test_evo_mix_halfway_is_between_the_two', Object.keys(a).filter(k => typeof a[k] === 'number' && (m[k] < Math.min(a[k], b[k]) - 1e-9 || m[k] > Math.max(a[k], b[k]) + 1e-9)), []);
+  is('test_evo_mix_at_the_ends_is_the_animal_itself', mixBody(a, b, 0).leg === a.leg && mixBody(a, b, 1).leg === b.leg, true);
+  is('test_evo_every_body_has_room_to_be_drawn', STOPS.filter(s => s.body).every(s => { const e = extent(s.body); return e.right > e.left && e.top < 0; }), true);
+  // the story says the brain grew: the braincase number only goes up from the ape to us
+  const domes = ['ape', 'lucy', 'tools', 'fire', 'sapiens'].map(id => STOPS.find(s => s.id === id).body.dome);
+  is('test_evo_the_braincase_grows_from_ape_to_us', domes.every((d, i) => i === 0 || d >= domes[i - 1]), true);
+  is('test_evo_only_the_last_stops_stand_up_straight', STOPS.filter(s => s.body && s.body.posture > 0.9).map(s => s.id)[0], 'lucy');
+  is('test_evo_acanthostega_has_eight_fingers', STOPS.find(s => s.id === 'fourlegs').body.digits, 8);
+  // the day clock: 300,000 years out of 3.7 billion is the seven seconds the story says
+  is('test_evo_people_are_the_last_seven_seconds_of_the_day', Math.round(secondsInADay(3e5)), 7);
+  is('test_evo_the_line_says_seven_seconds', /zeven seconden/.test(STOPS.find(s => s.id === 'now').lines[0].sayNl), true);
+  // natural selection, as arithmetic: the survivors' mix is the next generation's mix
+  is('test_moths_the_next_generation_has_the_survivors_mix', nextGeneration({ dark: 2, pale: 3 }), { dark: 4, pale: 6 });
+  is('test_moths_a_kind_that_survived_never_rounds_away', nextGeneration({ dark: 1, pale: 20 }).dark >= 1, true);
+  is('test_moths_the_generation_is_always_full', nextGeneration({ dark: 3, pale: 4 }).dark + nextGeneration({ dark: 3, pale: 4 }).pale, 10);
+  is('test_moths_finding_pale_ones_makes_the_trees_darker', nextGeneration({ dark: 2, pale: 3 }).dark > 2, true);
+  is('test_evo_never_says_leert', lines.some(l => /\bleer/i.test(l.sayNl)), false);
+  is('test_evo_no_exclamation_marks', lines.some(l => /!/.test(l.say + l.sayNl)), false);
 }
 
 // ---------------------------------------------------------------- what the parent is shown

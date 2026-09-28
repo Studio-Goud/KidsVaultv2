@@ -59,9 +59,10 @@ Concreet te toetsen rijen, met wat erachter zit:
 | Het menselijk lichaam | luisteren, waar alles in je eigen lijf zit en waarvoor | geen bron; mijn inschatting. De centimeters zijn voor een kind van 1,20 m (TNO-groeicurven, zesjarige) |
 | Suri en de reuzentand | luisteren naar een verhaal, goed kijken en vergelijken, ouder is dieper | geen bron; mijn inschatting |
 | Suri en het lichtje in de diepte | luisteren naar een verhaal, goed kijken, hoe diep diep is | geen bron; mijn inschatting |
+| Van cel tot mens | luisteren naar een verhaal, goed kijken, hoe kleine veranderingen over heel lange tijd optellen | geen bron; mijn inschatting |
 | De tijd van de dino's | luisteren, hoe lang geleden lang geleden is, diepere grond is oudere grond | geen bron; mijn inschatting. De leeftijden zijn de gangbare afgeronde per dier |
 
-Zeventien van de drieëntwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
+Achttien van de vierentwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
 
 ## B. Schermtijd
 
@@ -115,6 +116,24 @@ en zijn geen pedagogische claim. Die horen hier niet thuis, maar wel de vorm erv
   alleen vrouwtjes hengelaarsvissen hebben een lichtje, en daar leven bacteriën in; Melanocetus is
   ongeveer achttien centimeter, zo groot als een banaan. Eén ding is een verhaalkeuze en geen feit:
   zo snel als in het verhaal zakt geen duikboot anderhalve kilometer.
+- **Van cel tot mens** zegt deze feiten hardop, nagezocht maar door geen bioloog nagelezen: de
+  oudste sporen van leven zijn ruim 3,5 miljard jaar oud; cellen met een kern zo'n 2 miljard;
+  dieren van veel cellen zo'n 600 miljoen; Haikouichthys 518 miljoen, zo lang als een vinger, met
+  een staaf (chorda) in de rug; beenvissen met kaken zo'n 420 miljoen; Tiktaalik 375 miljoen, met
+  in zijn vin één bot, dan twee, dan kleine botjes; Acanthostega 365 miljoen, acht vingers aan de
+  voorpoot, een neef en geen voorouder; de eerste eierleggers met schaal aan onze kant zo'n 310
+  miljoen; Thrinaxodon 250 miljoen, poten meer onder het lijf, misschien snorharen; Morganucodon zo'n
+  205 miljoen, zo klein als een muis, waarschijnlijk vooral 's nachts actief; de inslag 66 miljoen
+  jaar geleden; de eerste primaten zo'n 55 miljoen; Proconsul zo'n 20 miljoen, zonder staart; de
+  splitsing met de chimpansees zo'n 7 miljoen (Sahelanthropus), chimpansees als neven; Lucy 3,2
+  miljoen, rechtop, iets meer dan een meter; Homo habilis zo'n 2,3 miljoen, stenen werktuigen; Homo
+  erectus zo'n 1,9 miljoen, lange benen, Afrika uit, later vuur; Homo sapiens zo'n 300.000 jaar
+  (Jebel Irhoud); grotschilderingen meer dan 40.000 jaar. De zeven seconden: 300.000 van 3,7 miljard
+  jaar op een dag van 86.400 seconden is 7,0 seconden. De berkenspanner: roet maakte in Engeland in
+  de negentiende eeuw de stammen zwart, rond Manchester werden de donkere vlinders bijna de enige,
+  en na schonere lucht kwamen de lichte terug. Wat getekend is, is geen feit: de kleuren van de
+  dieren en hun precieze vorm zijn een voorstelling, en het lijf tussen twee stops in is een
+  tussenvorm om de verandering te laten zien, geen gevonden fossiel.
 
 ## G. Wat de app níét beweert, en zo moet blijven
 
