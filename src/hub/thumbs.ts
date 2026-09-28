@@ -7,6 +7,8 @@
  * worse than no card.
  */
 
+import { drawBody as drawEvoBody, extent as evoExtent } from '../evo/body';
+import { STOPS as EVO_STOPS } from '../evo/data';
 import { drawAnglerfish, drawLureGlow, lurePoint } from '../story/seaart';
 import { drawCraft } from '../journey/craft';
 
@@ -1397,4 +1399,22 @@ export function drawLightThumb(c: HTMLCanvasElement): void {
   drawAnglerfish(ctx, x, y, s, look, 1);
   const lp = lurePoint(x, y, s, look);
   drawLureGlow(ctx, lp.x, lp.y, h * 0.3, 0.95);
+}
+
+/** Van cel tot mens: a fish, a small mammal and a person in a row, the same body three times over. */
+export function drawEvoThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const g = ctx.createLinearGradient(0, 0, w, 0);
+  g.addColorStop(0, '#2f7fa8'); g.addColorStop(0.45, '#6aa88a'); g.addColorStop(1, '#e8c890');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(40, 30, 20, 0.25)'; ctx.fillRect(0, h * 0.84, w, h * 0.16);
+  const pick = (id: string) => EVO_STOPS.find(s => s.id === id)!.body!;
+  const row: Array<[string, number, number]> = [['jaws', 0.17, 0.42], ['mammal', 0.5, 0.34], ['sapiens', 0.84, 0.92]];
+  for (const [id, fx, hk] of row) {
+    const b = pick(id);
+    const e = evoExtent(b);
+    const s = Math.min((w * 0.3) / (e.right - e.left), (h * hk) / -e.top);
+    drawEvoBody(ctx, w * fx - ((e.left + e.right) / 2) * s, id === 'jaws' ? h * 0.62 : h * 0.86, s, b, { t: 1, phase: 0.2, xray: 0, facing: 1, move: 0 });
+  }
 }

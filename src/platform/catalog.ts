@@ -210,6 +210,15 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
+    id: 'evolutie', title: 'Van cel tot mens',
+    line: 'The whole story of life, from the first cell to you: drag through time and watch one animal turn into the next.',
+    lineNl: 'Het hele verhaal van het leven, van de eerste cel tot jou: sleep door de tijd en zie het ene dier in het volgende veranderen.',
+    practises: 'Listening to a story, looking carefully, how change adds up over a long time',
+    practisesNl: 'Luisteren naar een verhaal, goed kijken, hoe kleine veranderingen over heel lange tijd optellen',
+    from: 5, to: 10, domains: ['dieren', 'natuur'], nature: 'beide', minutes: [10, 20],
+    reads: false, speaks: true,
+  },
+  {
     id: 'puffball', title: 'Stuifzwam',
     line: 'Put down a puffball, count how far it reaches, and be somewhere else when it pops.',
     lineNl: 'Leg een stuifzwam neer, tel hoe ver hij reikt, en sta ergens anders als hij afgaat.',

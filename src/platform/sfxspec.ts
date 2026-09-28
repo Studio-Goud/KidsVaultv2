@@ -275,6 +275,28 @@ export const SFX: Record<string, SfxRow> = {
   'lichtje.deepBed': { prompt: `the deep sea in total darkness, a very low calm hum of water pressure, far away soft creaks, peaceful not scary, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
   'lichtje.motorBed': { prompt: `the soft steady whirr of a small submarine's electric propellers heard from inside, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
 
+  // ---- Van cel tot mens
+  'evo.arrive': { prompt: `a soft warm two note chime, arriving somewhere new, ${SOFT}`, secs: 0.8, max: 0.7 },
+  'evo.divide': { prompt: `a soft wet bubbly pop, a tiny living cell splitting in two, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'evo.stick': { prompt: `a soft squishy sound of little jelly balls pressing together, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'evo.xray': { prompt: `a soft futuristic scanner hum switching on, an x-ray machine, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'evo.bite': { prompt: `a small fish snapping its jaws shut under water, a quick soft snap, ${SOFT}`, secs: 0.5, max: 0.3 },
+  'evo.hatch': { prompt: `a small egg shell cracking open and a tiny reptile peeping, ${SOFT}`, secs: 1, max: 0.9 },
+  'evo.sniff': { prompt: `a tiny animal sniffing quickly, little nose twitching sniffs, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'evo.leap': { prompt: `a small monkey leaping between branches, leaves rustling, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'evo.step': { prompt: `one soft bare footstep on dry earth, ${SOFT}`, secs: 0.5, max: 0.25, gap: 200 },
+  'evo.knap': { prompt: `two stones knocked together, a sharp flake breaking off, stone age tool making, ${SOFT}`, secs: 0.5, max: 0.35 },
+  'evo.fire': { prompt: `a small campfire catching and starting to crackle, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'evo.hand': { prompt: `a soft puff of blown powder paint, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'evo.impact': { prompt: `an asteroid rushing through the sky and a huge deep boom far away, dramatic but not frightening for small children, ${SOFT}`, secs: 3, max: 2.8 },
+  'evo.flutter': { prompt: `a small moth fluttering away, quick soft wing beats, ${SOFT}`, secs: 0.5, max: 0.4 },
+  'evo.tick': { prompt: `a single soft clock tick, ${SOFT}`, secs: 0.5, max: 0.1 },
+  'evo.done': done('a warm wondrous story ending, soft chimes rising, the whole of life'),
+  'evo.waterBed': { prompt: `calm underwater ambience, soft bubbles and a gentle deep hum, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'evo.landBed': { prompt: `a calm wild landscape, soft wind, distant birds and insects, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'evo.nightBed': { prompt: `a warm prehistoric night, crickets and soft distant calls, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'evo.caveBed': { prompt: `inside a quiet cave, water dripping softly and a torch crackling, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+
   // ---- De tijd van de dino's: in a drill, down through the rock and back in time
   'dino.go': { prompt: `a small drilling machine starting up and boring down into rock and earth, rumbling, ${SOFT}`, secs: 2.5, max: 2.3 },
   'dino.arrive': { prompt: `a drill winding down and stopping, then a soft deep dinosaur rumble far away, ${SOFT}`, secs: 1.5, max: 1.3 },
