@@ -46,10 +46,10 @@ const wrong = (what = 'two soft low wooden knocks, a gentle shrug, not a buzzer,
 
 export const SFX: Record<string, SfxRow> = {
   // ---- Wereldatlas
-  'atlas.tap': tap(),
+  'atlas.tap': tap('a fingertip tapping lightly on a thick paper map lying on a table'),
   'atlas.lift': { prompt: `a small wooden puzzle piece being lifted off a wooden table, ${SOFT}`, secs: 0.5, max: 0.3 },
   'atlas.snap': { prompt: `a wooden jigsaw puzzle piece clicking neatly into place, satisfying, ${SOFT}`, secs: 0.6, max: 0.45, step: 1 },
-  'atlas.miss': wrong(),
+  'atlas.miss': wrong('a soft rustle of a paper map being put back, a gentle shrug, friendly'),
   'atlas.slide': { prompt: `a wooden puzzle piece sliding softly across a wooden table, ${SOFT}`, secs: 0.6, max: 0.5 },
   'atlas.flood': { prompt: `water gently rushing in over a low dyke and spreading out, a small wave, ${SOFT}`, secs: 2, max: 2 },
   'atlas.drain': { prompt: `water gently draining away and gurgling out, ${SOFT}`, secs: 1.5, max: 1.5 },
@@ -57,7 +57,7 @@ export const SFX: Record<string, SfxRow> = {
 
   // ---- Stroomkring
   'circuit.clunk': { prompt: `a small electronic component set down firmly on a wooden workbench, ${SOFT}`, secs: 0.5, max: 0.3 },
-  'circuit.tap': tap(),
+  'circuit.tap': tap('a soft click of a small plastic electronics part being touched'),
   'circuit.blocked': wrong('a soft muted plastic bump, cannot go there, gentle'),
   'circuit.click': { prompt: `a small toggle switch flicking over with a crisp click, ${SOFT}`, secs: 0.5, max: 0.15 },
   'circuit.draw': { prompt: `a tiny soft click of a wire being laid down, ${SOFT}`, secs: 0.5, max: 0.08, gap: 60, gain: 0.5, step: 0.3 },
@@ -71,17 +71,17 @@ export const SFX: Record<string, SfxRow> = {
   // ---- Klokkijken
   'clock.tick': { prompt: `a single small clock tick, ${SOFT}`, secs: 0.5, max: 0.06, gap: 45, gain: 0.5 },
   'clock.tock': { prompt: `a single deeper wooden clock tock, ${SOFT}`, secs: 0.5, max: 0.12, gain: 0.7 },
-  'clock.tap': tap(),
-  'clock.pick': tap('a soft wooden button being pressed, a gentle click'),
-  'clock.right': right(),
-  'clock.wrong': wrong(),
+  'clock.tap': tap('one soft tick of an old wooden clock'),
+  'clock.pick': { prompt: `a small wooden clock gear clicking one notch, ${SOFT}`, secs: 0.5, max: 0.18, gain: 0.8 },
+  'clock.right': right('a warm little two note chime of a wooden cuckoo clock, going up, a small happy success'),
+  'clock.wrong': wrong('two soft low wooden clock tocks, a gentle not quite, friendly'),
   'clock.complete': done('a soft small clock chiming the hour, warm and gentle, three chimes'),
 
   // Het jaar rond: the week train, the year wheel, and what each season sounds like outside
-  'seasons.tap': tap(),
-  'seasons.pick': tap('a soft wooden button being pressed, a gentle click'),
-  'seasons.right': right(),
-  'seasons.wrong': wrong(),
+  'seasons.tap': tap('a single dry autumn leaf being touched, a tiny soft rustle'),
+  'seasons.pick': { prompt: `picking up a small acorn from a bed of leaves, a soft rustle and click, ${SOFT}`, secs: 0.5, max: 0.25, gain: 0.8 },
+  'seasons.right': right('a soft bright two note birdsong going up, a small happy success'),
+  'seasons.wrong': wrong('a soft short puff of wind through leaves, a gentle not yet, friendly'),
   'seasons.complete': done('a warm little celebration of four soft chimes, one for each season'),
   'seasons.turn': { prompt: `a single soft ratchet click of a wooden wheel turning one notch, ${SOFT}`, secs: 0.5, max: 0.1, gap: 90, gain: 0.55 },
   'seasons.wagon': { prompt: `a small toy train, one soft toot of its whistle and a gentle clack of the wheels, ${SOFT}`, secs: 0.8, max: 0.6 },
@@ -97,16 +97,16 @@ export const SFX: Record<string, SfxRow> = {
   'dig.crack': { prompt: `an old dry bone cracking, a short crack, an oops moment but not gross, ${SOFT}`, secs: 0.6, max: 0.4 },
   'dig.uncover': { prompt: `a small magical twinkle, discovering a piece of fossil, ${SOFT}`, secs: 0.6, max: 0.5 },
   'dig.correct': right('a bright soft marimba arpeggio going up, right answer'),
-  'dig.wrong': wrong(),
+  'dig.wrong': wrong('two soft dull taps on rock, nothing there, a gentle shrug'),
   'dig.complete': done('a warm triumphant little fanfare on soft marimba, a whole dinosaur skeleton found'),
   'dig.tired': { prompt: `a soft sleepy descending tone, the sun going down, ${SOFT}`, secs: 1, max: 0.8 },
-  'dig.tap': tap(),
+  'dig.tap': tap('a small soft tap of a wooden brush handle on sandstone'),
 
   // ---- Letterbos
   'letters.lift': { prompt: `a small wooden letter tile being picked up off a wooden rack, ${SOFT}`, secs: 0.5, max: 0.25 },
   'letters.land': { prompt: `a wooden letter tile set down neatly into a slot, a soft clack, ${SOFT}`, secs: 0.5, max: 0.25 },
   'letters.bounce': { prompt: `a wooden tile bouncing softly back, a gentle boing, ${SOFT}`, secs: 0.5, max: 0.4, gain: 0.8 },
-  'letters.tap': tap(),
+  'letters.tap': tap('a fingertip tapping a small wooden letter tile in a forest, soft and woody'),
   'letters.word': right('a bright soft wooden three note rising chime, a word completed'),
   'letters.chop': { prompt: `a small wooden block being split in two with a soft chop, ${SOFT}`, secs: 0.5, max: 0.25 },
   'letters.complete': done('a warm little celebration of soft chimes and birdsong in a forest'),
@@ -122,7 +122,7 @@ export const SFX: Record<string, SfxRow> = {
   'market.arrives': { prompt: `soft footsteps arriving on cobblestones and a tiny door chime, ${SOFT}`, secs: 1, max: 0.9, gain: 0.7 },
   'market.complete': done('a warm cheerful little market celebration, soft bells and chimes'),
   'market.fail': wrong('a soft descending two note wooden sound, never mind, gentle'),
-  'market.tap': tap(),
+  'market.tap': tap('a soft tap on a woven wicker basket'),
 
   // ---- Watermolen
   'mill.dig': { prompt: `a small spade digging into wet soil once, ${SOFT}`, secs: 0.5, max: 0.25, gap: 80, gain: 0.7 },
@@ -134,11 +134,11 @@ export const SFX: Record<string, SfxRow> = {
   'mill.spring': { prompt: `a small spring of water bubbling up out of the ground, ${SOFT}`, secs: 1.2, max: 1 },
   'mill.complete': done('a warm celebration by a river, soft chimes and a happy splash'),
   'mill.dry': { prompt: `a soft dry sad descending tone, water drying up, gentle, ${SOFT}`, secs: 1, max: 0.8 },
-  'mill.tap': tap(),
+  'mill.tap': tap('a fingertip touching the surface of still water, a tiny soft blip'),
 
   // ---- Moonshot
   'moonshot.clunk': { prompt: `a metal rocket part clicking firmly onto another part, ${SOFT}`, secs: 0.5, max: 0.3 },
-  'moonshot.tap': tap(),
+  'moonshot.tap': tap('a soft muted tap on a small metal panel of a toy rocket'),
   'moonshot.blocked': wrong('a soft muted metallic bump, it does not fit, gentle'),
   'moonshot.tick': { prompt: `a single soft countdown beep, ${SOFT}`, secs: 0.5, max: 0.15, gain: 0.6 },
   'moonshot.ignite': { prompt: `a toy rocket engine igniting with a warm rumbling whoosh, exciting but not loud, ${SOFT}`, secs: 2, max: 1.8 },
@@ -157,7 +157,7 @@ export const SFX: Record<string, SfxRow> = {
   'nightwatch.solved': done('a soft magical glockenspiel sparkle, a constellation completed'),
   'nightwatch.wrong': wrong('a soft falling glassy note, a gentle miss, not a buzzer'),
   'nightwatch.peek': { prompt: `a soft curious shimmer, taking a second look, ${SOFT}`, secs: 0.8, max: 0.6 },
-  'nightwatch.tap': tap(),
+  'nightwatch.tap': tap('a tiny soft glass chime, like touching a star in the night sky'),
   'nightwatch.complete': done('a dreamy warm celebration under the night sky, soft chimes'),
 
   // ---- Rekenrijk
@@ -166,10 +166,10 @@ export const SFX: Record<string, SfxRow> = {
   'numbers.drop': { prompt: `an apple set down softly into a wooden crate, ${SOFT}`, secs: 0.5, max: 0.3, step: 0.5 },
   'numbers.hop': { prompt: `a small wooden peg hopping once along a board, a soft boop, ${SOFT}`, secs: 0.5, max: 0.2, step: 0.3, gap: 60 },
   'numbers.tenFull': { prompt: `a soft satisfying chime, a box of ten filled up, ${SOFT}`, secs: 0.8, max: 0.7 },
-  'numbers.tap': tap(),
-  'numbers.pick': tap('a soft wooden button being pressed, a gentle click'),
-  'numbers.right': right(),
-  'numbers.wrong': wrong(),
+  'numbers.tap': tap('a single wooden abacus bead clicking softly'),
+  'numbers.pick': { prompt: `a wooden bead sliding along a wire and stopping, ${SOFT}`, secs: 0.5, max: 0.25, gain: 0.8 },
+  'numbers.right': right('a soft wooden xylophone two notes going up with a tiny sparkle, a small happy success'),
+  'numbers.wrong': wrong('two soft low wooden abacus beads clacking together, a gentle try again'),
   'numbers.complete': done('a warm cheerful little celebration on soft marimba, sums finished'),
 
   // ---- Planetarium
@@ -180,7 +180,7 @@ export const SFX: Record<string, SfxRow> = {
   'orbit.tab': tap('a soft click, turning a page'),
   'orbit.turn': { prompt: `a soft airy whoosh, turning to the next planet, ${SOFT}`, secs: 0.6, max: 0.5, gain: 0.7 },
   'orbit.moon': { prompt: `a tiny soft space twinkle, a moon appearing, ${SOFT}`, secs: 0.6, max: 0.5 },
-  'orbit.tap': tap(),
+  'orbit.tap': tap('a soft round low pop in space, like touching a floating bubble'),
 
   // ---- Stuifzwam
   'puffball.place': { prompt: `a soft squishy mushroom being set down on moss, ${SOFT}`, secs: 0.5, max: 0.3 },
@@ -191,7 +191,7 @@ export const SFX: Record<string, SfxRow> = {
   'puffball.knocked': { prompt: `a soft cartoon bonk and a little dizzy wobble, funny, ${SOFT}`, secs: 0.8, max: 0.6 },
   'puffball.mole': { prompt: `a little mole popping out of the ground with soft digging, cute, ${SOFT}`, secs: 0.8, max: 0.6 },
   'puffball.step': { prompt: `a tiny soft footstep on moss, ${SOFT}`, secs: 0.5, max: 0.12, gap: 90, gain: 0.5 },
-  'puffball.tap': tap(),
+  'puffball.tap': tap('a tiny soft puff of air from a small mushroom'),
   'puffball.blocked': wrong('a soft muted bump into a tree stump, gentle'),
   'puffball.complete': done('a warm happy forest celebration, soft chimes and birdsong'),
   'puffball.fail': wrong('a soft descending woodwind tone, oh well, gentle'),
@@ -211,10 +211,10 @@ export const SFX: Record<string, SfxRow> = {
   'tidepool.shellLost': { prompt: `a small shell rolling away into the sea with a soft splash, ${SOFT}`, secs: 0.8, max: 0.6 },
   'tidepool.complete': done('a warm happy seaside celebration, soft chimes and gentle waves'),
   'tidepool.fail': wrong('a soft descending bubbly tone, the tide went out, gentle'),
-  'tidepool.tap': tap(),
+  'tidepool.tap': tap('a small soft splash of a finger dipping into a rock pool'),
 
   // ---- everywhere: the front page, the round buttons, the parent screen, the Animal Book
-  'ui.tap': tap(),
+  'ui.tap': tap('one small soft round water droplet falling into a calm pond, a tiny natural plip'),
   'ui.open': { prompt: `a soft friendly pop with a tiny rising whoosh, opening something, ${SOFT}`, secs: 0.5, max: 0.35 },
   'ui.home': { prompt: `a soft warm descending two note wooden chime, going home, ${SOFT}`, secs: 0.6, max: 0.5 },
   'ui.back': { prompt: `a soft short reversed whoosh, going back one step, ${SOFT}`, secs: 0.5, max: 0.25, gain: 0.8 },
@@ -229,7 +229,7 @@ export const SFX: Record<string, SfxRow> = {
   'reis.arrive': { prompt: `a soft glassy space chime, arriving at a planet, ${SOFT}`, secs: 1, max: 0.9 },
   'reis.more': { prompt: `a soft curious twinkle, there is more to tell, ${SOFT}`, secs: 0.6, max: 0.5 },
   'reis.on': { prompt: `a rocket engine starting again with a soft whoosh, moving on, ${SOFT}`, secs: 1.2, max: 1 },
-  'reis.index': tap('a soft click, opening a map'),
+  'reis.index': tap('a soft glassy space blip, opening a star map'),
   'reis.done': done('a warm dreamy celebration in space, soft chimes, the journey is complete'),
   'reis.bed': { prompt: `a calm steady low hum of a spaceship travelling through space, gentle, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.35 },
 
@@ -238,7 +238,7 @@ export const SFX: Record<string, SfxRow> = {
   'diepzee.arrive': { prompt: `a soft submarine sonar ping under water, arriving somewhere, ${SOFT}`, secs: 1.2, max: 1.1 },
   'diepzee.more': { prompt: `a few soft bubbles rising, there is more to see, ${SOFT}`, secs: 0.6, max: 0.5 },
   'diepzee.on': { prompt: `a small submarine propeller starting again under water, soft bubbles, ${SOFT}`, secs: 1.2, max: 1 },
-  'diepzee.index': tap('a soft click, opening a map'),
+  'diepzee.index': tap('a soft bubble pop under water, opening a map'),
   'diepzee.done': done('a warm gentle celebration under the sea, soft chimes and bubbles'),
   // ---- Suri en de reuzentand: the story journey
   'tand.brush': { prompt: `a soft brush sweeping dry sand off something, ${SOFT}`, secs: 0.5, max: 0.3, gap: 110, gain: 0.6 },
@@ -302,7 +302,7 @@ export const SFX: Record<string, SfxRow> = {
   'dino.arrive': { prompt: `a drill winding down and stopping, then a soft deep dinosaur rumble far away, ${SOFT}`, secs: 1.5, max: 1.3 },
   'dino.more': { prompt: `a little trickle of sand and small pebbles, ${SOFT}`, secs: 0.6, max: 0.5 },
   'dino.on': { prompt: `a small drill starting again and grinding into rock, ${SOFT}`, secs: 1.2, max: 1 },
-  'dino.index': tap('a soft click, opening a map'),
+  'dino.index': tap('a soft rustle of an old paper field map being unfolded'),
   'dino.done': done('a warm gentle celebration with soft marimba and a friendly distant dinosaur call'),
   'dino.bed': { prompt: `a steady low rumble of a drill boring slowly through rock, muffled inside a cabin, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
   // ---- Het menselijk lichaam: a tiny pod from the top of the head to the toes
@@ -310,7 +310,7 @@ export const SFX: Record<string, SfxRow> = {
   'lichaam.arrive': { prompt: `a soft slow heartbeat, two gentle thumps, ${SOFT}`, secs: 1.2, max: 1.1 },
   'lichaam.more': { prompt: `a soft gentle bubbly gurgle, ${SOFT}`, secs: 0.6, max: 0.5 },
   'lichaam.on': { prompt: `a tiny pod whooshing off again through something soft, ${SOFT}`, secs: 1.2, max: 1 },
-  'lichaam.index': tap('a soft click, opening a map'),
+  'lichaam.index': tap('a soft warm thump like a tiny heartbeat, opening a map'),
   'lichaam.done': done('a warm gentle celebration with soft chimes and a calm heartbeat underneath'),
   'lichaam.bed': { prompt: `calm muffled sound inside a body, a slow steady heartbeat and soft flowing blood, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
   'diepzee.bed': { prompt: `calm deep underwater ambience inside a small submarine, soft hum and distant bubbles, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.35 },
@@ -323,7 +323,7 @@ export const SFX: Record<string, SfxRow> = {
   'cloudhopper.warn': { prompt: `a soft gentle two tone alert chime, attention please, not alarming, ${SOFT}`, secs: 0.8, max: 0.7 },
   'cloudhopper.goAround': { prompt: `a small airplane engine revving up and climbing away, ${SOFT}`, secs: 1.5, max: 1.3 },
   'cloudhopper.crash': { prompt: `a soft cartoon bump and a puff, two toy planes bumping, not scary, ${SOFT}`, secs: 0.8, max: 0.7 },
-  'cloudhopper.tap': tap(),
+  'cloudhopper.tap': tap('a soft click of a button in an aeroplane cockpit'),
   'cloudhopper.coin': { prompt: `a soft bright coin pickup chime, ${SOFT}`, secs: 0.5, max: 0.35, step: 1 },
   'cloudhopper.fanfare': done('a bright cheerful little aviation fanfare, a level completed'),
 };
