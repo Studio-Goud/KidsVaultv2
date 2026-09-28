@@ -521,3 +521,14 @@ Wat nog niet af is: het ElevenLabs-tegoed is op tot 6 oktober, dus Ruth heeft de
 verhaal en de twaalf geluiden (`lichtje.*` in `sfxspec.ts`) nog niet ingesproken. Tot dan praat de
 stem van het toestel en klinken de geluiden uit code; de achtergronden zijn tot dan stil.
 
+
+## 2026-09-28 — Stroomkring: ruimer voor dikkere vingers
+
+De eigenaar vond Stroomkring lastig met dikkere vingers. Drie dingen maakten het krap. Een tik
+mocht maar negen pixels bewegen, en een duim die neerkomt rolt verder dan dat, dus een tik werd
+een sleep; dat is nu zestien. Een lijn trekken langs de grens tussen twee rijen legde draad in
+allebei zodra de vinger wiebelde (nagemeten: tien stukjes zigzag waar zes recht bedoeld waren); een
+getrokken lijn blijft nu in zijn vakje tot de vinger er een vijfde vakje voorbij is. En een onderdeel
+lag onder de vinger die het droeg, zodat je niet zag waar het zou landen; op een aanraakscherm zweeft
+het nu iets boven de vinger, en wie het net naast een vrij vakje loslaat krijgt het vrije buurvakje in
+plaats van "Daar ligt al iets". Een aanraking tot een half vakje buiten het bord telt als de rand.
