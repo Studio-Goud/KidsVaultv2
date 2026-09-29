@@ -576,3 +576,14 @@ Primaten kregen een echt oor (een omgekrulde rand en een kom), schaduw in de oog
 jukbeen, licht op de wang, en bij mensen iets warmere lippen. Het haar groeit nu uit de schedel
 boven een haarlijn die langs de slaap over het oor naar de nek loopt, met krullen erin, in plaats
 van een losse boog. Hangende handen hebben vingers en een duim, en staande benen een knie en een kuit.
+
+## 2026-09-29 — Van cel tot mens: rijkere decors, elk van zijn eigen tijd
+
+De eigenaar vroeg om rijkere achtergronden. Wat erbij kwam, hoort bij de tijd van de stop: de vis
+met kaken zwemt nu in een eigen Silurische zee met zeelelies (crinoïden) en een zeeschorpioen
+(eurypteride) op de bodem; het steenkoolmoeras kreeg reuzenpaardenstaarten (Calamites), mist,
+plassen en Arthropleura, de duizendpoot van meer dan twee meter; in het vroege Trias loopt een kudde
+Lystrosaurus, het meest voorkomende landdier van die tijd; de savanne kreeg antilopen, soms een
+giraf en vogels, de schemer de eerste sterren; de grot druipstenen, rijen rode stippen en het licht
+van een fakkel; en vandaag staan er windmolens aan de horizon. De Silurische zee staat apart van de
+oudere zee, omdat zeelelies bij de cellen van twee miljard jaar geleden niet zouden kloppen.

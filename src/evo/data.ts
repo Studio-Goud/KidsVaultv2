@@ -26,7 +26,7 @@
 import type { Body } from './body';
 
 export type Early = 'cell' | 'nucleus' | 'many';
-export type Scene = 'vent' | 'sea' | 'reef' | 'shallows' | 'swamp' | 'dunes' | 'night' | 'trees' | 'forest' | 'savanna' | 'camp' | 'cave' | 'now';
+export type Scene = 'vent' | 'sea' | 'silurian' | 'reef' | 'shallows' | 'swamp' | 'dunes' | 'night' | 'trees' | 'forest' | 'savanna' | 'camp' | 'cave' | 'now';
 
 /** What the child can do at a stop, beyond dragging on. */
 export type Act = 'divide' | 'stick' | 'xray' | 'bite' | 'fingers' | 'hatch' | 'sniff' | 'leap' | 'tail' | 'tree' | 'walk' | 'knap' | 'fire' | 'hand' | 'clock' | null;
@@ -195,7 +195,7 @@ export const STOPS: Stop[] = [
   },
   {
     id: 'jaws', ago: 4.2e8, when: { en: 'about 420 million years ago', nl: 'zo’n 420 miljoen jaar geleden' },
-    name: { en: 'A fish with jaws', nl: 'Een vis met kaken' }, scene: 'sea', body: JAWS, act: 'bite', show: 'jaw',
+    name: { en: 'A fish with jaws', nl: 'Een vis met kaken' }, scene: 'silurian', body: JAWS, act: 'bite', show: 'jaw',
     wait: 0,
     lines: [
       { say: 'Fish grew jaws that could open and shut. Tap it, and it bites.',

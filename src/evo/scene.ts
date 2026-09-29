@@ -4,7 +4,8 @@
  *
  * Every scene is of its own time. Hot springs on the dark sea floor for the first cells; the
  * stromatolite mounds that bacteria built for billions of years; the Cambrian sea of the Chengjiang
- * rocks where Haikouichthys was found, with trilobites and, far off, Anomalocaris; a Devonian
+ * rocks where Haikouichthys was found, with trilobites and, far off, Anomalocaris; the Silurian sea
+ * of the first jawed fish, with sea lilies and sea scorpions; a Devonian
  * riverbank where the water meets the first forests; a Carboniferous swamp of giant club-moss trees
  * with a Meganeura dragonfly as big as a crow; the dry Triassic; a night with a dinosaur walking past
  * in the moonlight; the forest canopy of the first primates; an African forest; the savanna; a fire
@@ -322,6 +323,146 @@ function meganeura(ctx: Ctx, x: number, y: number, s: number, t: number): void {
 
 // ---------------------------------------------------------------- the scenes
 
+/** A crinoid, a sea lily: an animal on a stalk with feathery arms, common on Silurian sea floors. */
+function crinoid(ctx: Ctx, x: number, gy: number, s: number, t: number, seed: number): void {
+  const hgt = s * (1.4 + hash(seed, 1) * 1.2), sway = Math.sin(t * 0.6 + seed) * 0.12;
+  const tx = x + Math.sin(sway) * hgt, ty = gy - Math.cos(sway) * hgt;
+  ctx.strokeStyle = '#9a7a8a'; ctx.lineWidth = Math.max(1.5, s * 0.07); ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x, gy); ctx.quadraticCurveTo(x + (tx - x) * 0.3, gy - hgt * 0.6, tx, ty); ctx.stroke();
+  ctx.strokeStyle = 'rgba(210, 150, 170, 0.85)'; ctx.lineWidth = Math.max(1, s * 0.035);
+  for (let i = 0; i < 9; i++) {
+    const a = -Math.PI / 2 + (i - 4) * 0.28 + Math.sin(t * 1.2 + i + seed) * 0.08;
+    const l = s * (0.55 + hash(seed, i) * 0.2);
+    ctx.beginPath(); ctx.moveTo(tx, ty);
+    ctx.quadraticCurveTo(tx + Math.cos(a) * l * 0.6, ty + Math.sin(a) * l * 0.6 - s * 0.1, tx + Math.cos(a) * l, ty + Math.sin(a) * l + s * 0.15);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#b08a9a'; ctx.beginPath(); ctx.ellipse(tx, ty + s * 0.05, s * 0.12, s * 0.16, 0, 0, TAU); ctx.fill();
+}
+
+/** A sea scorpion (eurypterid), walking over the bottom of the Silurian sea. */
+function euryptid(ctx: Ctx, x: number, y: number, s: number, t: number): void {
+  ctx.save(); ctx.translate(x, y);
+  ctx.strokeStyle = '#5a4838'; ctx.lineWidth = Math.max(1, s * 0.06); ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const k = Math.sin(t * 6 + i * 1.6) * s * 0.08;
+    ctx.beginPath(); ctx.moveTo(s * (0.3 - i * 0.18), 0); ctx.lineTo(s * (0.3 - i * 0.18) + k, s * 0.22); ctx.stroke();
+  }
+  ctx.fillStyle = '#7a6048';
+  ctx.beginPath(); ctx.ellipse(s * 0.35, -s * 0.05, s * 0.3, s * 0.14, 0, 0, TAU); ctx.fill();
+  for (let i = 0; i < 7; i++) {
+    ctx.beginPath(); ctx.ellipse(-i * s * 0.16, -s * 0.03, s * 0.12 * (1 - i * 0.08), s * 0.1 * (1 - i * 0.1), 0, 0, TAU); ctx.fill();
+  }
+  // the tail spine and the two paddles
+  ctx.beginPath(); ctx.moveTo(-s * 1.05, -s * 0.03); ctx.lineTo(-s * 1.4, -s * 0.08); ctx.lineTo(-s * 1.05, s * 0.02); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s * 0.1, s * 0.08, s * 0.25, s * 0.06, 0.5 + Math.sin(t * 3) * 0.2, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+
+/** Arthropleura: a millipede of the coal forests more than two metres long. */
+function arthropleura(ctx: Ctx, x: number, y: number, s: number, t: number): void {
+  ctx.save(); ctx.translate(x, y);
+  const n = 22;
+  for (let i = n - 1; i >= 0; i--) {
+    const px = -i * s * 0.12, py = Math.sin(t * 2 - i * 0.5) * s * 0.02;
+    ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = Math.max(0.8, s * 0.02);
+    const k = Math.sin(t * 8 - i) * s * 0.03;
+    ctx.beginPath(); ctx.moveTo(px, py + s * 0.05); ctx.lineTo(px + k, py + s * 0.14); ctx.stroke();
+    ctx.fillStyle = i % 2 ? '#6a5236' : '#5a442c';
+    ctx.beginPath(); ctx.ellipse(px, py, s * 0.08, s * 0.07, 0, Math.PI, 0); ctx.fill();
+    ctx.fillRect(px - s * 0.08, py - 0.5, s * 0.16, s * 0.05);
+  }
+  ctx.restore();
+}
+
+/** A Calamites: a horsetail grown into a tree, jointed like bamboo with whorls of leaves. */
+function calamites(ctx: Ctx, x: number, gy: number, s: number, seed: number, colour: string): void {
+  const hgt = s * (2.4 + hash(seed, 3));
+  ctx.strokeStyle = colour; ctx.lineWidth = s * 0.1;
+  ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - hgt); ctx.stroke();
+  ctx.lineWidth = Math.max(1, s * 0.025);
+  for (let y = gy - s * 0.3; y > gy - hgt; y -= s * 0.28) {
+    const l = s * 0.35 * (1 - (gy - y) / hgt * 0.5);
+    for (let k = -3; k <= 3; k++) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + k * l * 0.3, y - l * 0.6 + Math.abs(k) * l * 0.12); ctx.stroke(); }
+  }
+}
+
+/** Lystrosaurus: a stocky plant-eater with two tusks, the most common land animal of the early Triassic. */
+function lystrosaurus(ctx: Ctx, x: number, gy: number, s: number, t: number, colour: string, seed: number): void {
+  ctx.save(); ctx.translate(x, gy); ctx.fillStyle = colour;
+  const bob = Math.sin(t * 2 + seed) * s * 0.02;
+  ctx.beginPath(); ctx.ellipse(0, -s * 0.45 + bob, s * 0.6, s * 0.28, 0, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(s * 0.62, -s * 0.42 + bob, s * 0.2, s * 0.17, 0.4, 0, TAU); ctx.fill();
+  ctx.strokeStyle = colour; ctx.lineWidth = s * 0.14; ctx.lineCap = 'round';
+  for (const [lx, ph] of [[-0.35, 0], [-0.2, Math.PI], [0.3, Math.PI], [0.42, 0]]) {
+    const k = Math.sin(t * 3 + ph + seed) * s * 0.06;
+    ctx.beginPath(); ctx.moveTo(lx * s, -s * 0.3); ctx.lineTo(lx * s + k, 0); ctx.stroke();
+  }
+  ctx.fillStyle = '#e8e0cc';
+  ctx.beginPath(); ctx.moveTo(s * 0.72, -s * 0.34); ctx.lineTo(s * 0.76, -s * 0.2); ctx.lineTo(s * 0.68, -s * 0.33); ctx.fill();
+  ctx.restore();
+}
+
+/** Grazing animals far off on the savanna, in a loose line: antelopes and now and then a giraffe. */
+function herd(ctx: Ctx, x: number, gy: number, s: number, t: number, colour: string, seed: number): void {
+  ctx.fillStyle = colour; ctx.strokeStyle = colour; ctx.lineCap = 'round';
+  for (let i = 0; i < 5; i++) {
+    const px = x + i * s * 1.6 + hash(seed, i) * s, graze = Math.sin(t * 0.7 + i + seed) > 0.3;
+    ctx.beginPath(); ctx.ellipse(px, gy - s * 0.55, s * 0.45, s * 0.18, 0, 0, TAU); ctx.fill();
+    ctx.lineWidth = s * 0.07;
+    for (const lx of [-0.3, -0.2, 0.25, 0.35]) { ctx.beginPath(); ctx.moveTo(px + lx * s, gy - s * 0.45); ctx.lineTo(px + lx * s, gy); ctx.stroke(); }
+    ctx.lineWidth = s * 0.1;
+    ctx.beginPath(); ctx.moveTo(px + s * 0.38, gy - s * 0.6); ctx.lineTo(px + s * 0.6, graze ? gy - s * 0.12 : gy - s * 0.95); ctx.stroke();
+    if (!graze) { ctx.lineWidth = s * 0.03; ctx.beginPath(); ctx.moveTo(px + s * 0.6, gy - s * 0.95); ctx.lineTo(px + s * 0.52, gy - s * 1.25); ctx.stroke(); }
+  }
+  if (hash(seed, 9) > 0.4) {
+    // a giraffe, taller than the trees around it
+    const gx = x - s * 2.5;
+    ctx.beginPath(); ctx.ellipse(gx, gy - s * 1.6, s * 0.55, s * 0.28, -0.15, 0, TAU); ctx.fill();
+    ctx.lineWidth = s * 0.1;
+    for (const lx of [-0.35, -0.2, 0.25, 0.4]) { ctx.beginPath(); ctx.moveTo(gx + lx * s, gy - s * 1.4); ctx.lineTo(gx + lx * s, gy); ctx.stroke(); }
+    ctx.lineWidth = s * 0.14;
+    const bob = Math.sin(t * 0.5 + seed) * s * 0.1;
+    ctx.beginPath(); ctx.moveTo(gx + s * 0.35, gy - s * 1.75); ctx.lineTo(gx + s * 0.8, gy - s * 3.0 + bob); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(gx + s * 0.92, gy - s * 3.02 + bob, s * 0.2, s * 0.09, 0.3, 0, TAU); ctx.fill();
+  }
+}
+
+function birds(ctx: Ctx, w: number, gy: number, t: number, colour: string, n: number, seed: number): void {
+  ctx.strokeStyle = colour; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const x = ((hash(seed, i) * w + t * (14 + i * 3)) % (w + 60)) - 30, y = gy * (0.15 + hash(seed, i + 7) * 0.35) + Math.sin(t + i) * 4;
+    const f = Math.sin(t * 7 + i) * 4;
+    ctx.beginPath(); ctx.moveTo(x - 7, y - f); ctx.quadraticCurveTo(x - 3, y - 2, x, y); ctx.quadraticCurveTo(x + 3, y - 2, x + 7, y - f); ctx.stroke();
+  }
+}
+
+/** A wind turbine turning slowly: the Dutch horizon today. */
+function turbine(ctx: Ctx, x: number, gy: number, s: number, t: number, seed: number): void {
+  ctx.strokeStyle = 'rgba(150, 165, 180, 0.95)'; ctx.lineCap = 'round';
+  ctx.lineWidth = s * 0.06;
+  ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - s * 2.2); ctx.stroke();
+  const a0 = t * 0.8 + seed;
+  ctx.lineWidth = s * 0.04;
+  for (let k = 0; k < 3; k++) {
+    const a = a0 + k * TAU / 3;
+    ctx.beginPath(); ctx.moveTo(x, gy - s * 2.2); ctx.lineTo(x + Math.cos(a) * s * 1.1, gy - s * 2.2 + Math.sin(a) * s * 1.1); ctx.stroke();
+  }
+  ctx.fillStyle = '#a8b4c0'; ctx.beginPath(); ctx.arc(x, gy - s * 2.2, s * 0.08, 0, TAU); ctx.fill();
+}
+
+/** A stalactite hanging from the cave roof, with a drop forming at its tip now and then. */
+function stalactite(ctx: Ctx, x: number, s: number, t: number, seed: number): void {
+  const len = s * (0.8 + hash(seed, 2) * 1.6);
+  const g = ctx.createLinearGradient(x - s * 0.2, 0, x + s * 0.2, 0);
+  g.addColorStop(0, '#5a4430'); g.addColorStop(0.5, '#a48462'); g.addColorStop(1, '#5a4430');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.moveTo(x - s * 0.22, 0); ctx.lineTo(x, len); ctx.lineTo(x + s * 0.22, 0); ctx.fill();
+  const drop = ((t * 0.3 + hash(seed, 5)) % 1);
+  ctx.fillStyle = 'rgba(200, 220, 230, 0.6)';
+  ctx.beginPath(); ctx.arc(x, len + drop * drop * s * 6, s * 0.04, 0, TAU); ctx.fill();
+}
+
 export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Scene, t: number, scroll: number): void {
   const u = Math.max(0.6, Math.min(w, h) / 420);
   if (scene === 'vent') {
@@ -331,6 +472,18 @@ export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Sce
     band(w, scroll, 0.35, 220 * u, (x, i) => smoker(ctx, x + hash(i, 1) * 80 * u, gy - 10 * u, 36 * u * (0.7 + hash(i, 2) * 0.6), t, i));
     ground(ctx, w, h, gy, '#161a1a', '#070a0a', scroll, 'rgba(60, 70, 70, 0.4)');
     band(w, scroll, 1, 150 * u, (x, i) => smoker(ctx, x + hash(i, 3) * 60 * u, gy + 6 * u, 22 * u, t, i + 20));
+    return;
+  }
+  if (scene === 'silurian') {
+    // the Silurian sea of the first jawed fish: meadows of sea lilies, and sea scorpions on the bottom
+    sky(ctx, w, h, '#3a8fb0', '#0e4a68', h);
+    shafts(ctx, w, gy, t, 0.07);
+    hills(ctx, w, gy, scroll, 0.15, 50 * u, 'rgba(20, 80, 100, 0.6)', 6);
+    band(w, scroll, 0.3, 60 * u, (x, i) => crinoid(ctx, x, gy + 2, 22 * u * (0.7 + hash(i, 2) * 0.5), t, i));
+    ground(ctx, w, h, gy, '#b8aa84', '#7a6c50', scroll, 'rgba(90, 80, 55, 0.35)');
+    band(w, scroll, 1, 90 * u, (x, i) => crinoid(ctx, x + hash(i, 4) * 40 * u, gy + 18 * u, 30 * u, t, i + 50));
+    band(w, scroll, 1, 420 * u, (x, i) => euryptid(ctx, x + Math.sin(t * 0.2 + i) * 20 * u, gy + 26 * u, 40 * u, t));
+    motes(ctx, w, h, t, 'rgba(230, 250, 255, 0.35)', 40, 12);
     return;
   }
   if (scene === 'sea' || scene === 'reef') {
@@ -387,9 +540,14 @@ export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Sce
     sky(ctx, w, h, '#a8c098', '#dfe6c8', gy);
     band(w, scroll, 0.15, 70 * u, (x, i) => lycopsid(ctx, x, gy, 26 * u * (0.8 + hash(i, 1) * 0.4), i, 0.6));
     ctx.fillStyle = 'rgba(210, 225, 190, 0.45)'; ctx.fillRect(0, 0, w, gy);
+    band(w, scroll, 0.28, 90 * u, (x, i) => calamites(ctx, x, gy, 26 * u, i, 'rgba(90, 120, 70, 0.8)'));
+    ctx.fillStyle = 'rgba(215, 230, 200, 0.3)'; ctx.fillRect(0, gy * 0.4, w, gy * 0.6);
     band(w, scroll, 0.4, 110 * u, (x, i) => lycopsid(ctx, x, gy, 40 * u * (0.8 + hash(i, 2) * 0.4), i + 30, 0.15));
     band(w, scroll, 0.25, 900 * u, (x, i) => meganeura(ctx, x + Math.sin(t * 0.7 + i) * 60 * u, gy * 0.45 + Math.sin(t * 1.1 + i) * 30 * u, 26 * u, t));
     ground(ctx, w, h, gy, '#4a5a30', '#2a3218', scroll, 'rgba(20, 30, 10, 0.4)');
+    // pools of still water between the roots
+    band(w, scroll, 1, 300 * u, (x, i) => { ctx.fillStyle = 'rgba(120, 150, 130, 0.35)'; ctx.beginPath(); ctx.ellipse(x, gy + 22 * u + hash(i, 1) * 20 * u, 60 * u, 6 * u, 0, 0, TAU); ctx.fill(); });
+    band(w, scroll, 1, 700 * u, (x, i) => arthropleura(ctx, x + t * 6 * u, gy + 16 * u, 34 * u, t));
     band(w, scroll, 1, 80 * u, (x, i) => fern(ctx, x, gy + 14 * u, 30 * u, '#3a6a2a', i, t));
     return;
   }
@@ -397,6 +555,7 @@ export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Sce
     sky(ctx, w, h, '#7ab0d8', '#f0dcb0', gy);
     hills(ctx, w, gy, scroll, 0.1, 70 * u, '#c89a6a', 5);
     hills(ctx, w, gy, scroll, 0.25, 40 * u, '#b07a4a', 8);
+    band(w, scroll, 0.35, 420 * u, (x, i) => { for (let k = 0; k < 4; k++) lystrosaurus(ctx, x + k * 46 * u, gy - 2 * u, 24 * u, t, 'rgba(110, 80, 55, 0.85)', i * 4 + k); });
     band(w, scroll, 0.45, 160 * u, (x, i) => conifer(ctx, x, gy, (28 + hash(i, 1) * 20) * u, '#4a5a34'));
     ground(ctx, w, h, gy, '#b88a5a', '#7a5434', scroll, 'rgba(90, 60, 30, 0.4)');
     band(w, scroll, 1, 140 * u, (x, i) => fern(ctx, x, gy + 10 * u, 20 * u, '#6a7a3a', i + 5, t));
@@ -420,6 +579,7 @@ export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Sce
   if (scene === 'trees') {
     // up in the canopy: the ground here is a great branch
     sky(ctx, w, h, '#9ccbe0', '#dfeccc', h);
+    birds(ctx, w, gy, t, 'rgba(50, 60, 60, 0.6)', 5, 3);
     band(w, scroll, 0.12, 110 * u, (x, i) => broadTree(ctx, x, h, 70 * u, '#5a6a4a', 'rgba(110, 150, 90, 0.7)', i));
     band(w, scroll, 0.3, 150 * u, (x, i) => {
       for (let j = 0; j < 3; j++) leafCluster(ctx, x + hash(i, j) * 120 * u, gy * (0.15 + hash(i, j + 5) * 0.45), (40 + hash(i, j + 9) * 30) * u, 'rgba(70, 120, 60, 0.9)', i * 5 + j);
@@ -440,6 +600,7 @@ export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Sce
   }
   if (scene === 'forest') {
     sky(ctx, w, h, '#86b8a0', '#d8e6c0', gy);
+    birds(ctx, w, gy, t, 'rgba(40, 60, 50, 0.5)', 4, 11);
     band(w, scroll, 0.12, 80 * u, (x, i) => broadTree(ctx, x, gy, 55 * u, '#5a6a50', 'rgba(90, 130, 80, 0.8)', i));
     band(w, scroll, 0.35, 130 * u, (x, i) => broadTree(ctx, x, gy, 80 * u, '#4a3a2a', '#3e6a34', i + 20));
     // vines hanging from above
@@ -463,6 +624,9 @@ export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Sce
       ctx.fillStyle = dusk ? '#3a2e3a' : '#a09880';
       ctx.beginPath(); ctx.moveTo(x - 120 * u, gy - 20 * u); ctx.lineTo(x - 20 * u, gy - 130 * u); ctx.lineTo(x + 20 * u, gy - 130 * u); ctx.lineTo(x + 130 * u, gy - 20 * u); ctx.fill();
     });
+    if (dusk) stars(ctx, w, gy * 0.5, t, 30);
+    else birds(ctx, w, gy, t, 'rgba(60, 50, 40, 0.6)', 6, 5);
+    band(w, scroll, 0.15, 600 * u, (x, i) => herd(ctx, x, gy - 6 * u, 14 * u, t, dusk ? 'rgba(40, 30, 35, 0.9)' : 'rgba(120, 95, 60, 0.85)', i));
     band(w, scroll, 0.3, 240 * u, (x, i) => acacia(ctx, x + hash(i, 1) * 100 * u, gy, (40 + hash(i, 2) * 20) * u, dusk ? '#2a2020' : '#5a5a34'));
     ground(ctx, w, h, gy, dusk ? '#6a5030' : '#c8aa6a', dusk ? '#3a2a18' : '#8a7040', scroll, 'rgba(90, 70, 30, 0.35)');
     grassTufts(ctx, w, gy + 6 * u, scroll, dusk ? 'rgba(90, 70, 40, 0.9)' : 'rgba(150, 130, 70, 0.9)', 16 * u, t);
@@ -476,7 +640,16 @@ export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Sce
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     band(w, scroll, 0.3, 60 * u, (x, i) => { ctx.beginPath(); ctx.ellipse(x, gy * (0.2 + hash(i, 1) * 0.6), 40 * u, 20 * u, hash(i, 2), 0, TAU); ctx.fill(); });
     band(w, scroll, 0.3, 380 * u, (x, i) => paintedAnimal(ctx, x + 60 * u, gy * (0.3 + hash(i, 1) * 0.2), 34 * u, i));
+    // rows of red dots, painted beside the animals
+    ctx.fillStyle = 'rgba(140, 40, 25, 0.6)';
+    band(w, scroll, 0.3, 520 * u, (x, i) => { for (let k = 0; k < 6; k++) { ctx.beginPath(); ctx.arc(x + k * 9 * u, gy * (0.62 + hash(i, 3) * 0.1), 3 * u, 0, TAU); ctx.fill(); } });
+    band(w, scroll, 0.5, 70 * u, (x, i) => stalactite(ctx, x + hash(i, 1) * 30 * u, 30 * u, t, i));
     ground(ctx, w, h, gy, '#3a2a1c', '#140e08', scroll, 'rgba(0, 0, 0, 0.3)');
+    // the light of a torch, flickering
+    const fl = 0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 7.3);
+    const tg = ctx.createRadialGradient(w * 0.15, gy * 0.6, 10 * u, w * 0.15, gy * 0.6, Math.max(w, h) * 0.7);
+    tg.addColorStop(0, `rgba(255, 170, 80, ${0.22 * fl})`); tg.addColorStop(1, 'rgba(255, 170, 80, 0)');
+    ctx.fillStyle = tg; ctx.fillRect(0, 0, w, h);
     return;
   }
   // now: a clear morning over green fields, a town far off
@@ -487,6 +660,8 @@ export function drawScene(ctx: Ctx, w: number, h: number, gy: number, scene: Sce
     const hh = (10 + hash(i, 1) * 30) * u;
     ctx.fillRect(x, gy - 20 * u - hh, 18 * u, hh + 20 * u);
   });
+  band(w, scroll, 0.15, 160 * u, (x, i) => turbine(ctx, x + hash(i, 2) * 60 * u, gy - 20 * u, 30 * u, t, i));
+  birds(ctx, w, gy, t, 'rgba(40, 50, 60, 0.6)', 4, 21);
   hills(ctx, w, gy, scroll, 0.3, 24 * u, '#6a9a50', 3);
   ground(ctx, w, h, gy, '#7aaa50', '#4a7a30', scroll, 'rgba(60, 90, 30, 0.35)');
   grassTufts(ctx, w, gy + 6 * u, scroll, 'rgba(90, 140, 60, 0.9)', 12 * u, t);
