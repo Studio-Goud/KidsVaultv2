@@ -8,6 +8,7 @@
  */
 
 import { drawStip } from '../story/spaceart';
+import { drawGerm, drawRedCell, drawWhiteCell } from '../story/buikart';
 import { drawBody as drawEvoBody, extent as evoExtent } from '../evo/body';
 import { STOPS as EVO_STOPS } from '../evo/data';
 import { drawAnglerfish, drawLureGlow, lurePoint } from '../story/seaart';
@@ -1422,6 +1423,19 @@ export function drawSatThumb(c: HTMLCanvasElement): void {
   ctx.beginPath(); ctx.ellipse(0, 0, r * 2, r * 0.5, 0, 0, Math.PI); ctx.stroke();
   ctx.restore();
   drawStip(ctx, w * 0.7, h * 0.36, h * 0.3, 0.1, 0, -0.2);
+}
+
+/** Suri heeft buikpijn: a white blood cell among red ones, closing in on a germ. */
+export function drawTummyThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w * 0.7);
+  g.addColorStop(0, '#4a0810'); g.addColorStop(1, '#b0343c');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const reds: Array<[number, number, number, number]> = [[0.12, 0.25, 0.1, 0.3], [0.3, 0.8, 0.12, 0.7], [0.85, 0.2, 0.11, 0.1], [0.9, 0.78, 0.13, 0.5], [0.55, 0.12, 0.08, 0.8], [0.68, 0.88, 0.09, 0.2]];
+  for (const [fx, fy, fr, tilt] of reds) drawRedCell(ctx, w * fx, h * fy, h * fr * 1.3, tilt, fx * 5);
+  drawWhiteCell(ctx, w * 0.42, h * 0.52, h * 0.24, 1, 2);
+  drawGerm(ctx, w * 0.74, h * 0.46, h * 0.13, 0.4, 1, 1);
 }
 
 /** Van cel tot mens: a fish, a small mammal and a person in a row, the same body three times over. */

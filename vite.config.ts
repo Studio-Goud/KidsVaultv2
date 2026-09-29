@@ -38,6 +38,7 @@ export default defineConfig({
         lichtje: resolve(__dirname, 'lichtje.html'),
         evolutie: resolve(__dirname, 'evolutie.html'),
         satelliet: resolve(__dirname, 'satelliet.html'),
+        buikpijn: resolve(__dirname, 'buikpijn.html'),
         privacy: resolve(__dirname, 'privacy.html'),
       },
     },

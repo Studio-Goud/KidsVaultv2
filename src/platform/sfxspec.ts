@@ -296,6 +296,24 @@ export const SFX: Record<string, SfxRow> = {
   'satelliet.marsBed': { prompt: `thin gentle wind on the surface of Mars, a soft low whisper of dust, very calm, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
   'satelliet.seaBed': { prompt: `a calm sea at sunrise, small waves lapping against a floating capsule, a soft breeze, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
 
+  // ---- Suri heeft buikpijn: the body story
+  'buikpijn.shrink': { prompt: `a soft magical shimmer going down in pitch, something becoming very tiny, ${SOFT}`, secs: 1.2, max: 1 },
+  'buikpijn.grow': { prompt: `a soft magical shimmer going up in pitch, something growing big again, ${SOFT}`, secs: 1.2, max: 1 },
+  'buikpijn.chew': { prompt: `one crisp bite into a fresh apple, heard close up, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'buikpijn.swallow': { prompt: `a gentle gulp of swallowing, soft and a little funny, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'buikpijn.squeeze': { prompt: `a soft wet squelch of a muscle squeezing, gentle and cosy, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'buikpijn.splash': { prompt: `a small soft plop into thick liquid, a little splash and a bubble, ${SOFT}`, secs: 1, max: 0.8 },
+  'buikpijn.knead': { prompt: `a friendly tummy gurgle, soft bubbling and rumbling, ${SOFT}`, secs: 1, max: 0.8 },
+  'buikpijn.found': { prompt: `two soft low notes that say uh-oh, found something that should not be there, gentle not scary, ${SOFT}`, secs: 0.8, max: 0.7 },
+  'buikpijn.dive': { prompt: `a soft whoosh of sliding into a flowing stream, gentle, ${SOFT}`, secs: 1, max: 0.8 },
+  'buikpijn.gulp': { prompt: `a tiny soft cartoon gulp and pop, a blob swallowing something small, ${SOFT}`, secs: 0.6, max: 0.5 },
+  'buikpijn.done': done('a warm cosy ending on a sunny morning, soft chimes and a happy little flourish'),
+  'buikpijn.roomBed': { prompt: `a quiet child's bedroom at night, a soft distant clock ticking slowly, calm, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+  'buikpijn.mouthBed': { prompt: `the soft wet cosy ambience inside a mouth, gentle breathing and a little saliva, not gross, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+  'buikpijn.bellyBed': { prompt: `the inside of a tummy, soft gentle gurgles and a far away slow heartbeat, cosy and calm, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'buikpijn.bloodBed': { prompt: `inside a blood vessel, a soft steady heartbeat with a gentle whoosh of flowing blood, calm, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'buikpijn.morningBed': { prompt: `a bright calm morning in a child's bedroom, birds singing softly outside the window, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+
   // ---- Van cel tot mens
   'evo.arrive': { prompt: `a soft warm two note chime, arriving somewhere new, ${SOFT}`, secs: 0.8, max: 0.7 },
   'evo.divide': { prompt: `a soft wet bubbly pop, a tiny living cell splitting in two, ${SOFT}`, secs: 0.6, max: 0.5 },
