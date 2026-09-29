@@ -59,10 +59,11 @@ Concreet te toetsen rijen, met wat erachter zit:
 | Het menselijk lichaam | luisteren, waar alles in je eigen lijf zit en waarvoor | geen bron; mijn inschatting. De centimeters zijn voor een kind van 1,20 m (TNO-groeicurven, zesjarige) |
 | Suri en de reuzentand | luisteren naar een verhaal, goed kijken en vergelijken, ouder is dieper | geen bron; mijn inschatting |
 | Suri en het lichtje in de diepte | luisteren naar een verhaal, goed kijken, hoe diep diep is | geen bron; mijn inschatting |
+| Suri en de verloren satelliet | luisteren naar een verhaal, sturen, de volgorde van de planeten | geen bron; mijn inschatting |
 | Van cel tot mens | luisteren naar een verhaal, goed kijken, hoe kleine veranderingen over heel lange tijd optellen | geen bron; mijn inschatting |
 | De tijd van de dino's | luisteren, hoe lang geleden lang geleden is, diepere grond is oudere grond | geen bron; mijn inschatting. De leeftijden zijn de gangbare afgeronde per dier |
 
-Achttien van de vierentwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
+Negentien van de vijfentwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
 
 ## B. Schermtijd
 
@@ -116,6 +117,21 @@ en zijn geen pedagogische claim. Die horen hier niet thuis, maar wel de vorm erv
   alleen vrouwtjes hengelaarsvissen hebben een lichtje, en daar leven bacteriën in; Melanocetus is
   ongeveer achttien centimeter, zo groot als een banaan. Eén ding is een verhaalkeuze en geen feit:
   zo snel als in het verhaal zakt geen duikboot anderhalve kilometer.
+- **De verloren satelliet** zegt deze feiten hardop, nagezocht maar door niemand van een
+  ruimtevaartorganisatie nagelezen: het ruimtestation vliegt zo'n 400 km hoog en gaat in ongeveer
+  anderhalf uur rond de aarde (92 minuten), dus zo'n zestien zonsopkomsten per dag; wolken zitten
+  onder de 12 km en boven de 100 km (de Kármánlijn) is de lucht zwart; de maan staat gemiddeld
+  384.400 km van de aarde, er is geen lucht en het regent er nooit; Apollo 11 landde in 1969, het
+  onderstel van de maanlander bleef staan en de voetstappen zijn er nog; Mars is rood door ijzeroxide
+  (roest) in het stof en de lucht is overdag geelbruin; Perseverance heeft tien verzegelde buisjes
+  met gesteente neergelegd bij Three Forks in de krater Jezero, en die zijn nog niet opgehaald; Mars
+  staat gemiddeld 228 miljoen km van de zon en Saturnus 1,4 miljard; de ringen zijn ijs van
+  stofkorrels tot brokken zo groot als een huis (NASA), en van opzij gezien een dunne lijn;
+  Saturnus is minder dicht dan water; een radiosignaal doet er van Saturnus naar de aarde 67 tot 92
+  minuten over, afhankelijk van waar beide in hun baan staan; een capsule komt terug onder drie parachutes en landt in zee. Twee dingen zijn een
+  verhaalkeuze en geen feit, en het verhaal zegt dat aan het eind ook hardop: de reis duurt in het
+  echt jaren, en Stip is verzonnen. Hoe de raket stijgt (`altitudeAt`) is een vorm die goed voelt,
+  geen baanberekening.
 - **Van cel tot mens** zegt deze feiten hardop, nagezocht maar door geen bioloog nagelezen: de
   oudste sporen van leven zijn ruim 3,5 miljard jaar oud; cellen met een kern zo'n 2 miljard;
   dieren van veel cellen zo'n 600 miljoen; Haikouichthys 518 miljoen, zo lang als een vinger, met

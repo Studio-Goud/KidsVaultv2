@@ -6,7 +6,7 @@
  */
 
 import '../style.css';
-import { drawSeasonsThumb, drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawTripThumb, drawDiveThumb, drawDinoThumb, drawBodyThumb, drawToothThumb, drawLightThumb, drawEvoThumb, drawValleyThumb } from './thumbs';
+import { drawSeasonsThumb, drawAnimalsThumb, drawAtlasThumb, drawCircuitThumb, drawClockThumb, drawLettersThumb, drawDigThumb, drawMarketThumb, drawMoonThumb, drawNumbersThumb, drawPuffThumb, drawPlaneThumb, drawRhythmThumb, drawStarsThumb, drawTideThumb, drawTripThumb, drawDiveThumb, drawDinoThumb, drawBodyThumb, drawToothThumb, drawLightThumb, drawSatThumb, drawEvoThumb, drawValleyThumb } from './thumbs';
 import { NL, T } from '../util/lang';
 import { shelf, type Entry } from '../platform/catalog';
 import { lastGoNow, startClock } from '../platform/clock';
@@ -45,6 +45,7 @@ const ART: Record<string, { img?: string; tint?: string; paint?: (c: HTMLCanvasE
   lichaam: { paint: drawBodyThumb },
   tand: { paint: drawToothThumb },
   lichtje: { paint: drawLightThumb },
+  satelliet: { paint: drawSatThumb },
   evolutie: { paint: drawEvoThumb },
 };
 

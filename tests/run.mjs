@@ -2956,6 +2956,7 @@ const group = name => console.log(`\n${name}`);
     : g === 'reis' || g === 'diepzee' || g === 'dino' || g === 'lichaam' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
     : g === 'tand' ? readFileSync('src/story/storysfx.ts', 'utf8')
     : g === 'lichtje' ? readFileSync('src/story/lichtsfx.ts', 'utf8')
+    : g === 'satelliet' ? readFileSync('src/story/ruimtesfx.ts', 'utf8')
     : g === 'evo' ? readFileSync('src/evo/evosfx.ts', 'utf8')
     : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
   is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k, r]) => {
@@ -3406,6 +3407,44 @@ const group = name => console.log(`\n${name}`);
   // rule 3: nothing in the story claims the child learns
   is('test_lichtje_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
   is('test_lichtje_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
+}
+
+// ---------------------------------------------------------------- Suri en de verloren satelliet
+
+{
+  const { CHAPTERS, ASIDES, HEIGHT, nextPlace, skyAt, altitudeAt } = await bundle('src/story/ruimtescript.ts', 'ruimtescript.mjs');
+  group('Suri en de verloren satelliet — the space story holds together');
+  const steps = CHAPTERS.flatMap(c => c.steps.map(s => ({ c: c.id, s })));
+  is('test_satelliet_every_line_is_said_in_both_languages',
+    steps.filter(({ s }) => 'say' in s && !(s.say && s.sayNl)).length, 0);
+  // every wait is one ruimte.ts sets: the photo tapped, the launch, finding, the boosts, landing,
+  // the arm, the flight through the rings, catching Stip, and the way home
+  const known = { pad: ['spotted', 'launched'], orbit: ['found', 'boosted'], moon: ['found', 'boosted'],
+    mars: ['landed', 'found', 'grabbed', 'boosted'], rings: ['through', 'caught'], home: ['slowed', 'chutes', 'splashed'] };
+  is('test_satelliet_every_wait_is_one_the_scene_knows',
+    steps.filter(({ c, s }) => 'wait' in s && !known[c].includes(s.wait)).map(({ c, s }) => `${c}:${s.wait}`), []);
+  const cues = ['photo', 'board', 'hover', 'land', 'fly', 'homeward', 'reentry', 'end'];
+  is('test_satelliet_every_cue_is_one_the_scene_acts_on',
+    steps.filter(({ s }) => 'cue' in s && !cues.includes(s.cue)).map(({ s }) => s.cue), []);
+  let p = { chapter: 0, step: 0 }, n = 1;
+  while (nextPlace(p)) { p = nextPlace(p); n++; }
+  is('test_satelliet_walking_the_script_visits_every_step_once', n, steps.length);
+  is('test_satelliet_the_last_step_is_the_same_goodbye_as_the_other_stories', CHAPTERS[p.chapter].steps[p.step].sayNl, 'Einde. Zullen we nog een keer gaan?');
+  is('test_satelliet_the_end_cue_comes_just_before_the_goodbye', CHAPTERS[p.chapter].steps[p.step - 1].cue, 'end');
+  is('test_satelliet_the_asides_are_said_in_both_languages', Object.values(ASIDES).every(a => a.say && a.sayNl), true);
+  // the worlds come in the order they are from the Sun, out and back
+  is('test_satelliet_chapters_go_outwards_from_the_earth', CHAPTERS.map(c => c.id), ['pad', 'orbit', 'moon', 'mars', 'rings', 'home']);
+  // the launch: slow at first, all the way at the end, and the sky black before the station
+  is('test_satelliet_launch_starts_on_the_ground_and_ends_at_the_station', [altitudeAt(0), altitudeAt(1)], [0, HEIGHT.orbit]);
+  is('test_satelliet_launch_is_slow_at_first', altitudeAt(0.5) < HEIGHT.orbit / 3, true);
+  is('test_satelliet_launch_never_goes_past_the_station', altitudeAt(2), HEIGHT.orbit);
+  is('test_satelliet_sky_the_clouds_are_below_the_black', [skyAt(5), skyAt(HEIGHT.black), skyAt(HEIGHT.orbit)], ['clouds', 'space', 'space']);
+  const said = id => CHAPTERS.find(c => c.id === id).steps.filter(s => 'sayNl' in s).map(s => s.sayNl).join(' ');
+  is('test_satelliet_the_station_is_said_to_be_four_hundred_kilometres_up', /vierhonderd kilometer/.test(said('orbit')) && HEIGHT.orbit === 400, true);
+  is('test_satelliet_the_story_says_the_real_trip_takes_years', /jaren/.test(said('home')), true);
+  // rule 3: nothing in the story claims the child learns
+  is('test_satelliet_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
+  is('test_satelliet_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
 }
 
 // ---------------------------------------------------------------- Van cel tot mens

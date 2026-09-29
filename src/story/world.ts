@@ -92,6 +92,10 @@ export interface Palette {
   midwater?: boolean;
   /** how much daylight still comes down, 0..1; the deep sea has none */
   light?: number;
+  /** no air: no glow round the sun and no clouds; the story draws its own sky with `sky` */
+  space?: boolean;
+  /** drawn over the sky and under the hills: stars, a sun, the Earth over the Moon */
+  sky?: (ctx: Ctx, v: View, t: number) => void;
 }
 
 export const PALETTES: Record<string, Palette> = {
@@ -144,7 +148,7 @@ export function drawBackdrop(ctx: Ctx, v: View, p: Palette, t: number): void {
     }
     void sx;
     if (p.midwater) return;
-  } else {
+  } else if (!p.space) {
     // the sun and its glow
     const sx = screenX(v, p.sunAt), sy = hz * (1 - p.sunUp * 0.9);
     const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, v.f * 0.5);
@@ -164,6 +168,8 @@ export function drawBackdrop(ctx: Ctx, v: View, p: Palette, t: number): void {
       ctx.fill(); ctx.globalAlpha = 1;
     }
   }
+
+  p.sky?.(ctx, v, t);
 
   // two ridges, the far one hazier; underwater they are rocks on the sea floor
   const ridge = (colour: string, base: number, amp: number, seed: number): void => {
