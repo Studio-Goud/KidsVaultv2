@@ -433,7 +433,11 @@ function promisePanel(): HTMLElement {
     ];
   const ul = el('ul', 'skills');
   for (const [b, s] of lines) ul.appendChild(el('li', '', `<b>${b}</b><span>${s}</span>`));
-  return panel(T('What we promise', 'Wat we beloven'), ul);
+  // the same promises, written out in full for Google Play; behind the code, so a child never lands on it
+  const policy = el('a', 'btn quiet');
+  policy.href = './privacy.html';
+  policy.textContent = T('The privacy policy in full', 'De hele privacyverklaring');
+  return panel(T('What we promise', 'Wat we beloven'), ul, policy);
 }
 
 function subscriptionPanel(): HTMLElement {

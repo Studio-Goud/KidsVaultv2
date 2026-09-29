@@ -138,6 +138,32 @@ for (const [dpi, legacy, fore] of [
   out(`${ANDROID}/mipmap-${dpi}/ic_launcher_foreground.png`, fore, 'foreground');
 }
 
+// The launch screen of Android 11 and older, which is a picture stretched over the whole window.
+// Capacitor ships a white one with its own logo on it; this is Suri against the same dusk, in
+// every shape and density the project asks for. Android 12 and later build their own launch screen
+// from the launcher icon and the colours in values/styles.xml, so this is only the older half.
+const splash = (w, h) => {
+  const face = Math.min(w, h) * 0.42 / 512;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">
+  <defs><linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2d6c85"/><stop offset="0.55" stop-color="#1b4a5f"/><stop offset="1" stop-color="#10313f"/>
+  </linearGradient></defs>
+  <rect width="${w}" height="${h}" fill="url(#dusk)"/>
+  <g transform="translate(${w / 2} ${h / 2}) scale(${face}) translate(${-C} ${-C})">${FACE}</g>
+</svg>`;
+};
+for (const [dir, w, h] of [
+  ['drawable', 480, 320],
+  ['drawable-land-mdpi', 480, 320], ['drawable-land-hdpi', 800, 480], ['drawable-land-xhdpi', 1280, 720],
+  ['drawable-land-xxhdpi', 1600, 960], ['drawable-land-xxxhdpi', 1920, 1280],
+  ['drawable-port-mdpi', 320, 480], ['drawable-port-hdpi', 480, 800], ['drawable-port-xhdpi', 720, 1280],
+  ['drawable-port-xxhdpi', 960, 1600], ['drawable-port-xxxhdpi', 1280, 1920],
+]) {
+  const png = new Resvg(splash(w, h)).render().asPng();
+  writeFileSync(`${ANDROID}/${dir}/splash.png`, png);
+  console.log(`${(ANDROID + '/' + dir + '/splash.png').padEnd(62)} ${w}x${h}`);
+}
+
 // and the colour behind that foreground: the dusk he stands against
 writeFileSync(`${ANDROID}/values/ic_launcher_background.xml`,
   `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#1B4A5F</color>\n</resources>\n`);

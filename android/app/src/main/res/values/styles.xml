@@ -16,7 +16,13 @@
     </style>
 
 
+    <!-- Android 12 and later draw the launch screen themselves from these three: Suri's face on the
+         same dusk as his icon, instead of the white the system picks when nothing is said.
+         Android 11 and older stretch @drawable/splash over the window (scripts/icons.mjs). -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

@@ -587,3 +587,25 @@ Lystrosaurus, het meest voorkomende landdier van die tijd; de savanne kreeg anti
 giraf en vogels, de schemer de eerste sterren; de grot druipstenen, rijen rode stippen en het licht
 van een fakkel; en vandaag staan er windmolens aan de horizon. De Silurische zee staat apart van de
 oudere zee, omdat zeelelies bij de cellen van twee miljard jaar geleden niet zouden kloppen.
+
+## 2026-09-29 — Klaar voor Google Play, op het afrekenen na
+
+De eigenaar vroeg om de voorbereiding voor de Play Store. Het Android-project bleek nog van voor
+de naam Suri: app-ID `nl.studiogoud.wolkenhaven`, naam "Cloudhopper", en het witte opstartscherm
+met het logo van Capacitor. Een app-ID staat na de eerste upload voor altijd vast, dus het is nu
+`com.studiogoud.suri`, gelijk aan `capacitor.config.ts`, en iOS is meegegaan. Het opstartscherm is
+Suri op de schemering van zijn icoon, uit hetzelfde script als het icoon.
+
+De app mikt op API 36, omdat Play sinds eind augustus 2026 geen nieuwe apps op 35 meer aanneemt; dat
+is een stap voor Capacitor 7 uit en moet op een telefoon worden nagekeken. De pagina blijft vrij van
+de status- en navigatiebalk doordat Capacitor dat zelf doet in plaats van te vertrouwen op wat de
+WebView over die balken zegt. De uploadsleutel staat nooit in de repo: `build.gradle` leest hem uit
+een bestand dat in `.gitignore` staat of uit de geheimen van de GitHub Action, die het .aab bouwt.
+`privacy.html` zegt wat de code doet: niets over het kind verlaat het toestel, en de enige verzoeken
+naar buiten zijn foto's van Wikimedia. Alles wat de eigenaar zelf moet doen, en waarom, staat in
+`docs/store.md`.
+
+Nagekeken: het .aab bouwt hier, met een weggooisleutel ondertekend, en bundletool leest er
+`com.studiogoud.suri`, versie 1.0.0 en doel-API 36 uit. Niet nagekeken: het heeft op geen telefoon
+gedraaid, want hier draait geen emulator. Het afrekenen is niet gebouwd; het advies is eerst een
+gesloten test, die voor een nieuw ontwikkelaarsaccount toch verplicht is.
