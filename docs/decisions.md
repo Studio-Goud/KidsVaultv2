@@ -609,3 +609,32 @@ Nagekeken: het .aab bouwt hier, met een weggooisleutel ondertekend, en bundletoo
 `com.studiogoud.suri`, versie 1.0.0 en doel-API 36 uit. Niet nagekeken: het heeft op geen telefoon
 gedraaid, want hier draait geen emulator. Het afrekenen is niet gebouwd; het advies is eerst een
 gesloten test, die voor een nieuw ontwikkelaarsaccount toch verplicht is.
+
+## 2026-09-29 — De derde verhaalreis: Suri en de verloren satelliet
+
+De eigenaar wilde de ruimte als verhaal, zoals de reuzentand en het lichtje. De vraag aan het
+begin: Stip, Suri's kleine satelliet, is naar Saturnus gevlogen en antwoordt niet meer; zijn laatste
+foto laat de ringen zien. Het antwoord aan het eind: zijn antenne was de verkeerde kant op gedraaid.
+Onderweg doet het kind zelf wat het voorstel beloofde: de raket starten en door de wolken omhoog
+(knop vasthouden), het ruimtestation zoeken, laag over de maan scheren en de maanlander van Apollo 11
+vinden, op Mars een buisje gesteente pakken met de robotarm (slepen), en tussen het ijs van de ringen
+sturen, door de telefoon te kantelen of met een vinger. Terug gloeit de capsule, gaan op een tik de
+parachutes open en landt hij in zee.
+
+Het buisje op Mars is met opzet een van de echte: Perseverance heeft er tien neergelegd die nog op
+iemand wachten, en het verhaal zegt dat hardop. Saturnus is in de ringen zelf getekend en niet
+gefotografeerd, omdat je daar de ringen precies van opzij ziet, als één dunne lijn; de bekende brede
+ringen zijn het uitzicht van erboven. De aarde, de maan, Mars en Saturnus van ver zijn de NASA-foto's
+die de grote reis al had. In de ringen kun je nergens tegen botsen op een manier die iets kost: een
+brok ijs geeft een tik en tolt weg, want een stap die mislukt bestaat in deze verhalen niet. Wat niet
+waar is, zegt het verhaal aan het eind zelf: zo'n reis duurt in het echt heel veel jaren.
+
+`world.ts` kreeg één uitbreiding die ook andere verhalen kunnen gebruiken: een lucht zonder lucht
+(`space`) en een eigen haak (`sky`) om sterren, een harde zon of de aarde boven de heuvels te tekenen.
+
+Nagekeken: tsc, 1496 tests (zestien nieuwe voor dit verhaal), audit zonder fouten over deze pagina
+en de voorpagina, en het hele verhaal van begin tot eind gereden in een browser, liggend en staand,
+met schermafbeeldingen van elke stap. Ruth heeft alle zinnen ingesproken, in beide talen, en de
+negentien geluiden (`satelliet.*`) zijn opgenomen. Niet nagekeken: het kantelen van de telefoon,
+omdat de browser hier geen kantelsensor heeft; met een vinger sturen werkt wel. Ik hoor de geluiden
+zelf niet.

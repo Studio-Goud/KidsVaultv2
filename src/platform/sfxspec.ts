@@ -275,6 +275,27 @@ export const SFX: Record<string, SfxRow> = {
   'lichtje.deepBed': { prompt: `the deep sea in total darkness, a very low calm hum of water pressure, far away soft creaks, peaceful not scary, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
   'lichtje.motorBed': { prompt: `the soft steady whirr of a small submarine's electric propellers heard from inside, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
 
+  // ---- Suri en de verloren satelliet: the space story
+  'satelliet.spotted': { prompt: `a small satellite's faint radio blip found on a screen, two soft rising notes, ${SOFT}`, secs: 0.8, max: 0.7 },
+  'satelliet.hatch': { prompt: `a heavy spacecraft hatch swinging shut and locking with a soft clunk and a hiss of air, ${SOFT}`, secs: 1.2, max: 1 },
+  'satelliet.ignite': { prompt: `rocket engines lighting far below a capsule, a deep soft rumble swelling up, heard from inside, ${SOFT}`, secs: 2.5, max: 2.2 },
+  'satelliet.separate': { prompt: `a rocket stage coming loose with a muffled thud and a short metallic clank felt through the capsule, ${SOFT}`, secs: 1, max: 0.8 },
+  'satelliet.boost': { prompt: `a spacecraft engine pushing harder, a smooth rising whoosh heard from inside the cabin, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'satelliet.radio': { prompt: `a short crackle of a space radio followed by two friendly beeps from mission control, ${SOFT}`, secs: 1, max: 0.8 },
+  'satelliet.thrusters': { prompt: `small spacecraft thrusters puffing in short soft bursts, heard from inside, ${SOFT}`, secs: 1.2, max: 1 },
+  'satelliet.whir': { prompt: `a robot arm motor whirring smoothly as it reaches out, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'satelliet.grab': { prompt: `a robot claw closing gently around a small metal tube, a soft click and a happy blip, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'satelliet.bump': { prompt: `a chunk of ice softly bumping against a spacecraft hull, a muffled knock with a little crunch of frost, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'satelliet.caught': { prompt: `a small lost satellite answering again, a cheerful little sequence of electronic beeps, ${SOFT}`, secs: 1, max: 0.9 },
+  'satelliet.chutes': { prompt: `three big parachutes opening above a capsule with a soft deep whump and fabric filling with air, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'satelliet.splash': { prompt: `a space capsule splashing down gently into the sea, a big soft splash and water settling, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'satelliet.done': done('a warm hopeful ending after a long journey home, soft chimes rising and a happy little flourish'),
+  'satelliet.padBed': { prompt: `early morning at a rocket launch pad by the coast, soft sea breeze, a few distant birds, a faint hum of pumps, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'satelliet.engineBed': { prompt: `the deep steady rumble of rocket engines heard from inside a capsule, powerful but soft, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'satelliet.cabinBed': { prompt: `the quiet inside of a spacecraft cabin, a gentle steady hum of fans and electronics, peaceful, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+  'satelliet.marsBed': { prompt: `thin gentle wind on the surface of Mars, a soft low whisper of dust, very calm, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+  'satelliet.seaBed': { prompt: `a calm sea at sunrise, small waves lapping against a floating capsule, a soft breeze, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
+
   // ---- Van cel tot mens
   'evo.arrive': { prompt: `a soft warm two note chime, arriving somewhere new, ${SOFT}`, secs: 0.8, max: 0.7 },
   'evo.divide': { prompt: `a soft wet bubbly pop, a tiny living cell splitting in two, ${SOFT}`, secs: 0.6, max: 0.5 },

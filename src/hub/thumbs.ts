@@ -7,6 +7,7 @@
  * worse than no card.
  */
 
+import { drawStip } from '../story/spaceart';
 import { drawBody as drawEvoBody, extent as evoExtent } from '../evo/body';
 import { STOPS as EVO_STOPS } from '../evo/data';
 import { drawAnglerfish, drawLureGlow, lurePoint } from '../story/seaart';
@@ -1399,6 +1400,28 @@ export function drawLightThumb(c: HTMLCanvasElement): void {
   drawAnglerfish(ctx, x, y, s, look, 1);
   const lp = lurePoint(x, y, s, look);
   drawLureGlow(ctx, lp.x, lp.y, h * 0.3, 0.95);
+}
+
+/** Suri en de verloren satelliet: Stip, blinking, in front of Saturn's rings. */
+export function drawSatThumb(c: HTMLCanvasElement): void {
+  const ctx = fit(c);
+  const w = c.clientWidth || 120, h = c.clientHeight || 90;
+  ctx.fillStyle = '#030611'; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  for (let i = 0; i < 30; i++) { ctx.beginPath(); ctx.arc(((i * 0.371) % 1) * w, ((i * 0.618) % 1) * h, Math.max(0.6, h * 0.007), 0, TAU); ctx.fill(); }
+  // Saturn, low on the left, with its rings tilted open
+  const sx = w * 0.3, sy = h * 0.62, r = h * 0.3;
+  ctx.save();
+  ctx.translate(sx, sy); ctx.rotate(-0.25);
+  ctx.strokeStyle = 'rgba(220, 200, 160, 0.9)'; ctx.lineWidth = h * 0.05;
+  ctx.beginPath(); ctx.ellipse(0, 0, r * 2, r * 0.5, 0, Math.PI, TAU); ctx.stroke();
+  const g = ctx.createLinearGradient(0, -r, 0, r);
+  g.addColorStop(0, '#ecd9a8'); g.addColorStop(0.5, '#cfae74'); g.addColorStop(1, '#a8834e');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(235, 215, 175, 0.95)';
+  ctx.beginPath(); ctx.ellipse(0, 0, r * 2, r * 0.5, 0, 0, Math.PI); ctx.stroke();
+  ctx.restore();
+  drawStip(ctx, w * 0.7, h * 0.36, h * 0.3, 0.1, 0, -0.2);
 }
 
 /** Van cel tot mens: a fish, a small mammal and a person in a row, the same body three times over. */

@@ -172,6 +172,15 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
+    id: 'satelliet', title: 'Suri en de verloren satelliet',
+    line: 'A story to step into: Suri’s satellite Stip has stopped answering. Up in a rocket, past the space station, the Moon and Mars, and through the rings of Saturn to fetch him.',
+    lineNl: 'Een verhaal om in te stappen: Suri’s satelliet Stip antwoordt niet meer. Met de raket langs het ruimtestation, de maan en Mars, en door de ringen van Saturnus om hem op te halen.',
+    practises: 'Listening to a story, steering, the order of the planets',
+    practisesNl: 'Luisteren naar een verhaal, sturen, de volgorde van de planeten',
+    from: 4, to: 10, domains: ['ruimte', 'techniek'], nature: 'beide', minutes: [8, 15],
+    reads: false, speaks: true,
+  },
+  {
     id: 'dino', title: 'De tijd van de dino’s',
     line: 'Drill down through the ground and back in time, past real fossils from Trix to one of the very first dinosaurs.',
     lineNl: 'Boor door de grond naar beneden en terug in de tijd, langs echte fossielen, van Trix tot een van de allereerste dino’s.',
