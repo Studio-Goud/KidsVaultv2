@@ -21,3 +21,8 @@ dist-manifest.json
 /chk.tmp.mjs
 /.tmp-*.mjs
 /_*.mjs.tmp
+
+# the release key and its passwords: never committed (docs/store.md)
+android/keystore.properties
+*.jks
+*.keystore

@@ -1,4 +1,4 @@
-package nl.studiogoud.wolkenhaven;
+package com.studiogoud.suri;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Cloudhopper</string>
-    <string name="title_activity_main">Cloudhopper</string>
-    <string name="package_name">com.suri.cloudhopper</string>
-    <string name="custom_url_scheme">com.suri.cloudhopper</string>
+    <string name="app_name">Suri</string>
+    <string name="title_activity_main">Suri</string>
+    <string name="package_name">com.studiogoud.suri</string>
+    <string name="custom_url_scheme">com.studiogoud.suri</string>
 </resources>

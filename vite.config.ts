@@ -37,6 +37,7 @@ export default defineConfig({
         tand: resolve(__dirname, 'tand.html'),
         lichtje: resolve(__dirname, 'lichtje.html'),
         evolutie: resolve(__dirname, 'evolutie.html'),
+        privacy: resolve(__dirname, 'privacy.html'),
       },
     },
   },

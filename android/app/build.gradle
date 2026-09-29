@@ -1,14 +1,27 @@
 apply plugin: 'com.android.application'
 
+// The release key never lives in the repository. It comes from android/keystore.properties on the
+// machine that builds, or from environment variables in the GitHub Action (docs/store.md). Without
+// either, a release build is simply unsigned: fine for checking it builds, useless for the store.
+def keyProps = new Properties()
+def keyFile = rootProject.file('keystore.properties')
+if (keyFile.exists()) keyFile.withInputStream { keyProps.load(it) }
+def keyValue = { String name, String env -> keyProps.getProperty(name) ?: System.getenv(env) }
+def storePath = keyValue('storeFile', 'SURI_KEYSTORE')
+
+// The store refuses an upload whose versionCode it has seen before, so CI passes a fresh one with
+// -PversionCode; the version name follows package.json so there is one place to change it.
+def pkgVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
+
 android {
-    namespace "nl.studiogoud.wolkenhaven"
+    namespace "com.studiogoud.suri"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "nl.studiogoud.wolkenhaven"
+        applicationId "com.studiogoud.suri"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode((project.findProperty('versionCode') ?: '1') as int)
+        versionName pkgVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +29,19 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (storePath) {
+                storeFile file(storePath)
+                storePassword keyValue('storePassword', 'SURI_KEYSTORE_PASSWORD')
+                keyAlias keyValue('keyAlias', 'SURI_KEY_ALIAS')
+                keyPassword keyValue('keyPassword', 'SURI_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (storePath) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

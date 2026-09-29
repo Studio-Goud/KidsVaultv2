@@ -1,0 +1,62 @@
+# Builds the Android App Bundle (.aab) that goes to Google Play. Start it by hand from the Actions
+# tab ("Run workflow"), or push a tag such as v1.0.1. The bundle is attached to the run as an
+# artifact. With the four SURI_* secrets set it is signed with the upload key and ready for the
+# Play Console; without them it is unsigned, which proves it builds and nothing more.
+# Why it is set up like this, and how to make the key: docs/store.md.
+name: Android bundle
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Web build and checks
+        run: |
+          npm ci
+          npm test
+          npm run build
+          npx cap sync android
+
+      - name: Upload key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SURI_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "SURI_KEYSTORE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No SURI_KEYSTORE_BASE64 secret: this bundle is unsigned and Play will refuse it."
+          fi
+
+      # Play refuses a versionCode it has already seen; the run number only ever goes up.
+      - name: Bundle
+        working-directory: android
+        env:
+          SURI_KEYSTORE_PASSWORD: ${{ secrets.SURI_KEYSTORE_PASSWORD }}
+          SURI_KEY_ALIAS: ${{ secrets.SURI_KEY_ALIAS }}
+          SURI_KEY_PASSWORD: ${{ secrets.SURI_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease -PversionCode=$((100 + GITHUB_RUN_NUMBER)) --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: suri-${{ github.run_number }}
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
