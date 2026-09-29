@@ -181,6 +181,15 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
+    id: 'buikpijn', title: 'Suri heeft buikpijn',
+    line: 'A story to step into: Suri has a tummy ache. Go in with a bite of apple, through the mouth, the gullet, the stomach and the gut, and help the white blood cells clear up the germs.',
+    lineNl: 'Een verhaal om in te stappen: Suri heeft buikpijn. Piepklein mee met een hapje appel, door de mond, de slokdarm, de maag en de darm, en help de witte bloedcellen de bacteriën opruimen.',
+    practises: 'Listening to a story, where food goes in your own body',
+    practisesNl: 'Luisteren naar een verhaal, waar het eten in je eigen lijf naartoe gaat',
+    from: 4, to: 10, domains: ['natuur'], nature: 'beide', minutes: [8, 15],
+    reads: false, speaks: true,
+  },
+  {
     id: 'dino', title: 'De tijd van de dino’s',
     line: 'Drill down through the ground and back in time, past real fossils from Trix to one of the very first dinosaurs.',
     lineNl: 'Boor door de grond naar beneden en terug in de tijd, langs echte fossielen, van Trix tot een van de allereerste dino’s.',

@@ -638,3 +638,27 @@ met schermafbeeldingen van elke stap. Ruth heeft alle zinnen ingesproken, in bei
 negentien geluiden (`satelliet.*`) zijn opgenomen. Niet nagekeken: het kantelen van de telefoon,
 omdat de browser hier geen kantelsensor heeft; met een vinger sturen werkt wel. Ik hoor de geluiden
 zelf niet.
+
+## 2026-09-29 — De vierde verhaalreis: Suri heeft buikpijn
+
+De eigenaar wilde het lichaam als verhaal. De vraag aan het begin: Suri ligt in bed met buikpijn,
+wat is daar aan de hand? Het kind gaat piepklein mee met een hapje appel en volgt de weg die eten
+echt gaat: in de mond tikt het om te kauwen, in de slokdarm veegt het omlaag om de spierringen te
+helpen knijpen, in de maag tikt het om mee te kneden, in de darm kijkt het rond tussen de
+darmvlokken en vindt het de bacteriën die de wand pijnlijk maken. In een bloedvat ernaast sleept het
+witte bloedcellen naar de bacteriën, die ze opeten. De volgende ochtend is Suri beter.
+
+Het is getekend om een vierjarige niet bang te maken voor zijn eigen buik: warm roze in plaats van
+rood, niets dat bloedt, en de bacteriën als staafjes met sliertjes zoals onder een microscoop, zonder
+gezicht. Een gezicht zou ze personages maken, en een personage in je buik is eng. Het verhaal zegt
+hardop dat er in je darm ook goede bacteriën wonen, en het eindigt met wat een ouder zou zeggen: rust,
+drink, was je handen, en ga naar de dokter als buikpijn niet overgaat. Een app mag een kind niet leren
+dat buikpijn altijd vanzelf overgaat; een test bewaakt dat die zin er blijft staan.
+
+Alleen de darm is een gewone wereld om je heen, met de darmvlokken als een bos van vingertjes op de
+grond. De mond, de slokdarm, de maag en het bloedvat zijn eigen scènes, omdat je daar niet rondkijkt
+maar in een buis of een grot zit.
+
+Nagekeken: tsc, 1511 tests (vijftien nieuwe), audit zonder fouten, en het hele verhaal gereden in een
+browser, liggend en staand, ook één keer met Ruths stem erbij. Ruth heeft alle zinnen ingesproken, in
+beide talen, en de zestien geluiden (`buikpijn.*`) zijn opgenomen. Ik hoor de geluiden zelf niet.

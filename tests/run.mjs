@@ -2957,6 +2957,7 @@ const group = name => console.log(`\n${name}`);
     : g === 'tand' ? readFileSync('src/story/storysfx.ts', 'utf8')
     : g === 'lichtje' ? readFileSync('src/story/lichtsfx.ts', 'utf8')
     : g === 'satelliet' ? readFileSync('src/story/ruimtesfx.ts', 'utf8')
+    : g === 'buikpijn' ? readFileSync('src/story/buiksfx.ts', 'utf8')
     : g === 'evo' ? readFileSync('src/evo/evosfx.ts', 'utf8')
     : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
   is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k, r]) => {
@@ -3445,6 +3446,41 @@ const group = name => console.log(`\n${name}`);
   // rule 3: nothing in the story claims the child learns
   is('test_satelliet_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
   is('test_satelliet_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
+}
+
+// ---------------------------------------------------------------- Suri heeft buikpijn
+
+{
+  const { CHAPTERS, ASIDES, CHEWS, GERMS, SQUEEZE, nextPlace } = await bundle('src/story/buikscript.ts', 'buikscript.mjs');
+  group('Suri heeft buikpijn — the body story holds together');
+  const steps = CHAPTERS.flatMap(c => c.steps.map(s => ({ c: c.id, s })));
+  is('test_buikpijn_every_line_is_said_in_both_languages',
+    steps.filter(({ s }) => 'say' in s && !(s.say && s.sayNl)).length, 0);
+  // every wait is one buik.ts sets: shrinking in, chewing, swallowing down, kneading, finding the
+  // germs, clearing them, growing out again
+  const known = { bed: ['inside'], mouth: ['chewed'], gullet: ['down'], stomach: ['kneaded'], gut: ['found'], blood: ['cleared', 'outside'], better: [] };
+  is('test_buikpijn_every_wait_is_one_the_scene_knows',
+    steps.filter(({ c, s }) => 'wait' in s && !known[c].includes(s.wait)).map(({ c, s }) => `${c}:${s.wait}`), []);
+  const cues = ['shrink', 'swallow', 'onward', 'dive', 'grow', 'end'];
+  is('test_buikpijn_every_cue_is_one_the_scene_acts_on',
+    steps.filter(({ s }) => 'cue' in s && !cues.includes(s.cue)).map(({ s }) => s.cue), []);
+  let p = { chapter: 0, step: 0 }, n = 1;
+  while (nextPlace(p)) { p = nextPlace(p); n++; }
+  is('test_buikpijn_walking_the_script_visits_every_step_once', n, steps.length);
+  is('test_buikpijn_the_last_step_is_the_same_goodbye_as_the_other_stories', CHAPTERS[p.chapter].steps[p.step].sayNl, 'Einde. Zullen we nog een keer gaan?');
+  is('test_buikpijn_the_end_cue_comes_just_before_the_goodbye', CHAPTERS[p.chapter].steps[p.step - 1].cue, 'end');
+  is('test_buikpijn_the_asides_are_said_in_both_languages', Object.values(ASIDES).every(a => a.say && a.sayNl), true);
+  // the food goes the way food really goes
+  is('test_buikpijn_chapters_follow_the_food', CHAPTERS.map(c => c.id), ['bed', 'mouth', 'gullet', 'stomach', 'gut', 'blood', 'better']);
+  is('test_buikpijn_a_few_swipes_reach_the_stomach', Math.ceil(1 / SQUEEZE) >= 3 && Math.ceil(1 / SQUEEZE) <= 6, true);
+  is('test_buikpijn_chewing_and_germs_are_countable_for_a_four_year_old', [CHEWS <= 6, GERMS <= 6], [true, true]);
+  const said = id => CHAPTERS.find(c => c.id === id).steps.filter(s => 'sayNl' in s).map(s => s.sayNl).join(' ');
+  is('test_buikpijn_says_a_child_has_twenty_teeth', /twintig/.test(said('mouth')), true);
+  is('test_buikpijn_says_there_are_good_bacteria_too', /goede bacteriën/.test(said('gut')), true);
+  // the ending a parent would give: a tummy ache that does not pass is for the doctor
+  is('test_buikpijn_ends_with_go_to_the_doctor_if_it_does_not_pass', /dokter/.test(said('better')), true);
+  is('test_buikpijn_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
+  is('test_buikpijn_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
 }
 
 // ---------------------------------------------------------------- Van cel tot mens

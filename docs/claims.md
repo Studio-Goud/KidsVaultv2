@@ -60,10 +60,11 @@ Concreet te toetsen rijen, met wat erachter zit:
 | Suri en de reuzentand | luisteren naar een verhaal, goed kijken en vergelijken, ouder is dieper | geen bron; mijn inschatting |
 | Suri en het lichtje in de diepte | luisteren naar een verhaal, goed kijken, hoe diep diep is | geen bron; mijn inschatting |
 | Suri en de verloren satelliet | luisteren naar een verhaal, sturen, de volgorde van de planeten | geen bron; mijn inschatting |
+| Suri heeft buikpijn | luisteren naar een verhaal, waar het eten in je eigen lijf naartoe gaat | geen bron; mijn inschatting |
 | Van cel tot mens | luisteren naar een verhaal, goed kijken, hoe kleine veranderingen over heel lange tijd optellen | geen bron; mijn inschatting |
 | De tijd van de dino's | luisteren, hoe lang geleden lang geleden is, diepere grond is oudere grond | geen bron; mijn inschatting. De leeftijden zijn de gangbare afgeronde per dier |
 
-Negentien van de vijfentwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
+Twintig van de zesentwintig staan op "mijn inschatting" (dat waren er twaalf van de achttien; hier stond eerder "elf", wat een telfout was). Dat is de grootste open post in dit document.
 
 ## B. Schermtijd
 
@@ -132,6 +133,18 @@ en zijn geen pedagogische claim. Die horen hier niet thuis, maar wel de vorm erv
   verhaalkeuze en geen feit, en het verhaal zegt dat aan het eind ook hardop: de reis duurt in het
   echt jaren, en Stip is verzonnen. Hoe de raket stijgt (`altitudeAt`) is een vorm die goed voelt,
   geen baanberekening.
+- **Suri heeft buikpijn** zegt deze feiten hardop, nagezocht maar door geen arts nagelezen: een
+  kind heeft twintig melktanden; speeksel begint het eten al af te breken (amylase, zetmeel);
+  spierringen in de slokdarm knijpen het eten naar beneden (peristaltiek), en slikken lukt daarom
+  ook op je hoofd; maagzuur doodt de meeste ziekteverwekkers en een laag slijm beschermt de maagwand;
+  de maag kneedt het eten tot pap (chymus); de dunne darm is bij een volwassene zo'n zes meter en
+  zit vol darmvlokken die voedingsstoffen aan het bloed doorgeven; in de darm leven ook veel goede
+  bacteriën; ziekmakende bacteriën uit eten kunnen de darmwand irriteren en buikpijn geven; rode
+  bloedcellen vervoeren zuurstof en het bloed gaat in ongeveer een minuut het lichaam rond; witte
+  bloedcellen kunnen de bloedbaan verlaten en bacteriën opeten (fagocytose). Een verhaalkeuze en
+  geen feit: dat je piepklein naar binnen kunt, en dat de witte bloedcellen hulp nodig hebben. Het
+  verhaal eindigt met het advies van een ouder, niet van een arts: rust, drinken, handen wassen, en
+  naar de dokter als buikpijn niet overgaat. Dat laatste staat er met opzet, en een test bewaakt het.
 - **Van cel tot mens** zegt deze feiten hardop, nagezocht maar door geen bioloog nagelezen: de
   oudste sporen van leven zijn ruim 3,5 miljard jaar oud; cellen met een kern zo'n 2 miljard;
   dieren van veel cellen zo'n 600 miljoen; Haikouichthys 518 miljoen, zo lang als een vinger, met
