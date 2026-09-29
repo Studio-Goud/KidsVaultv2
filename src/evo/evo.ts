@@ -388,7 +388,7 @@ export class Evo {
 
   private ambience(): void {
     const sc = STOPS[this.stopIndex()].scene;
-    const want: Bed = ['vent', 'sea', 'reef'].includes(sc) ? 'water' : sc === 'night' ? 'night' : sc === 'cave' ? 'cave' : 'land';
+    const want: Bed = ['vent', 'sea', 'silurian', 'reef'].includes(sc) ? 'water' : sc === 'night' ? 'night' : sc === 'cave' ? 'cave' : 'land';
     if (want !== this.playing) { this.playing = want; bed(want); }
   }
 
