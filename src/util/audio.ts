@@ -1,7 +1,7 @@
 import { save } from './storage';
 import { withSamples } from '../platform/samples';
 import { radioKey, radioWords } from '../platform/voicekey';
-import { clearNowPlaying, noteMiss, stopSpeaking } from '../platform/voice';
+import { clearNowPlaying, noteMiss, stopSpeaking, useAudioContext } from '../platform/voice';
 import { feel } from '../platform/feel';
 
 /**
@@ -17,6 +17,8 @@ let master: GainNode | null = null;
 let noiseBuffer: AudioBuffer | null = null;
 
 export function audioContext(): AudioContext | null { return ctx; }
+// Ruth plays through this engine too, once it exists (see `useAudioContext` in voice.ts)
+useAudioContext(() => ctx);
 
 /**
  * Two things an iPhone does that made the owner hear Ruth but not the sound effects.

@@ -684,3 +684,22 @@ Nagekeken: tsc, 1511 tests, audit zonder fouten voor het lichtje en de satelliet
 na het verbergen van de pagina staat de geluidsmotor stil en het mediapaneel op "niets", na een tik
 loopt hij weer. Niet nagekeken: een echte iPhone. Chromium speelt hier geen mp3, dus het loslaten van
 Ruths opnamen is gelezen en niet gehoord.
+
+## 2026-09-30 — Ruth door de geluidsmotor
+
+De eigenaar hoorde sommige zinnen niet. De opnamen waren er wel; ze werden geweigerd. Een iPhone laat
+een `<audio>`-element alleen starten vlak na een tik. De volgende zin van een verhaal begint als de
+vorige klaar is en een hint na een stille poos, dus niet vlak na een tik: die werden geweigerd, en de
+stem van het toestel waar ze dan op terugvielen, wordt om dezelfde reden geweigerd. Stil dus.
+
+Ruths opnamen spelen nu door dezelfde geluidsmotor als de effecten (Web Audio). Die wordt door de
+eerste tik ontgrendeld en mag daarna op elk moment spelen. Elke opname wordt opgehaald en gedecodeerd,
+het volgende stuk van een zin alvast terwijl het eerste speelt, en een klein geheugen houdt de laatste
+zestig vast. Het `<audio>`-element blijft alleen voor een pagina zonder geluidsmotor. Bijvangst: Ruth
+komt zo ook nooit meer in het mediapaneel van het vergrendelscherm, en `hush()` legt haar stil met de
+rest.
+
+Nagekeken: tsc, 1511 tests, audit zonder fouten voor de reuzentand, het Letterbos en het Klankhuis,
+en in een browser: in het lichtje speelt elke zin via de geluidsmotor, er wordt geen enkel
+audio-element en geen toestelstem gebruikt, en de volgende zin wacht precies tot de vorige klaar is.
+Niet nagekeken: een echte iPhone.
