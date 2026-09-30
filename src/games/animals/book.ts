@@ -29,6 +29,7 @@ import {
 } from './rules';
 import { speakLine } from '../../platform/voice';
 import { unlockAudio } from '../../util/audio';
+import { simpleNow } from '../../platform/who';
 import { ui } from '../../platform/uisfx';
 import { hasSample, playOnce } from '../../platform/samples';
 import type { SfxRow } from '../../platform/sfxspec';
@@ -123,6 +124,12 @@ export class AnimalBook {
   private downAt = 0;
   private hits: Hit[] = [];
   private enter = 0;
+  /**
+   * The simplest shape, for a child of two or three (`src/platform/who.ts`): the book without the
+   * keyboard. Shelves, photographs, a page that is read out loud, and the surprise button are
+   * already one gesture each; searching by typing is the one thing in here that needs letters.
+   */
+  private easy = simpleNow();
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
@@ -304,7 +311,7 @@ export class AnimalBook {
   private act(id: string): void {
     if (id === 'back') { ui.back(); this.back(); return; }
     if (id === 'surprise') { ui.surprise(); this.surprise(); return; }
-    if (id === 'search') { ui.open(); this.query = ''; this.list = []; this.go('search'); return; }
+    if (id === 'search' && !this.easy) { ui.open(); this.query = ''; this.list = []; this.go('search'); return; }
     if (id === 'prev') { if (this.at > 0) { ui.page(); this.openAnimal(this.at - 1); } return; }
     if (id === 'next') { if (this.at < this.list.length - 1) { ui.page(); this.openAnimal(this.at + 1); } return; }
     if (id === 'call') { const a = this.list[this.at]; if (a) playOnce(`animal.${a.i}`, CALL); return; }
@@ -632,8 +639,11 @@ export class AnimalBook {
     const rowX = (this.w - rowW) / 2;
     const bw = (rowW - pad) / 2;
     const bh = 50 * u;
-    this.button('search', rowX, y, bw, bh, t('animalsSearch'), '#3e7fb0');
-    this.button('surprise', rowX + bw + pad, y, bw, bh, t('animalsSurprise'), '#e0913a');
+    if (this.easy) this.button('surprise', rowX + (rowW - bw) / 2, y, bw, bh, t('animalsSurprise'), '#e0913a');
+    else {
+      this.button('search', rowX, y, bw, bh, t('animalsSearch'), '#3e7fb0');
+      this.button('surprise', rowX + bw + pad, y, bw, bh, t('animalsSurprise'), '#e0913a');
+    }
     y += bh + pad * 1.4;
 
     // the collection, as a bar rather than only a sentence

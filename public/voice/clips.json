@@ -1330,6 +1330,12 @@
    "text": "Het zwarte diep"
   },
   {
+   "id": "t090bfabf",
+   "file": "nl/t090bfabf.mp3",
+   "secs": 2.2,
+   "text": "Alles gesorteerd. Goed gedaan."
+  },
+  {
    "id": "t090fc6cd",
    "file": "nl/t090fc6cd.mp3",
    "secs": 0.7,
@@ -8956,6 +8962,12 @@
    "text": "Speel alles af"
   },
   {
+   "id": "t3fb67512",
+   "file": "nl/t3fb67512.mp3",
+   "secs": 1.3,
+   "text": "ding afgemaakt"
+  },
+  {
    "id": "t3fbb9da7",
    "file": "nl/t3fbb9da7.mp3",
    "secs": 1,
@@ -13462,6 +13474,12 @@
    "text": "Zwarte Kraai"
   },
   {
+   "id": "t5e6eaa73",
+   "file": "nl/t5e6eaa73.mp3",
+   "secs": 3,
+   "text": "Sleep elk dier naar de poel met dezelfde kleur."
+  },
+  {
    "id": "t5e8d163c",
    "file": "nl/t5e8d163c.mp3",
    "secs": 1.3,
@@ -16832,6 +16850,12 @@
    "file": "nl/t760c85f1.mp3",
    "secs": 1.4,
    "text": "Sepia latimanus"
+  },
+  {
+   "id": "t7611ac6a",
+   "file": "nl/t7611ac6a.mp3",
+   "secs": 1.7,
+   "text": "Elk dier zit in zijn poel."
   },
   {
    "id": "t7612a342",
@@ -21506,6 +21530,12 @@
    "file": "nl/t96c714d7.mp3",
    "secs": 1.2,
    "text": "Heidewielwebspin"
+  },
+  {
+   "id": "t96c9c474",
+   "file": "nl/t96c9c474.mp3",
+   "secs": 1.2,
+   "text": "Twee kleuren"
   },
   {
    "id": "t96cfd4dc",
@@ -46086,6 +46116,12 @@
    "text": "Tap the squares. Higher up is a higher note."
   },
   {
+   "id": "t46945358",
+   "file": "en/t46945358.mp3",
+   "secs": 1.2,
+   "text": "Two colours"
+  },
+  {
    "id": "t46a042b6",
    "file": "en/t46a042b6.mp3",
    "secs": 1.8,
@@ -46636,6 +46672,12 @@
    "file": "en/t49f2e5f4.mp3",
    "secs": 1.5,
    "text": "Helmeted Iguana"
+  },
+  {
+   "id": "t4a004b3d",
+   "file": "en/t4a004b3d.mp3",
+   "secs": 1.7,
+   "text": "All sorted. Well done."
   },
   {
    "id": "t4a066686",
@@ -55116,6 +55158,12 @@
    "text": "To the Moon"
   },
   {
+   "id": "t8aa79a68",
+   "file": "en/t8aa79a68.mp3",
+   "secs": 3,
+   "text": "Drag each creature to the pool with the same colour."
+  },
+  {
    "id": "t8aab201b",
    "file": "en/t8aab201b.mp3",
    "secs": 1.4,
@@ -62568,6 +62616,12 @@
    "text": "Northern Dusky Slug"
   },
   {
+   "id": "tc33addbb",
+   "file": "en/tc33addbb.mp3",
+   "secs": 1.2,
+   "text": "thing finished"
+  },
+  {
    "id": "tc34566aa",
    "file": "en/tc34566aa.mp3",
    "secs": 0.8,
@@ -64486,6 +64540,12 @@
    "file": "en/td1229357.mp3",
    "secs": 2.8,
    "text": "Fresh batteries, and a new thread in the fuse."
+  },
+  {
+   "id": "td1382f9c",
+   "file": "en/td1382f9c.mp3",
+   "secs": 2,
+   "text": "Every creature is in its pool."
   },
   {
    "id": "td139078c",

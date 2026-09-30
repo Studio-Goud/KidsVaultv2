@@ -83,10 +83,10 @@ Alles hieronder is nagelopen, niet aangenomen.
 | 23 | Stroomkring | 6-10 | schakelingen die wel of niet branden |
 | 24 | Moonshot | 6-10 | een raket in trappen bouwen |
 | 25 | Wereldatlas | 6-10 | provincies, landen, vlaggen |
-| 26 | Cloudhopper | 7-10 | luchtverkeersleiding; het oudste deel |
+| 26 | Cloudhopper | 7-8 | luchtverkeersleiding; het oudste deel |
 
 **Werkt en is nagelopen:** alle vijftien nieuwe spellen praten en dragen Suri in de hoek.
-Opgraving en Klankhuis hebben twee vormen, gekozen op de leeftijd die de ouder invult. De ontdekreis-motor
+Opgraving, Klankhuis, Getijdenpoel en het Dierenboek hebben twee vormen, gekozen op de leeftijd die de ouder invult. De ontdekreis-motor
 draagt vier reizen; een vijfde is een databestand. Het ouderscherm heeft een pincode, per kind
 een tijdslimiet met de NJi-onderbouwing erbij, en vijftien vragen die vóór de code te lezen zijn.
 De dagteller telt. De keuzes van de ouder bereiken de voorpagina: uitgevinkte onderwerpen zijn
@@ -106,14 +106,15 @@ gebruiker anders zegt.
 
 ### 1. De kloof bij twee en drie jaar
 
-Van de tweeëntwintig dingen passen er drie bij een tweejarige, en twee daarvan hebben een eenvoudige vorm. De eenvoudige vorm uit
-`src/platform/who.ts` is één keer uitgevoerd (Opgraving) en het patroon staat er nu: hetzelfde
-spel met de regels eruit, niet een kleiner spel.
+Van de zesentwintig dingen passen er vier bij een tweejarige, en alle vier hebben een eenvoudige
+vorm. De eenvoudige vorm uit `src/platform/who.ts` is hetzelfde spel met de regels eruit, niet een
+kleiner spel.
 
-Klankhuis is nu de tweede: voor drie en jonger is het alleen de negen staven, groter, zonder de
-knoppen naar de niveaus en de sequencer, en een vinger die eroverheen strijkt laat elke staaf
-klinken die hij raakt. Daarna Getijdenpoel (één regel in plaats van wisselende regels) en het Dierenboek
-(bladeren zonder zoeken).
+Opgraving: zacht gesteente, alleen de kwast, geen vraag. Klankhuis: alleen de negen staven, groter,
+zonder niveaus en sequencer. Getijdenpoel: één regel (kleur) die nooit wisselt, één dier tegelijk,
+niets dat wegdrijft en niets te verliezen. Dierenboek: bladeren zonder toetsenbord. Vier van
+zesentwintig is nog steeds een kloof; wat daarna helpt is niet nog een vereenvoudiging maar een
+ding dat voor twee gemaakt is.
 
 ### 2. Drie ontdekreizen erbij
 
