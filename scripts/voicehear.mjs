@@ -21,6 +21,7 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { nlNumbers } from './nlnumbers.mjs';
 
 const arg = name => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
 const LANG = arg('--lang') === 'en' ? 'en' : 'nl';
@@ -45,6 +46,8 @@ export const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''
 
 /** How alike two texts are, 0..1, by edit distance over the longer one. */
 export function alike(a, b) {
+  // numbers as words on both sides: the recogniser writes "88" where the text says "achtentachtig"
+  if (LANG === 'nl') { a = nlNumbers(a).replace(/\bkm\b/g, 'kilometer'); b = nlNumbers(b).replace(/\bkm\b/g, 'kilometer'); }
   a = norm(a).replace(/ /g, ''); b = norm(b).replace(/ /g, '');
   if (!a && !b) return 1;
   const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
