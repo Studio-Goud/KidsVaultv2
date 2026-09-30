@@ -3244,6 +3244,29 @@ const group = name => console.log(`\n${name}`);
   is('test_dig_the_brush_can_never_break_bone', brush.risk, 0);
 }
 
+{
+  const { SIMPLE_LEVEL, LEVELS, makeRule, nextRule, rngFor, spawnCreature, poolFor } = await bundle('src/games/tidepool/model.ts', 'tidemodel.mjs');
+  group('Getijdenpoel - the simple tide, for two and three');
+  is('test_tide_simple_sorts_on_colour_only', SIMPLE_LEVEL.dims.join(','), 'colour');
+  is('test_tide_simple_never_switches_the_rule', SIMPLE_LEVEL.switchEvery, 0);
+  is('test_tide_simple_has_one_creature_on_the_water', SIMPLE_LEVEL.atOnce, 1);
+  is('test_tide_simple_has_two_pools', SIMPLE_LEVEL.pools, 2);
+  is('test_tide_simple_drifts_slower_than_the_first_real_tide', SIMPLE_LEVEL.drift < LEVELS[0].drift, true);
+  is('test_tide_simple_is_not_in_the_list_of_tides', LEVELS.some(l => l.id === SIMPLE_LEVEL.id), false);
+  const rng = rngFor(SIMPLE_LEVEL, 1);
+  let rule = makeRule(SIMPLE_LEVEL.dims[0], SIMPLE_LEVEL.pools, rng);
+  let same = true, fits = true;
+  for (let i = 0; i < 30; i++) {
+    const next = nextRule(SIMPLE_LEVEL, rule, rng);
+    if (next.dim !== 'colour') same = false;
+    const c = spawnCreature(i, next, rule, rng);
+    if (poolFor(c, next) < 0) fits = false;
+    rule = next;
+  }
+  is('test_tide_simple_next_rule_is_always_colour', same, true);
+  is('test_tide_simple_every_creature_belongs_to_a_pool', fits, true);
+}
+
 // ---------------------------------------------------------------- the discovery journeys
 
 {

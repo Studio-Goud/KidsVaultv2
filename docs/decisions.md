@@ -820,3 +820,29 @@ Nagekeken: tsc, 1529 tests, audit 0 fouten, en in een browser: twee kinderen met
 tik op de tweede naam wisselt het kind, en het ouderscherm toont de week met de juiste minuten. De
 eerste poging leek te falen omdat het testscript de opslag bij elke herlaadbeurt opnieuw zaaide; de
 app deed het goed. Niet nagekeken: een echte telefoon.
+
+## 2026-09-30 — Getijdenpoel en Dierenboek voor twee en drie
+
+De derde en vierde eenvoudige vorm, naar het patroon van 2026-09-22: hetzelfde spel met de regels
+eruit, gekozen op de leeftijd die de ouder invult, met de grens op één plek (`src/platform/who.ts`).
+
+**Getijdenpoel.** Het hele spel draait om de wissel van regel, en een tweejarige houdt geen regel
+vast, laat staan twee. Voor drie en jonger is er dus één regel, kleur, die nooit wisselt; twee
+poelen; één dier tegelijk, dat langzaam aankomt en aan de kust blijft wachten in plaats van weg te
+drijven. Een verkeerde poel is niet fout: het dier gaat terug het water op en Suri zegt de kleur
+nog eens ("Deze is rood."). Geen schelpen, geen reeks, geen sterren, geen munten, geen lijst van
+getijden en niets dat wordt opgeslagen. Tien dieren, dan "Nog een keer". Het niveau staat als
+`SIMPLE_LEVEL` in het model, zodat de tests het zonder browser kunnen lezen.
+
+**Dierenboek.** Bladeren, foto's, een pagina die wordt voorgelezen en "Verras me" zijn al één
+gebaar per stuk. Het enige dat letters vraagt is zoeken met het toetsenbord, en dat is voor drie en
+jonger weg. De rest blijft: een tweejarige die op een olifant tikt hoort "olifant", en dat is het
+boek.
+
+Beide staan nu op `from: 2` in de catalogus, en de audit kijkt naar allebei ook als tweejarige (34
+schermen). Vier van de zesentwintig dingen passen nu bij twee; wat daarna helpt is geen vijfde
+vereenvoudiging maar een ding dat voor twee gemaakt is.
+
+Nagekeken: tsc, 1537 tests, audit van Getijdenpoel, Dierenboek en de voorpagina 0 fouten, en in een
+browser als tweejarige: tien dieren gesleept, waarvan drie eerst naar de verkeerde poel, einde
+"Het tij is gesorteerd" zonder fout of gemist. Niet nagekeken: een echte telefoon.

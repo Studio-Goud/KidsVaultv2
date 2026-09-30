@@ -15,7 +15,7 @@ import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
-  COLOUR_HEX, dimLabel, labelFor, LEVELS, makeRule, nextRule, poolFor, rngFor, spawnCreature, starsFor,
+  COLOUR_HEX, colourLine, dimLabel, labelFor, LEVELS, makeRule, nextRule, poolFor, rngFor, SIMPLE_LEVEL, spawnCreature, starsFor,
   type Colour, type Creature, type Dim, type Kind, type Level, type Rule,
 } from './model';
 import { Sea, tide } from './tidesfx';
@@ -26,6 +26,7 @@ import {
 import { creatureShadow, paintCreature, ShoreArt } from './paint';
 import { NL, T } from '../../util/lang';
 import { speakLine } from '../../platform/voice';
+import { simpleNow } from '../../platform/who';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won' | 'failed';
@@ -91,6 +92,13 @@ export class Tidepool {
   private cardPop = 0;
   private note = '';
   private noteT = 0;
+  /**
+   * The simplest shape, for a child of two or three (`src/platform/who.ts`): no list of tides,
+   * one rule that is always colour, one creature at a time, and nothing to lose. A creature that
+   * reaches the shore waits there; a wrong pool sends it back; there are no shells, no stars and no
+   * question. Ten creatures, then "again". Its level is `SIMPLE_LEVEL` in the model.
+   */
+  private easy = simpleNow();
 
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
@@ -111,6 +119,7 @@ export class Tidepool {
       this.raf = requestAnimationFrame(loop);
     };
     this.raf = requestAnimationFrame(loop);
+    if (this.easy) this.start(0);
   }
 
   destroy(): void { cancelAnimationFrame(this.raf); this.sea.stop(); }
@@ -121,12 +130,12 @@ export class Tidepool {
    * What "back" means is the game's business; that there is a back at all, in the same corner and
    * the same shape everywhere, is not.
    */
-  canBack(): boolean { return this.phase !== 'levels'; }
-  back(): void { this.phase = 'levels'; this.sea.stop(); }
+  canBack(): boolean { return this.phase !== 'levels' && !this.easy; }
+  back(): void { if (this.easy) return; this.phase = 'levels'; this.sea.stop(); }
 
   debugState(): Record<string, unknown> {
     return {
-      phase: this.phase, level: this.level.id, rule: this.rule, spawned: this.spawned, resolved: this.resolved,
+      phase: this.phase, level: this.level.id, easy: this.easy, rule: this.rule, spawned: this.spawned, resolved: this.resolved,
       correct: this.correct, wrong: this.wrong, missed: this.missed, shells: this.shells, streak: this.streak,
       creatures: this.creatures.filter(c => !c.gone && !c.landing).map(c => ({ id: c.id, kind: c.kind, colour: c.colour, size: c.size, spots: c.spots, x: Math.round(c.x * 1000) / 1000, y: Math.round(c.y * 1000) / 1000, pool: poolFor(c, this.rule) })),
       pools: this.poolRects().map(r => ({ x: Math.round(r.x + r.w / 2), y: Math.round(r.y + r.h / 2) })),
@@ -193,7 +202,7 @@ export class Tidepool {
 
   private start(i: number): void {
     this.levelIndex = clamp(i, 0, LEVELS.length - 1);
-    this.level = LEVELS[this.levelIndex];
+    this.level = this.easy ? SIMPLE_LEVEL : LEVELS[this.levelIndex];
     this.attempt++;
     this.rng = rngFor(this.level, this.attempt);
     this.previous = null;
@@ -259,6 +268,8 @@ export class Tidepool {
       // it comes in far enough down the water to be seen at once, not behind the sign
       c.y = 0.16;
       this.creatures.push(c);
+      // a toddler hears what matters about it, since the sign is words
+      if (this.easy && this.spawned > 0) this.say(colourLine(c.colour, NL()), 2.5);
       this.spawned++;
       this.sinceSwitch++;
       this.spawnIn = L.every;
@@ -276,6 +287,8 @@ export class Tidepool {
       c.y += L.drift * dt;
       c.x += Math.sin(this.t * 1.3 + c.wobble) * 0.02 * dt;
       c.x = clamp(c.x, 0.06, 0.94);
+      // in the simple tide nothing is carried away: it waits at the shore for a hand
+      if (this.easy) { c.y = Math.min(c.y, SHORE - 0.12); continue; }
       if (c.y > SHORE - 0.02) {
         c.gone = true;
         this.missed++; this.resolved++;
@@ -287,8 +300,17 @@ export class Tidepool {
       }
     }
 
-    if (this.shells <= 0) { this.phase = 'failed'; this.phaseT = 0; this.sea.stop(); tide.fail(); return; }
+    if (this.shells <= 0 && !this.easy) { this.phase = 'failed'; this.phaseT = 0; this.sea.stop(); tide.fail(); return; }
     if (this.resolved >= L.count) {
+      if (this.easy) {
+        // no stars, no coins, nothing written down: the tide is sorted, and that is the whole ending
+        this.earned = 3;
+        this.phase = 'won'; this.phaseT = 0;
+        this.sea.stop();
+        tide.complete();
+        this.say(T('All sorted. Well done.', 'Alles gesorteerd. Goed gedaan.'), 3);
+        return;
+      }
       this.earned = starsFor(this.correct, this.wrong, this.missed, L.count);
       recordLevelResult(saveKey(L), this.correct, this.earned, this.earned > 0);
       save.coins = Math.max(0, Math.round(save.coins + 15 + this.earned * 15)); persist();
@@ -373,6 +395,12 @@ export class Tidepool {
       this.poolGlow[over] = 1;
       this.ps.spawn('splash', r.x + r.w / 2, r.y + r.h * 0.5, 14, { colour: 'rgba(214,244,255,0.95)', speed: 150, size: r.w * 0.1, max: 0.7 });
       this.ps.spawn('spark', r.x + r.w / 2, r.y + r.h * 0.4, 8, { colour: '#bff5d4', speed: 130, size: r.w * 0.07, max: 0.8, spread: TAU });
+    } else if (this.easy) {
+      // not wrong, just not there yet: back onto the water, and the colour said again
+      tide.tap();
+      c.y = Math.min(c.y, SHORE * 0.45);
+      this.say(colourLine(c.colour, NL()), 2.5);
+      return;
     } else {
       this.wrong++;
       this.streak = 0;
@@ -556,7 +584,7 @@ export class Tidepool {
     ctx.beginPath(); ctx.roundRect(bx, by, barW, barH, barH / 2); ctx.stroke();
 
     // shells: what you have left to lose
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < (this.easy ? 0 : 3); i++) {
       const on = i < this.shells;
       const sxx = this.w - 26 * u - (2 - i) * 28 * u;
       const syy = this.h - 24 * u;
@@ -569,7 +597,7 @@ export class Tidepool {
       ctx.restore();
     }
 
-    if (this.streak >= 3) {
+    if (this.streak >= 3 && !this.easy) {
       ctx.textAlign = 'center';
       outlinedText(ctx, `${T('streak', 'reeks')} ${this.streak}`, this.w / 2, this.h - 22 * u,
         this.font('900', 12), '#1d4056', 'rgba(255,255,255,0.9)', 4);
@@ -588,7 +616,7 @@ export class Tidepool {
       ctx.restore();
     }
 
-    this.button('levels', T('Tides', 'Getijden'), 14 * u, 12 * u, 92 * u, 44 * u);
+    if (!this.easy) this.button('levels', T('Tides', 'Getijden'), 14 * u, 12 * u, 92 * u, 44 * u);
     ctx.textAlign = 'left';
   }
 
@@ -626,7 +654,7 @@ export class Tidepool {
     ctx.textAlign = 'center';
     heading(ctx, won ? T('The tide is sorted', 'Het tij is gesorteerd') : T('The tide got away', 'Het tij was te snel'),
       this.w / 2, y + 50 * u, this.font('900', 20), '#123047');
-    if (won) {
+    if (won && !this.easy) {
       for (let i = 0; i < 3; i++) {
         const shown = clamp(this.cardPop * 1.6 - i * 0.25, 0, 1);
         drawStarGem(ctx, this.w / 2 + (i - 1) * 42 * u, y + 104 * u, 18 * u, i < this.earned, i < this.earned ? easeOutBack(shown) : 1);
@@ -634,14 +662,17 @@ export class Tidepool {
     }
     ctx.fillStyle = 'rgba(18,48,71,0.72)';
     ctx.font = this.font('700', 12);
-    const line = `${T('right', 'goed')} ${this.correct}  ·  ${T('wrong', 'fout')} ${this.wrong}  ·  ${T('missed', 'gemist')} ${this.missed}`;
-    ctx.fillText(line, this.w / 2, y + (won ? 146 : 108) * u, cw - 40 * u);
+    const line = this.easy
+      ? T('Every creature is in its pool.', 'Elk dier zit in zijn poel.')
+      : `${T('right', 'goed')} ${this.correct}  ·  ${T('wrong', 'fout')} ${this.wrong}  ·  ${T('missed', 'gemist')} ${this.missed}`;
+    ctx.fillText(line, this.w / 2, y + (won && !this.easy ? 146 : 108) * u, cw - 40 * u);
     if (!won) {
       ctx.fillStyle = 'rgba(18,48,71,0.6)';
       ctx.fillText(NL() ? this.level.hintNl : this.level.hint, this.w / 2, y + 140 * u, cw - 40 * u);
     }
     ctx.restore();
     const bw = 138 * u, bh = 50 * u, by = y + ch - 78 * u;
+    if (this.easy) { this.button('retry', T('One more', 'Nog een keer'), this.w / 2 - bw / 2, by, bw, bh, '#4fae6e', '#ffffff'); return; }
     this.button('retry', T('Again', 'Opnieuw'), this.w / 2 - bw - 7 * u, by, bw, bh);
     if (won && this.levelIndex + 1 < LEVELS.length) this.button('next', T('Next tide', 'Volgend tij'), this.w / 2 + 7 * u, by, bw, bh, '#4fae6e', '#ffffff');
     else this.button('levels', T('All tides', 'Alle getijden'), this.w / 2 + 7 * u, by, bw, bh, '#4fae6e', '#ffffff');

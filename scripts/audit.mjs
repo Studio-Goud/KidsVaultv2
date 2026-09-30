@@ -37,7 +37,7 @@ const PAGES = [
   ['numbers', '__numbers'], ['reis', '__reis'], ['diepzee', '__diepzee'], ['dino', '__dino'], ['lichaam', '__lichaam'], ['tand', '__tand'], ['lichtje', '__lichtje'], ['satelliet', '__satelliet'], ['buikpijn', '__buikpijn'], ['evolutie', '__evo'],
   // The same pages again as a particular age, through the `__years` hook in src/platform/who.ts.
   // A toddler shape and a split shelf are different screens, and neither is seen without a profile.
-  ['index', null, 3], ['index', null, 8], ['dig', '__dig', 2], ['rhythm', '__rhythm', 2],
+  ['index', null, 3], ['index', null, 8], ['dig', '__dig', 2], ['rhythm', '__rhythm', 2], ['tidepool', '__tide', 2], ['animals', '__animals', 2],
 ];
 
 /** The shapes a child actually holds, and the one that has a notch in it. */

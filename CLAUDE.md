@@ -53,7 +53,7 @@ Three gates, all of which must be green before a commit claims to be finished:
 ```
 npx tsc --noEmit        # types
 npm test                # 1511 checks, no browser, tests/run.mjs
-npm run audit           # 32 screens x 5 screen shapes in a real browser, 0 faults
+npm run audit           # 34 screens x 5 screen shapes in a real browser, 0 faults
 ```
 
 `npm run audit` is the one that catches what unit tests cannot: two things drawn in the same

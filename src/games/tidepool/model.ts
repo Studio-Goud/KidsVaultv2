@@ -86,6 +86,17 @@ export const LEVELS: Level[] = [
     hint: 'Four pools. The rule changes often. Breathe, look at the sign, then move.', hintNl: 'Vier poelen. De regel wisselt vaak. Adem, kijk naar het bord, dan pas slepen.' },
 ];
 
+/**
+ * The tide for a two- or three-year-old (`src/platform/who.ts`): one rule, colour, that never
+ * changes; two pools; one creature at a time, drifting slowly. `count` is how many come in before
+ * the tide is done. Nothing here can be lost: the game stops the creature at the shore instead of
+ * carrying it away, and a wrong pool sends it back onto the water without cost.
+ */
+export const SIMPLE_LEVEL: Level = {
+  id: 'simple', name: 'Two colours', nameNl: 'Twee kleuren', pools: 2, dims: ['colour'], count: 10, atOnce: 1, switchEvery: 0, drift: 0.03, every: 2.2,
+  hint: 'Drag each creature to the pool with the same colour.', hintNl: 'Sleep elk dier naar de poel met dezelfde kleur.',
+};
+
 /** The values a dimension can take, in the order pools are labelled. */
 export function valuesOf(dim: Dim): string[] {
   if (dim === 'kind') return KINDS;
@@ -169,6 +180,15 @@ export function labelFor(dim: Dim, value: string, nl: boolean): string {
   };
   const n = names[value];
   return n ? (nl ? n[1] : n[0]) : value;
+}
+
+/** "This one is red": what the guide says as a creature arrives in the simple tide. */
+export function colourLine(colour: Colour, nl: boolean): string {
+  const c: Record<Colour, [string, string]> = {
+    red: ['This one is red.', 'Deze is rood.'], blue: ['This one is blue.', 'Deze is blauw.'],
+    yellow: ['This one is yellow.', 'Deze is geel.'], green: ['This one is green.', 'Deze is groen.'],
+  };
+  return nl ? c[colour][1] : c[colour][0];
 }
 
 export function dimLabel(dim: Dim, nl: boolean): string {

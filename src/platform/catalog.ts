@@ -87,7 +87,16 @@ export const CATALOG: Entry[] = [
     lineNl: 'Sorteer wat het tij brengt in de juiste poelen. Dan verandert de regel.',
     practises: 'Thinking flexibly, switching rule',
     practisesNl: 'Denkflexibiliteit, van regel wisselen',
-    from: 3, to: 7, domains: ['vormen', 'natuur'], nature: 'beide', minutes: [3, 6],
+    from: 2, to: 7, domains: ['vormen', 'natuur'], nature: 'beide', minutes: [3, 6],
+    reads: true, speaks: true,
+  },
+  {
+    id: 'animals', title: 'Dierenboek',
+    line: 'Thousands of real animals with real photographs: how big, where they live, what they eat.',
+    lineNl: "Duizenden echte dieren met echte foto's: hoe groot, waar ze wonen en wat ze eten.",
+    practises: 'Looking closely, comparing sizes, sorting into groups, looking something up',
+    practisesNl: 'Goed kijken, groottes vergelijken, in groepen indelen, iets opzoeken',
+    from: 2, to: 8, domains: ['dieren', 'natuur'], nature: 'leren', minutes: [2, 15],
     reads: true, speaks: true,
   },
   {
@@ -106,15 +115,6 @@ export const CATALOG: Entry[] = [
     practises: 'Visual working memory',
     practisesNl: 'Visueel werkgeheugen',
     from: 3, to: 8, domains: ['ruimte', 'vormen'], nature: 'beide', minutes: [3, 8],
-    reads: true, speaks: true,
-  },
-  {
-    id: 'animals', title: 'Dierenboek',
-    line: 'Thousands of real animals with real photographs: how big, where they live, what they eat.',
-    lineNl: "Duizenden echte dieren met echte foto's: hoe groot, waar ze wonen en wat ze eten.",
-    practises: 'Looking closely, comparing sizes, sorting into groups, looking something up',
-    practisesNl: 'Goed kijken, groottes vergelijken, in groepen indelen, iets opzoeken',
-    from: 3, to: 8, domains: ['dieren', 'natuur'], nature: 'leren', minutes: [2, 15],
     reads: true, speaks: true,
   },
   {
