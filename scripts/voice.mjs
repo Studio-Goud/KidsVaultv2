@@ -83,8 +83,8 @@ async function lineKeyFn() {
 }
 
 /**
- * Letterbos' own material: its words, its sentences whole and word by word, and every sound it
- * says - which is data rather than sentences in the source, so the parser above never sees it.
+ * Letterbos' own material: its words, and its sentences whole and word by word - which are data
+ * rather than sentences in the source, so the parser above never sees them.
  */
 async function letterbos() {
   const dir = mkdtempSync(join(tmpdir(), 'suri-letters-'));
@@ -99,7 +99,6 @@ async function letterbos() {
   if (LANG === 'en') {
     // the Dutch words and sounds stay Dutch in the English app; only the talk around them changes
     return [
-      ...L.UNITS.map(u => L.exampleLine(u, false)),
       ...Array.from({ length: 12 }, (_, i) => `Find ${i + 1} fossils first.`),
       // last, so that if the credit runs out it is the animal names that wait
       ...animals.map(x => x.e),
@@ -110,8 +109,7 @@ async function letterbos() {
     ...L.LADDERS.flat(),
     ...L.SENTENCES.map(x => x.nl.join(' ')),
     ...L.SENTENCE_WORDS,
-    ...L.UNITS.map(u => L.sayOf(u)),
-    ...L.UNITS.map(u => L.exampleLine(u, true)),
+    // no loose sounds ("mmm", "de aa van maan"): Letterbos says only whole words now
     // lines that carry a number, said with every number they can carry
     ...Array.from({ length: 12 }, (_, i) => `Vind eerst ${i + 1} fossielen.`),
     // the Animal Book says an animal's name as the heading of its page: all 3737 of them

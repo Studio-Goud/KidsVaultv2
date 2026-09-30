@@ -7,16 +7,14 @@
  * carries on exactly as before with pictures, tiles and its own sound effects. Nothing here is
  * ever waited on, nothing returns a promise, and no state the game needs lives behind a voice.
  *
- * Two details matter for a child:
- *  - the sounds are spoken slower than the word. A word said at reading speed and then taken
- *    apart at the same speed is not taken apart at all;
- *  - anything new cancels whatever was still being said. A child who taps four tiles in a row
- *    should hear the fourth one, not a queue of the first three.
+ * It says whole words and nothing smaller. It used to say each sound on its own as well ("mmm",
+ * "ah"), and a speech voice handed a loose sound guesses; the owner heard them come out wrong and
+ * decided the complete word is the only right thing to say. Anything new cancels whatever was
+ * still being said, so a child who taps four times hears the fourth.
  */
 
 import { save } from '../../util/storage';
 import { noteMiss, recorded, sayRecorded, stopSpeaking as stopRecorded } from '../../platform/voice';
-import { sayOf } from './phonics';
 
 type Voices = SpeechSynthesisVoice[];
 
@@ -110,24 +108,3 @@ export function stopSpeaking(): void {
 /** The whole word, at the speed somebody would actually say it. */
 export const sayWord = (word: string): void => say(word, 0.85);
 
-/** One sound, slowly, and a little higher so it does not sound like a word. */
-export const saySound = (unit: string, queue = false): void => say(sayOf(unit), 0.7, 1.08, queue);
-
-/**
- * The word, and then the word in pieces: *maan*, /m/ /aa/ /n/.
- *
- * That order is the method. The whole word first, so a child knows what they are aiming at, then
- * the sounds one at a time and slower, so they can hear what it is made of. A sentence is read
- * straight through and then word by word, which is the same idea one floor up.
- */
-export function sayWordAndParts(word: string, parts: string[], asWords = false): void {
-  // the whole run from recordings when every piece has one, so it is never two voices taking turns
-  if (on() && sayRecorded([word, ...parts.map(p => (asWords ? p : sayOf(p)))])) return;
-  noteMiss([word, ...parts].join(' / '));
-  stopSpeaking();
-  speakDevice(word, asWords ? 0.8 : 0.85, 1, false);
-  for (const p of parts) {
-    if (asWords) speakDevice(p, 0.75, 1, true);
-    else speakDevice(sayOf(p), 0.7, 1.08, true);
-  }
-}

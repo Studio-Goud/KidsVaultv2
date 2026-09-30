@@ -739,3 +739,20 @@ tientallen met "en" en een trema na twee en drie, 1100 tot 9999 in honderdtallen
 zegt, een komma als "komma", een prijs in euro's, een tijd als "dertien uur dertig", en eenheden als
 km en m/s voluit. Alle 116 Nederlandse zinnen met een getal zijn opnieuw ingesproken en daarna
 beluisterd: ze kloppen allemaal. Op de koop toe stond in Moonshot "1 rijen hoog", nu "1 rij hoog".
+
+## 2026-09-30 — Het Letterbos zegt alleen hele woorden
+
+De eigenaar beluisterde de uitgeknipte klanken en besliste: haal de losse klanken eruit en gebruik
+alleen het complete woord, dat is het enige juiste. Het Letterbos zegt nu bij elke vraag, elke tegel
+die niet past, elk vakje en elke hulp het hele woord, en een zinnetje als geheel. De knop "Klank voor
+klank" is weg; "Hoor het woord" staat alleen. De hints die hardop worden gezegd noemen geen losse
+klanken meer ("de aa van maan" werd "zoals in maan"), en de ladder zegt "verander één letter".
+Losse klanken worden ook niet meer opgenomen (`voice.mjs`). Wat op het scherm als tekst staat bij een
+fout ("ei en ij klinken hetzelfde") blijft: dat wordt gelezen, niet gezegd.
+
+Dit laat een deel van de oorspronkelijke methode los (eerst het woord, dan klank voor klank). Dat is
+een keuze van de eigenaar, en een betere dan klanken die niet kloppen. De tekst van het Letterbos in
+de catalogus beloofde "hoor het woord, hoor de klanken"; die is mee aangepast.
+
+Nagekeken: tsc, 1511 tests, audit van het Letterbos zonder fouten, en in een browser vijf niveaus
+gespeeld terwijl alles wat werd gezegd werd opgeschreven: alleen hele woorden en de hints.

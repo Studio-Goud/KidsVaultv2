@@ -65,7 +65,7 @@ Alles hieronder is nagelopen, niet aangenomen.
 | 5 | Nachtwacht | 3-10 | sterrenbeeld onthouden en terugtekenen |
 | 6 | Dierenboek | 3-10 | 3744 echte dieren met echte foto's |
 | 7 | Watermolen | 4-9 | geulen graven, water zoekt zijn weg |
-| 8 | Letterbos | 4-7 | woorden bouwen uit klanken |
+| 8 | Letterbos | 4-7 | woorden bouwen letter voor letter, alleen hele woorden hardop |
 | 9 | Het jaar rond | 4-8 | dagen, maanden, seizoenen, dag en nacht, in een levend landschap |
 | 10 | Suri en de reuzentand | 4-10 | verhaalreis: 360 graden, van opa's kist tot de T. rex |
 | 11 | Suri en het lichtje in de diepte | 4-10 | verhaalreis: met de duikboot van het rif tot de hengelaarsvis |

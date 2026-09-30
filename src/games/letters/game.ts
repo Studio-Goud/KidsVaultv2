@@ -30,7 +30,7 @@ import {
   bleedEdges, breathe, chunkyButton, drawStar, easeOutBack, glassPanel, handCursor,
   heading, Particles, Shake, vignette,
 } from '../../render/look';
-import { exampleLine, isVowelUnit, spellingName } from './phonics';
+import { isVowelUnit, spellingName } from './phonics';
 import {
   firstEmpty, isSolved, LEVELS, makeQuestion, rngFor, sayLabel, starsFor, teachElsewhere,
   teachFor, tileFits,
@@ -42,7 +42,7 @@ import {
 } from './photos';
 import { drawFrame, drawSlot, drawTile, drawWood, INK } from './paint';
 import { lettersfx } from './lettersfx';
-import { hasVoice, initVoice, say, saySound, sayWord, sayWordAndParts, stopSpeaking } from './speech';
+import { hasVoice, initVoice, say, sayWord, stopSpeaking } from './speech';
 import { speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
@@ -395,9 +395,15 @@ export class Letters {
     this.speakQuestion();
   }
 
-  /** The word, and then the word in pieces. That order is the method. */
+  /**
+   * The question, out loud: the whole word, and nothing but the whole word.
+   *
+   * It used to be the word and then each sound on its own ("maan, mmm, aa, nnn"). The owner heard
+   * those loose sounds come out wrong - a speech voice handed "mmm" or "ah" guesses - and decided
+   * the only right thing to say is the complete word. So a sentence is read whole too.
+   */
   private speakQuestion(): void {
-    sayWordAndParts(this.q.word, this.q.parts, this.q.kind === 'sentence');
+    this.speakWhole();
   }
 
   /** What the picture says when it is tapped, which is always the whole thing at speaking speed. */
@@ -415,7 +421,6 @@ export class Letters {
       this.glowSlot = -1;
       this.badSlot = -1;
       lettersfx.land();
-      saySound(tile.unit);
       const r = this.layout().slots[slot];
       if (r) this.ps.spawn('dust', r.x + r.w / 2, r.y + r.h, 6, { colour: '#e8dfc8', speed: 90, size: 5, max: 0.5 });
       if (isSolved(this.q, this.filled)) this.onSolved();
@@ -448,9 +453,9 @@ export class Letters {
     this.teach = elsewhere ? teachElsewhere(unit, NL()) : teachFor(this.q, slot, unit, NL());
     this.teachT = TEACH_FOR;
     const want = elsewhere ? unit : this.q.parts[slot];
+    // the correction is on screen; what is heard is the word it belongs to, whole
     stopSpeaking();
-    saySound(want);
-    if (want) say(exampleLine(want, NL()), 0.75, 1, true);
+    this.speakWhole();
     if (this.wrongHere >= HELP_AFTER) this.helpOut();
   }
 
@@ -473,7 +478,7 @@ export class Letters {
     const r = this.layout().slots[slot];
     if (r) this.ps.spawn('spark', r.x + r.w / 2, r.y + r.h / 2, 8, { colour: '#ffd873', speed: 150, size: 6, max: 0.6 });
     if (isSolved(this.q, this.filled)) this.onSolved();
-    else { stopSpeaking(); saySound(want); say(this.q.word, 0.75, 1, true); }
+    else { stopSpeaking(); this.speakWhole(); }
   }
 
   private onSolved(): void {
@@ -556,7 +561,6 @@ export class Letters {
       this.picked = id;
       this.held = { id, x: p.x, y: p.y, dx: p.x - (tile.r.x + tile.r.w / 2), dy: p.y - (tile.r.y + tile.r.h / 2), moved: false };
       lettersfx.lift();
-      saySound(tile.unit);
       return;
     }
     this.press(hit);
@@ -581,18 +585,17 @@ export class Letters {
       return;
     }
     if (id === 'frame' || id === 'say') { lettersfx.tap(); this.speakWhole(); return; }
-    if (id === 'sounds') { lettersfx.tap(); this.speakQuestion(); return; }
     if (id === 'go') { if (this.solved) this.advance(); return; }
     if (id.startsWith('slot:')) {
       const i = Number(id.slice(5));
       const has = this.filled[i];
-      if (has) { saySound(has); return; }
+      if (has) { this.speakWhole(); return; }
       if (this.picked >= 0) {
         const tile = this.rack.find(x => x.id === this.picked && !x.used);
         if (tile) this.place(i, tile);
       } else {
-        // an empty slot still says what it is waiting for, which is the whole point of a slot
-        saySound(this.q.parts[i]);
+        // an empty slot says the word it belongs to
+        this.speakWhole();
       }
       return;
     }
@@ -608,8 +611,6 @@ export class Letters {
       this.cuts.push(at);
       this.cuts.sort((a, b) => a - b);
       lettersfx.chop();
-      const idx = gaps.indexOf(at);
-      saySound(this.q.parts[idx]);
       if (this.cuts.length === gaps.length) this.onSolved();
       return;
     }
@@ -626,7 +627,7 @@ export class Letters {
       : `${unit} belongs together: that is one sound.`;
     this.teachT = TEACH_FOR;
     stopSpeaking();
-    saySound(unit);
+    this.speakWhole();
     if (this.wrongHere >= HELP_AFTER) {
       const missing = gaps.find(gp => !this.cuts.includes(gp));
       if (missing != null) {
@@ -969,13 +970,12 @@ export class Letters {
     ctx.restore();
   }
 
-  /** The two buttons that are always there while a word is open: say it, and say the sounds. */
+  /** The one button that is always there while a word is open: hear the word again. */
   private drawHelpRow(b: Rect): void {
     const u = this.u();
-    const bw = Math.min(150 * u, (b.w - 12 * u) / 2), bh = Math.min(b.h - 6 * u, 42 * u);
+    const bw = Math.min(180 * u, b.w - 12 * u), bh = Math.min(b.h - 6 * u, 42 * u);
     const y = b.y + (b.h - bh) / 2;
-    this.button('say', t('lettersListen'), b.x + b.w / 2 - bw - 6 * u, y, bw, bh, '#fffdf4', '#2f6d94');
-    this.button('sounds', t('lettersSoundBySound'), b.x + b.w / 2 + 6 * u, y, bw, bh, '#fffdf4', '#2f6d94');
+    this.button('say', t('lettersListen'), b.x + (b.w - bw) / 2, y, bw, bh, '#fffdf4', '#2f6d94');
   }
 
   private wrapText(text: string, cx: number, cy: number, maxW: number, lh: number, maxLines: number): void {
