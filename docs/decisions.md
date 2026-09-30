@@ -728,3 +728,14 @@ seconde zonder dat ze lager worden. Die staan nog niet in de app: de eigenaar lu
 
 Nagekeken: 1511 tests, de nieuwe opnamen decoderen en spelen in een browser, en de controle na het
 herstel is hierboven. Niet nagekeken: met eigen oren, want die heb ik niet.
+
+## 2026-09-30 — Getallen voluit voor Ruth
+
+Dezelfde luistercontrole over de lange zinnen vond een tweede soort fout: getallen. "228 miljoen"
+kwam eruit als tweeëntwintig miljoen, "375 miljoen jaar" als drieënvijftig, en een decimaalkomma nu
+en dan als pauze. De spraakmotor gokt bij cijfers met Nederlandse scheidingstekens. `voice.mjs` schrijft
+nu elk getal voluit in het Nederlands voordat Ruth het leest (`scripts/nlnumbers.mjs`): eenheden en
+tientallen met "en" en een trema na twee en drie, 1100 tot 9999 in honderdtallen zoals je een jaartal
+zegt, een komma als "komma", een prijs in euro's, een tijd als "dertien uur dertig", en eenheden als
+km en m/s voluit. Alle 116 Nederlandse zinnen met een getal zijn opnieuw ingesproken en daarna
+beluisterd: ze kloppen allemaal. Op de koop toe stond in Moonshot "1 rijen hoog", nu "1 rij hoog".

@@ -22,6 +22,7 @@
  */
 
 import ts from 'typescript';
+import { nlNumbers } from './nlnumbers.mjs';
 import { build } from 'esbuild';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -193,11 +194,12 @@ function harvest(extra = []) {
  * What the voice is actually given to read. The line is still filed under its own words; only the
  * reading changes, because "m/s" read letter by letter is not what anybody would say to a child.
  */
-const readable = text => (LANG === 'nl' ? text
+const readable = text => (LANG === 'nl' ? nlNumbers(text
   .replace(/(\d)\s*m\/s\b/g, '$1 meter per seconde')
   .replace(/(\d)\s*km\/s\b/g, '$1 kilometer per seconde')
   .replace(/(\d)\s*km\/[hu]\b/g, '$1 kilometer per uur')
-  .replace(/(\d)\s*×/g, '$1 keer') : text
+  .replace(/\bkm\b(?!\/)/g, 'kilometer')
+  .replace(/(\d)\s*×/g, '$1 keer')) : text
   .replace(/(\d)\s*m\/s\b/g, '$1 metres per second')
   .replace(/(\d)\s*km\/s\b/g, '$1 kilometres per second')
   .replace(/(\d)\s*km\/h\b/g, '$1 kilometres per hour')

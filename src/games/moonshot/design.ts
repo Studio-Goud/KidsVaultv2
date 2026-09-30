@@ -276,8 +276,8 @@ export const PARTS: Part[] = [
   P({
     id: 'tank-t1', kind: 'tank', group: 'tank', name: 'Thin tank 1', nameNl: 'Smalle tank 1',
     rows: 1, w: 0.62, fuel: 1.06, dry: 0.09,
-    note: '1.06 tonnes of fuel, 1 rows tall.',
-    noteNl: '1,06 ton brandstof, 1 rijen hoog.',
+    note: '1.06 tonnes of fuel, 1 row tall.',
+    noteNl: '1,06 ton brandstof, 1 rij hoog.',
   }),
   P({
     id: 'tank-t2', kind: 'tank', group: 'tank', name: 'Thin tank 2', nameNl: 'Smalle tank 2',
@@ -300,8 +300,8 @@ export const PARTS: Part[] = [
   P({
     id: 'tank-xs', kind: 'tank', group: 'tank', name: 'Tiny tank', nameNl: 'Minitank',
     rows: 1, w: 1, fuel: 2.75, dry: 0.16,
-    note: '2.75 tonnes of fuel, 1 rows tall.',
-    noteNl: '2,75 ton brandstof, 1 rijen hoog.',
+    note: '2.75 tonnes of fuel, 1 row tall.',
+    noteNl: '2,75 ton brandstof, 1 rij hoog.',
   }),
   P({
     id: 'tank-s', kind: 'tank', group: 'tank', name: 'Small tank', nameNl: 'Kleine tank',
