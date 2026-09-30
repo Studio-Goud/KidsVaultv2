@@ -1,7 +1,7 @@
 import { save } from './storage';
 import { withSamples } from '../platform/samples';
 import { radioKey, radioWords } from '../platform/voicekey';
-import { noteMiss } from '../platform/voice';
+import { clearNowPlaying, noteMiss, stopSpeaking } from '../platform/voice';
 import { feel } from '../platform/feel';
 
 /**
@@ -35,6 +35,28 @@ if (typeof document !== 'undefined') {
   for (const ev of ['touchend', 'click', 'keydown'] as const) {
     document.addEventListener(ev, () => unlockAudio(), { capture: true, passive: true });
   }
+}
+
+/**
+ * Leaving the page silences it.
+ *
+ * Declaring the audio as "playback" (above) has a second effect: iOS lets it go on playing after
+ * Safari is in the background or the phone is locked, the way music does. For a children's app that
+ * is wrong on every count - the owner found a story still talking with Suri closed, and its line in
+ * the lock screen's media panel. So the moment the page is hidden, or left, Ruth stops, the whole
+ * sound engine is suspended (every effect and background with it), and the media panel is cleared.
+ * Coming back, the first touch wakes it again (`unlockAudio`), and each game starts its background
+ * afresh as it always does.
+ */
+function hush(): void {
+  try { stopSpeaking(); } catch { /* nothing speaking */ }
+  if (ctx && ctx.state === 'running') void ctx.suspend().catch(() => { /* already stopped */ });
+  clearNowPlaying();
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hush(); });
+  window.addEventListener('pagehide', hush);
+  window.addEventListener('blur', () => { if (document.hidden) hush(); });
 }
 
 export function unlockAudio(): void {

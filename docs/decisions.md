@@ -662,3 +662,25 @@ maar in een buis of een grot zit.
 Nagekeken: tsc, 1511 tests (vijftien nieuwe), audit zonder fouten, en het hele verhaal gereden in een
 browser, liggend en staand, ook één keer met Ruths stem erbij. Ruth heeft alle zinnen ingesproken, in
 beide talen, en de zestien geluiden (`buikpijn.*`) zijn opgenomen. Ik hoor de geluiden zelf niet.
+
+## 2026-09-30 — Weg uit Suri is stil
+
+De eigenaar zag een verhaal doorpraten nadat Suri al dicht was, met "Suri en het lichtje in de
+diepte" in het mediapaneel van het vergrendelscherm; een tik daarop opende Safari op een heel andere
+site. Twee oorzaken. Ruths stem speelt via een `<audio>`-element, en iOS zet elk zo'n element in dat
+paneel, met de titel en het icoon van de pagina, ook gepauzeerd. En sinds de stille-knopfix staat de
+audio van de pagina op "playback", en dat is precies wat iOS toestaat om op de achtergrond door te
+spelen. Een tik op het paneel opent Safari, niet Suri: Safari laat dan het tabblad zien dat toevallig
+vooraan staat.
+
+Nu laat elke opname, als hij af is of wordt afgebroken, zijn bron los (`release()` in `voice.ts`),
+zodat hij niet in het paneel blijft hangen, en het paneel hoort dat er niets speelt. En zodra de
+pagina verborgen wordt of wordt verlaten, stopt Ruth, wordt de hele geluidsmotor stilgezet (alle
+effecten en achtergronden) en wordt het paneel leeggemaakt (`hush()` in `audio.ts`). De eerste tik bij
+terugkomst zet het geluid weer aan. "Playback" blijft, omdat de stille knop anders de effecten weer
+dempt en Ruth niet.
+
+Nagekeken: tsc, 1511 tests, audit zonder fouten voor het lichtje en de satelliet, en in een browser:
+na het verbergen van de pagina staat de geluidsmotor stil en het mediapaneel op "niets", na een tik
+loopt hij weer. Niet nagekeken: een echte iPhone. Chromium speelt hier geen mp3, dus het loslaten van
+Ruths opnamen is gelezen en niet gehoord.

@@ -2,7 +2,8 @@
 
 Status: klaar om te uploaden, op één beslissing en drie handelingen na die alleen de eigenaar kan
 doen (zie "Wat nog van jou is"). Het pakket bouwt, ondertekend, en is hier uit elkaar gehaald om te
-zien wat erin zit. Het heeft nog op geen echte telefoon gedraaid.
+zien wat erin zit. De teksten, de banner en de schermafbeeldingen liggen klaar. Het heeft nog op geen
+echte telefoon gedraaid.
 
 ## Wat er klaarligt
 
@@ -181,12 +182,19 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 
 ### Afbeeldingen
 
-In `docs/store/`, gemaakt uit de echte app in een browser (niet nagetekend):
+In `docs/store/`, gemaakt uit de echte app in een browser, in het Nederlands (niet nagetekend):
 
 - `icon-512.png`: het app-icoon, 512 × 512 (hetzelfde als `public/icons/icon-512.png`).
-- `feature-graphic.png`: de banner, 1024 × 500.
-- `phone-*.png`: acht schermafbeeldingen, liggend, 1920 × 1080.
+- `feature-graphic.png`: de banner, 1024 × 500: Suri, de naam, één regel, en drie van de
+  schermafbeeldingen hieronder.
+- `phone-*.png`: acht schermafbeeldingen, liggend, 1920 × 1080, in deze volgorde: de voorpagina,
+  de ringen van Saturnus, de bacteriën in de darm, de hengelaarsvis, de splitsing naar de
+  chimpansees, de maanlander, de witte bloedcellen, de triceratops.
 - `tablet-*.png`: vier schermafbeeldingen, 2048 × 1536, voor tablets.
+
+Ze zijn gemaakt met een script in de kladruimte dat elk verhaal naar het goede moment stuurt via de
+debug-handvatten (`__satelliet`, `__buikpijn`, …). Verandert een scherm, maak ze dan opnieuw; een
+schermafbeelding die niet meer klopt met de app is precies wat Play afkeurt.
 
 ## De formulieren in de Play Console
 
