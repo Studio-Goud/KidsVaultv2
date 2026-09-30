@@ -42,7 +42,7 @@ const S: Array<Omit<Stop, 'at'>> = [
     id: 'venus', title: 'Venus', titleNl: 'Venus', tone: '#d8b071', mark: 108,
     picture: { kind: 'planet', id: 'venus' },
     say: 'Venus is the same size as the earth, wrapped in thick cloud.',
-    sayNl: 'Venus is even groot als de aarde, maar hij zit in dikke wolken.',
+    sayNl: 'Venus is bijna even groot als de aarde, en zit verstopt in dikke wolken.',
     more: [
       { say: 'It is hotter than Mercury, because the cloud holds the warmth in.',
         sayNl: 'Het is er heter dan op Mercurius, want de wolken houden de warmte vast.' },
@@ -54,12 +54,12 @@ const S: Array<Omit<Stop, 'at'>> = [
     id: 'earth', title: 'Earth', titleNl: 'De Aarde', tone: '#3f7fb5', mark: 150,
     picture: { kind: 'planet', id: 'earth' },
     say: 'This is the earth. The only place we know of where anything lives.',
-    sayNl: 'Dit is de aarde. De enige plek waar we leven kennen.',
+    sayNl: 'Dit is de aarde. De enige plek waarvan we weten dat er leven is.',
     more: [
       { say: 'Almost three quarters of it is water.',
         sayNl: 'Bijna driekwart van de aarde is water.' },
       { say: 'The moon goes round us, and it is what pulls the tide up the beach.',
-        sayNl: 'De maan draait om ons heen, en die trekt het water van eb en vloed.' },
+        sayNl: 'De maan draait om ons heen, en zorgt voor eb en vloed.' },
     ],
   },
   {
@@ -69,7 +69,7 @@ const S: Array<Omit<Stop, 'at'>> = [
     sayNl: 'Mars is rood van het roest in zijn zand.',
     more: [
       { say: 'The tallest mountain anywhere stands on Mars: three times the height of Everest.',
-        sayNl: 'De hoogste berg van het zonnestelsel staat op Mars: drie keer zo hoog als de Mount Everest.' },
+        sayNl: 'De hoogste berg van het zonnestelsel staat op Mars: bijna drie keer zo hoog als de Mount Everest.' },
       { say: 'Robots are driving about up there, taking photographs.',
         sayNl: "Er rijden robots rond die foto's maken." },
     ],
@@ -105,7 +105,7 @@ const S: Array<Omit<Stop, 'at'>> = [
     sayNl: 'Saturnus draagt ringen van ijs en steen.',
     more: [
       { say: 'The rings are enormously wide and thinner than a sheet of paper.',
-        sayNl: 'De ringen zijn enorm breed en dunner dan een vel papier.' },
+        sayNl: 'De ringen zijn enorm breed, en naar verhouding dunner dan een vel papier.' },
       { say: 'Saturn is so light for its size that it would float, if you had a bath big enough.',
         sayNl: 'Saturnus is zo licht voor zijn maat dat hij zou blijven drijven, als je een bad had dat groot genoeg was.' },
     ],
@@ -126,10 +126,10 @@ const S: Array<Omit<Stop, 'at'>> = [
     id: 'neptune', title: 'Neptune', titleNl: 'Neptunus', tone: '#3a5ea8', mark: 4515,
     picture: { kind: 'planet', id: 'neptune' },
     say: 'Neptune is the furthest planet. The hardest winds anywhere blow there.',
-    sayNl: 'Neptunus is de verste planeet. Daar waait de hardste wind van allemaal.',
+    sayNl: 'Neptunus is de verste planeet. Daar waait de hardste wind van alle planeten.',
     more: [
       { say: 'The sunlight is so weak out here that it is always dusk.',
-        sayNl: 'Het zonlicht is hier zo zwak dat het er altijd schemer is.' },
+        sayNl: 'Het zonlicht is hier zo zwak dat het er altijd schemerig is.' },
       { say: 'Neptune was worked out with a pencil before anyone had seen it.',
         sayNl: 'Neptunus werd eerst uitgerekend en pas daarna gezien.' },
     ],
@@ -154,7 +154,7 @@ export const SOLAR: Journey = {
   opening: 'Strap in. We are going all the way out, and we stop at everything.',
   openingNl: 'Riem vast. We gaan helemaal naar buiten, en we stoppen overal.',
   closing: 'That is the whole of it. Everything you know is on one of those.',
-  closingNl: 'Dat was hem. Alles wat je kent staat op een van die bollen.',
+  closingNl: 'Dat was het. Alles wat je kent staat op een van die bollen.',
   craft: 'rocket', axis: 'up',
   unit: 'million km', unitNl: 'miljoen km',
   stops: S.map((s, i) => ({ ...s, at: at(i, S.length) })),

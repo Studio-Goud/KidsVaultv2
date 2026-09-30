@@ -239,11 +239,14 @@ function overview(): void {
     promisePanel(),
     subscriptionPanel(),
     feelPanel(),
+    langPanel(),
     panel(T('The code', 'De code'),
       el('p', 'note quiet', T(
         'A code stops the everyday thing: a child wandering in here and turning off their own time limit. It is not a safe. A determined ten-year-old on a desktop computer can get past it.',
         'Een code houdt het alledaagse tegen: een kind dat hier binnenloopt en zijn eigen tijdslimiet uitzet. Het is geen kluis. Een vastberaden tienjarige op een computer komt erlangs.')),
-      button(T('Change the code', 'Code wijzigen'), 'secondary', () => { writeGate({ code: '', wrong: 0, until: 0 }); chooseCode(); })),
+      // the old code stays until the new one is chosen: wiping it first left the door open to
+      // whoever picked up the phone next
+      button(T('Change the code', 'Code wijzigen'), 'secondary', () => chooseCode())),
     faqLink(overview),
     homeLink(),
   );
@@ -271,6 +274,27 @@ function feelPanel(): HTMLElement {
     el('p', 'note quiet', T(
       'A short tap you can feel on buttons, right answers and finished games. On an iPhone in the browser it only works while a finger is on the screen; in the app it always does.',
       'Een kort tikje dat je voelt bij knoppen, goede antwoorden en afgemaakte spelletjes. Op een iPhone in de browser werkt het alleen zolang er een vinger op het scherm is; in de app altijd.')));
+}
+
+/**
+ * The language, for the whole app. The only switch used to sit inside Cloudhopper's own settings,
+ * where no parent looks; a Dutch family with an English phone got English and could not find why.
+ */
+function langPanel(): HTMLElement {
+  const row = el('div', 'line');
+  const label = el('label');
+  label.textContent = T('Language', 'Taal');
+  const sel = el('select') as HTMLSelectElement;
+  sel.id = 'lang';
+  for (const [v, en, nl] of [['auto', 'Same as the phone', 'Zoals de telefoon'], ['nl', 'Nederlands', 'Nederlands'], ['en', 'English', 'English']] as Array<[string, string, string]>) {
+    const o = el('option') as HTMLOptionElement;
+    o.value = v; o.textContent = T(en, nl); o.selected = save.lang === v;
+    sel.appendChild(o);
+  }
+  sel.addEventListener('change', () => { save.lang = sel.value as 'auto' | 'nl' | 'en'; persist(); location.reload(); });
+  row.append(label, sel);
+  return panel(T('Language', 'Taal'), row,
+    el('p', 'note quiet', T('Everything Suri says and shows, in one language. Ruth speaks both.', 'Alles wat Suri zegt en laat zien, in één taal. Ruth spreekt ze allebei.')));
 }
 
 function addChild(): void {
@@ -376,8 +400,8 @@ function childScreen(id: string): void {
       el('p', 'note quiet', advice),
       warnLine,
       el('p', 'note quiet', T(
-        'Off is the researched setting. A warning before the end was found to make the handover harder, not easier; a last game that finishes properly works better.',
-        'Uit is de onderzochte stand. Een waarschuwing vooraf bleek het overgeven juist moeilijker te maken; een laatste spelletje dat netjes afloopt werkt beter.'))),
+        'Off is the researched setting (Hiniker and others, CHI 2016): a warning before the end made the handover harder, not easier; a last game that finishes properly works better. On, Suri says "two more minutes" once, out loud.',
+        'Uit is de onderzochte stand (Hiniker e.a., CHI 2016): een waarschuwing vooraf bleek het stoppen juist moeilijker te maken; een laatste spelletje dat netjes afloopt werkt beter. Aan betekent dat Suri één keer hardop "nog twee minuten" zegt.'))),
     panel(T('What is on offer', 'Wat er te doen is'),
       el('p', 'note', T(
         'Nothing chosen means everything. Choose one or more and the rest is put away.',
@@ -396,8 +420,10 @@ function childScreen(id: string): void {
         save.family.playing = id; persist(); overview();
       }),
       button(T('Remove this child', 'Dit kind verwijderen'), 'quiet', () => {
-        writeChildren(list.filter(x => x.id !== id));
-        if (save.family.playing === id) { save.family.playing = ''; persist(); }
+        const rest = list.filter(x => x.id !== id);
+        writeChildren(rest);
+        // the next child takes over, so the limit and the shelf do not silently switch off
+        if (save.family.playing === id) { save.family.playing = rest[0]?.id ?? ''; persist(); }
         overview();
       })),
     button(T('Back', 'Terug'), 'secondary', () => overview()),

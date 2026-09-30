@@ -11,7 +11,7 @@ import { NL, T } from '../util/lang';
 import { shelf, type Entry } from '../platform/catalog';
 import { lastGoNow, startClock } from '../platform/clock';
 import { drawGuide } from '../platform/guide';
-import { loadVoice } from '../platform/voice';
+import { loadVoice, speakLine } from '../platform/voice';
 import { playingChild, yearsNow } from '../platform/who';
 import { soundThenGo } from './homebtn';
 
@@ -194,9 +194,10 @@ root.appendChild(card0);
 if (lastGoNow()) {
   const say = document.createElement('div');
   say.className = 'card lastgo';
-  say.innerHTML = `<canvas width="120" height="120"></canvas><p>${T(
-    'This is your last one today. Pick a good one!',
-    'Dit wordt je laatste spelletje van vandaag. Kies maar een leuke!')}</p>`;
+  const line = T('This is your last one today. Pick a good one.', 'Dit wordt je laatste spelletje van vandaag. Kies maar een leuke.');
+  say.innerHTML = `<canvas width="120" height="120"></canvas><p>${line}</p>`;
+  // rule 6: said, not only written; the first tap on the page lets it through
+  speakLine(line);
   root.insertBefore(say, root.firstChild?.nextSibling ?? null);
   const c = say.querySelector('canvas') as HTMLCanvasElement;
   const ctx = c.getContext('2d');

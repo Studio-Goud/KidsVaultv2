@@ -20,7 +20,7 @@ document leeg is en er een naam onder staat.
 
 ## A. Wat elk onderdeel zegt te oefenen
 
-Bron: het veld `practises` per rij in `src/platform/catalog.ts`. Tweeëntwintig rijen, elk één zin.
+Bron: het veld `practises` per rij in `src/platform/catalog.ts`. Zesentwintig rijen, elk één zin.
 
 Wat een pedagoog zou moeten nakijken, per rij:
 

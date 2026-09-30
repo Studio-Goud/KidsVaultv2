@@ -152,7 +152,7 @@ export const STOPS: Stop[] = [
     name: { en: 'The first cells', nl: 'De eerste cellen' }, scene: 'vent', early: 'cell', act: 'divide',
     lines: [
       { say: 'Long, long ago there were no animals and no plants. Only water, rock, and warm springs deep in the sea.',
-        sayNl: 'Heel, heel lang geleden waren er nog geen dieren en geen planten. Alleen water, stenen, en warme bronnen diep in de zee.' },
+        sayNl: 'Heel, heel lang geleden waren er nog geen dieren en geen planten. Alleen water en steen. Misschien begon het leven bij warme bronnen diep in de zee.' },
       { say: 'And then there was something new: a cell. Tinier than a grain of sand, but alive.',
         sayNl: 'En toen was er iets nieuws: een cel. Kleiner dan een zandkorrel, maar levend.' },
       { say: 'A cell can split in two. Tap it, and see.',
@@ -212,7 +212,7 @@ export const STOPS: Stop[] = [
       { say: 'This is Tiktaalik. It lived in shallow water and could push itself up on its fins.',
         sayNl: 'Dit is Tiktaalik. Hij leefde in ondiep water en kon zich opdrukken op zijn vinnen.' },
       { say: 'Look inside its fin with the X-ray.',
-        sayNl: 'Kijk met de röntgen eens in zijn vin.' },
+        sayNl: 'Kijk met de röntgenknop eens in zijn vin.' },
       { say: 'One bone, then two bones, then little bones. Just like in your arm: upper arm, lower arm, hand.',
         sayNl: 'Eén bot, dan twee botten, dan kleine botjes. Net als in jouw arm: bovenarm, onderarm, hand.' },
     ],
@@ -236,7 +236,7 @@ export const STOPS: Stop[] = [
     wait: 1,
     lines: [
       { say: 'Frogs still have to lay their eggs in water. These animals laid eggs with a shell, on land.',
-        sayNl: 'Kikkers moeten hun eitjes nog in het water leggen. Deze dieren legden eieren met een schaal, op het land.' },
+        sayNl: 'De meeste kikkers moeten hun eitjes nog in het water leggen. Deze dieren legden eieren met een schaal, op het land.' },
       { say: 'Tap the egg.',
         sayNl: 'Tik op het ei.' },
       { say: 'Now they could live far from the water, in the great forests of ferns.',
@@ -278,7 +278,7 @@ export const STOPS: Stop[] = [
     name: { en: 'An ape', nl: 'Een aap zonder staart' }, scene: 'forest', body: APE, act: 'tail', show: 'tail',
     lines: [
       { say: 'Proconsul was an ape. And look: no tail any more.',
-        sayNl: 'Proconsul was een mensaap. En kijk: geen staart meer.' },
+        sayNl: 'Proconsul was een aap zonder staart. Kijk maar: geen staart meer.' },
       { say: 'You have no tail either. But feel the bottom of your back: there is a little tailbone left.',
         sayNl: 'Jij hebt ook geen staart. Maar voel eens onderaan je rug: daar zit nog een klein staartbotje.' },
     ],
@@ -290,7 +290,7 @@ export const STOPS: Stop[] = [
       { say: 'Here the family went two ways. One way led to the chimpanzees. The other way led to us.',
         sayNl: 'Hier ging de familie twee kanten op. De ene kant werd de chimpansees. De andere kant werden wij.' },
       { say: 'So a chimpanzee is not our grandfather. It is our cousin: we share the same great-great-grandparents.',
-        sayNl: 'Een chimpansee is dus niet onze opa. Het is onze neef: we hebben dezelfde betovergrootouders.' },
+        sayNl: 'Een chimpansee is dus niet onze opa. Het is onze neef: we hebben dezelfde voorouders, heel, heel lang geleden.' },
     ],
   },
   {
@@ -320,7 +320,7 @@ export const STOPS: Stop[] = [
       { say: 'Homo erectus had long legs, like yours, and walked all the way out of Africa.',
         sayNl: 'Homo erectus had lange benen, net als jij, en liep helemaal Afrika uit.' },
       { say: 'Later they used fire, to keep warm and to cook. Tap to make a fire.',
-        sayNl: 'Later gebruikten ze vuur, om warm te blijven en om te koken. Tik om een vuurtje te maken.' },
+        sayNl: 'Later gebruikten ze vuur, waarschijnlijk om warm te blijven en om te koken. Tik om een vuurtje te maken.' },
     ],
   },
   {
@@ -330,7 +330,7 @@ export const STOPS: Stop[] = [
       { say: 'And here we are: Homo sapiens. People like you. A round head, a big brain, and a chin.',
         sayNl: 'En hier zijn we: Homo sapiens. Mensen zoals jij. Een rond hoofd, een groot brein, en een kin.' },
       { say: 'Look with the X-ray at how big the brain has become since the little fish.',
-        sayNl: 'Kijk met de röntgen hoe groot het brein is geworden sinds dat visje.' },
+        sayNl: 'Kijk met de röntgenknop hoe groot het brein is geworden sinds dat visje.' },
     ],
   },
   {
@@ -350,7 +350,7 @@ export const STOPS: Stop[] = [
       { say: 'If all the time since the first cell were one day, people like us came only in the last seven seconds.',
         sayNl: 'Als alle tijd sinds de eerste cel één dag was, kwamen mensen zoals wij pas in de laatste zeven seconden.' },
       { say: 'Every animal on the way was the child of the one before. A tiny bit different, every time.',
-        sayNl: 'Elk dier onderweg was het kind van het dier ervoor. Elke keer een heel klein beetje anders.' },
+        sayNl: 'Elk dier onderweg was familie van het dier ervoor. Elke keer een heel klein beetje anders.' },
       { say: 'And it has not stopped. Living things are still changing, today. Even us.',
         sayNl: 'En het is niet gestopt. Alles wat leeft verandert nog steeds, ook vandaag. Zelfs wij.' },
     ],

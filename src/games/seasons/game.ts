@@ -615,7 +615,7 @@ export class Seasons {
     }
 
     if (this.fb === 'none' && this.noteT > 0) this.drawNote(L.band);
-    else if (this.fb === 'right') this.drawSaid(L.band, '#2f7a4c', T('Right!', 'Goed!'));
+    else if (this.fb === 'right') this.drawSaid(L.band, '#2f7a4c', T('Right.', 'Goed.'));
     else if (this.fb === 'wrong' && this.q) {
       const label = NL() ? this.q.options[this.q.answer].nl : this.q.options[this.q.answer].en;
       this.drawSaid(L.band, '#a5432a', label);
@@ -873,7 +873,7 @@ export class Seasons {
       this.hits.push({ id: `place:${dayIdx}`, x, y: ty, w: tw, h: th });
     });
 
-    if (this.fb === 'right') this.drawSaid(L.band, '#2f7a4c', T('That is right!', 'Dat klopt!'));
+    if (this.fb === 'right') this.drawSaid(L.band, '#2f7a4c', T('That is right.', 'Dat klopt.'));
     else if (this.noteT > 0) this.drawNote(L.band);
   }
 

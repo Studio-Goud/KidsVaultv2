@@ -640,7 +640,7 @@ export class Clock {
     if (q.kind === 'set') {
       // once it is wrong the check button has nothing left to check: the band carries the way on
       if (this.fb !== 'wrong') {
-        this.button('check', this.fb === 'right' ? T('Right!', 'Goed!') : T('Done', 'Klaar'),
+        this.button('check', this.fb === 'right' ? T('Right.', 'Goed.') : T('Done', 'Klaar'),
           L.check.x, L.check.y, L.check.w, L.check.h, '#4fae6e', '#ffffff');
       }
     } else if (q.kind === 'match') {

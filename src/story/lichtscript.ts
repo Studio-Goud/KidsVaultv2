@@ -85,7 +85,7 @@ export const CHAPTERS: Chapter[] = [
     id: 'twilight', title: 'The twilight zone', titleNl: 'De schemerzone',
     steps: [
       { say: 'Five hundred metres down. It is dim here, like just after sunset.',
-        sayNl: 'Vijfhonderd meter diep. Het is hier schemerig, zoals net na zonsondergang.' },
+        sayNl: 'Vijfhonderd meter diep. Het is hier heel schemerig, bijna donker.' },
       { say: 'Do you see the fish with little lights? They are lanternfish. They make their own light.',
         sayNl: 'Zie je die visjes met lichtjes? Dat zijn lantaarnvissen. Ze maken zelf licht.' },
       { say: 'But the light on the screen was all on its own. Tap the fish, and they will swim aside.',
@@ -125,7 +125,7 @@ export const CHAPTERS: Chapter[] = [
     id: 'angler', title: 'The light', titleNl: 'Het lichtje',
     steps: [
       { say: 'Quiet now. Look around. Can you see a light blinking somewhere?',
-        sayNl: 'Stil maar. Kijk eens om je heen. Zie je ergens een lichtje knipperen?' },
+        sayNl: 'Stil nu. Kijk eens om je heen. Zie je ergens een lichtje knipperen?' },
       { wait: 'found' },
       { say: 'There it is. Gently now. Switch the lamp on.',
         sayNl: 'Daar is het. Zachtjes nu. Doe de lamp aan.' },
@@ -136,7 +136,7 @@ export const CHAPTERS: Chapter[] = [
       { say: 'Small fish think it is something tasty. When they come close, she snaps them up.',
         sayNl: 'Kleine visjes denken dat het iets lekkers is. Komen ze dichtbij, dan hapt zij toe.' },
       { say: 'She is no bigger than a banana. Only the females have a light like this.',
-        sayNl: 'Ze is niet groter dan een banaan. Alleen de vrouwtjes hebben zo’n lichtje.' },
+        sayNl: 'Deze is niet groter dan een banaan. Alleen de vrouwtjes hebben zo’n lichtje.' },
       { say: 'So now we know where the light came from.',
         sayNl: 'Nu weten we waar het lichtje vandaan kwam.' },
     ],

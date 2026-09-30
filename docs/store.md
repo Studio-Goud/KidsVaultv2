@@ -12,6 +12,7 @@ echte telefoon gedraaid.
 | App-ID `com.studiogoud.suri`, naam Suri | `android/app/build.gradle`, `strings.xml`, `capacitor.config.ts` |
 | Versie: naam uit `package.json` (1.0.0), nummer per build | `android/app/build.gradle` |
 | Doel-API 36 (Android 16), minimaal API 23 (Android 6) | `android/variables.gradle` |
+| Geen back-up van het toestel naar de cloud (`allowBackup=false`): regel 1 | `AndroidManifest.xml` |
 | Opstartscherm met Suri in plaats van het Capacitor-logo | `scripts/icons.mjs`, `values/styles.xml` |
 | Ondertekenen met de uploadsleutel, zonder dat die in de repo staat | `android/app/build.gradle` |
 | Automatische build van het .aab | `.github/workflows/android.yml` |
@@ -40,8 +41,8 @@ boven en onder, en dat is een betere fout dan een knop onder de klok.
 **Het versienummer.** Play weigert een upload waarvan het nummer al eens gezien is. De Action geeft
 elke build `100 + runnummer`, dat alleen maar oploopt. Met de hand bouwen: `-PversionCode=…`.
 
-**De grootte.** Het pakket is ongeveer 110 MB, waarvan 111 MB onverpakt de stem (11.934 opnamen van
-Ruth, NL en EN) en 12 MB de geluiden. Dat past ruim onder de grens van Play (200 MB per download) en
+**De grootte.** Het pakket is ongeveer 113 MB, waarvan 114 MB onverpakt de stem (12.147 opnamen van
+Ruth, NL en EN) en 13 MB de geluiden. Dat past ruim onder de grens van Play (200 MB per download) en
 het is de prijs van rule 1: niets wordt achteraf opgehaald.
 
 ## Wat nog van jou is

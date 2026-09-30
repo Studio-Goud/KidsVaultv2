@@ -138,13 +138,32 @@ export function loadSave(): SaveData {
     const got = JSON.parse(raw) as Partial<SaveData>;
     // a save written before the village existed has no mill slice, and a half-written one may be
     // missing a field inside it, so it is filled in rather than trusted whole
+    // a value of the wrong type is not a value: `null` (which is what NaN becomes in JSON), a
+    // number where a list should be, a list where a record should be. Each such field goes back
+    // to its default instead of being handed to code that will call .includes on it.
+    const rec = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
+    const arr = <X>(x: unknown, fallback: X[]): X[] => (Array.isArray(x) ? x : fallback);
+    const fam = (rec(got.family) ? got.family : {}) as Record<string, unknown>;
+    const millRaw = (rec(got.mill) ? got.mill : {}) as Record<string, unknown>;
+    const anRaw = (rec(got.animals) ? got.animals : {}) as Record<string, unknown>;
     return {
       ...d, ...got,
-      family: { ...d.family, ...(got.family ?? {}) },
-      mill: { ...d.mill, ...(got.mill ?? {}) },
+      levels: rec(got.levels) ? got.levels : d.levels,
+      upgrades: rec(got.upgrades) ? got.upgrades : d.upgrades,
+      skills: rec(got.skills) ? got.skills : d.skills,
+      topics: rec(got.topics) ? got.topics : d.topics,
+      taught: arr(got.taught, d.taught).filter((x): x is string => typeof x === 'string'),
+      lang: got.lang === 'nl' || got.lang === 'en' ? got.lang : 'auto',
+      family: {
+        children: arr(fam.children, d.family.children),
+        used: (rec(fam.used) ? fam.used : d.family.used) as SaveData['family']['used'],
+        gate: (rec(fam.gate) ? { ...d.family.gate, ...fam.gate } : d.family.gate) as SaveData['family']['gate'],
+        playing: typeof fam.playing === 'string' ? fam.playing : '',
+      },
+      mill: { ...d.mill, ...millRaw, built: arr(millRaw.built, d.mill.built), paid: (rec(millRaw.paid) ? millRaw.paid : d.mill.paid) as SaveData['mill']['paid'] } as SaveData['mill'],
       moon: { ...d.moon, ...(got.moon ?? {}) },
       clock: { ...d.clock, ...(got.clock ?? {}) },
-      animals: { ...d.animals, ...(got.animals ?? {}) },
+      animals: { ...d.animals, ...anRaw, seen: arr(anRaw.seen, d.animals.seen) } as SaveData['animals'],
       atlas: { ...d.atlas, ...(got.atlas ?? {}) },
       numbers: { ...d.numbers, ...(got.numbers ?? {}) },
       letters: { ...d.letters, ...(got.letters ?? {}) },

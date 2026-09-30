@@ -108,7 +108,7 @@ const nl: Dict = {
   islandsMode: 'Eilanden',
   journey: 'De reis',
   youAreHere: 'Hier ben je',
-  buildHint: 'Je hebt genoeg munten! Tik op de groene knop om je luchthaven te verbouwen.',
+  buildHint: 'Je hebt genoeg munten. Tik op de groene knop om je luchthaven te verbouwen.',
   buildTitle: 'Bouw je luchthaven',
   chooseMode: 'Kies je kaart',
   cmdFaster: 'Sneller',
@@ -213,7 +213,7 @@ const nl: Dict = {
   rhythmFirstTime: 'in één keer goed',
   // Letterbos
   lettersTitle: 'Letterbos',
-  lettersTag: 'Hoor de klanken, en bouw het woord.',
+  lettersTag: 'Hoor het woord, en bouw het.',
   lettersLevels: 'Niveaus',
   lettersMakeWord: 'Maak het woord',
   lettersMakeSentence: 'Maak de zin',
@@ -504,7 +504,7 @@ const en: Dict = {
   rhythmFirstTime: 'right first time',
   // Letterbos
   lettersTitle: 'Letter Wood',
-  lettersTag: 'Hear the sounds, and build the word.',
+  lettersTag: 'Hear the word, and build it.',
   lettersLevels: 'Levels',
   lettersMakeWord: 'Build the word',
   lettersMakeSentence: 'Build the sentence',

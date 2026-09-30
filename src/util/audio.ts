@@ -62,7 +62,7 @@ if (typeof document !== 'undefined') {
 }
 
 export function unlockAudio(): void {
-  if (ctx) { if (ctx.state === 'suspended') void ctx.resume(); return; }
+  if (ctx) { if (ctx.state !== 'running' && ctx.state !== 'closed') void ctx.resume().catch(() => { /* next tap */ }); return; }
   try {
     const w = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
     const AC = w.AudioContext || w.webkitAudioContext;

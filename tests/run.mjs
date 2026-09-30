@@ -3052,6 +3052,16 @@ const group = name => console.log(`\n${name}`);
   const { limitsForAge, limitIsGuidance, dayKey, useToday, limitsFor, leftToday, roomFor,
     isLastGo, spent, spend, finished, allows, cleanChild, cleanUsed } = S;
   group('Platform — the day');
+  // the clock writes a quarter minute every fifteen seconds; the cleaner must hand it back whole.
+  // Rounding to whole minutes here read 0.25 back as 0 on every tick, and no day ever ended.
+  is('test_session_cleaner_keeps_quarter_minutes', cleanUsed({ date: 'd', minutes: 4.25, finished: 0 }).minutes, 4.25);
+  {
+    const kid = cleanChild({ id: 'k', name: 'T', years: 5, domains: [], limits: { perDay: 5, perSitting: 3 }, warn: false });
+    let u = { date: '2026-09-30', minutes: 4, finished: 0 };
+    let ticks = 0;
+    while (!spent(cleanUsed(u), kid, '2026-09-30') && ticks < 100) { u = spend(cleanUsed(u), '2026-09-30', 0.25); ticks++; }
+    is('test_clock_ticks_through_the_cleaner_reach_the_limit', ticks, 4);
+  }
 
   const kid = (over = {}) => ({ id: 'a', name: 'Kind', years: 5, domains: [], limits: null, warn: false, ...over });
   const TODAY = '2026-09-22';
@@ -3481,6 +3491,34 @@ const group = name => console.log(`\n${name}`);
   is('test_buikpijn_ends_with_go_to_the_doctor_if_it_does_not_pass', /dokter/.test(said('better')), true);
   is('test_buikpijn_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
   is('test_buikpijn_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
+}
+
+// ---------------------------------------------------------------- the save file
+
+{
+  // loadSave reads localStorage, so give it one: a save with every kind of wrong value in it
+  const store = new Map();
+  globalThis.localStorage = { getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) };
+  globalThis.navigator ??= { language: 'nl-NL' };
+  store.set('cloudhopper.save.v1', JSON.stringify({
+    levels: null, upgrades: 7, taught: null, lang: 'de', animals: { seen: null, childCm: 'x' },
+    mill: { grain: NaN, built: 3, paid: [] }, family: { children: { a: 1 }, used: null, gate: 'nope', playing: 4 },
+  }));
+  const { loadSave } = await bundle('src/util/storage.ts', 'storage.mjs');
+  group('The save file — a corrupt one never crashes the app');
+  const s = loadSave();
+  is('test_storage_corrupt_levels_fall_back_to_a_record', typeof s.levels === 'object' && s.levels !== null, true);
+  is('test_storage_corrupt_upgrades_fall_back_to_a_record', typeof s.upgrades === 'object' && s.upgrades !== null, true);
+  is('test_storage_corrupt_taught_falls_back_to_a_list', Array.isArray(s.taught), true);
+  is('test_storage_unknown_language_falls_back_to_auto', s.lang, 'auto');
+  is('test_storage_corrupt_children_fall_back_to_a_list', Array.isArray(s.family.children), true);
+  is('test_storage_corrupt_used_and_gate_fall_back', [typeof s.family.used, typeof s.family.gate.code], ['object', 'string']);
+  is('test_storage_corrupt_playing_falls_back_to_nobody', s.family.playing, '');
+  is('test_storage_corrupt_mill_lists_fall_back', [Array.isArray(s.mill.built), typeof s.mill.paid === 'object' && !Array.isArray(s.mill.paid)], [true, true]);
+  is('test_storage_corrupt_animals_seen_falls_back_to_a_list', Array.isArray(s.animals.seen), true);
+  store.set('cloudhopper.save.v1', '{not json');
+  is('test_storage_unreadable_json_gives_the_defaults', loadSave().family.children.length, 0);
+  delete globalThis.localStorage;
 }
 
 // ---------------------------------------------------------------- Van cel tot mens
