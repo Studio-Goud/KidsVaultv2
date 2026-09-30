@@ -34612,6 +34612,12 @@
    "text": "Sommige letters horen samen op één tegel, zoals in huis en boek."
   },
   {
+   "id": "tf5811518",
+   "file": "nl/tf5811518.mp3",
+   "secs": 5.6,
+   "text": "Bouw Nederlandse woorden: hoor het woord, sleep de letters, zie het plaatje."
+  },
+  {
    "id": "tf5825ea0",
    "file": "nl/tf5825ea0.mp3",
    "secs": 0.9,
@@ -61684,6 +61690,12 @@
    "file": "en/tc0033efc.mp3",
    "secs": 1.6,
    "text": "Silver Garden Orbweaver"
+  },
+  {
+   "id": "tc0050ef7",
+   "file": "en/tc0050ef7.mp3",
+   "secs": 5.5,
+   "text": "Build Dutch words: hear the word, drag the letters, see the picture."
   },
   {
    "id": "tc036646a",
