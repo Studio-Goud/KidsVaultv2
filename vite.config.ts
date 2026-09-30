@@ -39,6 +39,8 @@ export default defineConfig({
         evolutie: resolve(__dirname, 'evolutie.html'),
         satelliet: resolve(__dirname, 'satelliet.html'),
         buikpijn: resolve(__dirname, 'buikpijn.html'),
+        verkeer: resolve(__dirname, 'verkeer.html'),
+        donker: resolve(__dirname, 'donker.html'),
         privacy: resolve(__dirname, 'privacy.html'),
       },
     },

@@ -32,7 +32,7 @@ is also the app. English and Dutch throughout, Dutch written first.
 TypeScript + Vite, **canvas 2D only**, no engine and no UI framework. One bundle per page, wired
 in `vite.config.ts`. Capacitor 7 wraps it for iOS and Android. One runtime dependency
 (`@fontsource/nunito`). Everything is drawn in code: no sprite sheets. Sound is synthesised in
-code first; since 2026-09-23 the voice (Ruth) and 138 sound effects are also rendered once by
+code first; since 2026-09-23 the voice (Ruth) and every sound effect in `src/platform/sfxspec.ts` are also rendered once by
 ElevenLabs on the build machine and shipped as files (`npm run voice`, `npm run sfx`), with the
 device voice and the synthesised sound underneath as the fallback. The phone never calls ElevenLabs.
 Change a Dutch line or an effect's prompt and run the script again, or it falls back.
@@ -53,7 +53,7 @@ Three gates, all of which must be green before a commit claims to be finished:
 ```
 npx tsc --noEmit        # types
 npm test                # 1511 checks, no browser, tests/run.mjs
-npm run audit           # 34 screens x 5 screen shapes in a real browser, 0 faults
+npm run audit           # 36 screens x 5 screen shapes in a real browser, 0 faults
 ```
 
 `npm run audit` is the one that catches what unit tests cannot: two things drawn in the same

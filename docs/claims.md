@@ -61,6 +61,8 @@ Concreet te toetsen rijen, met wat erachter zit:
 | Suri en het lichtje in de diepte | luisteren naar een verhaal, goed kijken, hoe diep diep is | geen bron; mijn inschatting |
 | Suri en de verloren satelliet | luisteren naar een verhaal, sturen, de volgorde van de planeten | geen bron; mijn inschatting |
 | Suri heeft buikpijn | luisteren naar een verhaal, waar het eten in je eigen lijf naartoe gaat | geen bron; mijn inschatting |
+| Suri en de fietstocht | luisteren naar een verhaal, kijken voor je oversteekt, wat borden en lichten zeggen | geen bron; mijn inschatting |
+| Suri en het donker | luisteren naar een verhaal, een gevoel een naam geven, wat helpt als je bang bent | geen bron; mijn inschatting. Dit is het enige onderdeel over een gevoel, en het verdient als eerste een blik van een pedagoog |
 | Van cel tot mens | luisteren naar een verhaal, goed kijken, hoe kleine veranderingen over heel lange tijd optellen | geen bron; mijn inschatting |
 | De tijd van de dino's | luisteren, hoe lang geleden lang geleden is, diepere grond is oudere grond | geen bron; mijn inschatting. De leeftijden zijn de gangbare afgeronde per dier |
 
@@ -145,6 +147,27 @@ en zijn geen pedagogische claim. Die horen hier niet thuis, maar wel de vorm erv
   geen feit: dat je piepklein naar binnen kunt, en dat de witte bloedcellen hulp nodig hebben. Het
   verhaal eindigt met het advies van een ouder, niet van een arts: rust, drinken, handen wassen, en
   naar de dokter als buikpijn niet overgaat. Dat laatste staat er met opzet, en een test bewaakt het.
+- **Suri en de fietstocht** zegt deze dingen hardop, nagezocht in het RVV 1990 en de gangbare
+  verkeerslessen, maar door geen verkeersdeskundige nagelezen: in Nederland fiets je rechts; een
+  rood fietspad is voor fietsen en een blauw rond bord met een fiets erop (G11) zegt hetzelfde; een
+  helm beschermt je hoofd als je valt en is "een goed idee", nooit "verplicht", want er is geen
+  helmplicht voor fietsers; op een zebrapad moeten auto's stoppen voor voetgangers die oversteken
+  (RVV art. 49), daarom stapt Suri af en loopt hij met de fiets aan de hand, en toch kijk je eerst;
+  rood is stoppen, groen is gaan; voor het oversteken kijk je links, rechts, links, omdat op de
+  dichtstbijzijnde rijstrook het verkeer van links komt; een bel zegt "hier kom ik". Hoe ver je moet
+  draaien om "gekeken" te hebben (`LOOK_YAW`) en hoe lang het rood minstens duurt (`RED_MIN`) zijn
+  productkeuzes. Er gebeurt niets engs: geen aanrijding, geen claxon, niemand doet iets fout.
+- **Suri en het donker** is het enige onderdeel over een gevoel en beweert daarom zo min mogelijk.
+  Het zegt hardop: bang zijn in het donker is heel gewoon bij kleine kinderen (een van de meest
+  voorkomende angsten van de peuter- en kleutertijd); een gevoel heeft een naam en als je de naam
+  weet kun je er makkelijker over praten (een claim over praten, niet over het weggaan van de
+  angst); een schaduw komt altijd ergens vandaan en als je kijkt is het weer een jas; veel mensen
+  voelen zich wat rustiger van langzaam ademen ("veel", "voelen", niet meer dan dat: er wordt niets
+  behandeld of genezen); een nachtlampje mag; je mag altijd papa of mama roepen (een belofte namens
+  de ouder, en de reden dat een ouder dit verhaal eerst zelf een keer speelt). Het verhaal zegt
+  nooit "je hoeft niet bang te zijn" en eindigt met een gevoel dat kleiner is, niet weg. De tijden
+  van het ademen (`BREATH_IN`, `BREATH_OUT`) zijn productkeuzes, geen voorschrift. Een test bewaakt
+  de zinnen die hier genoemd staan.
 - **Van cel tot mens** zegt deze feiten hardop, nagezocht maar door geen bioloog nagelezen: de
   oudste sporen van leven zijn ruim 3,5 miljard jaar oud; cellen met een kern zo'n 2 miljard;
   dieren van veel cellen zo'n 600 miljoen; Haikouichthys 518 miljoen, zo lang als een vinger, met
