@@ -128,8 +128,8 @@ export const CATALOG: Entry[] = [
   },
   {
     id: 'letters', title: 'Letterbos',
-    line: 'Build Dutch words letter by letter: hear the word, drag the letters, see the picture.',
-    lineNl: 'Bouw Nederlandse woorden letter voor letter: hoor het woord, sleep de letters, zie het plaatje.',
+    line: 'Build Dutch words: hear the word, drag the letters, see the picture.',
+    lineNl: 'Bouw Nederlandse woorden: hoor het woord, sleep de letters, zie het plaatje.',
     practises: 'Building a word from a word you hear, letters that go together, ei and ij, au and ou',
     practisesNl: 'Een gehoord woord bouwen, letters die samen horen, ei en ij, au en ou',
     from: 4, to: 7, domains: ['taal'], nature: 'leren', minutes: [4, 8],
