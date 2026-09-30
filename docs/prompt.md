@@ -54,36 +54,40 @@ hardop gezegd, want een vierjarige leest niet.
 
 Alles hieronder is nagelopen, niet aangenomen.
 
-**Zesentwintig dingen, van jong naar oud:**
+**Achtentwintig dingen, van jong naar oud:**
 
 | | | leeftijd | |
 |---|---|---|---|
 | 1 | Opgraving | 2-8 | fossiel vrijleggen; heeft een aparte eenvoudige vorm voor 2-3 |
-| 2 | Klankhuis | 2-9 | negen klankstaven en negen niveaus |
-| 3 | Getijdenpoel | 3-7 | sorteren, en dan verandert de regel |
+| 2 | Klankhuis | 2-8 | negen klankstaven en negen niveaus |
+| 3 | Getijdenpoel | 2-7 | sorteren, en dan verandert de regel |
 | 4 | Marktdag | 3-7 | uittellen en eerlijk delen |
-| 5 | Nachtwacht | 3-10 | sterrenbeeld onthouden en terugtekenen |
-| 6 | Dierenboek | 3-10 | 3744 echte dieren met echte foto's |
-| 7 | Watermolen | 4-9 | geulen graven, water zoekt zijn weg |
+| 5 | Nachtwacht | 3-8 | sterrenbeeld onthouden en terugtekenen |
+| 6 | Dierenboek | 2-8 | 3744 echte dieren met echte foto's |
+| 7 | Watermolen | 4-8 | geulen graven, water zoekt zijn weg |
 | 8 | Letterbos | 4-7 | woorden bouwen, alleen hele woorden hardop |
 | 9 | Het jaar rond | 4-8 | dagen, maanden, seizoenen, dag en nacht, in een levend landschap |
-| 10 | Suri en de reuzentand | 4-10 | verhaalreis: 360 graden, van opa's kist tot de T. rex |
-| 11 | Suri en het lichtje in de diepte | 4-10 | verhaalreis: met de duikboot van het rif tot de hengelaarsvis |
-| 12 | Suri en de verloren satelliet | 4-10 | verhaalreis: met de raket langs de maan en Mars door de ringen van Saturnus |
-| 13 | Suri heeft buikpijn | 4-10 | verhaalreis: piepklein mee met een hapje appel, tot de witte bloedcellen |
-| 14 | De grote reis | 4-10 | ontdekreis: de zon tot Pluto |
-| 15 | De diepzee | 4-10 | ontdekreis: de golven tot de Challengerdiepte |
-| 16 | De tijd van de dino's | 4-10 | ontdekreis: boren door de tijd, van de mammoet tot de eerste dino |
-| 17 | Het menselijk lichaam | 4-10 | ontdekreis: van je kruin tot je tenen |
-| 18 | Van cel tot mens | 5-10 | verhaalreis: van de eerste cel tot jou, één lijf dat onder je vinger verandert |
-| 19 | Planetarium | 4-10 | planeten ordenen en verkennen |
-| 20 | Stuifzwam | 5-9 | vakjes tellen en een uitweg plannen |
-| 21 | Rekenrijk | 5-9 | rekenen met spullen op tafel |
-| 22 | Klokkijken | 5-9 | de wijzerplaat en de Nederlandse manier |
-| 23 | Stroomkring | 6-10 | schakelingen die wel of niet branden |
-| 24 | Moonshot | 6-10 | een raket in trappen bouwen |
-| 25 | Wereldatlas | 6-10 | provincies, landen, vlaggen |
+| 10 | Suri en de reuzentand | 4-8 | verhaalreis: 360 graden, van opa's kist tot de T. rex |
+| 11 | Suri en het lichtje in de diepte | 4-8 | verhaalreis: met de duikboot van het rif tot de hengelaarsvis |
+| 12 | Suri en de verloren satelliet | 4-8 | verhaalreis: met de raket langs de maan en Mars door de ringen van Saturnus |
+| 13 | Suri heeft buikpijn | 4-8 | verhaalreis: piepklein mee met een hapje appel, tot de witte bloedcellen |
+| 14 | De grote reis | 4-8 | ontdekreis: de zon tot Pluto |
+| 15 | De diepzee | 4-8 | ontdekreis: de golven tot de Challengerdiepte |
+| 16 | De tijd van de dino's | 4-8 | ontdekreis: boren door de tijd, van de mammoet tot de eerste dino |
+| 17 | Het menselijk lichaam | 4-8 | ontdekreis: van je kruin tot je tenen |
+| 18 | Van cel tot mens | 5-8 | verhaalreis: van de eerste cel tot jou, één lijf dat onder je vinger verandert |
+| 19 | Planetarium | 4-8 | planeten ordenen en verkennen |
+| 20 | Stuifzwam | 5-8 | vakjes tellen en een uitweg plannen |
+| 21 | Rekenrijk | 5-8 | rekenen met spullen op tafel |
+| 22 | Klokkijken | 5-8 | de wijzerplaat en de Nederlandse manier |
+| 23 | Stroomkring | 6-8 | schakelingen die wel of niet branden |
+| 24 | Moonshot | 6-8 | een raket in trappen bouwen |
+| 25 | Wereldatlas | 6-8 | provincies, landen, vlaggen |
 | 26 | Cloudhopper | 7-8 | luchtverkeersleiding; het oudste deel |
+
+Twee verhaalreizen zijn er op 2026-09-30 bij gekomen en horen tussen 13 en 14: **Suri en de
+fietstocht** (4-8, verkeer: helm, bel, kijken, zebrapad, stoplicht, naar oma) en **Suri en het
+donker** (4-8, een gevoel: bang in het donker, en wat helpt).
 
 **Werkt en is nagelopen:** alle vijftien nieuwe spellen praten en dragen Suri in de hoek.
 Opgraving, Klankhuis, Getijdenpoel en het Dierenboek hebben twee vormen, gekozen op de leeftijd die de ouder invult. De ontdekreis-motor
@@ -106,14 +110,14 @@ gebruiker anders zegt.
 
 ### 1. De kloof bij twee en drie jaar
 
-Van de zesentwintig dingen passen er vier bij een tweejarige, en alle vier hebben een eenvoudige
+Van de achtentwintig dingen passen er vier bij een tweejarige, en alle vier hebben een eenvoudige
 vorm. De eenvoudige vorm uit `src/platform/who.ts` is hetzelfde spel met de regels eruit, niet een
 kleiner spel.
 
 Opgraving: zacht gesteente, alleen de kwast, geen vraag. Klankhuis: alleen de negen staven, groter,
 zonder niveaus en sequencer. Getijdenpoel: één regel (kleur) die nooit wisselt, één dier tegelijk,
 niets dat wegdrijft en niets te verliezen. Dierenboek: bladeren zonder toetsenbord. Vier van
-zesentwintig is nog steeds een kloof; wat daarna helpt is niet nog een vereenvoudiging maar een
+achtentwintig is nog steeds een kloof; wat daarna helpt is niet nog een vereenvoudiging maar een
 ding dat voor twee gemaakt is.
 
 ### 2. Drie ontdekreizen erbij

@@ -120,7 +120,7 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 > Suri is een stokstaartje, en hij is de hele app. Hij zegt alles hardop, zodat een kind dat nog niet
 > leest overal zelf de weg vindt, en hij herhaalt het zo vaak als je vraagt.
 >
-> Er zitten zesentwintig dingen in, voor kinderen van twee tot acht:
+> Er zitten achtentwintig dingen in, voor kinderen van twee tot acht:
 >
 > Spellen die iets echts oefenen: tellen en eerlijk delen op de markt, klokkijken, woorden bouwen uit
 > hun klanken, een dinosaurus opgraven, een stroomkring leggen, sterrenbeelden onthouden, water naar
@@ -130,7 +130,7 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 > diepste plek van de zee, terug naar de tijd van de dino's, en van je kruin tot je tenen.
 >
 > Verhalen waarin je zelf meedoet: Suri vindt een reuzentand, ziet een lichtje in de diepte, gaat een
-> verloren satelliet halen en krijgt buikpijn. En Van cel tot mens: het hele verhaal van het leven,
+> verloren satelliet halen, krijgt buikpijn, fietst naar oma en is bang in het donker. En Van cel tot mens: het hele verhaal van het leven,
 > van de allereerste cel tot jou, met een spel waarin jij zelf de natuurlijke selectie doet.
 >
 > Wat we beloven:
@@ -155,7 +155,7 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 > Suri is a meerkat, and he is the whole app. He says everything out loud, so a child who cannot read
 > yet finds their own way everywhere, and he says it again as often as they ask.
 >
-> There are twenty-six things inside, for children from two to eight:
+> There are twenty-eight things inside, for children from two to eight:
 >
 > Games that practise something real: counting out and sharing fairly at the market, telling the
 > time, building words from their sounds, digging up a dinosaur, wiring a circuit, remembering star
@@ -167,7 +167,7 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 > toes.
 >
 > Stories you take part in: Suri finds a giant tooth, sees a light in the deep, goes to fetch a lost
-> satellite and gets a tummy ache. And From cell to human: the whole story of life, from the very
+> satellite, gets a tummy ache, cycles to grandma's and is scared of the dark. And From cell to human: the whole story of life, from the very
 > first cell to you, with a game in which you do the natural selection yourself.
 >
 > What we promise:
