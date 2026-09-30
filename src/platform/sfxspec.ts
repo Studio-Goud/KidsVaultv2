@@ -314,6 +314,37 @@ export const SFX: Record<string, SfxRow> = {
   'buikpijn.bloodBed': { prompt: `inside a blood vessel, a soft steady heartbeat with a gentle whoosh of flowing blood, calm, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.3 },
   'buikpijn.morningBed': { prompt: `a bright calm morning in a child's bedroom, birds singing softly outside the window, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
 
+  // ---- Suri en de fietstocht: the traffic story
+  'verkeer.helmet': { prompt: `a small plastic click of a bicycle helmet buckle closing, ${SOFT}`, secs: 0.6, max: 0.4 },
+  'verkeer.bell': { prompt: `a bright friendly bicycle bell, two quick rings, tring tring, ${SOFT}`, secs: 1.2, max: 1 },
+  'verkeer.pedal': tap('a soft bicycle chain tick and a pedal turning, one gentle click'),
+  'verkeer.carPass': { prompt: `a small quiet car driving past on a street, a soft whoosh from left to right, ${SOFT}`, secs: 2.5, max: 2.2, gain: 0.7 },
+  'verkeer.carStop': { prompt: `a small quiet car slowing down and stopping, a soft hush of tyres and one gentle brake sigh, ${SOFT}`, secs: 2, max: 1.8, gain: 0.7 },
+  'verkeer.lightClick': tap('a traffic light switching over, one soft mechanical click'),
+  'verkeer.green': { prompt: `a gentle two note chime going up, a friendly signal that it is fine to go, ${SOFT}`, secs: 0.9, max: 0.8 },
+  'verkeer.found': right('a bright soft wooden marimba double note going up, finding something you looked for'),
+  'verkeer.arrive': { prompt: `a bicycle rolling to a stop on a garden path, a soft tyre crunch and a brake squeak, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'verkeer.door': { prompt: `a wooden front door opening, a soft creak and a cheerful little greeting chime, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'verkeer.done': done('a warm cosy ending at grandma\'s house, soft chimes and a happy little flourish'),
+  'verkeer.homeBed': { prompt: `a quiet sunny morning in front of a house, a few birds singing softly far away, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+  'verkeer.streetBed': { prompt: `a calm quiet residential street in the daytime, distant birds and very faint far away traffic, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+  'verkeer.pathBed': { prompt: `cycling along a cycle path on a breezy day, soft wind, leaves rustling and birds, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+  'verkeer.omaBed': { prompt: `a cosy village garden in the afternoon, soft birdsong and a faint wind chime, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+
+  // ---- Suri en het donker: the story about being scared at bedtime
+  'donker.sit': { prompt: `a soft warm low two-note hum, like a gentle hug, someone sitting down next to you, ${SOFT}`, secs: 1.2, max: 1 },
+  'donker.found': { prompt: `two soft rising notes that say aha, found it, calm and friendly, ${SOFT}`, secs: 0.8, max: 0.7 },
+  'donker.lamp': { prompt: `a small soft click of a bedside lamp switch, then a faint warm glow hum, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'donker.creak': { prompt: `one slow soft creak of an old wooden window frame moving in the wind, gentle, not scary, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'donker.close': { prompt: `a wooden window sliding shut with a soft thud and a small latch click, then quiet, ${SOFT}`, secs: 1, max: 0.9 },
+  'donker.breathIn': { prompt: `one slow calm breath in through the nose, soft and airy, a child's bedroom, ${SOFT}`, secs: 3.5, max: 3.5 },
+  'donker.breathOut': { prompt: `one slow calm breath out, soft and airy, relaxing, ${SOFT}`, secs: 4.5, max: 4.5 },
+  'donker.glow': { prompt: `a small night light switching on with a soft click and a warm gentle chime, cosy, ${SOFT}`, secs: 1.2, max: 1 },
+  'donker.goodnight': done('a soft lullaby-like set of chimes settling down, a music box winding to a gentle stop, goodnight'),
+  'donker.roomBed': { prompt: `a quiet child's bedroom at night, a very soft distant clock ticking slowly and a faint hush of air, calm, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+  'donker.windBed': { prompt: `a soft gentle wind outside a window at night with a faint slow creak now and then, calm not scary, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+  'donker.cosyBed': { prompt: `a cosy quiet bedroom with a night light on, very soft warm room tone and a faint slow music box, sleepy, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+
   // ---- Van cel tot mens
   'evo.arrive': { prompt: `a soft warm two note chime, arriving somewhere new, ${SOFT}`, secs: 0.8, max: 0.7 },
   'evo.divide': { prompt: `a soft wet bubbly pop, a tiny living cell splitting in two, ${SOFT}`, secs: 0.6, max: 0.5 },

@@ -846,3 +846,41 @@ vereenvoudiging maar een ding dat voor twee gemaakt is.
 Nagekeken: tsc, 1537 tests, audit van Getijdenpoel, Dierenboek en de voorpagina 0 fouten, en in een
 browser als tweejarige: tien dieren gesleept, waarvan drie eerst naar de verkeerde poel, einde
 "Het tij is gesorteerd" zonder fout of gemist. Niet nagekeken: een echte telefoon.
+
+## 2026-09-30 — Twee verhalen die niet over de wereld gaan maar over de dag: verkeer en het donker
+
+De vijf verhaalreizen tot nu toe beantwoorden een vraag over de wereld: hoe diep is diep, wat zit er
+in je buik. De eigenaar vroeg om twee die dichter bij de dag van een kind liggen: verkeer, en een
+gevoel. Allebei op de gedeelde `Stage` (`src/story/stage.ts`), als data plus een scène, zoals de
+andere; allebei gebouwd door een agent en daarna hier nagekeken, aangesloten en gedreven.
+
+**Suri en de fietstocht** (`verkeer`). Naar oma, in de volgorde van een echte rit: helm en bel
+thuis, met de fiets aan de hand naar de stoeprand en links, rechts, links kijken (het kind draait
+echt de camera, en de auto komt pas als er gekeken is), het rode fietspad met het blauwe bord,
+het zebrapad waar Suri afstapt omdat je dan pas voetganger bent, het stoplicht, en de deur van oma.
+Elke stap zegt hardop waarom. De regels zijn nagezocht in het RVV en staan in `docs/claims.md`;
+de helm is "een goed idee" en nooit verplicht, want dat is hij in Nederland niet. Er gebeurt niets
+engs en niets kan fout: op rood op "ga" tikken levert één zin op ("Nog even wachten. Het is rood.")
+en geen fout. Hoe ver je moet draaien om gekeken te hebben en hoe lang het rood minstens duurt zijn
+productkeuzes, en de code zegt dat.
+
+**Suri en het donker** (`donker`). Het eerste onderdeel over een gevoel, en daarom het onderdeel
+dat het minst beweert. Suri is bang als het licht uitgaat; het kind zit bij hem, zoekt wat de
+schaduw maakt (een jas op een stoel) en wat het geluid maakt (de wind bij het raam), ademt drie
+keer langzaam mee met een cirkel, en kiest een nachtlampje. Drie besluiten die de toon bepalen:
+
+1. **"Bang zijn mag", nooit "je hoeft niet bang te zijn".** De tweede zin zegt een kind dat het
+   gevoel fout is. Een test bewaakt dat hij nergens staat.
+2. **Het gevoel eindigt kleiner, niet weg.** Een verhaal dat belooft dat de angst over is, liegt
+   tegen een kind dat morgen weer bang is. En er is altijd een volwassene om te roepen: dat is een
+   belofte namens de ouder, en de reden dat een ouder dit verhaal eerst zelf een keer speelt.
+3. **Ademen is "veel mensen voelen zich daar wat rustiger van", niet meer.** Niets wordt behandeld
+   of genezen; de tijden van de cirkel zijn productkeuzes. Regel 3 en 4 in één: dit onderdeel
+   verdient als eerste de blik van een pedagoog, en `docs/claims.md` zegt dat.
+
+De schaduw was in de eerste versie te groot en te veel een figuur met opgeheven armen; hij is
+kleiner gemaakt. Er is geen monster dat echt blijkt en niets dat tevoorschijn springt.
+
+Nagekeken: tsc, 1573 tests, audit van beide pagina's 0 fouten (36 schermen nu), stem en geluiden
+opnieuw gerenderd, en beide verhalen in een browser van begin tot eind gedreven met echte tikken
+en vegen. Niet nagekeken: een echte telefoon, en een pedagoog heeft dit niet gezien.

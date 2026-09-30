@@ -2958,6 +2958,8 @@ const group = name => console.log(`\n${name}`);
     : g === 'lichtje' ? readFileSync('src/story/lichtsfx.ts', 'utf8')
     : g === 'satelliet' ? readFileSync('src/story/ruimtesfx.ts', 'utf8')
     : g === 'buikpijn' ? readFileSync('src/story/buiksfx.ts', 'utf8')
+    : g === 'verkeer' ? readFileSync('src/story/verkeersfx.ts', 'utf8')
+    : g === 'donker' ? readFileSync('src/story/donkersfx.ts', 'utf8')
     : g === 'evo' ? readFileSync('src/evo/evosfx.ts', 'utf8')
     : readFileSync(`src/games/${src[g]}.ts`, 'utf8');
   is('test_sfx_every_row_names_a_sound_that_exists', rows.filter(([k, r]) => {
@@ -3494,6 +3496,83 @@ const group = name => console.log(`\n${name}`);
   // rule 3: nothing in the story claims the child learns
   is('test_satelliet_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
   is('test_satelliet_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
+}
+
+// ---------------------------------------------------------------- Suri en de fietstocht
+
+{
+  const { CHAPTERS, ASIDES, LOOK_YAW, LOOK_HOLD, RED_MIN, nextPlace } = await bundle('src/story/verkeerscript.ts', 'verkeerscript.mjs');
+  group('Suri en de fietstocht — the traffic story holds together');
+  const steps = CHAPTERS.flatMap(c => c.steps.map(s => ({ c: c.id, s })));
+  is('test_verkeer_every_line_is_said_in_both_languages',
+    steps.filter(({ s }) => 'say' in s && !(s.say && s.sayNl)).length, 0);
+  // every wait is one verkeer.ts sets: the helmet and the bell, walking to the kerb, the three looks,
+  // the car going by, crossing, pedalling, the sign, the zebra, the light, and grandma's door
+  const known = { thuis: ['helmet', 'bell'], stoep: ['atkerb', 'left', 'carPassed', 'right', 'left2', 'over'], fietspad: ['pedaled', 'found'],
+    zebrapad: ['stopped', 'found', 'carStill', 'crossed'], stoplicht: ['go', 'over'], oma: ['arrived', 'rang'] };
+  is('test_verkeer_every_wait_is_one_the_scene_knows',
+    steps.filter(({ c, s }) => 'wait' in s && !known[c].includes(s.wait)).map(({ c, s }) => `${c}:${s.wait}`), []);
+  const cues = ['cross', 'car', 'ride', 'grandma', 'end'];
+  is('test_verkeer_every_cue_is_one_the_scene_acts_on',
+    steps.filter(({ s }) => 'cue' in s && !cues.includes(s.cue)).map(({ s }) => s.cue), []);
+  let p = { chapter: 0, step: 0 }, n = 1;
+  while (nextPlace(p)) { p = nextPlace(p); n++; }
+  is('test_verkeer_walking_the_script_visits_every_step_once', n, steps.length);
+  is('test_verkeer_the_last_step_is_the_same_goodbye_as_the_other_stories', CHAPTERS[p.chapter].steps[p.step].sayNl, 'Einde. Zullen we nog een keer gaan?');
+  is('test_verkeer_the_end_cue_comes_just_before_the_goodbye', CHAPTERS[p.chapter].steps[p.step - 1].cue, 'end');
+  is('test_verkeer_the_asides_are_said_in_both_languages', Object.values(ASIDES).every(a => a.say && a.sayNl), true);
+  is('test_verkeer_chapters_go_from_home_to_grandma', CHAPTERS.map(c => c.id), ['thuis', 'stoep', 'fietspad', 'zebrapad', 'stoplicht', 'oma']);
+  const said = id => CHAPTERS.find(c => c.id === id).steps.filter(s => 'sayNl' in s).map(s => s.sayNl).join(' ');
+  // the three looks, in the order Dutch children are taught them
+  is('test_verkeer_says_left_right_left', /Links, rechts, links/.test(said('stoep')), true);
+  // no helmet law in the Netherlands: a good idea, never a must
+  is('test_verkeer_the_helmet_is_a_good_idea_not_a_rule', /goed idee/.test(said('thuis')) && !/moet.*helm|helm.*moet/.test(said('thuis')), true);
+  is('test_verkeer_says_we_cycle_on_the_right', /fietsen we rechts/.test(said('fietspad')), true);
+  is('test_verkeer_at_the_zebra_you_still_look_first', /kijken we eerst/.test(said('zebrapad')), true);
+  is('test_verkeer_red_is_stop_and_green_is_go', /Rood betekent stop. Groen betekent gaan/.test(said('stoplicht')), true);
+  // a look is a real turn of the head, held for a moment, and the red light is a floor not a timer
+  is('test_verkeer_a_look_is_a_real_turn', LOOK_YAW > 0.5 && LOOK_YAW < 1.2 && LOOK_HOLD > 0, true);
+  is('test_verkeer_the_red_light_is_short_enough_to_wait_out', RED_MIN >= 3 && RED_MIN <= 8, true);
+  is('test_verkeer_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
+  is('test_verkeer_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
+}
+
+// ---------------------------------------------------------------- Suri en het donker
+
+{
+  const { CHAPTERS, ASIDES, BREATHS, BREATH_IN, BREATH_OUT, HOLD_SHARE, LIGHTS, nextPlace } = await bundle('src/story/donkerscript.ts', 'donkerscript.mjs');
+  group('Suri en het donker — the story about a feeling holds together');
+  const steps = CHAPTERS.flatMap(c => c.steps.map(s => ({ c: c.id, s })));
+  is('test_donker_every_line_is_said_in_both_languages',
+    steps.filter(({ s }) => 'say' in s && !(s.say && s.sayNl)).length, 0);
+  const known = { bedtijd: ['sat'], schaduw: ['found', 'lamp'], geluid: ['found', 'closed'], ademen: ['breathed'], lichtje: ['chosen'], slapen: [] };
+  is('test_donker_every_wait_is_one_the_scene_knows',
+    steps.filter(({ c, s }) => 'wait' in s && !known[c].includes(s.wait)).map(({ c, s }) => `${c}:${s.wait}`), []);
+  const cues = ['sit', 'lampOff', 'creak', 'glow', 'goodnight', 'end'];
+  is('test_donker_every_cue_is_one_the_scene_acts_on',
+    steps.filter(({ s }) => 'cue' in s && !cues.includes(s.cue)).map(({ s }) => s.cue), []);
+  let p = { chapter: 0, step: 0 }, n = 1;
+  while (nextPlace(p)) { p = nextPlace(p); n++; }
+  is('test_donker_walking_the_script_visits_every_step_once', n, steps.length);
+  is('test_donker_the_last_step_is_the_same_goodbye_as_the_other_stories', CHAPTERS[p.chapter].steps[p.step].sayNl, 'Einde. Zullen we nog een keer gaan?');
+  is('test_donker_the_end_cue_comes_just_before_the_goodbye', CHAPTERS[p.chapter].steps[p.step - 1].cue, 'end');
+  is('test_donker_the_asides_are_said_in_both_languages', Object.values(ASIDES).every(a => a.say && a.sayNl), true);
+  is('test_donker_chapters_go_from_bedtime_to_sleep', CHAPTERS.map(c => c.id), ['bedtijd', 'schaduw', 'geluid', 'ademen', 'lichtje', 'slapen']);
+  const all = steps.filter(({ s }) => 'sayNl' in s).map(({ s }) => s.sayNl).join(' ');
+  // the feeling is allowed, never dismissed
+  is('test_donker_says_being_scared_is_allowed', /Bang zijn mag/.test(all), true);
+  is('test_donker_never_says_you_need_not_be_scared', /hoeft niet bang/i.test(all), false);
+  // it ends smaller, not gone, with a grown-up nearby: no promise the story cannot keep
+  is('test_donker_the_feeling_ends_smaller_not_gone', /kleiner geworden. Het is niet weg/.test(all), true);
+  is('test_donker_a_grown_up_can_always_be_called', /papa of mama roepen/.test(all), true);
+  // breathing is "many people feel", never a treatment
+  is('test_donker_breathing_is_hedged_as_many_people', /Veel mensen voelen zich daar wat rustiger van/.test(all), true);
+  is('test_donker_never_says_genezen_or_helpt_tegen', /genees|geneest|helpt tegen|therapie/i.test(all), false);
+  is('test_donker_three_breaths_with_the_out_breath_longer', BREATHS === 3 && BREATH_OUT > BREATH_IN, true);
+  is('test_donker_a_breath_counts_without_a_perfect_hold', HOLD_SHARE < 1 && HOLD_SHARE > 0, true);
+  is('test_donker_three_night_lights_each_named', LIGHTS.length === 3 && LIGHTS.every(l => l.nl && l.en && l.colour), true);
+  is('test_donker_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
+  is('test_donker_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
 }
 
 // ---------------------------------------------------------------- Suri heeft buikpijn
