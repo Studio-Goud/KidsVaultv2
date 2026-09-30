@@ -228,7 +228,41 @@ export function stopSpeaking(): void {
   said++;
   try { synth()?.cancel(); } catch { /* nothing to cancel */ }
   if (playing) { release(playing); playing = null; }
+  if (source) { try { source.onended = null; source.stop(); } catch { /* already stopped */ } source = null; }
+  fetching = false;
   queued = [];
+}
+
+/**
+ * Ruth through the sound engine rather than through an <audio> element.
+ *
+ * An iPhone lets an <audio> element start only straight after a tap. A story's next line starts
+ * when the previous one ends, and a hint starts after a quiet while - neither straight after a tap -
+ * so those were refused, and the phone's own voice they fell back to is refused the same way: the
+ * owner heard some lines and not others. The sound engine (`src/util/audio.ts`) is unlocked by the
+ * first tap and may play at any moment after that, so a recording decoded into it always plays. It
+ * also never shows up in the lock screen's media panel. The engine hands itself over through
+ * `useAudioContext`, because this file must not import it (it imports this one).
+ */
+let getContext: (() => AudioContext | null) | null = null;
+export function useAudioContext(get: () => AudioContext | null): void { getContext = get; }
+
+let source: AudioBufferSourceNode | null = null;
+/** between asking for a recording and it starting: still "speaking", so a story waits for it */
+let fetching = false;
+const buffers = new Map<string, Promise<AudioBuffer | null>>();
+
+function bufferFor(ac: AudioContext, file: string): Promise<AudioBuffer | null> {
+  const hit = buffers.get(file);
+  if (hit) return hit;
+  // a small cache: a line or two ahead and the ones just said, not the whole app
+  if (buffers.size > 60) buffers.delete(buffers.keys().next().value as string);
+  const p = fetch(`./voice/${file}`)
+    .then(r => (r.ok ? r.arrayBuffer() : null))
+    .then(ab => (ab ? new Promise<AudioBuffer | null>(res => { ac.decodeAudioData(ab, res, () => res(null)); }) : null))
+    .catch(() => null);
+  buffers.set(file, p);
+  return p;
 }
 
 let playing: HTMLAudioElement | null = null;
@@ -265,6 +299,7 @@ export function clearNowPlaying(): void {
  * before its next line, so a child hears one sentence finish before the next one starts.
  */
 export function isSpeaking(): boolean {
+  if (source || fetching) return true;
   if (playing && !playing.paused && !playing.ended) return true;
   if (queued.length) return true;
   try { return !!synth()?.speaking; } catch { return false; }
@@ -327,6 +362,25 @@ function playClips(list: Clip[], text: string, rate: number): void {
     if (mine !== said) return;
     const c = queued.shift();
     if (!c) return;
+    const ac = getContext?.() ?? null;
+    if (ac && ac.state !== 'closed') {
+      if (ac.state === 'suspended') void ac.resume().catch(() => { /* waits for the next tap */ });
+      fetching = true;
+      void bufferFor(ac, c.file).then(buf => {
+        if (mine !== said) return;
+        fetching = false;
+        if (!buf) { if (first) speakOut(text, rate); else next(false); return; }
+        const src = ac.createBufferSource();
+        src.buffer = buf;
+        src.connect(ac.destination);
+        src.onended = () => { if (source === src) source = null; next(false); };
+        source = src;
+        src.start();
+        // the next piece of the same line, fetched while this one plays, so there is no gap
+        if (queued[0]) void bufferFor(ac, queued[0].file);
+      });
+      return;
+    }
     try {
       const a = new Audio(`./voice/${c.file}`);
       a.addEventListener('ended', () => { release(a); if (playing === a) playing = null; next(false); });
@@ -362,12 +416,14 @@ export function sayRecorded(texts: string[], append = false): boolean {
   };
   const all = find(lang());
   if (!all) return false;
-  if (append && playing && !playing.paused && !playing.ended) { queued.push(...all); return true; }
+  if (append && isSpeaking() && !synthSpeaking()) { queued.push(...all); return true; }
   stopSpeaking();
   said++;
   playClips(all, '', 1);
   return true;
 }
+
+function synthSpeaking(): boolean { try { return !!synth()?.speaking; } catch { return false; } }
 
 function speakOut(text: string, rate: number): void {
   const s = synth();
