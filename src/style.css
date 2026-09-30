@@ -381,6 +381,15 @@ html.page canvas { touch-action: auto; }
   #hub .hubtop .grownups { width: 100%; justify-content: center; }
 }
 @media (min-width: 760px) { #hub .hubtop { max-width: 940px; } }
+/* the row of names: who is playing today; one pill lit, the rest to tap */
+#hub .whoplays { width: 100%; max-width: 560px; display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 6px; }
+#hub .whoplays-name {
+  min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; font: inherit; font-size: 15px; font-weight: 900;
+  background: rgba(255,255,255,0.7); color: var(--ink-soft); box-shadow: 0 4px 10px rgba(10, 40, 80, 0.10); cursor: pointer;
+}
+#hub .whoplays-name.on { background: #4fae6e; color: #fff; box-shadow: 0 6px 14px rgba(20, 90, 50, 0.25); }
+#hub .whoplays-name:focus-visible { outline: 3px solid #3d8fd1; outline-offset: 2px; }
+@media (min-width: 760px) { #hub .whoplays { max-width: 940px; } }
 @media (min-width: 1180px) { #hub .hubtop { max-width: 1240px; } }
 .gamegrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 560px; }
 @media (min-width: 760px) { .gamegrid { grid-template-columns: repeat(3, 1fr); max-width: 940px; } }

@@ -5,7 +5,7 @@ itself is `docs/prompt.md`; the reasoning behind every big choice is `docs/decis
 
 ## What this is
 
-A Dutch-first hub of small things for children of two to ten, sold to parents at €3,99 a month.
+A Dutch-first hub of small things for children of two to eight, sold to parents at €3,99 a month.
 Twenty-six entries: seventeen games, four discovery journeys and five story journeys. One guide, a meerkat called Suri, who
 is also the app. English and Dutch throughout, Dutch written first.
 

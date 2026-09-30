@@ -794,3 +794,29 @@ Nagekeken: tsc, 1523 tests, audit 0 fouten, en de tijdslimiet in een browser: 4 
 → 5 minuten en dan het slaapscherm. Niet nagekeken: een echte telefoon. Open voor de eigenaar:
 Cloudhoppers modus "Eindeloos" na een missie staat op gespannen voet met "elk spel heeft een laatste
 ronde"; de munten daar zijn verdiend, niet gekocht, en dat mag van regel 2.
+
+## 2026-09-30 — Tot acht jaar, de week van een kind, en de namen op de voorpagina
+
+De eigenaar besloot: Suri is voor twee tot acht, niet tot tien. Niets in de app was echt voor een
+tienjarige gemaakt, en een band die je niet waarmaakt is een claim op de winkelpagina. De catalogus
+stopt nu bij 8, de leeftijdskeuze op het ouderscherm ook, en het manifest, de privacyverklaring en de
+winkeltekst zeggen hetzelfde. Een kind dat al op 9 of 10 stond valt terug op 8.
+
+Het ouderscherm liet alleen "vandaag" zien: minuten en afgemaakte dingen. Een ouder die op zaterdag
+kijkt wil weten wat er deze week gebeurd is. Daarom houdt de klok nu per kind en per dag bij hoeveel
+minuten in welk onderdeel zijn gegaan (`family.log`, 28 dagen, daarna weggegooid; regel 1: dit
+verlaat het toestel niet). Het paneel "Deze week" telt de laatste zeven dagen op, per onderdeel, met
+de regel "oefent" uit de catalogus eronder, en zegt er zelf bij dat niemand heeft gemeten wat een kind
+ervan meeneemt (regel 3). Geen grafiek, geen vergelijking, geen ranglijst.
+
+Met twee kinderen moest een ouder voor elke wissel door de code. Dat is een reden om het niet te
+doen, en dan telt alle tijd op het verkeerde kind. Daarom staan de namen nu als knoppen bovenaan de
+voorpagina zodra er meer dan één kind is; een tik wisselt het kind en herlaadt de pagina. Een kind kan
+zo natuurlijk de tijd van een broer of zus opmaken. Dat is een afweging: de tijdslimiet is een
+afspraak, geen slot, en de ouder kan de knoppen uitzetten ("Namen op de voorpagina" op het
+ouderscherm, regel 7: die schakelaar doet echt iets).
+
+Nagekeken: tsc, 1529 tests, audit 0 fouten, en in een browser: twee kinderen met een gezaaide week,
+tik op de tweede naam wisselt het kind, en het ouderscherm toont de week met de juiste minuten. De
+eerste poging leek te falen omdat het testscript de opslag bij elke herlaadbeurt opnieuw zaaide; de
+app deed het goed. Niet nagekeken: een echte telefoon.

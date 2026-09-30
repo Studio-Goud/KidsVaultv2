@@ -113,14 +113,14 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 
 **Naam:** Suri: spelen en ontdekken
 
-**Korte beschrijving:** Spellen, reizen en verhalen voor 2 tot 10 jaar. Geen reclame, geen tracking.
+**Korte beschrijving:** Spellen, reizen en verhalen voor 2 tot 8 jaar. Geen reclame, geen tracking.
 
 **Volledige beschrijving:**
 
 > Suri is een stokstaartje, en hij is de hele app. Hij zegt alles hardop, zodat een kind dat nog niet
 > leest overal zelf de weg vindt, en hij herhaalt het zo vaak als je vraagt.
 >
-> Er zitten zesentwintig dingen in, voor kinderen van twee tot tien:
+> Er zitten zesentwintig dingen in, voor kinderen van twee tot acht:
 >
 > Spellen die iets echts oefenen: tellen en eerlijk delen op de markt, klokkijken, woorden bouwen uit
 > hun klanken, een dinosaurus opgraven, een stroomkring leggen, sterrenbeelden onthouden, water naar
@@ -148,14 +148,14 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 
 **Name:** Suri: play and discover
 
-**Short description:** Games, journeys and stories for ages 2 to 10. No ads, no tracking.
+**Short description:** Games, journeys and stories for ages 2 to 8. No ads, no tracking.
 
 **Full description:**
 
 > Suri is a meerkat, and he is the whole app. He says everything out loud, so a child who cannot read
 > yet finds their own way everywhere, and he says it again as often as they ask.
 >
-> There are twenty-six things inside, for children from two to ten:
+> There are twenty-six things inside, for children from two to eight:
 >
 > Games that practise something real: counting out and sharing fairly at the market, telling the
 > time, building words from their sounds, digging up a dinosaur, wiring a circuit, remembering star
