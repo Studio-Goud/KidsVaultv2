@@ -9,7 +9,7 @@ worden, waar het nu staat, en wat er als eerste aan de beurt is. De vaste werkre
 
 ## Wat Suri moet zijn
 
-Een plek waar een kind van twee tot tien iets gaat doen dat het de moeite waard vindt, en waar een
+Een plek waar een kind van twee tot acht iets gaat doen dat het de moeite waard vindt, en waar een
 ouder na een maand nog steeds weet waarom hij ervoor betaalt.
 
 Dat is één zin, maar er zitten drie beloftes in die elkaar in de weg kunnen zitten:

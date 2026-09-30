@@ -1,8 +1,9 @@
 import '../style.css';
 import '@fontsource/nunito/800.css';
 import '@fontsource/nunito/900.css';
-import { CATALOG, domainsPresent, shelf, type Domain } from '../platform/catalog';
+import { CATALOG, byId, domainsPresent, shelf, type Domain } from '../platform/catalog';
 import {
+  cleanLog, weekOf,
   cleanChild, cleanUsed, dayKey, finished, FRESH_USED, leftToday, limitIsGuidance, limitsFor,
   limitsForAge, useToday, type Child, type Used,
 } from '../platform/session';
@@ -238,6 +239,7 @@ function overview(): void {
       button(T('Add a child', 'Kind toevoegen'), 'mint', () => addChild())),
     promisePanel(),
     subscriptionPanel(),
+    pickerPanel(),
     feelPanel(),
     langPanel(),
     panel(T('The code', 'De code'),
@@ -280,6 +282,27 @@ function feelPanel(): HTMLElement {
  * The language, for the whole app. The only switch used to sit inside Cloudhopper's own settings,
  * where no parent looks; a Dutch family with an English phone got English and could not find why.
  */
+/**
+ * The row of names on the front page. On by default, because with two children it saves the parent
+ * screen at every handover; off for a family where one child would happily use the other's day.
+ */
+function pickerPanel(): HTMLElement {
+  const box = el('input') as HTMLInputElement;
+  box.type = 'checkbox';
+  box.id = 'picker';
+  box.checked = save.family.picker !== false;
+  box.addEventListener('change', () => { save.family.picker = box.checked; persist(); });
+  const line = el('div', 'line');
+  const label = el('label');
+  label.htmlFor = 'picker';
+  label.textContent = T('Names on the front page', 'Namen op de voorpagina');
+  line.append(label, box);
+  return panel(T('Who is playing', 'Wie speelt er'), line,
+    el('p', 'note quiet', T(
+      'With more than one child, their names are on the front page and a tap says who is playing. A child can tap a brother or sister and use their time; switch it off if that matters in your house, and choose here instead.',
+      'Met meer dan één kind staan de namen op de voorpagina en zegt een tik wie er speelt. Een kind kan op een broer of zus tikken en diens tijd gebruiken; zet het uit als dat bij jullie uitmaakt, en kies dan hier.')));
+}
+
 function langPanel(): HTMLElement {
   const row = el('div', 'line');
   const label = el('label');
@@ -295,6 +318,33 @@ function langPanel(): HTMLElement {
   row.append(label, sel);
   return panel(T('Language', 'Taal'), row,
     el('p', 'note quiet', T('Everything Suri says and shows, in one language. Ruth speaks both.', 'Alles wat Suri zegt en laat zien, in één taal. Ruth spreekt ze allebei.')));
+}
+
+/**
+ * This week: what was played and what it practises, from the log the clock keeps. The thing a
+ * parent is promised on the front page, and until now only a number.
+ */
+function weekPanel(id: string): HTMLElement {
+  const week = weekOf(cleanLog(save.family.log?.[id], today()), today());
+  const kids: HTMLElement[] = [];
+  if (!week.length) {
+    kids.push(el('p', 'note', T('Nothing yet this week.', 'Deze week nog niets.')));
+  } else {
+    const ul = el('ul', 'skills');
+    for (const w of week) {
+      const e = byId(w.id);
+      const title = e ? e.title : w.id;
+      const what = e ? (NL() ? e.practisesNl : e.practises) : '';
+      const li = el('li');
+      li.innerHTML = `<b>${title} &middot; ${w.minutes} ${T('min', 'min')}</b><span>${what}</span>`;
+      ul.appendChild(li);
+    }
+    kids.push(ul);
+  }
+  kids.push(el('p', 'note quiet', T(
+    'The last seven days, on this device only. "Practises" says what happens on the screen; nobody has measured what a child takes from it.',
+    'De laatste zeven dagen, alleen op dit toestel. "Oefent" zegt wat er op het scherm gebeurt; niemand heeft gemeten wat een kind ervan meeneemt.')));
+  return panel(T('This week', 'Deze week'), ...kids);
 }
 
 function addChild(): void {
@@ -322,7 +372,7 @@ function childScreen(id: string): void {
   name.addEventListener('input', () => { c.name = name.value.slice(0, 24); write(); });
 
   const years = el('select');
-  for (let y = 2; y <= 10; y++) {
+  for (let y = 2; y <= 8; y++) {
     const o = el('option');
     o.value = String(y);
     o.textContent = `${y} ${T('years', 'jaar')}`;
@@ -411,10 +461,11 @@ function childScreen(id: string): void {
         'The age puts nothing away: what is still too old, or already outgrown, stays on the shelf in a row of its own.',
         'De leeftijd bergt niets op: wat nog te oud is, of al ontgroeid, blijft op de plank staan in een eigen rij.')}`)),
     panel(T('Today', 'Vandaag'),
-      el('p', 'note', `${u.minutes} ${T('minutes', 'minuten')} &middot; ${u.finished} ${T('things finished', 'dingen afgemaakt')}`),
+      el('p', 'note', `${Math.round(u.minutes)} ${T('minutes', 'minuten')} &middot; ${u.finished} ${u.finished === 1 ? T('thing finished', 'ding afgemaakt') : T('things finished', 'dingen afgemaakt')}`),
       el('p', 'note quiet', T(
         'We do not compare your child with anybody else, and there is no league table. This is what happened, nothing more.',
         'We vergelijken je kind met niemand, en er is geen ranglijst. Dit is wat er gebeurd is, meer niet.'))),
+    weekPanel(id),
     panel('',
       button(T('This one is playing', 'Deze speelt nu'), 'mint', () => {
         save.family.playing = id; persist(); overview();

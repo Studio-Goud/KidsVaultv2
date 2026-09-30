@@ -1,5 +1,5 @@
 import { drawGuide, GUIDE_NAME } from './guide';
-import { dayKey, cleanUsed, isLastGo, leftToday, limitsFor, spend, spent, type Child } from './session';
+import { dayKey, cleanLog, cleanUsed, isLastGo, leftToday, limitsFor, logMinutes, spend, spent, type Child } from './session';
 import { playingChild } from './who';
 import { NL, T } from '../util/lang';
 import { persist, save, whenFinished } from '../util/storage';
@@ -41,6 +41,12 @@ const playing = playingChild;
 
 const usedNow = (id: string): ReturnType<typeof cleanUsed> => cleanUsed(save.family.used?.[id]);
 
+/** Which thing this page is, for the log: `dig.html` is `dig`; the hub and the parent screen are nobody's minutes. */
+const PAGE = ((): string | null => {
+  const f = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+  return f === 'index' || f === 'parents' || f === 'privacy' || f === '' ? null : f;
+})();
+
 /** Minutes spent today by whoever is playing, or nothing when nobody is. */
 export function minutesToday(): number {
   const c = playing();
@@ -79,7 +85,9 @@ export function startClock(opts: { onDone?: () => void } = {}): void {
     if (!child || carried < 0.25) return;
     const whole = Math.floor(carried * 4) / 4;
     carried -= whole;
-    save.family.used = { ...save.family.used, [child.id]: spend(usedNow(child.id), dayKey(new Date()), whole) };
+    const today = dayKey(new Date());
+    save.family.used = { ...save.family.used, [child.id]: spend(usedNow(child.id), today, whole) };
+    if (PAGE) save.family.log = { ...save.family.log, [child.id]: logMinutes(cleanLog(save.family.log?.[child.id], today), today, PAGE, whole) };
     persist();
   };
   const tick = (): void => {

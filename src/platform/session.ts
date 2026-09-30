@@ -37,7 +37,7 @@ export interface Limits {
  * six. The higher end of each is taken, because these are ceilings a parent may lower.
  *
  * **Seven and up has no source.** The research was done for an app for two to six; the age range
- * became two to ten afterwards (`docs/decisions.md`). The numbers below for seven and up are a
+ * became two to ten afterwards, and two to eight on 2026-09-30 (`docs/decisions.md`). The numbers below for seven and up are a
  * product decision by me and nothing more, chosen to keep rising gently rather than to match any
  * guideline. They are marked here so that nobody quotes them as advice, and they are the first
  * thing to replace once the older band has been researched.
@@ -45,8 +45,7 @@ export interface Limits {
 export function limitsForAge(years: number): Limits {
   if (years <= 4) return { perDay: 30, perSitting: 10 };
   if (years <= 6) return { perDay: 60, perSitting: 15 };
-  if (years <= 8) return { perDay: 75, perSitting: 20 };   // not a guideline: see above
-  return { perDay: 90, perSitting: 25 };                    // not a guideline: see above
+  return { perDay: 75, perSitting: 20 };                    // not a guideline: see above
 }
 
 /** True where the number above is somebody's advice rather than ours. */
@@ -63,6 +62,62 @@ export interface Child {
   limits: Limits | null;
   /** the parent asked for a warning before the end, against the research */
   warn: boolean;
+}
+
+/**
+ * What was played, day by day: `{ '2026-09-30': { dig: 4.25, reis: 6 } }` for one child.
+ *
+ * This is the other half of "see what your child practises". The day's tally says how long; the
+ * log says on what, so the parent's screen can put the catalogue's "practises" line next to it. It
+ * keeps the last `LOG_DAYS` days and nothing more: it is a week's view, not a record, and it never
+ * leaves the device (rule 1). No streaks, no totals over time, no comparison between children.
+ */
+export type DayLog = Record<string, number>;
+export type ChildLog = Record<string, DayLog>;
+export const LOG_DAYS = 28;
+
+/** A log read back from disk: only dates, only known-looking ids, only finite minutes, recent only. */
+export function cleanLog(raw: unknown, today: string): ChildLog {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const out: ChildLog = {};
+  const floor = shiftDay(today, -LOG_DAYS);
+  for (const [date, day] of Object.entries(raw as Record<string, unknown>)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < floor || !day || typeof day !== 'object' || Array.isArray(day)) continue;
+    const d: DayLog = {};
+    for (const [id, m] of Object.entries(day as Record<string, unknown>)) {
+      if (/^[a-z]+$/.test(id) && typeof m === 'number' && isFinite(m) && m > 0) d[id] = Math.round(m * 4) / 4;
+    }
+    if (Object.keys(d).length) out[date] = d;
+  }
+  return out;
+}
+
+/** The same log with `minutes` more on `id` for `today`. */
+export function logMinutes(log: ChildLog, today: string, id: string, minutes: number): ChildLog {
+  const day = { ...(log[today] ?? {}) };
+  day[id] = Math.round(((day[id] ?? 0) + minutes) * 4) / 4;
+  return { ...log, [today]: day };
+}
+
+/** The last seven days up to and including today, summed per thing, most played first. */
+export function weekOf(log: ChildLog, today: string): Array<{ id: string; minutes: number; days: number }> {
+  const from = shiftDay(today, -6);
+  const sum = new Map<string, { minutes: number; days: number }>();
+  for (const [date, day] of Object.entries(log)) {
+    if (date < from || date > today) continue;
+    for (const [id, m] of Object.entries(day)) {
+      const s = sum.get(id) ?? { minutes: 0, days: 0 };
+      sum.set(id, { minutes: s.minutes + m, days: s.days + 1 });
+    }
+  }
+  return [...sum.entries()].map(([id, s]) => ({ id, minutes: Math.round(s.minutes), days: s.days })).sort((a, b) => b.minutes - a.minutes);
+}
+
+/** A day key moved by `n` days, so "seven days ago" needs no Date arithmetic elsewhere. */
+export function shiftDay(key: string, n: number): string {
+  const [y, m, d] = key.split('-').map(Number);
+  const t = new Date(y, m - 1, d + n);
+  return dayKey(t);
 }
 
 /** What has been used up, per child, per day. */

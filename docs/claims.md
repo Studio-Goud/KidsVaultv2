@@ -73,7 +73,7 @@ Twintig van de zesentwintig staan op "mijn inschatting" (dat waren er twaalf van
   `docs/research.md` §3.1. Geïmplementeerd in `limitsForAge()` in `src/platform/session.ts`.
   **Te toetsen:** of ik de richtlijn juist lees, en of "de bovenkant nemen omdat het een plafond
   is dat een ouder kan verlagen" een verdedigbare keuze is.
-- **Zeven tot tien.** `{75, 20}` en `{90, 25}` minuten. **Bron: geen.** Dit zijn mijn getallen.
+- **Zeven en acht.** `{75, 20}` minuten. **Bron: geen.** Dit zijn mijn getallen.
   De code zegt dat erbij en het ouderscherm zegt het ook. **Te toetsen:** wat hier hoort te staan,
   of dat een limiet op deze leeftijd überhaupt het juiste instrument is.
 

@@ -78,7 +78,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Negen klankstaven om op te spelen, en negen niveaus van tel, maat en melodie.',
     practises: 'Holding a beat, long against short, hearing high from low',
     practisesNl: 'De tel vasthouden, lang tegen kort, hoog van laag horen',
-    from: 2, to: 9, domains: ['muziek'], nature: 'beide', minutes: [2, 8],
+    from: 2, to: 8, domains: ['muziek'], nature: 'beide', minutes: [2, 8],
     reads: true, speaks: true,
   },
   {
@@ -105,7 +105,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'De hemel toont een figuur in de sterren. De lijnen vervagen. Teken hem terug.',
     practises: 'Visual working memory',
     practisesNl: 'Visueel werkgeheugen',
-    from: 3, to: 10, domains: ['ruimte', 'vormen'], nature: 'beide', minutes: [3, 8],
+    from: 3, to: 8, domains: ['ruimte', 'vormen'], nature: 'beide', minutes: [3, 8],
     reads: true, speaks: true,
   },
   {
@@ -114,7 +114,7 @@ export const CATALOG: Entry[] = [
     lineNl: "Duizenden echte dieren met echte foto's: hoe groot, waar ze wonen en wat ze eten.",
     practises: 'Looking closely, comparing sizes, sorting into groups, looking something up',
     practisesNl: 'Goed kijken, groottes vergelijken, in groepen indelen, iets opzoeken',
-    from: 3, to: 10, domains: ['dieren', 'natuur'], nature: 'leren', minutes: [2, 15],
+    from: 3, to: 8, domains: ['dieren', 'natuur'], nature: 'leren', minutes: [2, 15],
     reads: true, speaks: true,
   },
   {
@@ -123,7 +123,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Graaf geulen en het water vindt zelf zijn weg naar de akkers en de molen.',
     practises: 'Spatial reasoning, thinking ahead, cause and effect, saving up',
     practisesNl: 'Ruimtelijk inzicht, vooruitdenken, oorzaak en gevolg, sparen',
-    from: 4, to: 9, domains: ['natuur', 'techniek'], nature: 'beide', minutes: [4, 10],
+    from: 4, to: 8, domains: ['natuur', 'techniek'], nature: 'beide', minutes: [4, 10],
     reads: true, speaks: true,
   },
   {
@@ -141,7 +141,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Stap in, druk op start, en hij brengt je van de zon tot de rand, met een stop bij elke wereld.',
     practises: 'Being read to, how far apart things are, the order of the planets',
     practisesNl: 'Luisteren naar een verhaal, hoe ver dingen uit elkaar liggen, de volgorde van de planeten',
-    from: 4, to: 10, domains: ['ruimte'], nature: 'leren', minutes: [5, 12],
+    from: 4, to: 8, domains: ['ruimte'], nature: 'leren', minutes: [5, 12],
     reads: false, speaks: true,
   },
   {
@@ -150,7 +150,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Hetzelfde maar dan omlaag: van de golven tot de diepste plek die er is.',
     practises: 'Being read to, how deep is deep, what lives where',
     practisesNl: 'Luisteren naar een verhaal, hoe diep diep is, wat waar leeft',
-    from: 4, to: 10, domains: ['dieren', 'natuur'], nature: 'leren', minutes: [5, 12],
+    from: 4, to: 8, domains: ['dieren', 'natuur'], nature: 'leren', minutes: [5, 12],
     reads: false, speaks: true,
   },
   {
@@ -159,7 +159,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Een verhaal om in te stappen: van wie is de reuzentand uit opa’s kist? Terug in de tijd naar de mammoet, de oerzee en de T. rex.',
     practises: 'Listening to a story, looking and comparing, older is deeper',
     practisesNl: 'Luisteren naar een verhaal, goed kijken en vergelijken, ouder is dieper',
-    from: 4, to: 10, domains: ['dinos', 'natuur'], nature: 'beide', minutes: [8, 15],
+    from: 4, to: 8, domains: ['dinos', 'natuur'], nature: 'beide', minutes: [8, 15],
     reads: false, speaks: true,
   },
   {
@@ -168,7 +168,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Een verhaal om in te stappen: diep in de zee knippert een lichtje. Met de duikboot langs het rif, de lantaarnvissen en een potvis naar beneden, om te zien wie het maakt.',
     practises: 'Listening to a story, looking carefully, how deep is deep',
     practisesNl: 'Luisteren naar een verhaal, goed kijken, hoe diep diep is',
-    from: 4, to: 10, domains: ['dieren', 'natuur'], nature: 'beide', minutes: [8, 15],
+    from: 4, to: 8, domains: ['dieren', 'natuur'], nature: 'beide', minutes: [8, 15],
     reads: false, speaks: true,
   },
   {
@@ -177,7 +177,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Een verhaal om in te stappen: Suri’s satelliet Stip antwoordt niet meer. Met de raket langs het ruimtestation, de maan en Mars, en door de ringen van Saturnus om hem op te halen.',
     practises: 'Listening to a story, steering, the order of the planets',
     practisesNl: 'Luisteren naar een verhaal, sturen, de volgorde van de planeten',
-    from: 4, to: 10, domains: ['ruimte', 'techniek'], nature: 'beide', minutes: [8, 15],
+    from: 4, to: 8, domains: ['ruimte', 'techniek'], nature: 'beide', minutes: [8, 15],
     reads: false, speaks: true,
   },
   {
@@ -186,7 +186,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Een verhaal om in te stappen: Suri heeft buikpijn. Piepklein mee met een hapje appel, door de mond, de slokdarm, de maag en de darm, en help de witte bloedcellen de bacteriën opruimen.',
     practises: 'Listening to a story, where food goes in your own body',
     practisesNl: 'Luisteren naar een verhaal, waar het eten in je eigen lijf naartoe gaat',
-    from: 4, to: 10, domains: ['natuur'], nature: 'beide', minutes: [8, 15],
+    from: 4, to: 8, domains: ['natuur'], nature: 'beide', minutes: [8, 15],
     reads: false, speaks: true,
   },
   {
@@ -195,7 +195,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Boor door de grond naar beneden en terug in de tijd, langs echte fossielen, van Trix tot een van de allereerste dino’s.',
     practises: 'Being read to, how long ago long ago is, deeper ground is older ground',
     practisesNl: 'Luisteren naar een verhaal, hoe lang geleden lang geleden is, diepere grond is oudere grond',
-    from: 4, to: 10, domains: ['dinos', 'natuur'], nature: 'leren', minutes: [5, 12],
+    from: 4, to: 8, domains: ['dinos', 'natuur'], nature: 'leren', minutes: [5, 12],
     reads: false, speaks: true,
   },
   {
@@ -204,7 +204,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Word kleiner dan een zandkorrel en reis van je kruin tot je tenen, langs je hersenen, je hart en je botten.',
     practises: 'Being read to, where things are in your own body, what they are for',
     practisesNl: 'Luisteren naar een verhaal, waar alles in je eigen lijf zit, en waar het voor is',
-    from: 4, to: 10, domains: ['natuur'], nature: 'leren', minutes: [5, 12],
+    from: 4, to: 8, domains: ['natuur'], nature: 'leren', minutes: [5, 12],
     reads: false, speaks: true,
   },
   {
@@ -213,7 +213,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Zet de planeten op volgorde, verken ze in NASA-opnamen en lanceer sondes om ze te bereiken.',
     practises: 'Ordering, comparing sizes, predicting motion, knowing the solar system',
     practisesNl: 'Ordenen, groottes vergelijken, beweging voorspellen, het zonnestelsel kennen',
-    from: 4, to: 10, domains: ['ruimte'], nature: 'leren', minutes: [4, 12],
+    from: 4, to: 8, domains: ['ruimte'], nature: 'leren', minutes: [4, 12],
     reads: true, speaks: true,
   },
   {
@@ -233,7 +233,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Het hele verhaal van het leven, van de eerste cel tot jou: sleep door de tijd en zie het ene dier in het volgende veranderen.',
     practises: 'Listening to a story, looking carefully, how change adds up over a long time',
     practisesNl: 'Luisteren naar een verhaal, goed kijken, hoe kleine veranderingen over heel lange tijd optellen',
-    from: 5, to: 10, domains: ['dieren', 'natuur'], nature: 'beide', minutes: [10, 20],
+    from: 5, to: 8, domains: ['dieren', 'natuur'], nature: 'beide', minutes: [10, 20],
     reads: false, speaks: true,
   },
   {
@@ -242,7 +242,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Leg een stuifzwam neer, tel hoe ver hij reikt, en sta ergens anders als hij afgaat.',
     practises: 'Counting squares, comparing two numbers, planning a way out',
     practisesNl: 'Vakjes tellen, twee getallen vergelijken, een uitweg plannen',
-    from: 5, to: 9, domains: ['rekenen', 'spel'], nature: 'beide', minutes: [3, 8],
+    from: 5, to: 8, domains: ['rekenen', 'spel'], nature: 'beide', minutes: [3, 8],
     reads: true, speaks: true,
   },
   {
@@ -251,7 +251,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Elke som is iets wat je kunt zien en verschuiven: kralen, kisten, een tienveld, een getallenlijn.',
     practises: 'Splitting to ten, adding and taking away, over the ten, the tables',
     practisesNl: 'Splitsen tot 10, erbij en eraf, over het tiental, tientallen, de tafels',
-    from: 5, to: 9, domains: ['rekenen'], nature: 'leren', minutes: [4, 10],
+    from: 5, to: 8, domains: ['rekenen'], nature: 'leren', minutes: [4, 10],
     reads: true, speaks: true,
   },
   {
@@ -260,7 +260,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Lees de analoge en de digitale klok, en zeg de tijd hardop.',
     practises: 'Reading both clocks, saying the time in Dutch, counting on in minutes',
     practisesNl: 'De analoge en digitale klok lezen, de tijd in het Nederlands zeggen, minuten doortellen',
-    from: 5, to: 9, domains: ['tijd'], nature: 'leren', minutes: [4, 10],
+    from: 5, to: 8, domains: ['tijd'], nature: 'leren', minutes: [4, 10],
     reads: true, speaks: true,
   },
   {
@@ -269,7 +269,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Een werkbank met echte onderdelen en echte natuurkunde. Maak de kring rond en het lampje brandt.',
     practises: 'Cause and effect, reading a circuit, series against parallel, finding your own mistake',
     practisesNl: 'Oorzaak en gevolg, een schakeling lezen, serie tegen parallel, je eigen fout vinden',
-    from: 6, to: 10, domains: ['techniek'], nature: 'leren', minutes: [5, 15],
+    from: 6, to: 8, domains: ['techniek'], nature: 'leren', minutes: [5, 15],
     reads: true, speaks: true,
   },
   {
@@ -278,7 +278,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Een werkplaats met honderd onderdelen en niets op slot. Bouw de raket die jij wilt en vlieg ermee.',
     practises: 'Weighing things up, cause and effect, shape against speed',
     practisesNl: 'Afwegen, oorzaak en gevolg, vorm tegen snelheid',
-    from: 6, to: 10, domains: ['ruimte', 'techniek'], nature: 'beide', minutes: [5, 20],
+    from: 6, to: 8, domains: ['ruimte', 'techniek'], nature: 'beide', minutes: [5, 20],
     reads: true, speaks: true,
   },
   {
@@ -287,7 +287,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Sleep provincies, rivieren, landen en vlaggen op een getekende kaart, van je eigen provincie naar buiten.',
     practises: 'Where things are, reading a map, the Netherlands, Europe and the world',
     practisesNl: 'Waar dingen liggen, kaartlezen, Nederland, Europa en de wereld',
-    from: 6, to: 10, domains: ['aardrijkskunde'], nature: 'leren', minutes: [5, 12],
+    from: 6, to: 8, domains: ['aardrijkskunde'], nature: 'leren', minutes: [5, 12],
     reads: true, speaks: true,
   },
   {
@@ -296,7 +296,7 @@ export const CATALOG: Entry[] = [
     lineNl: 'Teken voor elk binnenkomend toestel een route en breng het veilig aan de grond.',
     practises: 'Dividing attention, planning ahead, holding back',
     practisesNl: 'Aandacht verdelen, vooruit plannen, impuls remmen',
-    from: 7, to: 10, domains: ['spel', 'techniek'], nature: 'beide', minutes: [5, 20],
+    from: 7, to: 8, domains: ['spel', 'techniek'], nature: 'beide', minutes: [5, 20],
     reads: true, speaks: false,   // the one that predates the guide
   },
 ];

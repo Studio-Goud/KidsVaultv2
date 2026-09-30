@@ -1,7 +1,7 @@
 {
   "name": "Suri",
   "short_name": "Suri",
-  "description": "Zesentwintig dingen voor kinderen van 2 tot 10 die iets echts oefenen: spellen, ontdekreizen en verhalen, met een gids die alles hardop zegt. Geen reclame, geen tracking, en elke sessie loopt af.",
+  "description": "Zesentwintig dingen voor kinderen van 2 tot 8 die iets echts oefenen: spellen, ontdekreizen en verhalen, met een gids die alles hardop zegt. Geen reclame, geen tracking, en elke sessie loopt af.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

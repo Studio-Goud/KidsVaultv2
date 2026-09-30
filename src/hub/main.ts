@@ -13,6 +13,8 @@ import { lastGoNow, startClock } from '../platform/clock';
 import { drawGuide } from '../platform/guide';
 import { loadVoice, speakLine } from '../platform/voice';
 import { playingChild, yearsNow } from '../platform/who';
+import { persist, save } from '../util/storage';
+import { cleanChild } from '../platform/session';
 import { soundThenGo } from './homebtn';
 
 
@@ -56,7 +58,7 @@ function card(g: Entry): HTMLElement {
   a.className = 'gamecard';
   a.href = `./${g.id}.html`;
   a.addEventListener('click', e => soundThenGo(e, a.href, 'open'));
-  // the age is a span now rather than a floor: the app runs from two to ten and a thing a child
+  // the age is a span now rather than a floor: the app runs from two to eight and a thing a child
   // has outgrown should say so
   a.innerHTML = `
     <div class="gamethumb"></div>
@@ -143,6 +145,37 @@ head.innerHTML = `
 root.appendChild(head);
 const grown = head.querySelector('.grownups') as HTMLAnchorElement;
 grown.addEventListener('click', e => soundThenGo(e, grown.href, 'tap'));
+
+/**
+ * Who is playing, as a row of names.
+ *
+ * With two children in a family, switching used to mean the parent screen, the code and three
+ * taps, every time the phone changed hands. Now the names are here, and a tap is enough. The cost
+ * is that a child can pick a sibling's name and use their day; the parent decides whether that is
+ * a problem in their house and can take the row away on their screen (`family.picker`). One child,
+ * or none: nothing to choose, nothing shown.
+ */
+const family = (save.family.children ?? []).map(c => cleanChild(c)).filter((c): c is NonNullable<typeof c> => !!c && !!c.name);
+if (family.length > 1 && save.family.picker !== false) {
+  const row = document.createElement('div');
+  row.className = 'whoplays';
+  row.setAttribute('role', 'group');
+  row.setAttribute('aria-label', T('Who is playing', 'Wie speelt er'));
+  for (const c of family) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'whoplays-name' + (c.id === save.family.playing ? ' on' : '');
+    b.textContent = c.name;
+    b.addEventListener('click', () => {
+      if (c.id === save.family.playing) return;
+      save.family.playing = c.id;
+      persist();
+      location.reload();
+    });
+    row.appendChild(b);
+  }
+  root.appendChild(row);
+}
 
 /**
  * The shelf, for the child who is playing.

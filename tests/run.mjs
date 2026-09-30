@@ -2864,8 +2864,8 @@ const group = name => console.log(`\n${name}`);
     CATALOG.every(e => e.domains.length > 0), true);
   is('test_catalog_no_row_ends_before_it_begins',
     CATALOG.every(e => e.to > e.from), true);
-  is('test_catalog_no_row_falls_outside_two_to_ten',
-    CATALOG.every(e => e.from >= 2 && e.to <= 10), true);
+  is('test_catalog_no_row_falls_outside_two_to_eight',
+    CATALOG.every(e => e.from >= 2 && e.to <= 8), true);
   is('test_catalog_a_sitting_is_minutes_not_hours',
     CATALOG.every(e => e.minutes[0] >= 1 && e.minutes[1] <= 30 && e.minutes[1] > e.minutes[0]), true);
   is('test_catalog_is_listed_youngest_first',
@@ -3061,6 +3061,21 @@ const group = name => console.log(`\n${name}`);
     let ticks = 0;
     while (!spent(cleanUsed(u), kid, '2026-09-30') && ticks < 100) { u = spend(cleanUsed(u), '2026-09-30', 0.25); ticks++; }
     is('test_clock_ticks_through_the_cleaner_reach_the_limit', ticks, 4);
+  }
+  // the week: what was played, kept short, never a streak
+  {
+    const { cleanLog, logMinutes, weekOf, shiftDay, LOG_DAYS } = S;
+    is('test_log_shift_day_crosses_a_month', shiftDay('2026-10-01', -1), '2026-09-30');
+    let log = {};
+    log = logMinutes(log, '2026-09-30', 'dig', 0.25);
+    log = logMinutes(log, '2026-09-30', 'dig', 0.25);
+    log = logMinutes(log, '2026-09-29', 'reis', 6);
+    log = logMinutes(log, '2026-09-20', 'reis', 30);
+    is('test_log_minutes_add_up_per_thing_per_day', log['2026-09-30'].dig, 0.5);
+    is('test_log_week_sums_the_last_seven_days_only', weekOf(log, '2026-09-30'), [{ id: 'reis', minutes: 6, days: 1 }, { id: 'dig', minutes: 1, days: 1 }]);
+    is('test_log_cleaner_drops_old_days_and_junk', cleanLog({ '2020-01-01': { dig: 5 }, 'x': { dig: 1 }, '2026-09-30': { dig: 'no', 'B4D!': 2, reis: 2 } }, '2026-09-30'), { '2026-09-30': { reis: 2 } });
+    is('test_log_cleaner_keeps_a_month', Object.keys(cleanLog({ [shiftDay('2026-09-30', -LOG_DAYS + 1)]: { dig: 1 } }, '2026-09-30')).length, 1);
+    is('test_log_cleaner_survives_garbage', cleanLog('garbage', '2026-09-30'), {});
   }
 
   const kid = (over = {}) => ({ id: 'a', name: 'Kind', years: 5, domains: [], limits: null, warn: false, ...over });
