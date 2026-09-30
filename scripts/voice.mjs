@@ -196,7 +196,7 @@ function harvest(extra = []) {
 const readable = text => (LANG === 'nl' ? text
   .replace(/(\d)\s*m\/s\b/g, '$1 meter per seconde')
   .replace(/(\d)\s*km\/s\b/g, '$1 kilometer per seconde')
-  .replace(/(\d)\s*km\/h\b/g, '$1 kilometer per uur')
+  .replace(/(\d)\s*km\/[hu]\b/g, '$1 kilometer per uur')
   .replace(/(\d)\s*×/g, '$1 keer') : text
   .replace(/(\d)\s*m\/s\b/g, '$1 metres per second')
   .replace(/(\d)\s*km\/s\b/g, '$1 kilometres per second')

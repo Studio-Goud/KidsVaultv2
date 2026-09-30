@@ -703,3 +703,28 @@ Nagekeken: tsc, 1511 tests, audit zonder fouten voor de reuzentand, het Letterbo
 en in een browser: in het lichtje speelt elke zin via de geluidsmotor, er wordt geen enkel
 audio-element en geen toestelstem gebruikt, en de volgende zin wacht precies tot de vorige klaar is.
 Niet nagekeken: een echte iPhone.
+
+## 2026-09-30 — Ruth nagelopen met oren: korte woorden opnieuw, in een zin
+
+De eigenaar hoorde Ruth dingen zeggen die niet klopten: een roos die klonk als "bloesem", en klanken
+en klinkers in het Letterbos die andere klanken waren. De opnamen bestonden wel (`voicecrawl` vond
+nul missers), maar niemand had gecontroleerd wát erin gezegd wordt. Een spraakmotor die één los
+woord krijgt, heeft geen context en raadt.
+
+`scripts/voicehear.mjs` laat nu elke opname uitschrijven door spraakherkenning (ElevenLabs, op de
+bouwmachine) en legt dat naast de bedoelde tekst. Met `--context` gaat er een korte zin in dezelfde
+stem voor ("Het woord is:"), omdat de herkenning bij één los woord ook de taal gokt ("sok" werd
+Russisch). Van de 4739 korte opnamen weken er zo 436 sterk af. `scripts/voicefix.mjs` spreekt zo'n
+regel opnieuw in binnen een zin, knipt met de tijdstempels per letter precies het woord eruit, maakt
+de randen zacht en schrijft het over de oude opname onder dezelfde naam. Eenheden worden voluit
+gezegd ("km/u" is "kilometer per uur"). Na twee rondes wijken er nog 28 woorden af, en dat zijn
+nagenoeg allemaal gevallen waar de herkenning het mis heeft en niet Ruth: "sein" en "zijn", "Lynx"
+en "links" klinken hetzelfde, en Latijnse namen zijn voor de herkenning gokwerk.
+
+De losse klanken van het Letterbos ("mmm", "ah", "buh") zijn niet zo te repareren: ook in een zin
+blijft een losse klank een gok. `scripts/voicesounds.mjs` knipt elke klank uit zijn eigen voorbeeld-
+woord (de aa uit maan, de ui uit huis) en rekt de klanken die je kunt aanhouden op tot een halve
+seconde zonder dat ze lager worden. Die staan nog niet in de app: de eigenaar luistert eerst.
+
+Nagekeken: 1511 tests, de nieuwe opnamen decoderen en spelen in een browser, en de controle na het
+herstel is hierboven. Niet nagekeken: met eigen oren, want die heb ik niet.
