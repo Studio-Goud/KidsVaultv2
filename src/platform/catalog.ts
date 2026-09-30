@@ -256,8 +256,8 @@ export const CATALOG: Entry[] = [
   },
   {
     id: 'clock', title: 'Klokkijken',
-    line: 'Read the analogue clock and the digital clock, and learn to say it out loud.',
-    lineNl: 'Lees de analoge en de digitale klok, en leer het hardop zeggen.',
+    line: 'Read the analogue clock and the digital clock, and say the time out loud.',
+    lineNl: 'Lees de analoge en de digitale klok, en zeg de tijd hardop.',
     practises: 'Reading both clocks, saying the time in Dutch, counting on in minutes',
     practisesNl: 'De analoge en digitale klok lezen, de tijd in het Nederlands zeggen, minuten doortellen',
     from: 5, to: 9, domains: ['tijd'], nature: 'leren', minutes: [4, 10],

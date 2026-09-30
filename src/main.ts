@@ -2,6 +2,7 @@ import './style.css';
 
 import { toggleWeatherDetail } from './render/hud';
 import { addBackButton, addHomeButton } from './hub/homebtn';
+import { startClock } from './platform/clock';
 import { Input } from './game/input';
 import { buildMission, coinsForRun, missionId, nextMission, starsForRun, WORLDS } from './game/progress';
 import { realLevel, realPortById, REAL_PORTS } from './game/realports';
@@ -317,7 +318,9 @@ window.addEventListener('keydown', e => {
 document.addEventListener('pointerdown', () => { unlockAudio(); ambience.setMode(mode === 'playing' ? 'game' : 'menu', world.level.time !== 'night'); }, { once: true });
 
 // debug handle (harmless in production)
-(window as unknown as { __wh: unknown }).__wh = { renderer, getWorld: () => world, getMode: () => mode, step: () => frame(performance.now()), start: (w: number, i: number) => startMission(w, i), startReal: (id: string, st: number) => startRealMission(id, st) };
+// `debugState` like every other game: Cloudhopper's controls are HTML, so the audit finds them by
+// itself and the buttons list is empty on purpose
+(window as unknown as { __wh: unknown }).__wh = { renderer, getWorld: () => world, getMode: () => mode, step: () => frame(performance.now()), start: (w: number, i: number) => startMission(w, i), startReal: (id: string, st: number) => startRealMission(id, st), debugState: () => ({ mode, level: world.level.id, landed: world.landed, hearts: world.hearts, endless: world.endless, buttons: [] as Array<{ id: string; x: number; y: number }> }) };
 
 world = makeDemoWorld();
 addHomeButton();
@@ -326,3 +329,5 @@ addHomeButton();
 addBackButton({ back: () => pause(), canBack: () => mode === 'playing' });
 ui.title();
 requestAnimationFrame(frame);
+// the day's tally, like every other page: Cloudhopper was the one that never counted
+startClock();

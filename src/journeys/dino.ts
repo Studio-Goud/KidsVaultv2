@@ -35,7 +35,7 @@ const S: Array<Omit<Stop, 'at'>> = [
       { say: 'Fishermen still pull mammoth bones and teeth out of the North Sea in their nets.',
         sayNl: 'Vissers halen nog steeds botten en kiezen van mammoeten uit de Noordzee, in hun netten.' },
       { say: 'The last mammoths lived on an island near the North Pole, when the pyramids in Egypt were already standing.',
-        sayNl: 'De laatste mammoeten leefden op een eiland bij de Noordpool, toen de piramides in Egypte er al stonden.' },
+        sayNl: 'De laatste mammoeten leefden op een eiland in het noordpoolgebied, toen de piramides in Egypte er al stonden.' },
     ],
   },
   {
@@ -82,8 +82,8 @@ const S: Array<Omit<Stop, 'at'>> = [
     more: [
       { say: 'It was not a dinosaur but a sea reptile, about fifteen metres long.',
         sayNl: 'Het was geen dino maar een zeereptiel, zo’n vijftien meter lang.' },
-      { say: 'The soldiers of Napoleon took its skull to Paris, and it is still there.',
-        sayNl: 'De soldaten van Napoleon namen zijn schedel mee naar Parijs, en daar ligt hij nog steeds.' },
+      { say: 'French soldiers took its skull to Paris, and it is still there.',
+        sayNl: 'Franse soldaten namen zijn schedel mee naar Parijs, en daar ligt hij nog steeds.' },
     ],
   },
   {
@@ -141,7 +141,7 @@ const S: Array<Omit<Stop, 'at'>> = [
     sayNl: 'Deze langnek staat in een museum in Berlijn. Het is het hoogste dinoskelet ter wereld.',
     more: [
       { say: 'It is called Giraffatitan, giant giraffe, because it ate from the tops of trees.',
-        sayNl: 'Hij heet Giraffatitan, reuzengiraf, omdat hij uit de toppen van de bomen at.' },
+        sayNl: 'Hij heet Giraffatitan, reuzengiraf, om zijn lange nek en zijn lange voorpoten, net als een giraf.' },
       { say: 'Its bones were dug up in Africa, in Tanzania, more than a hundred years ago.',
         sayNl: 'Zijn botten werden in Afrika opgegraven, in Tanzania, meer dan honderd jaar geleden.' },
     ],
@@ -166,7 +166,7 @@ export const DINO: Journey = {
   opening: 'The deeper we drill, the older the ground and the further back in time we go. Hold on.',
   openingNl: 'Hoe dieper we boren, hoe ouder de grond en hoe verder we teruggaan in de tijd. Hou je vast.',
   closing: 'Further back than this there were no dinosaurs yet. Everything we saw, we know because someone found a bone.',
-  closingNl: 'Nog verder terug waren er nog geen dino’s. Alles wat we zagen, weten we omdat iemand een bot vond.',
+  closingNl: 'Veel verder terug bestonden er nog geen dino’s. Alles wat we zagen, weten we omdat iemand een bot vond.',
   craft: 'drill', axis: 'down',
   unit: 'million years ago', unitNl: 'miljoen jaar geleden',
   stops: S.map((s, i) => ({ ...s, at: at(i, S.length) })),

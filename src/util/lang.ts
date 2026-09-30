@@ -12,7 +12,7 @@ import { save } from './storage';
  * So it is its own module now: one function, no strings, nothing to carry.
  */
 export function lang(): 'nl' | 'en' {
-  if (save.lang !== 'auto') return save.lang;
+  if (save.lang === 'nl' || save.lang === 'en') return save.lang;
   return (navigator.language || 'en').toLowerCase().startsWith('nl') ? 'nl' : 'en';
 }
 

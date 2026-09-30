@@ -37,7 +37,7 @@ const S: Array<Omit<Stop, 'at'>> = [
     id: 'reef', title: 'The reef', titleNl: 'Het rif', tone: '#43b5d6', mark: 15,
     picture: { kind: 'remote', path: 'f/f6/Clown_fish_in_the_Andaman_Coral_Reef.jpg', credit: 'Ritiks, CC BY-SA 3.0' },
     say: 'A clownfish lives in among the stinging arms of an anemone. It is the one fish they do not sting.',
-    sayNl: 'Een anemoonvis woont tussen de brandende armen van een zeeanemoon. Hij is de enige vis die ze niet steken.',
+    sayNl: 'Een anemoonvis woont tussen de prikkende armen van een zeeanemoon. Hem prikken ze niet: hij heeft een laagje slijm.',
     more: [
       { say: 'The anemone gets something back: the fish chases off whatever comes to nibble at it.',
         sayNl: 'De anemoon krijgt er iets voor terug: de vis jaagt weg wat aan haar komt knabbelen.' },
@@ -61,7 +61,7 @@ const S: Array<Omit<Stop, 'at'>> = [
     id: 'light', title: 'Where the light stops', titleNl: 'Waar het licht ophoudt', tone: '#1c5f84', mark: 200,
     picture: { kind: 'remote', path: '9/98/Mola_mola.jpg', credit: 'NOAA, publiek domein' },
     say: 'Two hundred metres down is where plants give up. Below this nothing grows.',
-    sayNl: 'Op tweehonderd meter geven planten het op. Hieronder groeit niets meer.',
+    sayNl: 'Op tweehonderd meter geven planten het op. Hieronder is te weinig licht voor ze.',
     more: [
       { say: 'This is a sunfish, the heaviest bony fish in the sea.',
         sayNl: 'Dit is een maanvis, de zwaarste beenvis van de zee.' },
@@ -90,19 +90,19 @@ const S: Array<Omit<Stop, 'at'>> = [
       { say: 'It cannot see a thing down here. It hunts by sound, and listens for the echo.',
         sayNl: 'Hij ziet hier niets. Hij jaagt met geluid en luistert naar de echo.' },
       { say: 'It is the loudest animal there is.',
-        sayNl: 'Het is het luidste dier dat er bestaat.' },
+        sayNl: 'Het is een van de luidste dieren die er bestaan.' },
     ],
   },
   {
     id: 'squid', title: 'The giant squid', titleNl: 'De reuzeninktvis', tone: '#0a2740', mark: 1500,
     picture: { kind: 'remote', path: '3/3c/Giant_squid_Ranheim.jpg', credit: 'NTNU Vitenskapsmuseet, CC BY 2.0' },
     say: 'The giant squid has an eye the size of a football, the biggest eye of any animal.',
-    sayNl: 'De reuzeninktvis heeft een oog zo groot als een voetbal, het grootste oog van alle dieren.',
+    sayNl: 'De reuzeninktvis heeft een oog zo groot als een voetbal, een van de grootste ogen van alle dieren.',
     more: [
       { say: 'It needs an eye that big to catch what little light is left, and to spot a sperm whale coming.',
         sayNl: 'Zo’n groot oog heeft hij nodig om het laatste beetje licht te vangen, en om een potvis aan te zien komen.' },
       { say: 'Nobody had ever filmed a live one until 2012.',
-        sayNl: 'Tot 2012 had nog nooit iemand er een levende gefilmd.' },
+        sayNl: 'Pas in 2012 heeft iemand er voor het eerst een levende gefilmd, diep in de zee.' },
     ],
   },
   {
@@ -114,11 +114,11 @@ const S: Array<Omit<Stop, 'at'>> = [
       { say: 'It was not found until 1985, because nobody could get this deep before.',
         sayNl: 'Hij werd pas in 1985 gevonden, omdat niemand er eerder zo diep bij kon.' },
       { say: 'It is dark here and always about four degrees, all year round.',
-        sayNl: 'Het is hier donker en altijd ongeveer vier graden, het hele jaar door.' },
+        sayNl: 'Het is hier donker en ijskoud, net boven nul, het hele jaar door.' },
     ],
   },
   {
-    id: 'dark', title: 'The black deep', titleNl: 'Het zwarte diep', tone: '#06182b', mark: 6000,
+    id: 'dark', title: 'The black deep', titleNl: 'De zwarte diepte', tone: '#06182b', mark: 6000,
     picture: { kind: 'drawn', art: angler },
     say: 'No sunlight has ever been here. The only light is what the animals bring themselves.',
     sayNl: 'Hier is nooit zonlicht geweest. Het enige licht is wat de dieren zelf meebrengen.',
@@ -138,7 +138,7 @@ const S: Array<Omit<Stop, 'at'>> = [
       { say: 'Mount Everest would fit in here with water still above it.',
         sayNl: 'De Mount Everest zou er in passen en er zou nog water boven staan.' },
       { say: 'More people have walked on the moon than have been down here.',
-        sayNl: 'Er hebben meer mensen op de maan gelopen dan dat er hier beneden zijn geweest.' },
+        sayNl: 'Er zijn maar heel weinig mensen hier beneden geweest, minder dan er in één klas zitten.' },
     ],
   },
 ];

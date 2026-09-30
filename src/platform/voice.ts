@@ -364,18 +364,25 @@ function playClips(list: Clip[], text: string, rate: number): void {
     if (!c) return;
     const ac = getContext?.() ?? null;
     if (ac && ac.state !== 'closed') {
-      if (ac.state === 'suspended') void ac.resume().catch(() => { /* waits for the next tap */ });
+      // 'suspended' after hush(), 'interrupted' on an iPhone after a phone call: both need a resume
+      if (ac.state !== 'running') void ac.resume().catch(() => { /* waits for the next tap */ });
       fetching = true;
       void bufferFor(ac, c.file).then(buf => {
         if (mine !== said) return;
         fetching = false;
-        if (!buf) { if (first) speakOut(text, rate); else next(false); return; }
+        // the rest of the line goes to the phone's voice with the first piece, so nothing is left
+        // queued that nobody will play - a story waits on `isSpeaking()` and that would wait forever
+        if (!buf) { buffers.delete(c.file); if (first) { queued = []; speakOut(text, rate); } else next(false); return; }
         const src = ac.createBufferSource();
         src.buffer = buf;
         src.connect(ac.destination);
-        src.onended = () => { if (source === src) source = null; next(false); };
+        const done = (): void => { if (source === src) { source = null; next(false); } };
+        src.onended = done;
         source = src;
         src.start();
+        // a context that never comes back to 'running' never fires onended: give up after the
+        // recording's own length plus a breath, so a story is never stuck on one line
+        setTimeout(done, (buf.duration + 2) * 1000);
         // the next piece of the same line, fetched while this one plays, so there is no gap
         if (queued[0]) void bufferFor(ac, queued[0].file);
       });
@@ -385,9 +392,9 @@ function playClips(list: Clip[], text: string, rate: number): void {
       const a = new Audio(`./voice/${c.file}`);
       a.addEventListener('ended', () => { release(a); if (playing === a) playing = null; next(false); });
       // a phone that refuses to play before the first touch gets the device's voice instead
-      a.play().catch(() => { if (first && mine === said) speakOut(text, rate); });
+      a.play().catch(() => { if (first && mine === said) { queued = []; speakOut(text, rate); } });
       playing = a;
-    } catch { if (first) speakOut(text, rate); }
+    } catch { if (first) { queued = []; speakOut(text, rate); } }
   };
   next(true);
 }

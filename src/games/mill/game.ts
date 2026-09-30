@@ -239,7 +239,7 @@ export class Millstream {
     this.prep = 0;
     this.idle = 0;
     mill.spring();
-    this.say(T('Here it comes!', 'Daar komt het!'), 2.2);
+    this.say(T('Here it comes.', 'Daar komt het.'), 2.2);
   }
 
   /** What this valley is asking for, in the words a child would use. */

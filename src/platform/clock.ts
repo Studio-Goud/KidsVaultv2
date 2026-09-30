@@ -1,8 +1,10 @@
 import { drawGuide, GUIDE_NAME } from './guide';
-import { dayKey, cleanUsed, isLastGo, limitsFor, spend, spent, type Child } from './session';
+import { dayKey, cleanUsed, isLastGo, leftToday, limitsFor, spend, spent, type Child } from './session';
 import { playingChild } from './who';
 import { NL, T } from '../util/lang';
 import { persist, save, whenFinished } from '../util/storage';
+import { speakLine, stopSpeaking } from './voice';
+import { audioContext } from '../util/audio';
 
 /**
  * The part of the promise that is kept rather than written down.
@@ -30,6 +32,9 @@ let child: Child | null = null;
 let carried = 0;
 let timer: number | null = null;
 let closed = false;
+/** when the last tick ran, so the tail of a visit is counted when the page is left */
+let lastAt = 0;
+let warned = false;
 
 // who is playing lives in who.ts, because the age decides more than the clock does
 const playing = playingChild;
@@ -70,20 +75,41 @@ export function startClock(opts: { onDone?: () => void } = {}): void {
   if (!child) return;
   if (dayIsDone()) { close(opts.onDone); return; }
 
+  const book = (): void => {
+    if (!child || carried < 0.25) return;
+    const whole = Math.floor(carried * 4) / 4;
+    carried -= whole;
+    save.family.used = { ...save.family.used, [child.id]: spend(usedNow(child.id), dayKey(new Date()), whole) };
+    persist();
+  };
   const tick = (): void => {
     if (!child) return;
+    lastAt = Date.now();
     if (document.hidden) return;                      // a phone in a pocket is not screen time
     carried += TICK / 60;
-    if (carried >= 0.25) {
-      const whole = Math.floor(carried * 4) / 4;
-      carried -= whole;
-      save.family.used = { ...save.family.used, [child.id]: spend(usedNow(child.id), dayKey(new Date()), whole) };
-      persist();
+    book();
+    // the warning a parent can switch on, against the research (session.ts): once, two minutes out
+    if (child.warn && !warned && leftToday(usedNow(child.id), child, dayKey(new Date())) <= 2 && !dayIsDone()) {
+      warned = true;
+      speakLine(T('Two more minutes, then Suri goes to sleep.', 'Nog twee minuten, dan gaat Suri slapen.'));
     }
     if (dayIsDone()) close(opts.onDone);
   };
+  lastAt = Date.now();
   timer = window.setInterval(tick, TICK * 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) child = playing(); });
+  // Every game is its own page, so a visit ends between two ticks. What the interval did not get
+  // to is counted on the way out, capped at one tick so a stale timestamp cannot charge an hour.
+  const flush = (): void => {
+    if (!child || closed) return;
+    const gone = Math.min(TICK, (Date.now() - lastAt) / 1000);
+    lastAt = Date.now();
+    if (gone > 1) { carried += gone / 60; book(); }
+  };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); else { lastAt = Date.now(); child = playing(); } });
+  window.addEventListener('pagehide', flush);
+  // back from the parent screen through the back-forward cache: this page still holds the old
+  // save, and its next tick would write the parent's changes away
+  window.addEventListener('pageshow', e => { if ((e as PageTransitionEvent).persisted) location.reload(); });
 }
 
 export function stopClock(): void {
@@ -117,6 +143,9 @@ function close(then?: () => void): void {
   closed = true;
   stopClock();
   then?.();
+  // whatever was running goes quiet: the story stops reading, the effects and the background stop
+  try { stopSpeaking(); } catch { /* nothing was speaking */ }
+  try { void audioContext()?.suspend(); } catch { /* no sound engine yet */ }
 
   const wrap = document.createElement('div');
   wrap.id = 'dayend';
@@ -124,10 +153,13 @@ function close(then?: () => void): void {
     <div class="dayend-card">
       <canvas class="dayend-guide" width="360" height="260"></canvas>
       <h2>${T(GUIDE_NAME + ' has gone to sleep', GUIDE_NAME + ' gaat slapen')}</h2>
-      <p>${T('Time to give the phone back to a grown-up.', 'Tijd om de telefoon terug te geven aan papa of mama!')}</p>
+      <p>${T('Time to give the phone back to a grown-up.', 'Tijd om de telefoon terug te geven aan papa of mama.')}</p>
       <a class="dayend-parents" href="./parents.html">${T('For grown-ups', 'Voor ouders')}</a>
     </div>`;
   document.body.appendChild(wrap);
+  // rule 6: a four-year-old hears that the day is done; the sound engine is woken for this one line
+  try { void audioContext()?.resume(); } catch { /* not yet unlocked */ }
+  speakLine(T(GUIDE_NAME + ' has gone to sleep. Time to give the phone back to a grown-up.', GUIDE_NAME + ' gaat slapen. Tijd om de telefoon terug te geven aan papa of mama.'));
 
   const c = wrap.querySelector('canvas') as HTMLCanvasElement;
   const ctx = c.getContext('2d');

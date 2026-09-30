@@ -1380,7 +1380,7 @@ export class Numbers {
     let text = '';
     let tone = 'rgba(18,48,71,0.8)';
     if (wrong) { text = teachLine(this.q, nl); tone = '#a5432a'; }
-    else if (this.fb === 'right') { text = T('Right!', 'Goed zo!'); tone = '#2f7a4c'; }
+    else if (this.fb === 'right') { text = T('Right.', 'Goed zo.'); tone = '#2f7a4c'; }
     else if (this.noteT > 0) text = this.note;
     // the panel over the answers is already saying what to do, so the strip does not say it twice
     else text = this.ready() ? T('Now pick the answer.', 'Kies nu het antwoord.') : '';

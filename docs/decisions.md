@@ -756,3 +756,41 @@ de catalogus beloofde "hoor het woord, hoor de klanken"; die is mee aangepast.
 
 Nagekeken: tsc, 1511 tests, audit van het Letterbos zonder fouten, en in een browser vijf niveaus
 gespeeld terwijl alles wat werd gezegd werd opgeschreven: alleen hele woorden en de hints.
+
+## 2026-09-30 — De grote controle: het fundament, met agents
+
+De eigenaar was de draad kwijt en vroeg om drie dingen: herinneren waarvoor Suri is, het fundament
+als een huis, en een volledige controle voor Android. De drie poorten waren groen (tsc, 1511 tests,
+audit 0 fouten over 32 schermen), en toch vonden vijf agents die parallel keken - code-review van het
+fundament, een speelronde over alle 29 pagina's, de Android-build, een tekst- en feitencontrole, en
+een productblik - dit:
+
+**De tijdslimiet werkte niet.** De klok schreef elke vijftien seconden een kwart minuut, maar de
+schoonmaker las de minuten als heel getal terug: 0,25 werd 0, en de dag raakte nooit op. Een kind met
+dertig minuten speelde onbeperkt en de ouder zag "0 van 30". Geen test dekte klok en opslag samen;
+nu twee wel. Dit was de belangrijkste belofte aan de ouder en hij was een leugen op het scherm.
+
+Wat verder is hersteld, met de regel erbij: Cloudhopper telde als enige niet mee en had geen
+`debugState` (regel 7, en de audit); de schakelaar "Waarschuwen voor het einde" schreef een waarde
+die niemand las (regel 7), en zegt nu één keer hardop "nog twee minuten"; "Code wijzigen" wiste de
+oude code voordat er een nieuwe was, zodat het volgende kind er zelf een kon kiezen; tijd ging
+verloren bij elke paginawissel (nu geboekt bij het verlaten); het einde van de dag onderbrak een
+verhaal zonder het stil te zetten en werd niet gezegd (regel 6); een corrupt save-bestand kon de app
+laten crashen (nu valt elk veld apart terug, met tests); de stem kon een verhaal eeuwig laten wachten
+als het eerste stukje van een regel niet laadde; een kind verwijderen zette de klok voor de anderen
+stil; de taalkeuze zat alleen in Cloudhoppers instellingen en staat nu op het ouderscherm.
+
+Op Android stond `allowBackup` aan: dan gaat de voortgang van een kind mee naar het Google-account
+van de ouder, en `privacy.html` zegt dat dat bestand het toestel nooit verlaat. Regel 1 beslist: uit.
+
+Teksten: de FAQ vroeg letterlijk "Is het pedagogisch goedgekeurd?" (regel 4, ook als vraag);
+"leer het hardop zeggen" bij Klokkijken (regel 3); "overgeven" waar "stoppen" bedoeld was; zeven
+uitroeptekens; verouderde beloften over de stem, het aantal onderdelen en offline; en een reeks
+feiten in de reizen die te stellig of onjuist waren (Napoleon bij de Mosasaurus, "het luidste dier",
+"niets groeit onder 200 meter", tanden die "terugkomen", sneeuw waar de Noordzee toendra was, een
+T. rex die "ons niet ziet"). Alles is hardop opnieuw ingesproken.
+
+Nagekeken: tsc, 1523 tests, audit 0 fouten, en de tijdslimiet in een browser: 4 → 4,25 → 4,5 → 4,75
+→ 5 minuten en dan het slaapscherm. Niet nagekeken: een echte telefoon. Open voor de eigenaar:
+Cloudhoppers modus "Eindeloos" na een missie staat op gespannen voet met "elk spel heeft een laatste
+ronde"; de munten daar zijn verdiend, niet gekocht, en dat mag van regel 2.

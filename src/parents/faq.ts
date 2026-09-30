@@ -61,7 +61,7 @@ export const QUESTIONS: Question[] = [
   {
     id: 'approved',
     q: 'Is it approved by an educational specialist?',
-    qNl: 'Is het pedagogisch goedgekeurd?',
+    qNl: 'Heeft een pedagoog deze app bekeken?',
     a: [
       'No. No pedagogue, orthopedagogue or speech therapist has tested this app, and until one has, it will not say that it has.',
       'What it is built on is published research about children of this age, which is written out in full in the project’s own notes, including where that research does not reach. The advice on screen time below, for example, is the Nederlands Jeugdinstituut’s for two to six, and mine for seven and up - and the app says which is which, on the screen where you set it.',
@@ -97,7 +97,7 @@ export const QUESTIONS: Question[] = [
     ],
     aNl: [
       'Omdat onderzoek zegt dat het de overdracht moeilijker maakt in plaats van makkelijker. Hiniker en collega’s (CHI 2016) vonden dat een waarschuwing van "nog twee minuten" het stoppen juist zwaarder maakte bij kinderen van één tot vijf, terwijl een natuurlijk eindpunt - het ding dat af is - het lichter maakte.',
-      'Dus dat is wat hier gebeurt. Als er minder over is dan één keer spelen, wordt het volgende dat je kind kiest aangekondigd als de laatste, dat wordt tot zijn eigen einde gespeeld in plaats van afgekapt, en daarna elke dag dezelfde afsluiting.',
+      'Dus dat is wat hier gebeurt. Als er minder over is dan één keer spelen, wordt het volgende dat je kind kiest aangekondigd als de laatste, dat wordt tot zijn eigen einde gespeeld in plaats van afgekapt, en daarna elke keer dezelfde afsluiting.',
       'Wil je de waarschuwing toch, dan kun je hem aanzetten. Hij staat uit, en die stand is de onderzochte en niet de vanzelfsprekende.',
     ],
   },
@@ -107,7 +107,7 @@ export const QUESTIONS: Question[] = [
     qNl: 'Wat gebeurt er met de gegevens van mijn kind?',
     a: [
       'Nothing leaves this device. There is no account, no login, no analytics, no advertising identifier, and no third-party tracking of any kind. The name and age you fill in are stored on the phone and are never sent anywhere.',
-      'Two things do go out over the internet, and neither carries anything about your child: the photographs in the animal book and on the dive are fetched from Wikimedia Commons as they are needed, and that is it.',
+      'Two things do go out over the internet, and neither carries anything about your child: the photographs in the animal book, on the journeys and in Letterbos are fetched from Wikimedia Commons as they are needed, and that is it.',
       'Clearing the app’s data on your phone clears everything, including the code on this screen.',
     ],
     aNl: [
@@ -134,12 +134,12 @@ export const QUESTIONS: Question[] = [
     q: 'What does €3.99 a month pay for?',
     qNl: 'Waar gaat die €3,99 per maand naartoe?',
     a: [
-      'The making of it: the games, the drawings, the voice, the checking of every fact, and the part nobody sees, which is keeping sixteen things working on every phone shape there is.',
+      'The making of it: the games, the drawings, the voice, the checking of every fact, and the part nobody sees, which is keeping twenty-six things working on every phone shape there is.',
       'It is also the answer to the previous question. An app for children pays for itself in one of two ways, and the other one is your child.',
       'Billing is not built yet. When it is, it will run through the App Store or Google Play, so cancelling happens where you cancel everything else. Nothing in the app asks for a card.',
     ],
     aNl: [
-      'Naar het maken ervan: de spellen, de tekeningen, de stem, het nakijken van elk feit, en het deel dat niemand ziet, namelijk zestien dingen werkend houden op elk telefoonformaat dat er is.',
+      'Naar het maken ervan: de spellen, de tekeningen, de stem, het nakijken van elk feit, en het deel dat niemand ziet, namelijk zesentwintig dingen werkend houden op elk telefoonformaat dat er is.',
       'Het is ook het antwoord op de vorige vraag. Een kinderapp verdient zichzelf op één van twee manieren terug, en de andere manier is je kind.',
       'Het afrekenen is nog niet gebouwd. Straks loopt het via de App Store of Google Play, zodat opzeggen gaat waar je alles opzegt. Nergens in de app wordt om een pasje gevraagd.',
     ],
@@ -149,11 +149,11 @@ export const QUESTIONS: Question[] = [
     q: 'My child is two. Is there anything here yet?',
     qNl: 'Mijn kind is twee. Valt hier al iets te doen?',
     a: [
-      'Some of it, and the app is honest about which. Fill in an age of three or under and the things that can take a simpler shape do: Opgraving, for instance, drops its tools, its rules and its question, and becomes rubbing a stone with your finger until a fossil comes out.',
+      'Some of it, and the app is honest about which. Fill in an age of three or under and the things that can take a simpler shape do: Opgraving, for instance, drops its tools, its rules and its question, and becomes rubbing a stone with your finger until a fossil comes out; Klankhuis becomes nine big chimes and a finger to run across them.',
       'That is not everything. Most of what is in here is built for four and up, and a card that says 5-9 means it. The age on each card is the range it has something to offer, not the range it will tolerate.',
     ],
     aNl: [
-      'Een deel, en de app is er eerlijk over welk deel. Vul je een leeftijd van drie of jonger in, dan nemen de dingen die dat kunnen hun eenvoudigste vorm aan: Opgraving laat bijvoorbeeld het gereedschap, de regels en de vraag vallen, en wordt wrijven over een steen met je vinger tot er een fossiel uit komt.',
+      'Een deel, en de app is er eerlijk over welk deel. Vul je een leeftijd van drie of jonger in, dan nemen de dingen die dat kunnen hun eenvoudigste vorm aan: Opgraving laat bijvoorbeeld het gereedschap, de regels en de vraag vallen, en wordt wrijven over een steen met je vinger tot er een fossiel uit komt; Klankhuis wordt negen grote klankstaven en een vinger die eroverheen strijkt.',
       'Dat is niet alles. Het meeste hierin is voor vier jaar en ouder gebouwd, en een kaartje waar 5-9 op staat meent dat. De leeftijd op elk kaartje is het bereik waarin het iets te bieden heeft, niet het bereik waarin het te verdragen is.',
     ],
   },
@@ -176,11 +176,11 @@ export const QUESTIONS: Question[] = [
     qNl: 'Waarom praat de app zoveel?',
     a: [
       'Because a child of four cannot read, and an instruction they cannot read is not an instruction. Everything that matters is said out loud, and the guide in the corner will say it again as often as your child taps him.',
-      'Today that is the phone’s own voice, which is not a warm one. Recorded lines are the plan and the app is built to take them without changing anything else. If you would rather it were quiet, turn the sound off; nothing depends on hearing it twice.',
+      'The voice is Ruth, recorded once for every line, in Dutch and in English, and shipped inside the app; the phone never sends anything anywhere to speak. If you would rather it were quiet, turn the sound off; nothing depends on hearing it twice.',
     ],
     aNl: [
       'Omdat een kind van vier niet leest, en een aanwijzing die je niet kunt lezen geen aanwijzing is. Alles wat ertoe doet wordt hardop gezegd, en de gids in de hoek zegt het nog eens, zo vaak als je kind op hem tikt.',
-      'Vandaag is dat de stem van de telefoon zelf, en die is niet warm. Ingesproken zinnen zijn het plan en de app is zo gebouwd dat die erin kunnen zonder dat er verder iets verandert. Wil je liever stilte, zet het geluid uit; niets hangt ervan af dat je het twee keer hoort.',
+      'De stem is Ruth, één keer ingesproken voor elke zin, in het Nederlands en het Engels, en meegeleverd in de app; de telefoon stuurt niets weg om te praten. Wil je liever stilte, zet het geluid uit; niets hangt ervan af dat je het twee keer hoort.',
     ],
   },
   {
@@ -189,13 +189,13 @@ export const QUESTIONS: Question[] = [
     qNl: 'Werkt het zonder internet?',
     a: [
       'The games do, once the app has been opened once: everything is drawn by the app itself and every sound is made by it, so there is nothing to download while playing.',
-      'Two things need a connection: the photographs in the animal book and the ones on the dive. Without it they fall back to a drawing and everything carries on working.',
-      'What is not built yet is proper offline installation, so a browser that has thrown the app out of its cache will need a moment to fetch it again. On a train in a tunnel that is the one thing that can go wrong.',
+      'One thing needs a connection: the photographs, in the animal book, on the journeys and in Letterbos. Without it they fall back to a drawing and everything carries on working.',
+      'The app from the store has everything on board, voice included, and needs no connection at all. In the browser version it is different: a browser that has thrown the app out of its cache will need a moment to fetch it again, and on a train in a tunnel that is the one thing that can go wrong.',
     ],
     aNl: [
       'De spellen wel, zodra de app één keer geopend is: alles wordt door de app zelf getekend en elk geluid wordt erdoor gemaakt, dus er valt tijdens het spelen niets te downloaden.',
-      'Twee dingen hebben verbinding nodig: de foto’s in het dierenboek en die op de duik. Zonder verbinding vallen die terug op een tekening en werkt de rest gewoon door.',
-      'Wat nog niet gebouwd is, is echte offline-installatie. Een browser die de app uit zijn geheugen heeft gegooid, heeft dus even nodig om hem opnieuw op te halen. In een trein in een tunnel is dat het enige wat mis kan gaan.',
+      'Eén ding heeft verbinding nodig: de foto’s, in het dierenboek, op de reizen en in het Letterbos. Zonder verbinding vallen die terug op een tekening en werkt de rest gewoon door.',
+      'De app uit de winkel heeft alles aan boord, de stem erbij, en heeft helemaal geen verbinding nodig. In de browserversie ligt dat anders: een browser die de app uit zijn geheugen heeft gegooid, heeft even nodig om hem opnieuw op te halen, en in een trein in een tunnel is dat het enige wat mis kan gaan.',
     ],
   },
   {
@@ -221,7 +221,7 @@ export const QUESTIONS: Question[] = [
     ],
     aNl: [
       'De planeten en manen zijn opnamen van NASA en ESA, die publiek domein zijn. De dieren en de beesten op de duik komen van Wikimedia Commons, onder licenties die dat toestaan, en bij elk staat de fotograaf en de licentie op het scherm waar hij te zien is.',
-      'Er is niets gegenereerd. Staat er een potvis, dan is het een foto van een potvis.',
+      'Er is niets gegenereerd. Waar een foto staat, is het een echte foto van het echte dier; de rest is door ons getekend, en dat staat erbij.',
     ],
   },
 ];

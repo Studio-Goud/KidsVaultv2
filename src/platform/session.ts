@@ -168,7 +168,9 @@ export function cleanUsed(raw: unknown): Used {
   const r = raw as Record<string, unknown>;
   return {
     date: typeof r.date === 'string' ? r.date : '',
-    minutes: typeof r.minutes === 'number' && isFinite(r.minutes) ? Math.max(0, Math.round(r.minutes)) : 0,
+    // to the quarter minute, because that is what the clock writes every fifteen seconds: rounding
+    // to whole minutes here read 0.25 back as 0 every tick, and the day never ran out
+    minutes: typeof r.minutes === 'number' && isFinite(r.minutes) ? Math.max(0, Math.round(r.minutes * 4) / 4) : 0,
     finished: typeof r.finished === 'number' && isFinite(r.finished) ? Math.max(0, Math.round(r.finished)) : 0,
   };
 }

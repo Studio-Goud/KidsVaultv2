@@ -54,7 +54,7 @@ const S: Array<Omit<Stop, 'at'>> = [
     sayNl: 'Een kind heeft twintig melktanden. Die vallen er een voor een uit.',
     more: [
       { say: 'Thirty-two grow back in their place, and those have to last a whole life.',
-        sayNl: 'Er komen er tweeëndertig voor terug, en die moeten een heel leven mee.' },
+        sayNl: 'Daarna komen er tweeëndertig blijvende tanden, en die moeten een heel leven mee.' },
       { say: 'The enamel on your teeth is the hardest thing in your whole body.',
         sayNl: 'Het glazuur op je tanden is het hardste wat er in je hele lichaam zit.' },
     ],

@@ -300,7 +300,7 @@ export class World {
     this.status = 'running';
   }
 
-  /** Rewarded-ad revive: one heart back, wreckage cleared, play on. */
+  /** One heart back for coins earned by playing, wreckage cleared, play on. There are no ads. */
   revive(): void {
     this.planes = this.planes.filter(p => p.state !== 'crashed');
     for (const p of this.planes) p.conflictWith.clear();
