@@ -227,10 +227,38 @@ export const hasVoice = (): boolean => clips[lang()].length > 0 || findVoice() !
 export function stopSpeaking(): void {
   said++;
   try { synth()?.cancel(); } catch { /* nothing to cancel */ }
-  if (playing) { try { playing.pause(); } catch { /* ok */ } playing = null; }
+  if (playing) { release(playing); playing = null; }
+  queued = [];
 }
 
 let playing: HTMLAudioElement | null = null;
+
+/**
+ * Let go of a recording completely, not just pause it.
+ *
+ * An iPhone treats every <audio> element as music: it puts the page's title and icon in the
+ * "now playing" panel on the lock screen and in Control Centre, keeps it there after Suri is closed,
+ * and a tap on it opens Safari on whatever tab happens to be in front - for the owner, a different
+ * site altogether. A paused element stays in that panel; one with no source left does not. So every
+ * line, when it ends or is cut off, loses its source, and the panel is told there is nothing playing.
+ */
+function release(a: HTMLAudioElement): void {
+  try { a.pause(); a.removeAttribute('src'); a.load(); } catch { /* already gone */ }
+  clearNowPlaying();
+}
+
+/** Tell the system's media panel there is nothing here to show or to press play on. */
+export function clearNowPlaying(): void {
+  try {
+    const ms = (navigator as unknown as { mediaSession?: MediaSession }).mediaSession;
+    if (!ms) return;
+    ms.metadata = null;
+    ms.playbackState = 'none';
+    for (const action of ['play', 'pause', 'seekbackward', 'seekforward', 'previoustrack', 'nexttrack', 'stop'] as MediaSessionAction[]) {
+      try { ms.setActionHandler(action, null); } catch { /* not supported here */ }
+    }
+  } catch { /* no media session: nothing to clear */ }
+}
 
 /**
  * Whether a line is still being said, recorded or by the device. The story journey waits on this
@@ -301,7 +329,7 @@ function playClips(list: Clip[], text: string, rate: number): void {
     if (!c) return;
     try {
       const a = new Audio(`./voice/${c.file}`);
-      a.addEventListener('ended', () => next(false));
+      a.addEventListener('ended', () => { release(a); if (playing === a) playing = null; next(false); });
       // a phone that refuses to play before the first touch gets the device's voice instead
       a.play().catch(() => { if (first && mine === said) speakOut(text, rate); });
       playing = a;
