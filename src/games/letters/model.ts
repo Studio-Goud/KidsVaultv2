@@ -43,18 +43,18 @@ export interface Level {
 export const LEVELS: Level[] = [
   {
     id: 'klanken', name: 'Sounds', nameNl: 'Klanken', kind: 'build', rounds: 6, bands: ['kort'], extras: 1,
-    hint: 'Listen to the word, then to each sound. Drag the letters into the boxes.',
-    hintNl: 'Luister naar het woord, en dan naar elke klank. Sleep de letters in de vakjes.',
+    hint: 'Listen to the word. Drag the letters into the boxes.',
+    hintNl: 'Luister naar het woord. Sleep de letters in de vakjes.',
   },
   {
     id: 'lange', name: 'The long sound', nameNl: 'Lange klank', kind: 'build', rounds: 6, bands: ['lang'], extras: 1,
-    hint: 'Two letters, one sound: the aa of maan is a single tile.',
-    hintNl: 'Twee letters, één klank: de aa van maan is samen één tegel.',
+    hint: 'Sometimes two of the same letter share one tile, like in maan.',
+    hintNl: 'Soms horen twee dezelfde letters samen op één tegel, zoals in maan.',
   },
   {
     id: 'tweeteken', name: 'Two letters, one sound', nameNl: 'Tweetekenklank', kind: 'build', rounds: 6, bands: ['duo'], extras: 2,
-    hint: 'ui, oe, eu, ie: you cannot hear two letters, so they come as one tile.',
-    hintNl: 'ui, oe, eu, ie: je hoort er maar één klank, dus zijn ze samen één tegel.',
+    hint: 'Some letters belong together on one tile, like in huis and boek.',
+    hintNl: 'Sommige letters horen samen op één tegel, zoals in huis en boek.',
   },
   {
     id: 'eiij', name: 'ei or ij', nameNl: 'ei of ij', kind: 'choose', rounds: 8, bands: ['ei', 'ij'], extras: 0,
@@ -63,25 +63,25 @@ export const LEVELS: Level[] = [
   },
   {
     id: 'auou', name: 'au or ou', nameNl: 'au of ou', kind: 'choose', rounds: 8, bands: ['au', 'ou'], extras: 0,
-    hint: 'au and ou are one sound too. This one has to be learned by heart, word by word.',
-    hintNl: 'au en ou zijn ook één klank. Deze moet je uit je hoofd leren, woord voor woord.',
+    hint: 'These two sound the same as well, like in pauw and hout. Look at how the word is written.',
+    hintNl: 'Ook deze twee klinken hetzelfde, zoals in pauw en hout. Kijk hoe het woord geschreven wordt.',
   },
   {
     id: 'cluster', name: 'Letters in a row', nameNl: 'Letters achter elkaar', kind: 'build', rounds: 6, bands: ['cluster'], extras: 2,
-    hint: 'Three consonants in a row, and every one of them is heard. Say them slowly.',
-    hintNl: 'Drie medeklinkers achter elkaar, en je hoort ze allemaal. Zeg ze langzaam.',
+    hint: 'Lots of letters in a row. Listen to the word closely.',
+    hintNl: 'Veel letters achter elkaar. Luister goed naar het woord.',
   },
   {
     id: 'hakken', name: 'Chop it up', nameNl: 'Woorden hakken', kind: 'chop', rounds: 6,
     bands: ['lang', 'duo', 'ei', 'ij', 'ou', 'cluster'], extras: 0,
-    hint: 'Now the other way round: tap where the word falls apart into sounds.',
-    hintNl: 'Nu andersom: tik waar het woord uit elkaar valt in klanken.',
+    hint: 'Now the other way round: tap between the letters to cut the word into pieces.',
+    hintNl: 'Nu andersom: tik tussen de letters om het woord in stukjes te knippen.',
   },
   {
     id: 'trap', name: 'Word ladder', nameNl: 'Van woord naar woord', kind: 'ladder', rounds: 6,
     bands: ['kort', 'lang'], extras: 2,
-    hint: 'One sound changes and the word is something else. Listen for which one.',
-    hintNl: 'Eén klank verandert, en het is een ander woord. Luister welke het is.',
+    hint: 'One letter changes and it is a different word. Listen closely.',
+    hintNl: 'Eén letter verandert, en het is een ander woord. Luister goed.',
   },
   {
     id: 'zinnen', name: 'Little sentences', nameNl: 'Zinnetjes', kind: 'sentence', rounds: 5, bands: [], extras: 1,

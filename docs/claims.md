@@ -37,7 +37,7 @@ Concreet te toetsen rijen, met wat erachter zit:
 
 | Onderdeel | Zegt te oefenen | Waar dat op steunt |
 |---|---|---|
-| Letterbos | klanken horen, woorden bouwen, ei/ij, au/ou | fonemisch bewustzijn als voorloper van lezen; `docs/research.md` §4.1 |
+| Letterbos | een gehoord woord bouwen, letters die samen horen, ei/ij, au/ou | spelt woorden; sinds 2026-09-30 zonder losse klanken, dus de verwijzing naar fonemisch bewustzijn (`docs/research.md` §4.1) geldt nog maar ten dele |
 | Rekenrijk | uittellen, vergelijken, hoeveel erbij | tellen als handeling met voorwerpen; §4.2 |
 | Marktdag | uittellen, eerlijk delen, hoeveel erbij | idem |
 | Klokkijken | wijzerplaat en de Nederlandse manier van zeggen | geen bron; mijn inschatting |
