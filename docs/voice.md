@@ -171,3 +171,24 @@ Wat na die rondes nog niet Ruth is, en waarom:
 Later dezelfde dag: het Engels is compleet. Alle 5245 Engelse regels, inclusief de 3738 Engelse
 diernamen, zijn met Ruth ingesproken (`npm run voice -- render <id> --lang en`). Een willekeurige
 rondgang in het Engels over negen pagina's gaf 124 gesproken regels, alle 124 uit opnames.
+
+## 2026-10-01 — George voor het Engels
+
+De eigenaar hoorde dat Ruth en Engels niet samengaan: een Nederlandse kinderverteller die Engels
+leest klinkt als geen van beide. Het Engels is nu een mannenstem uit het eigen account, **George,
+"Warm, Captivating Storyteller"** (`JBFqnCBsd6RMkjVDRZzb`), gekozen uit een proef met George en
+Brian op vijf Engelse Suri-regels. Het manifest houdt sindsdien één stem per taal (`_voice: { nl,
+en }`), zodat de twee los van elkaar vervangen kunnen worden; `render <id> --lang en` raakt alleen
+het Engels. Een ander Engels geluid is één opdracht:
+
+    npm run voice -- render <id> --lang en
+
+Van de 5773 Engelse regels zijn er 5431 opnieuw ingesproken; toen was het maandquotum van het
+account op (237.851 tekens). De 342 die overblijven vallen tot die tijd terug op de telefoonstem,
+en zijn klaar met één opdracht zodra er weer tegoed is:
+
+    npm run voice -- render JBFqnCBsd6RMkjVDRZzb --lang en
+
+De piloot in Cloudhopper was al een Engelse
+man (Chris, `scripts/radio.mjs`) en blijft dat: een andere stem dan de verteller, want hij is
+iemand anders.

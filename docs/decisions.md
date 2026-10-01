@@ -884,3 +884,13 @@ kleiner gemaakt. Er is geen monster dat echt blijkt en niets dat tevoorschijn sp
 Nagekeken: tsc, 1573 tests, audit van beide pagina's 0 fouten (36 schermen nu), stem en geluiden
 opnieuw gerenderd, en beide verhalen in een browser van begin tot eind gedreven met echte tikken
 en vegen. Niet nagekeken: een echte telefoon, en een pedagoog heeft dit niet gezien.
+
+## 2026-10-01 — Het Engels krijgt een eigen stem
+
+Ruth spreekt Nederlands en leest Engels, en dat hoor je: de eigenaar vond dat Engels en Ruth
+niet samengaan. Besluit: één stem per taal. Het Nederlands blijft Ruth; het Engels is George, een
+mannenstem uit het eigen ElevenLabs-account, gekozen na een proef met twee stemmen. Het manifest
+en de scripts kennen nu een stem per taal, zodat het Engels later nog een keer kan wisselen zonder
+dat het Nederlands opnieuw hoeft. Van de 5773 Engelse regels zijn er 5431 gerenderd; toen was het maandquotum op, en de laatste 342
+wachten op nieuw tegoed (ze vallen tot die tijd terug op de telefoonstem). De telefoon belt nog
+steeds nergens heen (regel 1). Zie `docs/voice.md`.

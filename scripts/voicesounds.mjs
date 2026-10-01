@@ -40,7 +40,7 @@ if (!key) { console.error('ELEVENLABS_API_KEY is not set.'); process.exit(2); }
 
 async function speak(text) {
   const body = { text, model_id: manifest._model, voice_settings: { stability: 0.55, similarity_boost: 0.8, style: 0.15, use_speaker_boost: true } };
-  const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${manifest._voice}/with-timestamps?output_format=pcm_${RATE}`, {
+  const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${(typeof manifest._voice === 'object' ? manifest._voice['nl'] : manifest._voice)}/with-timestamps?output_format=pcm_${RATE}`, {
     method: 'POST', headers: { 'xi-api-key': key, 'content-type': 'application/json' }, body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 200)}`);

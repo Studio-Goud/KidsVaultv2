@@ -41,8 +41,8 @@ boven en onder, en dat is een betere fout dan een knop onder de klok.
 **Het versienummer.** Play weigert een upload waarvan het nummer al eens gezien is. De Action geeft
 elke build `100 + runnummer`, dat alleen maar oploopt. Met de hand bouwen: `-PversionCode=…`.
 
-**De grootte.** Het pakket is ongeveer 113 MB, waarvan 114 MB onverpakt de stem (12.147 opnamen van
-Ruth, NL en EN) en 13 MB de geluiden. Dat past ruim onder de grens van Play (200 MB per download) en
+**De grootte.** Het pakket is ongeveer 113 MB, waarvan 114 MB onverpakt de stem (12.147 opnamen:
+Ruth in het Nederlands, George in het Engels) en 13 MB de geluiden. Dat past ruim onder de grens van Play (200 MB per download) en
 het is de prijs van rule 1: niets wordt achteraf opgehaald.
 
 ## Wat nog van jou is

@@ -1,17 +1,21 @@
 /**
  * Suri's voice, rendered once on this machine and shipped as audio files.
  *
- * The owner wants a natural woman's voice instead of whatever the phone happens to have, and has
- * an ElevenLabs account for it. This script is the whole of that pipeline, and it runs here and
+ * The owner wants a natural voice instead of whatever the phone happens to have, and has an
+ * ElevenLabs account for it: Ruth for the Dutch lines, and since 2026-10-01 a man's voice for the
+ * English ones, because Ruth reading English was neither Ruth nor English. The manifest holds one
+ * voice id per language, so the two can be changed apart. This script is the whole of that pipeline, and it runs here and
  * never on a phone: every line is sent to ElevenLabs once, the mp3 lands in `public/voice/nl/`,
  * and from then on the app plays a file. Nothing about a child is in any of it - these are the
  * app's own sentences - and the app itself still makes no request anywhere (rule 1 in CLAUDE.md).
  *
  * The key is read from the environment as ELEVENLABS_API_KEY and never written anywhere.
  *
- *   node scripts/voice.mjs voices              Dutch women's voices to choose from
+ *   node scripts/voice.mjs voices              the account's own voices, and Dutch women from the library
  *   node scripts/voice.mjs sample <id> [<id>]  five Suri lines per voice, in .cache/voice-samples
  *   node scripts/voice.mjs render <id> [--dry] every line not yet recorded, and the manifest
+ *
+ * Add `--lang en` to sample or render the English half; the voice id then applies to English only.
  *
  * Which lines: every Dutch string the source holds as a sentence - the second half of each
  * `T(en, nl)` and every `...Nl:` field - found by reading the source with the TypeScript parser.
@@ -30,7 +34,7 @@ import { join } from 'node:path';
 
 const API = 'https://api.elevenlabs.io';
 const MANIFEST = 'public/voice/clips.json';
-/** which half of the app to record: `--lang en` for the English lines, in the same voice */
+/** which half of the app to record: `--lang en` for the English lines, in their own voice */
 const LANG = arg('--lang') === 'en' ? 'en' : 'nl';
 const OUT = `public/voice/${LANG}`;
 /** the model: multilingual v2 is ElevenLabs' steadiest for long-form Dutch. Override with --model */
@@ -39,7 +43,13 @@ const MODEL = arg('--model') ?? 'eleven_multilingual_v2';
 const FORMAT = 'mp3_22050_32';
 const KBPS = 32;
 
-const SAMPLES = [
+const SAMPLES = LANG === 'en' ? [
+  'Hi, I am Suri. Shall we do something together?',
+  'Tap the chimes. Or run your finger across them.',
+  'Push the two crates together and count all the apples.',
+  'A great white shark can grow to about six metres. That is longer than a car.',
+  'This will be your last game for today. Pick a nice one.',
+] : [
   'Hoi, ik ben Suri. Zullen we samen iets gaan doen?',
   'Tik op de klokjes. Of strijk er met je vinger overheen.',
   'Schuif de twee kisten tegen elkaar en tel alle appels.',
@@ -253,8 +263,10 @@ async function render(voice, dry) {
   const { lineKey } = await lineKeyFn();
   const all = harvest(await letterbos());
   const raw = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : {};
-  // a different voice or model means every recording is out of date, so start again
-  const same = raw._voice === voice && raw._model === MODEL;
+  // a different voice or model means every recording in this language is out of date, so start again;
+  // before 2026-10-01 the manifest held one voice for both languages, as a string
+  const voicesNow = typeof raw._voice === 'object' && raw._voice ? raw._voice : { nl: raw._voice, en: raw._voice };
+  const same = voicesNow[LANG] === voice && raw._model === MODEL;
   const kept = same ? (raw[LANG] ?? []).filter(c => existsSync(join('public/voice', c.file))) : [];
   const have = new Set(kept.map(c => c.id));
   const todo = all.filter(t => !have.has(lineKey(t)));
@@ -266,7 +278,7 @@ async function render(voice, dry) {
   const rows = [...kept];
   const save = () => writeFileSync(MANIFEST, JSON.stringify({
     _: 'Recorded lines, rendered by scripts/voice.mjs. Filed under lineKey() of their words; a line not in here falls back to the device voice. See docs/voice.md.',
-    _voice: voice, _model: MODEL,
+    _voice: { ...voicesNow, [LANG]: voice }, _model: MODEL,
     nl: LANG === 'nl' ? rows.slice().sort((a, b) => a.id.localeCompare(b.id)) : raw.nl ?? [],
     en: LANG === 'en' ? rows.slice().sort((a, b) => a.id.localeCompare(b.id)) : raw.en ?? [],
   }, null, 1) + '\n');
@@ -294,7 +306,8 @@ async function render(voice, dry) {
   console.log(`\r${done - failed} recorded, ${failed} failed`);
 }
 
-const [cmd, ...rest] = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !(all[i - 1] ?? '').startsWith('--model'));
+// the flags that take a value: their value is not a voice id
+const [cmd, ...rest] = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !['--model', '--lang'].includes(all[i - 1] ?? ''));
 if (cmd === 'voices') await voices();
 else if (cmd === 'sample' && rest.length) await sample(rest);
 else if (cmd === 'render' && rest[0]) await render(rest[0], process.argv.includes('--dry'));

@@ -29,7 +29,7 @@ const RATE = 22050;
 const MANIFEST = 'public/voice/clips.json';
 
 const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'));
-const voice = manifest._voice, model = manifest._model;
+const voice = (typeof manifest._voice === 'object' ? manifest._voice[LANG] : manifest._voice), model = manifest._model;
 const byText = new Map(Object.values(manifest[LANG]).map(c => [c.text, c]));
 
 let texts = [];

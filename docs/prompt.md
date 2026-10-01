@@ -147,7 +147,7 @@ iemand die het inspreekt.
 **Grotendeels gedaan.** De eigenaar koos Ruth uit de ElevenLabs-bibliotheek; alle 1354 vaste
 Nederlandse regels zijn met haar ingesproken (`npm run voice`), en `npm run voicecheck` laat zien
 welke regels nog op de telefoonstem vallen. Wat overblijft: regels met getallen, tijden en namen
-die tijdens het spelen worden samengesteld, Letterbos' klanken, en al het Engels. Zie
+die tijdens het spelen worden samengesteld. Het Engels is sinds 2026-10-01 een mannenstem, George. Zie
 `docs/voice.md`. Een regel die van woorden verandert, moet opnieuw door het script.
 
 ### 5. Afrekenen
