@@ -176,11 +176,11 @@ export const QUESTIONS: Question[] = [
     qNl: 'Waarom praat de app zoveel?',
     a: [
       'Because a child of four cannot read, and an instruction they cannot read is not an instruction. Everything that matters is said out loud, and the guide in the corner will say it again as often as your child taps him.',
-      'The voice is Ruth, recorded once for every line, in Dutch and in English, and shipped inside the app; the phone never sends anything anywhere to speak. If you would rather it were quiet, turn the sound off; nothing depends on hearing it twice.',
+      'The voice is Ruth in Dutch and George in English, recorded once for every line and shipped inside the app; the phone never sends anything anywhere to speak. If you would rather it were quiet, turn the sound off; nothing depends on hearing it twice.',
     ],
     aNl: [
       'Omdat een kind van vier niet leest, en een aanwijzing die je niet kunt lezen geen aanwijzing is. Alles wat ertoe doet wordt hardop gezegd, en de gids in de hoek zegt het nog eens, zo vaak als je kind op hem tikt.',
-      'De stem is Ruth, één keer ingesproken voor elke zin, in het Nederlands en het Engels, en meegeleverd in de app; de telefoon stuurt niets weg om te praten. Wil je liever stilte, zet het geluid uit; niets hangt ervan af dat je het twee keer hoort.',
+      'De stem is Ruth in het Nederlands en George in het Engels, één keer ingesproken voor elke zin en meegeleverd in de app; de telefoon stuurt niets weg om te praten. Wil je liever stilte, zet het geluid uit; niets hangt ervan af dat je het twee keer hoort.',
     ],
   },
   {

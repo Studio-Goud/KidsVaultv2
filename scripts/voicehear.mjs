@@ -61,7 +61,7 @@ async function leadIn(key) {
   if (lead) return lead;
   const file = `.cache/voicehear-lead-${LANG}.mp3`;
   if (!existsSync(file)) {
-    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${manifest._voice}?output_format=mp3_22050_32`, {
+    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${(typeof manifest._voice === 'object' ? manifest._voice[LANG] : manifest._voice)}?output_format=mp3_22050_32`, {
       method: 'POST', headers: { 'xi-api-key': key, 'content-type': 'application/json' },
       body: JSON.stringify({ text: LEAD, model_id: manifest._model, voice_settings: { stability: 0.55, similarity_boost: 0.8, style: 0.15, use_speaker_boost: true } }),
     });
