@@ -35,6 +35,7 @@ export interface SfxRow {
   loop?: boolean;
 }
 
+const SOFT_CALL = 'soft, warm, gentle, for a calm children\'s game, clean studio recording, no music, no other sounds';
 const SOFT = 'soft, warm, gentle, for a calm children\'s game, clean studio recording, no music, no voice';
 const tap = (what = 'a small soft wooden tap, like a fingertip on a wooden toy'): SfxRow =>
   ({ prompt: `${what}, very short, ${SOFT}`, secs: 0.5, max: 0.18, gain: 0.7 });
@@ -344,6 +345,78 @@ export const SFX: Record<string, SfxRow> = {
   'donker.roomBed': { prompt: `a quiet child's bedroom at night, a very soft distant clock ticking slowly and a faint hush of air, calm, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
   'donker.windBed': { prompt: `a soft gentle wind outside a window at night with a faint slow creak now and then, calm not scary, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
   'donker.cosyBed': { prompt: `a cosy quiet bedroom with a night light on, very soft warm room tone and a faint slow music box, sleepy, seamless loop, ${SOFT}`, secs: 10, max: 10, loop: true, gain: 0.25 },
+
+  // ---- Kiekeboe
+  'kiekeboe.tap': tap('a soft wooden tap on a toy picture book'),
+  'kiekeboe.open': { prompt: `a soft rustle of leaves and a small gentle creak, a hiding place being opened, ${SOFT}`, secs: 0.8, max: 0.6 },
+  'kiekeboe.close': { prompt: `a soft padded thump, something being closed gently, ${SOFT}`, secs: 0.5, max: 0.3, gain: 0.8 },
+  'kiekeboe.complete': done('a warm little celebration: soft wooden chimes rising, a game of hide and seek finished'),
+  'kiekeboe.cow': { prompt: `a friendly cow mooing once, gentle and not too loud, ${SOFT_CALL}`, secs: 2, max: 1.6 },
+  'kiekeboe.cat': { prompt: `a friendly cat meowing once, small and gentle, ${SOFT_CALL}`, secs: 1.2, max: 1 },
+  'kiekeboe.dog': { prompt: `a friendly small dog barking twice, soft and playful, ${SOFT_CALL}`, secs: 1.2, max: 1 },
+  'kiekeboe.duck': { prompt: `a duck quacking twice, soft and funny, ${SOFT_CALL}`, secs: 1.2, max: 1 },
+  'kiekeboe.sheep': { prompt: `a sheep bleating once, soft and wobbly, ${SOFT_CALL}`, secs: 1.5, max: 1.3 },
+  'kiekeboe.frog': { prompt: `a small frog croaking three times, soft and round, ${SOFT_CALL}`, secs: 1.2, max: 1 },
+  'kiekeboe.owl': { prompt: `an owl hooting softly twice, calm and warm, ${SOFT_CALL}`, secs: 1.8, max: 1.5 },
+  'kiekeboe.pig': { prompt: `a friendly pig oinking twice, soft and snuffly, ${SOFT_CALL}`, secs: 1.2, max: 1 },
+
+  // ---- Vingerverf
+  'vingerverf.tap': tap('a small soft wooden tap, like a fingertip on a wooden toy'),
+  'vingerverf.pot': { prompt: `a fingertip dipping into thick soft paint with a tiny wet squelch, ${SOFT}`, secs: 0.5, max: 0.3, gain: 0.8 },
+  'vingerverf.swish': { prompt: `a soft wet paintbrush swish across paper, very short, ${SOFT}`, secs: 0.6, max: 0.35, gap: 380, gain: 0.5 },
+  'vingerverf.empty': { prompt: `a dry paintbrush scratching softly on paper, once, ${SOFT}`, secs: 0.6, max: 0.4, gain: 0.6 },
+  'vingerverf.wipe': { prompt: `a big sheet of paper being slid away across a wooden table, ${SOFT}`, secs: 1, max: 0.7 },
+  'vingerverf.done': done('a soft warm marimba and glockenspiel flourish, a gentle small celebration'),
+
+  // ---- Rijmbos
+  'rijmbos.tap': tap('a soft wooden tap on a picture card laid on moss'),
+  'rijmbos.right': right('a bright soft wooden marimba double note going up, with a light rustle of leaves'),
+  'rijmbos.wrong': wrong('two soft low wooden knocks, a gentle shrug, not a buzzer, friendly'),
+  'rijmbos.cheer': { prompt: `a small happy woodland flourish, a few soft birdsong notes and a light leaf rustle, ${SOFT}`, secs: 1.5, max: 1.3 },
+  'rijmbos.complete': done('a warm little celebration: soft wooden chimes rising, finishing a round in a forest'),
+
+  // ---- Trommelkring
+  'trommel.boem': { prompt: `a single deep warm hand-drum bass hit, round and soft, like the low tone of a djembe, ${SOFT}`, secs: 1, max: 0.8, gap: 60 },
+  'trommel.tik': { prompt: `a single high light hand-drum slap near the rim, short and clean, like the high tone of a djembe, ${SOFT}`, secs: 0.5, max: 0.3, gap: 60 },
+  'trommel.tap': tap('a soft knock on the wooden frame of a drum'),
+  'trommel.right': right('two warm soft marimba notes going up, a small contented answer'),
+  'trommel.complete': done('a gentle quiet drum roll that settles into three warm soft marimba notes going up, a calm ending by a campfire'),
+
+  // ---- Liedjesmaker
+  'liedje.tap': tap(),
+  'liedje.drop': tap('a small soft wooden block set down on a wooden shelf'),
+  'liedje.lift': { prompt: `a small wooden toy being lifted and popped off a shelf, ${SOFT}`, secs: 0.5, max: 0.3 },
+  'liedje.done': done('a gentle little music box phrase ending on a warm closing note, a cosy goodnight'),
+
+  // ---- Knikkerbaan
+  'knikkerbaan.tap': tap(),
+  'knikkerbaan.pick': tap('a small wooden plank being lifted off a wooden tray'),
+  'knikkerbaan.place': { prompt: `a wooden plank set down onto a wooden pegboard, one soft knock, ${SOFT}`, secs: 0.6, max: 0.35 },
+  'knikkerbaan.remove': { prompt: `a wooden plank sliding back into a wooden tray, ${SOFT}`, secs: 0.6, max: 0.4 },
+  'knikkerbaan.turn': { prompt: `a tiny wooden click, like a small wooden ratchet turning one notch, very short, ${SOFT}`, secs: 0.5, max: 0.12, gap: 60, gain: 0.7 },
+  'knikkerbaan.go': { prompt: `a glass marble starting to roll on a wooden board, ${SOFT}`, secs: 1.2, max: 0.9 },
+  'knikkerbaan.bonk': { prompt: `a glass marble tapping a wooden peg, a single soft click, very short, ${SOFT}`, secs: 0.5, max: 0.15, gap: 90, gain: 0.6 },
+  'knikkerbaan.landed': { prompt: `a glass marble dropping into a small ceramic cup with one bright soft plink, ${SOFT}`, secs: 1.2, max: 1.0 },
+  'knikkerbaan.shrug': wrong('a glass marble rolling off a wooden plank and two soft low wooden knocks, a gentle shrug, not a buzzer'),
+  'knikkerbaan.jingle': done('a short happy wooden xylophone run going up, ending on a bright note'),
+
+  // ---- Schaduwspel
+  'schaduw.grab': tap('a finger resting on a small wooden turntable, a faint wooden creak'),
+  'schaduw.turn': { prompt: `a very small soft wooden ratchet tick of a toy turntable passing a notch, very short, ${SOFT}`, secs: 0.5, max: 0.12, gap: 110, gain: 0.5 },
+  'schaduw.click': { prompt: `a soft wooden click like a puzzle piece fitting into place, followed by one warm little chime, ${SOFT}`, secs: 1, max: 0.9 },
+  'schaduw.hint': { prompt: `one soft questioning marimba note going gently up, ${SOFT}`, secs: 0.8, max: 0.6, gain: 0.8 },
+  'schaduw.complete': done('a warm soft celebration of marimba and a small wooden music box, a lamp being switched on gently'),
+  'schaduw.tap': tap('a small soft wooden tap, like a fingertip on a wooden toy'),
+
+  // ---- Postbode Suri
+  'postbode.tap': tap('a fingertip tapping lightly on a wooden front door'),
+  'postbode.knock': { prompt: `two soft wooden knocks on a door, a gentle shrug, friendly, ${SOFT}`, secs: 0.6, max: 0.5, gain: 0.8 },
+  'postbode.slot': { prompt: `a letter dropping through a brass letterbox flap with a small clack, ${SOFT}`, secs: 0.8, max: 0.7 },
+  'postbode.door': { prompt: `a wooden front door opening with a soft creak and a tiny cheerful jingle, ${SOFT}`, secs: 1.5, max: 1.2 },
+  'postbode.bell': { prompt: `a soft two-tone doorbell, ding dong, ${SOFT}`, secs: 1.5, max: 1.2 },
+  'postbode.right': right('a bright soft wooden marimba double note going up, a small happy success'),
+  'postbode.complete': done('a warm gentle marimba and glockenspiel flourish, a small celebration'),
+
 
   // ---- Van cel tot mens
   'evo.arrive': { prompt: `a soft warm two note chime, arriving somewhere new, ${SOFT}`, secs: 0.8, max: 0.7 },

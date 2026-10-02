@@ -34,10 +34,10 @@ const PAGES = [
   ['orbit', '__orbit'], ['circuit', '__circuit'], ['mill', '__mill'], ['tidepool', '__tide'],
   ['market', '__market'], ['puffball', '__puff'], ['dig', '__dig'], ['clock', '__clock'], ['seasons', '__seasons'],
   ['atlas', '__atlas'], ['animals', '__animals'], ['letters', '__letters'], ['rhythm', '__rhythm'],
-  ['numbers', '__numbers'], ['reis', '__reis'], ['diepzee', '__diepzee'], ['dino', '__dino'], ['lichaam', '__lichaam'], ['tand', '__tand'], ['lichtje', '__lichtje'], ['satelliet', '__satelliet'], ['buikpijn', '__buikpijn'], ['verkeer', '__verkeer'], ['donker', '__donker'], ['evolutie', '__evo'],
+  ['numbers', '__numbers'], ['reis', '__reis'], ['diepzee', '__diepzee'], ['dino', '__dino'], ['lichaam', '__lichaam'], ['tand', '__tand'], ['lichtje', '__lichtje'], ['satelliet', '__satelliet'], ['buikpijn', '__buikpijn'], ['verkeer', '__verkeer'], ['donker', '__donker'], ['kiekeboe', '__kiekeboe'], ['vingerverf', '__verf'], ['rijmbos', '__rijm'], ['trommel', '__trommel'], ['liedje', '__liedje'], ['knikkerbaan', '__knikker'], ['schaduw', '__schaduw'], ['postbode', '__post'], ['evolutie', '__evo'],
   // The same pages again as a particular age, through the `__years` hook in src/platform/who.ts.
   // A toddler shape and a split shelf are different screens, and neither is seen without a profile.
-  ['index', null, 3], ['index', null, 8], ['dig', '__dig', 2], ['rhythm', '__rhythm', 2], ['tidepool', '__tide', 2], ['animals', '__animals', 2],
+  ['index', null, 3], ['index', null, 8], ['dig', '__dig', 2], ['rhythm', '__rhythm', 2], ['tidepool', '__tide', 2], ['animals', '__animals', 2], ['kiekeboe', '__kiekeboe', 2], ['vingerverf', '__verf', 2], ['trommel', '__trommel', 2], ['liedje', '__liedje', 2], ['postbode', '__post', 2],
 ];
 
 /** The shapes a child actually holds, and the one that has a notch in it. */

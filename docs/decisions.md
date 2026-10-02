@@ -896,3 +896,37 @@ en de scripts kennen nu een stem per taal, zodat het Engels later nog een keer k
 dat het Nederlands opnieuw hoeft. Van de 5773 Engelse regels zijn er 5431 gerenderd; toen was het maandquotum op, en de laatste 342
 wachten op nieuw tegoed (ze vallen tot die tijd terug op de telefoonstem). De telefoon belt nog
 steeds nergens heen (regel 1). Zie `docs/voice.md`.
+
+## 2026-10-02 — Acht spellen tegelijk, elk door een eigen agent
+
+De eigenaar vroeg om meer spellen en koos uit een lijst van acht alles. Ze zijn gekozen op wat de
+catalogus mist: voor twee was er nog niets dat voor twee gemaakt is (alles was vereenvoudigd), taal
+en muziek hadden elk één ding, en er was weinig waarin een kind zelf iets maakt.
+
+| | voor | vult |
+|---|---|---|
+| Kiekeboe | 2-5 | het eerste ding dat voor twee gemaakt is: tikken, een dier komt tevoorschijn |
+| Vingerverf | 2-6 | maken; kleuren mengen echt (geel over blauw wordt groen) |
+| Rijmbos | 4-7 | taal naast Letterbos; alleen hele woorden, nooit klanken |
+| Trommelkring | 2-7 | muziek naast Klankhuis; luisteren en nadoen |
+| Liedjesmaker | 2-8 | maken; vier dieren, elk een toon, slepen is componeren |
+| Knikkerbaan | 5-8 | voorspellen en bijstellen; de Watermolen met zwaartekracht |
+| Schaduwspel | 4-8 | ruimtelijk draaien; het broertje van de schaduw in Suri en het donker |
+| Postbode Suri | 3-7 | getallen op volgorde, links en rechts, in de straat van de fietstocht |
+
+Elk spel is door een eigen agent gebouwd met één brief (`scratchpad/brief-game.md` in de sessie):
+dezelfde structuur als Getijdenpoel, de eenvoudige vorm uit `who.ts`, geen opslagslice zonder
+schoonmaker, geen oneindige modus, en een browsercheck voordat er gerapporteerd wordt. Het
+aansluiten (catalogus, Vite, voorpagina, audit, geluidslijst, tests, claims) is hier gedaan, niet
+door de agents, zodat acht agents niet in dezelfde bestanden schrijven.
+
+Wat niet kon: de stem. Het ElevenLabs-quotum is tot 6 oktober op, dus de regels van deze acht
+spellen vallen tot die dag terug op de telefoonstem. De herinnering voor 6 oktober rendert ze mee.
+
+Nagekeken: tsc, 1687 tests (elk spel heeft een model zonder browser dat getest wordt), audit van
+alle acht pagina's plus de vijf eenvoudige vormen, 0 fouten (49 schermen nu), en elk spel door zijn
+agent in een browser tot het einde gedreven. Hier zelf bekeken: de voorpagina met de acht kaarten,
+en de audit-schermafbeeldingen. Niet nagekeken: een echte telefoon, en de geluiden zijn door niemand
+gehoord. Eén bug uit de tests: een gespiegeld rondje in Schaduwspel kon met een theepot al passend
+beginnen, omdat een theepot bij bijna elke draai dezelfde schaduw geeft; nu wordt de hele cirkel
+afgezocht naar de slechtst passende start.
