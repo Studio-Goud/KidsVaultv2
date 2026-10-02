@@ -883,7 +883,9 @@ kleiner gemaakt. Er is geen monster dat echt blijkt en niets dat tevoorschijn sp
 
 Nagekeken: tsc, 1573 tests, audit van beide pagina's 0 fouten (36 schermen nu), stem en geluiden
 opnieuw gerenderd, en beide verhalen in een browser van begin tot eind gedreven met echte tikken
-en vegen. Niet nagekeken: een echte telefoon, en een pedagoog heeft dit niet gezien.
+en vegen. Niet nagekeken: een echte telefoon, en een pedagoog heeft dit niet gezien. Suri van achteren was
+eerst een koker met strepen, drie keer zo hoog als breed; sinds 2026-10-02 is hij dezelfde peer als
+de gids, twee keer zo hoog als breed, met het hoofd zo breed als de schouders.
 
 ## 2026-10-01 — Het Engels krijgt een eigen stem
 
