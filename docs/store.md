@@ -120,11 +120,13 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 > Suri is een stokstaartje, en hij is de hele app. Hij zegt alles hardop, zodat een kind dat nog niet
 > leest overal zelf de weg vindt, en hij herhaalt het zo vaak als je vraagt.
 >
-> Er zitten achtentwintig dingen in, voor kinderen van twee tot acht:
+> Er zitten zesendertig dingen in, voor kinderen van twee tot acht:
 >
 > Spellen die iets echts oefenen: tellen en eerlijk delen op de markt, klokkijken, woorden bouwen uit
 > hun klanken, een dinosaurus opgraven, een stroomkring leggen, sterrenbeelden onthouden, water naar
-> de molen leiden, een raket bouwen die echt moet vliegen, en de hele wereld op de kaart.
+> de molen leiden, een raket bouwen die echt moet vliegen, en de hele wereld op de kaart. En voor de
+> allerkleinsten: kiekeboe met dieren, vingerverf die echt mengt, een trommel bij het kampvuur en
+> zingende dieren op een rij.
 >
 > Ontdekreizen die je meenemen: van de zon tot de rand van het zonnestelsel, van de golven tot de
 > diepste plek van de zee, terug naar de tijd van de dino's, en van je kruin tot je tenen.
@@ -155,7 +157,7 @@ hieronder past en is geteld. Geen "leert", geen "pedagogisch goedgekeurd" (CLAUD
 > Suri is a meerkat, and he is the whole app. He says everything out loud, so a child who cannot read
 > yet finds their own way everywhere, and he says it again as often as they ask.
 >
-> There are twenty-eight things inside, for children from two to eight:
+> There are thirty-six things inside, for children from two to eight:
 >
 > Games that practise something real: counting out and sharing fairly at the market, telling the
 > time, building words from their sounds, digging up a dinosaur, wiring a circuit, remembering star

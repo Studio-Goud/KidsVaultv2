@@ -2901,7 +2901,7 @@ const group = name => console.log(`\n${name}`);
   is('test_shelf_a_chosen_subject_keeps_all_its_things',
     all(shelf({ years: 6, domains: ['ruimte'] })).length, inDomain('ruimte').length);
   is('test_shelf_a_later_thing_of_an_unchosen_subject_is_not_offered_either',
-    ids(shelf({ years: 3, domains: ['taal'] }).later), ['letters']);
+    ids(shelf({ years: 3, domains: ['taal'] }).later).sort(), ['letters', 'rijmbos']);
 
   is('test_domain_every_subject_has_something_in_it',
     domainsPresent().every(d => inDomain(d).length > 0), true);
@@ -2950,7 +2950,9 @@ const group = name => console.log(`\n${name}`);
   const src = { atlas: 'atlas/atlassfx', circuit: 'circuit/sfx', clock: 'clock/clocksfx', dig: 'dig/digsfx',
     letters: 'letters/lettersfx', market: 'market/marketsfx', mill: 'mill/millsfx', moonshot: 'moonshot/rocketsfx',
     nightwatch: 'nightwatch/nightsfx', numbers: 'numbers/numbersfx', orbit: 'orbit/orbitsfx', puffball: 'puffball/puffsfx',
-    rhythm: 'rhythm/chimesfx', seasons: 'seasons/seasonsfx', tidepool: 'tidepool/tidesfx' };
+    rhythm: 'rhythm/chimesfx', seasons: 'seasons/seasonsfx', tidepool: 'tidepool/tidesfx',
+    kiekeboe: 'kiekeboe/kiekeboesfx', vingerverf: 'vingerverf/vingerverfsfx', rijmbos: 'rijmbos/rijmsfx', trommel: 'trommel/trommelsfx',
+    liedje: 'liedje/liedjesfx', knikkerbaan: 'knikkerbaan/knikkersfx', schaduw: 'schaduw/schaduwsfx', postbode: 'postbode/postbodesfx' };
   const text = g => g === 'cloudhopper' ? readFileSync('src/util/audio.ts', 'utf8')
     : g === 'ui' ? readFileSync('src/platform/uisfx.ts', 'utf8')
     : g === 'reis' || g === 'diepzee' || g === 'dino' || g === 'lichaam' ? readFileSync('src/journey/journeysfx.ts', 'utf8')
@@ -3496,6 +3498,223 @@ const group = name => console.log(`\n${name}`);
   // rule 3: nothing in the story claims the child learns
   is('test_satelliet_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
   is('test_satelliet_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
+}
+
+// ---------------------------------------------------------------- Kiekeboe
+
+{
+  const m = await bundle('src/games/kiekeboe/model.ts', 'kiekeboemodel.mjs');
+  group('Kiekeboe - eight hiding places, nothing to get wrong');
+  is('test_kiekeboe_hides_and_animals_eight_each', [m.HIDES.length, m.ANIMALS.length], [8, 8]);
+  is('test_kiekeboe_deal_is_a_permutation', new Set(m.deal(5)).size, 8);
+  is('test_kiekeboe_deal_same_seed_same_deal', m.deal(5).join(), m.deal(5).join());
+  is('test_kiekeboe_deal_with_prev_moves_every_animal',
+    Array.from({ length: 200 }, (_, i) => i + 1).every(s => { const prev = m.deal(s + 1000); return m.deal(s, prev).every((a, i) => a !== prev[i]); }), true);
+  const r = m.newRound(1);
+  is('test_kiekeboe_tap_closed_opens_first_time', m.tapSpot(r, 0), { opened: true, first: true, complete: false });
+  is('test_kiekeboe_tap_open_hides_again', [m.tapSpot(r, 0), r.open[0]], [{ opened: false, first: false, complete: false }, false]);
+  is('test_kiekeboe_reopen_is_not_first', m.tapSpot(r, 0).first, false);
+  const done = [1, 2, 3, 4, 5, 6, 7].map(i => m.tapSpot(r, i).complete);
+  is('test_kiekeboe_round_complete_on_last_new_place', [done, m.isComplete(r)], [[false, false, false, false, false, false, true], true]);
+  is('test_kiekeboe_out_of_range_tap_is_harmless', m.tapSpot(r, 9).opened, false);
+  const r2 = m.newRound(2); for (let i = 0; i < 7; i++) m.tapSpot(r2, i);
+  is('test_kiekeboe_target_is_always_unfound', m.pickTarget(r2, Math.random), 7);
+  m.tapSpot(r2, 7);
+  is('test_kiekeboe_no_target_when_all_found', m.pickTarget(r2, Math.random), -1);
+  is('test_kiekeboe_question_only_from_four', [m.asksWhere(null), m.asksWhere(4), m.asksWhere(3), m.asksWhere(2)], [true, true, false, false]);
+  const sizes = [[390, 790], [390, 600], [768, 1024], [844, 350], [844, 390], [667, 375], [1024, 700], [1366, 1024]];
+  is('test_kiekeboe_layout_no_overlap_inside_screen', sizes.every(([w, h]) => {
+    const rs = m.spotRects(w, h);
+    return rs.every(a => a.x >= 0 && a.y >= 0 && a.x + a.w <= w && a.y + a.h <= h)
+      && rs.every((a, i) => rs.every((b, j) => i === j || !m.rectsOverlap(a, b)));
+  }), true);
+  is('test_kiekeboe_every_animal_has_names', m.ANIMALS.every(a => /^(Een|Het) /.test(a.lineNl) && /^Waar is .*\?$/.test(a.askNl)), true);
+}
+
+// ---------------------------------------------------------------- Vingerverf
+
+{
+  const m = await bundle('src/games/vingerverf/model.ts', 'vingerverfmodel.mjs');
+  group('Vingerverf - paint that mixes like paint');
+  const P = Object.fromEntries(m.POTS.map(p => [p.id, p.rgb]));
+  const nm = (a, b) => m.colourName(m.mix(a, b, 0.5)).nl;
+  is('test_vingerverf_mix_yellow_blue_is_green', nm(P.yellow, P.blue), 'groen');
+  is('test_vingerverf_mix_red_yellow_is_orange', nm(P.red, P.yellow), 'oranje');
+  is('test_vingerverf_mix_red_blue_is_purple', nm(P.red, P.blue), 'paars');
+  is('test_vingerverf_mix_red_white_is_pink', nm(P.red, P.white), 'roze');
+  is('test_vingerverf_mix_blue_white_is_light_blue', nm(P.blue, P.white), 'lichtblauw');
+  is('test_vingerverf_mix_black_darkens_every_pot', m.POTS.every(p => m.toHsl(m.mix(p.rgb, P.black, 0.5)).l < m.toHsl(p.rgb).l || p.id === 'black'), true);
+  is('test_vingerverf_mix_endpoints_and_identity_hold', [m.mix(P.red, P.blue, 0), m.mix(P.red, P.blue, 1), m.mix(P.red, P.red, 0.5)], [P.red, P.blue, P.red]);
+  is('test_vingerverf_pots_name_themselves', m.POTS.every(p => m.colourName(p.rgb).nl === p.nl), true);
+  is('test_vingerverf_colour_line_is_one_word_with_a_capital', m.colourLine(m.colourName(P.green), true), 'Groen.');
+  is('test_vingerverf_simple_shape_is_three_primaries', [m.potsFor(true).map(p => p.id), m.potsFor(false).length], [['red', 'yellow', 'blue'], 6]);
+  is('test_vingerverf_brush_thins_and_runs_out', [m.radiusFor(0, 10) < m.radiusFor(1, 10), m.radiusFor(0, 10) >= 3.3, m.loadAfter(1, 1e9, 100)], [true, true, 0]);
+  is('test_vingerverf_wetness_fades_to_dry', [m.wetness(0, 0), m.wetness(0, m.WET_SECS)], [1, 0]);
+  const seen = new m.Seen();
+  is('test_vingerverf_a_colour_is_said_once', [seen.see('x'), seen.see('x')], [true, false]);
+}
+
+// ---------------------------------------------------------------- Trommelkring
+
+{
+  const m = await bundle('src/games/trommel/model.ts', 'trommelmodel.mjs');
+  group('Trommelkring - a rhythm played back, judged kindly');
+  const L2 = [{ beat: 0, side: 'L' }, { beat: 1, side: 'L' }];
+  is('test_trommel_score_perfect_is_one', m.score(L2, L2, 0.25), 1);
+  is('test_trommel_score_shifted_start_is_ignored', m.score(L2, [{ beat: 5, side: 'L' }, { beat: 6, side: 'L' }], 0.25), 1);
+  is('test_trommel_score_within_tolerance_is_goed', m.judge(m.score(L2, [{ beat: 0, side: 'L' }, { beat: 1.2, side: 'L' }], 0.25)), 'goed');
+  is('test_trommel_score_half_a_beat_late_is_bijna', m.judge(m.score(L2, [{ beat: 0, side: 'L' }, { beat: 1.5, side: 'L' }], 0.25)), 'bijna');
+  is('test_trommel_score_wrong_side_is_nog_een_keer', m.judge(m.score(L2, [{ beat: 0, side: 'R' }, { beat: 1, side: 'R' }], 0.25)), 'nog een keer');
+  is('test_trommel_score_no_hits_is_zero', m.score(L2, [], 0.25), 0);
+  is('test_trommel_score_extra_hit_costs_half_a_hit', m.score(L2, [...L2, { beat: 2, side: 'L' }], 0.25), 0.75);
+  is('test_trommel_judge_thresholds', [m.judge(0.85), m.judge(0.5), m.judge(0.49)], ['goed', 'bijna', 'nog een keer']);
+  is('test_trommel_tobeats_is_zero_based', m.toBeats([10, 10 + 60 / 70], 70).map(b => Math.round(b * 1000) / 1000), [0, 1]);
+  is('test_trommel_eight_patterns_per_level_and_deterministic',
+    [1, 2, 3, 4, 5].every(l => m.makePatterns(l, 0).length === 8) && JSON.stringify(m.makePatterns(3, 0)) === JSON.stringify(m.makePatterns(3, 0)), true);
+  const same = p => new Set(p.map(n => n.side)).size === 1;
+  is('test_trommel_level_one_is_two_hits_one_drum', m.makePatterns(1, 0).every(p => p.length === 2 && same(p)), true);
+  is('test_trommel_level_two_is_three_hits_one_drum', m.makePatterns(2, 0).every(p => p.length === 3 && same(p)), true);
+  is('test_trommel_level_three_mixes_low_and_high', m.makePatterns(3, 0).every(p => p.length === 3 && !same(p)), true);
+  is('test_trommel_level_four_has_a_rest', m.makePatterns(4, 0).every(p => m.hasRest(p)), true);
+  is('test_trommel_level_five_is_four_beats_and_quicker',
+    m.makePatterns(5, 0).every(p => p.map(n => n.beat).join() === '0,1,2,3') && m.LEVELS[4].bpm > m.LEVELS[0].bpm, true);
+  is('test_trommel_level_one_tolerance_is_a_quarter_beat', m.LEVELS[0].tolerance, 0.25);
+  is('test_trommel_round_credit', [m.roundCredit('goed', 1), m.roundCredit('goed', 2), m.roundCredit('bijna', 2)], [1, 0.5, 0.25]);
+  is('test_trommel_stars', [m.starsFor(8), m.starsFor(4.4), m.starsFor(1)], [3, 2, 1]);
+}
+
+// ---------------------------------------------------------------- Liedjesmaker
+
+{
+  const m = await bundle('src/games/liedje/model.ts', 'liedjemodel.mjs');
+  group('Liedjesmaker - a row of singing animals');
+  is('test_liedje_notes_are_five_animals_going_up', m.NOTES.map(n => n.animal).join(), 'frog,dog,cat,bird,mouse');
+  is('test_liedje_notes_ascend_to_a440', m.NOTES.every((n, i) => i === 0 || n.freq > m.NOTES[i - 1].freq) && Math.round(m.NOTES[4].freq) === 440, true);
+  const slow = m.stepTimes('slow', 8);
+  is('test_liedje_steptimes_slow_eight_even_steps', [slow.length, slow[1], Math.round(slow[7] * 100) / 100], [8, 0.72, Math.round(7 * 0.72 * 100) / 100]);
+  is('test_liedje_steptimes_fast_is_quicker_than_slow', m.stepTimes('fast', 3)[1] < m.stepTimes('slow', 3)[1], true);
+  is('test_liedje_steptimes_zero_notes_is_empty', m.stepTimes('slow', 0), []);
+  const s = m.emptySong(8);
+  is('test_liedje_place_fills_a_slot_without_mutating', [m.place(s, 2, 'cat')[2], s[2]], ['cat', null]);
+  is('test_liedje_place_bad_slot_or_animal_changes_nothing', [m.place(s, 8, 'cat'), m.place(s, -1, 'cat'), m.place(s, 1, 'cow')], [s, s, s]);
+  is('test_liedje_remove_makes_a_rest', m.remove(m.place(s, 0, 'frog'), 0)[0], null);
+  is('test_liedje_move_relocates_and_replaces', m.move(m.place(m.place(s, 0, 'frog'), 3, 'dog'), 0, 3).slice(0, 4), [null, null, null, 'frog']);
+  is('test_liedje_simple_shape_four_slots_three_animals', [m.slotCount(true), m.shelfFor(true).length, m.slotCount(false), m.shelfFor(false).length], [4, 3, 8, 5]);
+  is('test_liedje_examples_are_three_tunes_of_eight', m.EXAMPLES.length === 3 && m.EXAMPLES.every(e => e.song.length === 8 && e.song.every(a => a === null || m.ANIMAL_IDS.includes(a))), true);
+  is('test_liedje_suris_tune_is_three_notes_repeating', m.EXAMPLES[0].song.join(), 'frog,cat,bird,frog,cat,bird,frog,cat');
+  is('test_liedje_stepat_walks_the_row', [m.stepAt('slow', 8, -0.1), m.stepAt('slow', 8, 0.8), m.stepAt('slow', 8, 99)], [-1, 1, 8]);
+}
+
+// ---------------------------------------------------------------- Knikkerbaan
+
+{
+  const m = await bundle('src/games/knikkerbaan/model.ts', 'knikkerbaanmodel.mjs');
+  group('Knikkerbaan - a marble, planks, and one cup');
+  is('test_knikker_at_least_eight_boards', m.LEVELS.length >= 8, true);
+  is('test_knikker_step_is_one_hundred_twentieth', m.STEP, 1 / 120);
+  is('test_knikker_every_solution_lands_in_the_cup', m.LEVELS.map(L => m.playBoard(L, L.solution)), m.LEVELS.map(() => 'cup'));
+  is('test_knikker_no_planks_never_lands', m.LEVELS.every(L => m.playBoard(L, []) !== 'cup'), true);
+  const L0 = m.LEVELS[0];
+  const run = () => { const w = m.makeWorld(L0, L0.solution); const r = m.simulate(w, 40); return [r, w.marble.x]; };
+  is('test_knikker_simulate_is_deterministic', run(), run());
+  is('test_knikker_marble_falls_into_an_open_cup', m.playBoard({ ...L0, pegs: [], cupX: L0.drop.x }, []), 'cup');
+  is('test_knikker_stars_first_drop_three', m.starsForDrops(1), 3);
+  is('test_knikker_stars_second_or_third_two', [m.starsForDrops(2), m.starsForDrops(3)], [2, 2]);
+  is('test_knikker_stars_later_one', m.starsForDrops(4), 1);
+  is('test_knikker_snap_grid_and_degrees', [m.snap(2.3), m.snapDeg(22), m.snapDeg(200)], [2.5, 15, 75]);
+  is('test_knikker_placement_rejects_a_plank_through_a_peg', m.placementOk(m.LEVELS[2], [], { x: 3.5, y: 7, deg: 0, len: 3 }), false);
+  is('test_knikker_placement_rejects_off_board', m.placementOk(m.LEVELS[0], [], { x: 0.5, y: 6, deg: 0, len: 3 }), false);
+  const near = m.nearestPlacement(m.LEVELS[2], [], { x: 3.5, y: 7, deg: 0, len: 3 });
+  is('test_knikker_nearest_placement_moves_clear_of_the_peg', !!near && m.placementOk(m.LEVELS[2], [], near), true);
+}
+
+// ---------------------------------------------------------------- Schaduwspel
+
+{
+  const m = await bundle('src/games/schaduw/model.ts', 'schaduwmodel.mjs');
+  group('Schaduwspel - a real shadow of a real shape');
+  is('test_schaduw_nine_objects_with_names_and_lines', m.OBJECTS.length === 9 && m.OBJECTS.every(o => o.nameNl && o.lineNl) && m.objectById('teapot').lineNl === 'Een theepot.', true);
+  const teapot = m.objectById('teapot'), duck = m.objectById('duck'), chair = m.objectById('chair'), boot = m.objectById('boot');
+  is('test_schaduw_project_gives_one_polygon_per_face', m.project(teapot, 0, 0).length === teapot.faces.length && m.project(teapot, 0, 0).every(p => p.length >= 3), true);
+  is('test_schaduw_shadow_stays_inside_the_wall', m.OBJECTS.every(o => [0, 0.7, 2].every(yaw => [0, 0.6].every(pitch =>
+    m.project(o, yaw, pitch).every(poly => poly.every(pt => Math.abs(pt.x) <= m.WALL_R && Math.abs(pt.y) <= m.WALL_R))))), true);
+  const sd = m.project(duck, 0.7, 0);
+  is('test_schaduw_match_identical_is_one', m.matchScore(sd, sd), 1);
+  is('test_schaduw_match_empty_is_zero', m.matchScore([], sd), 0);
+  is('test_schaduw_match_far_turn_is_below_threshold', m.matchScore(m.project(chair, 0, 0), m.project(chair, 1.2, 0)) < m.LEVELS[0].threshold, true);
+  is('test_schaduw_match_is_symmetric', m.matchScore(m.project(boot, 0.3, 0), m.project(boot, 1, 0)), m.matchScore(m.project(boot, 1, 0), m.project(boot, 0.3, 0)));
+  is('test_schaduw_mirror_twice_is_identity', m.matchScore(m.mirror(m.mirror(sd)), sd), 1);
+  is('test_schaduw_a_round_never_starts_fitted', m.LEVELS.every(level => m.OBJECTS.every(o => {
+    const r = m.makeRound(o.id, level, m.rngFor(level, 1));
+    return m.matchScore(m.project(o, r.yaw0, r.pitch0), m.project(o, r.yawT, r.pitchT)) < r.threshold
+      && r.threshold >= level.threshold - m.THRESHOLD_ROOM && r.threshold <= level.threshold;
+  })), true);
+  is('test_schaduw_level_one_has_no_tilt_level_three_does', [
+    m.OBJECTS.every(o => m.makeRound(o.id, m.LEVELS[0], m.rngFor(m.LEVELS[0], 1)).pitchT === 0 && m.makeRound(o.id, m.LEVELS[1], m.rngFor(m.LEVELS[1], 1)).pitchT === 0),
+    m.OBJECTS.every(o => Math.abs(m.makeRound(o.id, m.LEVELS[2], m.rngFor(m.LEVELS[2], 1)).pitchT) >= 0.35)], [true, true]);
+  const picked = m.objectsFor(m.LEVELS[0], m.rngFor(m.LEVELS[0], 1));
+  is('test_schaduw_eight_unique_objects_seeded', [new Set(picked).size, picked.join() === m.objectsFor(m.LEVELS[0], m.rngFor(m.LEVELS[0], 1)).join(), m.SIMPLE_LEVEL.count], [8, true, 5]);
+  const round = (yawT, pitchT = 0) => ({ yawT, pitchT, yaw0: 0, pitch0: 0, threshold: 0.8 });
+  is('test_schaduw_hint_points_the_short_way', [m.hintDirection(0, 0, round(1), false), m.hintDirection(2, 0, round(1), false), m.hintDirection(0, 0, round(0.02), false), m.hintDirection(1, 0, round(1, 0.5), true)], ['right', 'left', null, 'down']);
+  is('test_schaduw_angle_diff_wraps', Math.round(m.angleDiff(0.1, 2 * Math.PI - 0.1) * 100) / 100, -0.2);
+  is('test_schaduw_stars', [m.starsFor(8, 8), m.starsFor(7, 8), m.starsFor(4, 8), m.starsFor(0, 8)], [3, 3, 2, 1]);
+  is('test_schaduw_hints_after', [m.hintsAfter(9.9), m.hintsAfter(10), m.hintsAfter(20)], [0, 1, 2]);
+}
+
+// ---------------------------------------------------------------- Postbode Suri
+
+{
+  const m = await bundle('src/games/postbode/model.ts', 'postbodemodel.mjs');
+  group('Postbode Suri - the right door in a real street');
+  is('test_postbode_numberword_seven_nl', m.numberWord(7, 'nl'), 'zeven');
+  is('test_postbode_numberword_twenty_two_nl_has_a_diaeresis', m.numberWord(22, 'nl'), 'tweeëntwintig');
+  is('test_postbode_numberword_forty_en', m.numberWord(40, 'en'), 'forty');
+  is('test_postbode_numberword_one_nl_is_not_the_article', m.numberWord(1, 'nl'), 'één');
+  const st1 = m.street(m.LEVELS[0], m.rngFor(m.LEVELS[0], 1));
+  is('test_postbode_level_one_is_ten_houses_in_order', st1.length === 10 && st1.every(h => h.side === 'near' && h.index === h.n - 1), true);
+  const st3 = m.street(m.LEVELS[2], m.rngFor(m.LEVELS[2], 1));
+  is('test_postbode_level_three_odd_near_even_far', st3.every(h => h.side === (h.n % 2 ? 'near' : 'far')) && st3.find(h => h.n === 1).index === 0 && st3.find(h => h.n === 2).index === 0, true);
+  const st4 = m.street(m.LEVELS[3], m.rngFor(m.LEVELS[3], 1));
+  const hidden = st4.filter(h => h.hidden).map(h => h.n);
+  is('test_postbode_level_four_hides_ten_never_adjacent', [st4.length, hidden.length, hidden.every(n => n > 2 && !hidden.includes(n - 2) && !hidden.includes(n + 2))], [40, 10, true]);
+  is('test_postbode_level_one_hides_nothing', st1.some(h => h.hidden), false);
+  const used = [], rng = m.rngFor(m.LEVELS[0], 2);
+  for (let i = 0; i < 10; i++) used.push(m.nextLetter(m.LEVELS[0], rng, st1, used).n);
+  is('test_postbode_letters_never_repeat_in_a_round', new Set(used).size, 10);
+  is('test_postbode_level_five_is_a_parcel', [m.nextLetter(m.LEVELS[4], m.rngFor(m.LEVELS[4], 1), m.street(m.LEVELS[4], m.rngFor(m.LEVELS[4], 1)), []).parcel, m.nextLetter(m.LEVELS[1], m.rngFor(m.LEVELS[1], 1), m.street(m.LEVELS[1], m.rngFor(m.LEVELS[1], 1)), []).parcel], [true, false]);
+  is('test_postbode_isright_matches_the_number_only', [m.isRight({ n: 7, parcel: false }, 7), m.isRight({ n: 7, parcel: false }, 5)], [true, false]);
+  is('test_postbode_stars_thresholds', [10, 9, 8, 6, 5, 0].map(n => m.starsFor(n)), [3, 3, 2, 2, 1, 1]);
+  is('test_postbode_lines_are_whole_dutch_sentences', [m.askLine({ n: 7, parcel: false }, 'nl'), m.wrongLine(5, 7, 'nl')], ['Een brief voor nummer zeven.', 'Dat is nummer vijf. We zoeken zeven.']);
+}
+
+// ---------------------------------------------------------------- Rijmbos
+
+{
+  const m = await bundle('src/games/rijmbos/model.ts', 'rijmbosmodel.mjs');
+  const { makeRng } = await bundle('src/util/rng.ts', 'rng2.mjs');
+  group('Rijmbos - whole words that end the same way');
+  is('test_rijmbos_muis_huis_rhyme', m.isRhyme('muis', 'huis'), true);
+  is('test_rijmbos_kat_kast_do_not', m.isRhyme('kat', 'kast'), false);
+  is('test_rijmbos_a_word_does_not_rhyme_with_itself', m.isRhyme('kat', 'kat'), false);
+  is('test_rijmbos_enough_words_in_both_lists', [m.WORDS.length >= 40, m.WORDS_EN.length >= 30], [true, true]);
+  const fam = lang => m.families(lang);
+  is('test_rijmbos_every_family_has_three_or_more', ['nl', 'en'].every(l => fam(l).every(f => f.length >= 3)), true);
+  is('test_rijmbos_no_two_families_share_a_rime', ['nl', 'en'].every(l => { const r = fam(l).map(f => m.rime(m.textOf(f[0], l))); return new Set(r).size === r.length; }), true);
+  is('test_rijmbos_icons_unique_per_language', [m.WORDS, m.WORDS_EN].every(ws => new Set(ws.map(w => w.icon)).size === ws.length), true);
+  const kat = m.WORDS.find(w => w.nl === 'kat');
+  is('test_rijmbos_level_three_sets_kast_as_a_trap_for_kat', (() => { const q = m.makeQuestionFor(3, kat, makeRng(7), 'nl'); return q.cards.some(c => m.textOf(c.word ?? c, 'nl') === 'kast' && !c.right); })(), true);
+  const q1 = m.makeQuestion(1, makeRng(7));
+  is('test_rijmbos_level_one_two_cards_one_right', [q1.cards.length, q1.cards.filter(c => c.right).length], [2, 1]);
+  is('test_rijmbos_right_agrees_with_isRhyme', [1, 2, 3].every(l => Array.from({ length: 50 }, (_, i) => m.makeQuestion(l, makeRng(i + 1))).every(q => q.cards.every(c => c.right === m.isRhyme(m.textOf(q.prompt, 'nl'), m.textOf(c.word ?? c, 'nl'))))), true);
+  const q4 = m.makeQuestion(4, makeRng(7));
+  is('test_rijmbos_level_four_five_cards_two_or_three_right', [q4.cards.length, [2, 3].includes(q4.cards.filter(c => c.right).length)], [5, true]);
+  const q5 = m.makeQuestion(5, makeRng(7));
+  is('test_rijmbos_level_five_odd_one_out', [q5.prompt, q5.cards.length, q5.cards.filter(c => c.right).length], [null, 4, 1]);
+  is('test_rijmbos_stars', [m.starsFor(10), m.starsFor(9), m.starsFor(7), m.starsFor(3), m.starsFor(0, 0)], [3, 3, 2, 1, 0]);
+  is('test_rijmbos_same_seed_same_question', JSON.stringify(m.makeQuestion(2, makeRng(5))), JSON.stringify(m.makeQuestion(2, makeRng(5))));
+  // the owner's rule: only whole words are ever spoken, never sounds, syllables or letters
+  const src = (await import('node:fs')).readFileSync('src/games/rijmbos/game.ts', 'utf8');
+  is('test_rijmbos_never_spells_or_sounds_out', /letter voor letter|klank|lettergreep/i.test(src), false);
 }
 
 // ---------------------------------------------------------------- Suri en de fietstocht

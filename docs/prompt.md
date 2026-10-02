@@ -54,7 +54,7 @@ hardop gezegd, want een vierjarige leest niet.
 
 Alles hieronder is nagelopen, niet aangenomen.
 
-**Achtentwintig dingen, van jong naar oud:**
+**Zesendertig dingen, van jong naar oud:**
 
 | | | leeftijd | |
 |---|---|---|---|
@@ -85,6 +85,10 @@ Alles hieronder is nagelopen, niet aangenomen.
 | 25 | Wereldatlas | 6-8 | provincies, landen, vlaggen |
 | 26 | Cloudhopper | 7-8 | luchtverkeersleiding; het oudste deel |
 
+Acht spellen zijn er op 2026-10-02 bij gekomen: **Kiekeboe** (2-5), **Vingerverf** (2-6),
+**Trommelkring** (2-7), **Liedjesmaker** (2-8), **Postbode Suri** (3-7), **Rijmbos** (4-7),
+**Schaduwspel** (4-8) en **Knikkerbaan** (5-8); zie `docs/decisions.md` van die dag.
+
 Twee verhaalreizen zijn er op 2026-09-30 bij gekomen en horen tussen 13 en 14: **Suri en de
 fietstocht** (4-8, verkeer: helm, bel, kijken, zebrapad, stoplicht, naar oma) en **Suri en het
 donker** (4-8, een gevoel: bang in het donker, en wat helpt).
@@ -110,15 +114,14 @@ gebruiker anders zegt.
 
 ### 1. De kloof bij twee en drie jaar
 
-Van de achtentwintig dingen passen er vier bij een tweejarige, en alle vier hebben een eenvoudige
+Van de zesendertig dingen passen er acht bij een tweejarige, en alle vier hebben een eenvoudige
 vorm. De eenvoudige vorm uit `src/platform/who.ts` is hetzelfde spel met de regels eruit, niet een
 kleiner spel.
 
 Opgraving: zacht gesteente, alleen de kwast, geen vraag. Klankhuis: alleen de negen staven, groter,
 zonder niveaus en sequencer. Getijdenpoel: één regel (kleur) die nooit wisselt, één dier tegelijk,
-niets dat wegdrijft en niets te verliezen. Dierenboek: bladeren zonder toetsenbord. Vier van
-achtentwintig is nog steeds een kloof; wat daarna helpt is niet nog een vereenvoudiging maar een
-ding dat voor twee gemaakt is.
+niets dat wegdrijft en niets te verliezen. Dierenboek: bladeren zonder toetsenbord. Sinds 2026-10-02 zijn er vier dingen die voor twee gemaakt zijn (Kiekeboe, Vingerverf,
+Trommelkring, Liedjesmaker), en dat was wat de kloof nodig had.
 
 ### 2. Drie ontdekreizen erbij
 

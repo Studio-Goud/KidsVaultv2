@@ -63,6 +63,14 @@ Concreet te toetsen rijen, met wat erachter zit:
 | Suri heeft buikpijn | luisteren naar een verhaal, waar het eten in je eigen lijf naartoe gaat | geen bron; mijn inschatting |
 | Suri en de fietstocht | luisteren naar een verhaal, kijken voor je oversteekt, wat borden en lichten zeggen | geen bron; mijn inschatting |
 | Suri en het donker | luisteren naar een verhaal, een gevoel een naam geven, wat helpt als je bang bent | geen bron; mijn inschatting. Dit is het enige onderdeel over een gevoel, en het verdient als eerste een blik van een pedagoog |
+| Kiekeboe | aanwijzen en tikken, dieren en hun geluid herkennen, een genoemd dier zoeken | geen bron; mijn inschatting |
+| Vingerverf | strepen zetten met een vinger, kleuren naast elkaar uitproberen | geen bron; mijn inschatting. Het mengen is een benadering, geen kleurenleer |
+| Rijmbos | rijm horen, alleen in hele woorden | geen bron; mijn inschatting |
+| Trommelkring | luisteren naar een kort ritme en het naspelen, laag en hoog | geen bron; mijn inschatting |
+| Liedjesmaker | luisteren naar een rij tonen, dingen op volgorde zetten | geen bron; mijn inschatting |
+| Knikkerbaan | vooruitdenken over waar iets dat rolt heen gaat | geen bron; mijn inschatting |
+| Schaduwspel | een vorm herkennen aan zijn omtrek, een ding in gedachten draaien | geen bron; mijn inschatting |
+| Postbode Suri | nummers lezen op deuren, de volgorde in een straat, even en oneven, doortellen vanaf de buren | geen bron; mijn inschatting |
 | Van cel tot mens | luisteren naar een verhaal, goed kijken, hoe kleine veranderingen over heel lange tijd optellen | geen bron; mijn inschatting |
 | De tijd van de dino's | luisteren, hoe lang geleden lang geleden is, diepere grond is oudere grond | geen bron; mijn inschatting. De leeftijden zijn de gangbare afgeronde per dier |
 
@@ -168,6 +176,14 @@ en zijn geen pedagogische claim. Die horen hier niet thuis, maar wel de vorm erv
   nooit "je hoeft niet bang te zijn" en eindigt met een gevoel dat kleiner is, niet weg. De tijden
   van het ademen (`BREATH_IN`, `BREATH_OUT`) zijn productkeuzes, geen voorschrift. Een test bewaakt
   de zinnen die hier genoemd staan.
+- **De acht spellen van 2026-10-02** (Kiekeboe, Vingerverf, Rijmbos, Trommelkring, Liedjesmaker,
+  Knikkerbaan, Schaduwspel, Postbode Suri) zeggen geen feiten hardop, alleen opdrachten, namen van
+  dieren en kleuren, en getallen. Elk getal erin is een productkeuze en de code zegt dat erbij: de
+  tijd tot een hint (Kiekeboe 5 s, Schaduwspel 10 s, Postbode 4 s), de tolerantie van een slag in
+  Trommelkring (een kwart tel), de drempels voor sterren, hoeveel beurten een ronde heeft. Twee
+  dingen verdienen een blik: in Rijmbos is "rijm" gedefinieerd op spelling (dezelfde klinker en
+  hetzelfde einde), en Vingerverf mengt kleuren met een benadering die de uitkomsten van een
+  verfdoos geeft, niet met kleurenleer.
 - **Van cel tot mens** zegt deze feiten hardop, nagezocht maar door geen bioloog nagelezen: de
   oudste sporen van leven zijn ruim 3,5 miljard jaar oud; cellen met een kern zo'n 2 miljard;
   dieren van veel cellen zo'n 600 miljoen; Haikouichthys 518 miljoen, zo lang als een vinger, met
