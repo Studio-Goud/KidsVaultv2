@@ -23,6 +23,7 @@ const FUR = '#d9a96a';
 const FUR_D = '#b9884a';
 const BELLY = '#f2dcb4';
 const MASK = '#4a3524';
+const EAR = '#6b4d32';
 
 /** A line width of at least one device-independent pixel, whatever scale the context is drawn at. */
 const px = (ctx: Ctx, w: number): number => Math.max(w, 1 / Math.abs(ctx.getTransform().a));
@@ -232,11 +233,15 @@ export function drawRiderBack(ctx: Ctx, x: number, y: number, s: number, o: Ride
   // the bell on the right grip
   drawBell(ctx, bx + 0.22, barY - 0.03, 0.04, o.ring ?? 0);
 
-  // ---- Suri from behind: the banded back, the tail, the ears, the helmet
+  // ---- Suri from behind: the same pear as the guide (`src/platform/guide.ts`), seen from the back.
+  // The guide is about twice as tall as he is wide, and the head is as wide as the shoulders; the
+  // first version here was three times as tall as wide, a tube with stripes, and read as a post.
   const sx = walking ? -0.2 : bx;
   const bodyBase = walking ? -0.05 : -1.0;
-  const tall = walking ? 0.82 : 0.45;
-  // legs
+  const tall = walking ? 0.58 : 0.42;
+  const hip = walking ? 0.17 : 0.15;
+  const shoulder = walking ? 0.12 : 0.11;
+  // feet when standing or walking; legs on the pedals when riding
   ctx.strokeStyle = FUR_D; ctx.lineWidth = 0.075;
   if (o.mode === 'ride') {
     for (const side of [-1, 1]) {
@@ -248,48 +253,56 @@ export function drawRiderBack(ctx: Ctx, x: number, y: number, s: number, o: Ride
   } else {
     for (const side of [-1, 1]) {
       const lift = o.mode === 'walk' ? Math.max(0, Math.sin(o.phase * 0.6 + (side > 0 ? 0 : Math.PI))) * 0.06 : 0;
-      ctx.fillStyle = FUR_D; ctx.beginPath(); ctx.ellipse(sx + side * 0.08, -0.03 - lift, 0.07, 0.03, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = FUR_D; ctx.beginPath(); ctx.ellipse(sx + side * 0.09, -0.03 - lift, 0.08, 0.035, 0, 0, TAU); ctx.fill();
     }
   }
-  // the tail: over the saddle when riding, on the ground when walking
-  ctx.strokeStyle = FUR_D; ctx.lineWidth = 0.05;
+  // the tail: over the saddle when riding, down to the ground when walking, as the guide's does
+  ctx.strokeStyle = FUR_D; ctx.lineWidth = 0.06;
   ctx.beginPath();
-  if (walking) { ctx.moveTo(sx, -0.12); ctx.quadraticCurveTo(sx - 0.06, -0.04, sx - 0.16, -0.02); } else { ctx.moveTo(sx, -0.92); ctx.quadraticCurveTo(sx + 0.12, -0.75, sx + 0.14, -0.6); }
+  if (walking) { ctx.moveTo(sx + 0.02, bodyBase - 0.14); ctx.quadraticCurveTo(sx - 0.14, bodyBase - 0.1, sx - 0.24, bodyBase + 0.02); }
+  else { ctx.moveTo(sx, -0.92); ctx.quadraticCurveTo(sx + 0.12, -0.75, sx + 0.14, -0.6); }
   ctx.stroke();
-  // body
+  ctx.strokeStyle = MASK; ctx.lineWidth = 0.055;
+  ctx.beginPath();
+  if (walking) { ctx.moveTo(sx - 0.2, bodyBase - 0.03); ctx.lineTo(sx - 0.24, bodyBase + 0.02); } else { ctx.moveTo(sx + 0.135, -0.66); ctx.lineTo(sx + 0.14, -0.6); }
+  ctx.stroke();
+  // body: wide at the hips, narrow at the shoulders, round on top
   ctx.fillStyle = FUR;
   ctx.beginPath();
-  ctx.moveTo(sx - 0.13, bodyBase);
-  ctx.quadraticCurveTo(sx - 0.17, bodyBase - tall * 0.6, sx - 0.11, bodyBase - tall);
-  ctx.quadraticCurveTo(sx, bodyBase - tall - 0.08, sx + 0.11, bodyBase - tall);
-  ctx.quadraticCurveTo(sx + 0.17, bodyBase - tall * 0.6, sx + 0.13, bodyBase);
-  ctx.quadraticCurveTo(sx, bodyBase + 0.04, sx - 0.13, bodyBase);
+  ctx.moveTo(sx - hip, bodyBase);
+  ctx.quadraticCurveTo(sx - hip - 0.03, bodyBase - tall * 0.55, sx - shoulder, bodyBase - tall);
+  ctx.quadraticCurveTo(sx, bodyBase - tall - 0.07, sx + shoulder, bodyBase - tall);
+  ctx.quadraticCurveTo(sx + hip + 0.03, bodyBase - tall * 0.55, sx + hip, bodyBase);
+  ctx.quadraticCurveTo(sx, bodyBase + 0.04, sx - hip, bodyBase);
   ctx.fill();
-  // the bands across the back
-  ctx.strokeStyle = 'rgba(150,106,54,0.55)'; ctx.lineWidth = 0.02;
-  for (let i = 1; i <= 3; i++) {
-    const by = bodyBase - tall * (i / 4.4);
-    ctx.beginPath(); ctx.moveTo(sx - 0.12, by); ctx.quadraticCurveTo(sx, by + 0.03, sx + 0.12, by); ctx.stroke();
+  // the bands across the back, on the upper half only, where a real one has them
+  ctx.strokeStyle = 'rgba(150,106,54,0.5)'; ctx.lineWidth = 0.018;
+  for (let i = 0; i < 3; i++) {
+    const by = bodyBase - tall * (0.42 + i * 0.16);
+    const w = hip - (hip - shoulder) * (0.42 + i * 0.16) - 0.03;
+    ctx.beginPath(); ctx.moveTo(sx - w, by); ctx.quadraticCurveTo(sx, by + 0.025, sx + w, by); ctx.stroke();
   }
-  // arms to the handlebar
+  // arms: to the handlebar when riding or walking the bike, the other one hanging
   ctx.strokeStyle = FUR; ctx.lineWidth = 0.065;
-  const shY = bodyBase - tall + 0.08;
+  const shY = bodyBase - tall + 0.07;
   if (walking) {
-    ctx.beginPath(); ctx.moveTo(sx + 0.11, shY); ctx.quadraticCurveTo(sx + 0.24, shY + 0.1, bx - 0.25, barY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(sx - 0.11, shY); ctx.quadraticCurveTo(sx - 0.15, shY + 0.25, sx - 0.1, shY + 0.4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + shoulder, shY); ctx.quadraticCurveTo(sx + 0.26, shY + 0.1, bx - 0.25, barY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - shoulder, shY); ctx.quadraticCurveTo(sx - shoulder - 0.05, shY + 0.2, sx - shoulder - 0.02, shY + 0.32); ctx.stroke();
+    ctx.fillStyle = FUR_D; ctx.beginPath(); ctx.arc(sx - shoulder - 0.02, shY + 0.33, 0.04, 0, TAU); ctx.fill();
   } else {
-    for (const side of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sx + side * 0.11, shY); ctx.quadraticCurveTo(sx + side * 0.27, shY + 0.02, sx + side * 0.27, barY); ctx.stroke(); }
+    for (const side of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sx + side * shoulder, shY); ctx.quadraticCurveTo(sx + side * 0.27, shY + 0.02, sx + side * 0.27, barY); ctx.stroke(); }
   }
-  // head from behind: round, two ears, and the helmet over the top
-  const hy = bodyBase - tall - 0.13 + (o.mode === 'ride' ? Math.sin(o.phase * 1.2) * 0.008 : 0);
-  ctx.fillStyle = FUR_D;
-  ctx.beginPath(); ctx.ellipse(sx - 0.13, hy - 0.03, 0.045, 0.04, -0.3, 0, TAU); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(sx + 0.13, hy - 0.03, 0.045, 0.04, 0.3, 0, TAU); ctx.fill();
+  // head from behind: as wide as the shoulders, two ears, the dark crown, and the helmet over it
+  const hr = shoulder + 0.03;
+  const hy = bodyBase - tall - hr + 0.02 + (o.mode === 'ride' ? Math.sin(o.phase * 1.2) * 0.008 : 0);
+  ctx.fillStyle = EAR;
+  ctx.beginPath(); ctx.ellipse(sx - hr * 0.98, hy - 0.01, 0.045, 0.04, -0.3, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx + hr * 0.98, hy - 0.01, 0.045, 0.04, 0.3, 0, TAU); ctx.fill();
   ctx.fillStyle = FUR;
-  ctx.beginPath(); ctx.ellipse(sx, hy, 0.125, 0.115, 0, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx, hy, hr, hr * 0.92, 0, 0, TAU); ctx.fill();
   ctx.fillStyle = FUR_D;
-  ctx.beginPath(); ctx.ellipse(sx, hy + 0.02, 0.06, 0.06, 0, 0, TAU); ctx.fill();
-  if (o.helmet) drawHelmet(ctx, sx, hy - 0.02, 0.14);
+  ctx.beginPath(); ctx.ellipse(sx, hy - hr * 0.1, hr * 0.5, hr * 0.42, 0, 0, TAU); ctx.fill();
+  if (o.helmet) drawHelmet(ctx, sx, hy - 0.02, hr * 1.05);
   ctx.restore();
 }
 
