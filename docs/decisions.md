@@ -893,8 +893,8 @@ Ruth spreekt Nederlands en leest Engels, en dat hoor je: de eigenaar vond dat En
 niet samengaan. Besluit: één stem per taal. Het Nederlands blijft Ruth; het Engels is George, een
 mannenstem uit het eigen ElevenLabs-account, gekozen na een proef met twee stemmen. Het manifest
 en de scripts kennen nu een stem per taal, zodat het Engels later nog een keer kan wisselen zonder
-dat het Nederlands opnieuw hoeft. Van de 5773 Engelse regels zijn er 5431 gerenderd; toen was het maandquotum op, en de laatste 342
-wachten op nieuw tegoed (ze vallen tot die tijd terug op de telefoonstem). De telefoon belt nog
+dat het Nederlands opnieuw hoeft. Van de 5773 Engelse regels zijn er op 1 oktober 5431 gerenderd; toen was het maandquotum op. Op 6
+oktober zijn de laatste 342 gedaan. De telefoon belt nog
 steeds nergens heen (regel 1). Zie `docs/voice.md`.
 
 ## 2026-10-02 — Acht spellen tegelijk, elk door een eigen agent
@@ -920,8 +920,9 @@ schoonmaker, geen oneindige modus, en een browsercheck voordat er gerapporteerd 
 aansluiten (catalogus, Vite, voorpagina, audit, geluidslijst, tests, claims) is hier gedaan, niet
 door de agents, zodat acht agents niet in dezelfde bestanden schrijven.
 
-Wat niet kon: de stem. Het ElevenLabs-quotum is tot 6 oktober op, dus de regels van deze acht
-spellen vallen tot die dag terug op de telefoonstem. De herinnering voor 6 oktober rendert ze mee.
+De stem kon pas op 6 oktober, toen het ElevenLabs-quotum vernieuwde: 175 Nederlandse en 528
+Engelse regels en 55 geluiden zijn toen gerenderd. Tot die dag vielen deze spellen terug op de
+telefoonstem.
 
 Nagekeken: tsc, 1687 tests (elk spel heeft een model zonder browser dat getest wordt), audit van
 alle acht pagina's plus de vijf eenvoudige vormen, 0 fouten (49 schermen nu), en elk spel door zijn

@@ -183,11 +183,11 @@ het Engels. Een ander Engels geluid is één opdracht:
 
     npm run voice -- render <id> --lang en
 
-Van de 5773 Engelse regels zijn er 5431 opnieuw ingesproken; toen was het maandquotum van het
-account op (237.851 tekens). De 342 die overblijven vallen tot die tijd terug op de telefoonstem,
-en zijn klaar met één opdracht zodra er weer tegoed is:
+Van de 5773 Engelse regels zijn er op 1 oktober 5431 ingesproken; toen was het maandquotum op.
+Op 6 oktober, na de reset, zijn de laatste 342 en de regels van de acht nieuwe spellen
+ingesproken: alles in het Engels is nu George. Een ander Engels geluid blijft één opdracht:
 
-    npm run voice -- render JBFqnCBsd6RMkjVDRZzb --lang en
+    npm run voice -- render <id> --lang en
 
 De piloot in Cloudhopper was al een Engelse
 man (Chris, `scripts/radio.mjs`) en blijft dat: een andere stem dan de verteller, want hij is
