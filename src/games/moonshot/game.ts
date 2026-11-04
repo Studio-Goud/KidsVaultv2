@@ -25,7 +25,7 @@ import {
   outlinedText, Particles, Shake, vignette,
 } from '../../render/look';
 import {
-  airAt, buildProblem, canLift, canPlace, clash, cleanDesign, clampDelay, coastHeight, collapse, COLS,
+  airAt, buildProblem, canLift, canPlace, clash, cleanDesign, clampDelay, coastHeight, collapse, COLS, nearestSpot,
   deadWeight, DELAYS, densityAt,
   forecast, gravityAt, GROUPS, holdFree, isFlyable, kitOf, kmLabel, LADDER, MAX_PARTS, missionOf, nextRung, padThrust,
   padWeight, partById, partsIn, ROWS, rungFor, shapeHint, shapeOf, slipperiness, stagesByColumn,
@@ -1145,11 +1145,21 @@ export class Moonshot {
 
   private startDrag(id: string, from: number, p: Vec): void {
     const cell = this.cellAt(p, partById(id));
-    this.drag = {
-      id, from, x: p.x, y: p.y, moved: 0, col: cell.col, row: cell.row,
-      ok: canPlace(this.design, { id, col: cell.col, row: cell.row }, from),
-    };
+    this.drag = { id, from, x: p.x, y: p.y, moved: 0, col: cell.col, row: cell.row, ok: false };
+    this.aim(this.drag, cell);
     rocket.tap();
+  }
+
+  /**
+   * Where a held part will land: the cell under the finger if it may go there, else the nearest
+   * one that may. The ghost on the grid shows this cell, so what a child sees while dragging is
+   * exactly where letting go will put it - and a part of any size fits where it is put down.
+   */
+  private aim(d: Drag, cell: { col: number; row: number }): void {
+    const spot = nearestSpot(this.design, { id: d.id, col: cell.col, row: cell.row }, d.from);
+    d.col = spot ? spot.col : cell.col;
+    d.row = spot ? spot.row : cell.row;
+    d.ok = !!spot;
   }
 
   private onMove(e: PointerEvent): void {
@@ -1158,9 +1168,7 @@ export class Moonshot {
     const p = this.at(e);
     d.moved += Math.hypot(p.x - d.x, p.y - d.y);
     d.x = p.x; d.y = p.y;
-    const cell = this.cellAt(p, partById(d.id));
-    d.col = cell.col; d.row = cell.row;
-    d.ok = canPlace(this.design, { id: d.id, col: cell.col, row: cell.row }, d.from);
+    this.aim(d, this.cellAt(p, partById(d.id)));
   }
 
   private onUp(e: PointerEvent): void {

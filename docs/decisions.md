@@ -931,3 +931,52 @@ en de audit-schermafbeeldingen. Niet nagekeken: een echte telefoon, en de geluid
 gehoord. Eén bug uit de tests: een gespiegeld rondje in Schaduwspel kon met een theepot al passend
 beginnen, omdat een theepot bij bijna elke draai dezelfde schaduw geeft; nu wordt de hele cirkel
 afgezocht naar de slechtst passende start.
+
+## 2026-11-04 — Per jaar, Engels voorop, de raket die past, en de weg naar de App Store
+
+De eigenaar kwam terug met vier dingen tegelijk: het verdienmodel wordt €3,99 **per jaar** met de
+eerste drie dagen gratis en een kleine keuze om te proberen; de hoofdtaal van het product wordt
+Engels (Amerikaans); alles moest nagekeken op speelbaarheid, met als voorbeeld dat de raket uit
+onderdelen van allerlei maten bestaat die niet passen als je ze neerzet; en daarna de App Store,
+zonder Mac, want die is er niet.
+
+**De prijs.** Een productbesluit van de eigenaar, geen onderzoek. De teksten op het ouderscherm en
+in de vragen zeggen nu "per jaar" en "drie dagen gratis", en nog steeds dat het afrekenen niet
+gebouwd is. Hoe het in de winkels past (een jaarabonnement met een introductie-aanbieding van drie
+dagen, plus een paar dingen die altijd gratis blijven, de koopknop achter de code) staat in
+`docs/appstore.md`. Niets is gebouwd dat een kind buitensluit zonder dat er een sleutel is.
+
+**De taal.** De app sprak al twee talen en koos al Engels op een telefoon die niet Nederlands is;
+wat ontbrak waren de namen. De catalogus had alleen `title` in het Nederlands, dus een Engelse
+voorpagina zei "Opgraving" en "Klankhuis" boven Engelse zinnen, en elf spellen tekenden hun
+Nederlandse naam boven een Engels scherm. Nu `title` (Engels) en `titleNl`, zoals `line`/`lineNl`,
+en de koppen in de spellen gaan door `T()`. De `lang` van de pagina volgt de app in plaats van het
+bestand. In de code blijft het Nederlands eerst geschreven, omdat de stem daarvan vertrekt.
+
+**De raket.** Een onderdeel slepen moest precies in een vak landen. De vinger houdt het midden
+vast; bij een tank van vijf rijen of een booster van bijna twee kolommen eindigde de voet een rij
+in de stapel of een rij erboven, en het antwoord was "Daar staat al iets" voor een onderdeel dat
+daar duidelijk hoorde. Gemeten: van 120 drops vlak bij een kleine raket werden er 47 geweigerd.
+Nu zoekt `nearestSpot()` in `design.ts` rond het gekozen vak (één kolom opzij, een paar rijen op
+en neer, verder naarmate het onderdeel hoger is) het dichtstbijzijnde vak dat de regels toestaan;
+voor een tank of een neus telt opzij zwaarder dan omhoog, voor een vin of een booster niet. De
+groene schaduw op het rooster toont dat vak al tijdens het slepen. Na de ingreep: 120 van 120.
+Niets wordt geplaatst wat een vastere hand niet ook had kunnen plaatsen; de natuurkunde is niet
+veranderd, een brede tank op een smalle blijft een richel die de lucht voelt.
+
+**De App Store.** Geen Mac in het project, dus `.github/workflows/ios.yml` bouwt op een Mac van
+GitHub (`macos-26`, met de Xcode 26 die Apple sinds april 2026 eist) en ondertekent met cloud
+signing: één App Store Connect API-sleutel, geen certificaat dat van een Mac af moet. Wat de eigenaar
+zelf moet doen staat in `docs/appstore.md`. `Info.plist` bevatte nog een AdMob-ID en een
+trackingtekst over advertenties uit een sjabloon; verwijderd, want Apple leest die plist en regel 1
+ook. De bouwstraat heeft nooit gedraaid: de eerste run is de test.
+
+Nagekeken: tsc; 1696 tests (negen nieuw voor `nearestSpot`); `npm run audit` 0 fouten over 49
+schermen x 5 maten vóór de wijzigingen, en opnieuw 0 fouten voor de acht gewijzigde schermen erna;
+een speelscript dat op elk van de 38 pagina's tachtig keer willekeurig tikt en sleept, in het
+Nederlands en in het Engels: geen uitzondering, geen lege canvas, geen "undefined" in een
+gesproken regel; de Engelse voorpagina en de raket met een zwevend onderdeel in een browser
+bekeken. Niet nagekeken: een echte telefoon, de iOS-bouwstraat, en drie spellen (Cloudhopper,
+Nachtwacht, Planetarium) geven op hun beginscherm geen `buttons` door, zodat het speelscript en
+de audit daar alleen de knoppen van de pagina zelf zien; dat is een gat in de audit, niet in het
+spel, en het staat open.

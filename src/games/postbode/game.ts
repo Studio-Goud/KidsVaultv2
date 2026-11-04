@@ -561,7 +561,7 @@ export class Postbode {
     const ctx = this.ctx, u = this.u();
     paintSky(ctx, this.w, this.h, 0, this.t);
     ctx.textAlign = 'center';
-    heading(ctx, 'Postbode Suri', this.w / 2, 46 * u, this.font('900', 26), '#123047');
+    heading(ctx, T('Postman Suri', 'Postbode Suri'), this.w / 2, 46 * u, this.font('900', 26), '#123047');
     ctx.fillStyle = 'rgba(18,48,71,0.75)'; ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Find the house with the number on the letter.', 'Zoek het huis met het nummer van de brief.'), this.w / 2, 68 * u, this.w - 24 * u);
     const cols = this.w > 600 ? 3 : 1;

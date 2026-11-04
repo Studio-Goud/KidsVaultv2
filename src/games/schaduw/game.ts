@@ -524,7 +524,7 @@ export class Schaduw {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, this.w, this.h);
     ctx.textAlign = 'center';
-    heading(ctx, 'Schaduwspel', this.w / 2, 60 * u, this.font('900', 26), '#fff2c6');
+    heading(ctx, T('Shadow Play', 'Schaduwspel'), this.w / 2, 60 * u, this.font('900', 26), '#fff2c6');
     ctx.fillStyle = 'rgba(255,242,198,0.78)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Turn the thing until its shadow fits.', 'Draai het ding tot de schaduw past.'), this.w / 2, 84 * u, this.w - 24 * u);

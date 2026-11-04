@@ -1,0 +1,139 @@
+# Builds the iOS app (.ipa) that goes to App Store Connect, on a Mac that GitHub rents out by the
+# minute - because there is no Mac in this project. Start it by hand from the Actions tab ("Run
+# workflow"), or push a tag such as v1.0.1. The .ipa is attached to the run as an artifact, and with
+# "upload" ticked it is also sent to App Store Connect, where it shows up under TestFlight.
+#
+# Signing is done by Xcode's cloud signing: the only secret is an App Store Connect API key, and
+# Xcode makes the certificate and the profile itself. There is no .p12 to export from a Mac, which
+# is the whole point. Without the four APPLE_* secrets the job builds unsigned, which proves the
+# project compiles and nothing more.
+# Why it is set up like this, and how to make the key: docs/appstore.md.
+name: iOS build
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 'Also upload to App Store Connect (TestFlight)'
+        type: boolean
+        default: false
+  push:
+    tags: ['v*']
+
+jobs:
+  ipa:
+    # Apple takes nothing built with less than Xcode 26 since April 2026; macos-26 carries it.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Web build and checks
+        run: |
+          npm ci
+          npm test
+          npm run build
+          npx cap sync ios
+
+      - name: Versions
+        run: |
+          echo "SURI_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+          # App Store Connect refuses a build number it has already seen; the run number only goes up
+          echo "SURI_BUILD=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          xcodebuild -version
+
+      - name: App Store Connect key
+        env:
+          KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: |
+          if [ -n "$KEY_BASE64" ]; then
+            mkdir -p "$RUNNER_TEMP/keys"
+            echo "$KEY_BASE64" | base64 -d > "$RUNNER_TEMP/keys/AuthKey_$KEY_ID.p8"
+            echo "SURI_KEY_PATH=$RUNNER_TEMP/keys/AuthKey_$KEY_ID.p8" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No APPLE_API_KEY_BASE64 secret: this build is unsigned and cannot be uploaded."
+          fi
+
+      - name: Archive
+        working-directory: ios/App
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          if [ -n "$SURI_KEY_PATH" ]; then
+            xcodebuild -workspace App.xcworkspace -scheme App -configuration Release \
+              -destination 'generic/platform=iOS' \
+              -archivePath "$RUNNER_TEMP/App.xcarchive" archive \
+              MARKETING_VERSION="$SURI_VERSION" CURRENT_PROJECT_VERSION="$SURI_BUILD" \
+              DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic \
+              -allowProvisioningUpdates \
+              -authenticationKeyPath "$SURI_KEY_PATH" \
+              -authenticationKeyID "$KEY_ID" \
+              -authenticationKeyIssuerID "$ISSUER_ID"
+          else
+            xcodebuild -workspace App.xcworkspace -scheme App -configuration Release \
+              -destination 'generic/platform=iOS' \
+              -archivePath "$RUNNER_TEMP/App.xcarchive" archive \
+              MARKETING_VERSION="$SURI_VERSION" CURRENT_PROJECT_VERSION="$SURI_BUILD" \
+              CODE_SIGNING_ALLOWED=NO
+          fi
+
+      - name: Export .ipa
+        if: env.SURI_KEY_PATH != ''
+        working-directory: ios/App
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/export.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>export</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/export.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$SURI_KEY_PATH" \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER_ID"
+          ls -la "$RUNNER_TEMP/export"
+
+      - uses: actions/upload-artifact@v4
+        if: env.SURI_KEY_PATH != ''
+        with:
+          name: suri-ios-${{ github.run_number }}
+          path: ${{ runner.temp }}/export/*.ipa
+          if-no-files-found: error
+
+      # The same export again, but sent straight to App Store Connect instead of to a file. A tag
+      # push always uploads; a hand-started run only when asked.
+      - name: Upload to App Store Connect
+        if: env.SURI_KEY_PATH != '' && (inputs.upload || startsWith(github.ref, 'refs/tags/v'))
+        working-directory: ios/App
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          sed 's#<string>export</string>#<string>upload</string>#' "$RUNNER_TEMP/export.plist" > "$RUNNER_TEMP/upload.plist"
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/upload.plist" \
+            -exportPath "$RUNNER_TEMP/upload" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$SURI_KEY_PATH" \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER_ID"

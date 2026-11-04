@@ -99,7 +99,7 @@ draagt vier reizen; een vijfde is een databestand. Het ouderscherm heeft een pin
 een tijdslimiet met de NJi-onderbouwing erbij, en vijftien vragen die vóór de code te lezen zijn.
 De dagteller telt. De keuzes van de ouder bereiken de voorpagina: uitgevinkte onderwerpen zijn
 weg, en wat nog te oud of al ontgroeid is staat in een eigen rij in plaats van te verdwijnen
-(`shelf()` in `src/platform/catalog.ts`). 1511 checks groen, `npm run audit` 0 fouten over 32 schermen x 5 schermmaten.
+(`shelf()` in `src/platform/catalog.ts`). 1696 checks groen, `npm run audit` 0 fouten over 49 schermen x 5 schermmaten.
 
 **Wat er níét is, en wat dus niet beweerd mag worden:** geen pedagoog heeft hier ooit naar
 gekeken. Er is geen afrekening, dus de €3,99 bestaat nog niet. Er is geen service worker, dus
@@ -155,8 +155,17 @@ die tijdens het spelen worden samengesteld. Het Engels is sinds 2026-10-01 een m
 
 ### 5. Afrekenen
 
-€3,99 per maand via de App Store en Google Play. Zolang dit er niet is, is er geen product, alleen
-een demo. De tekst op het ouderscherm zegt nu al eerlijk dat het nog niet gebouwd is.
+€3,99 per jaar via de App Store en Google Play, de eerste drie dagen gratis (besluit van de eigenaar,
+2026-11-04). Zolang dit er niet is, is er geen product, alleen een demo. De tekst op het ouderscherm
+zegt nu al eerlijk dat het nog niet gebouwd is. Hoe het in de winkels past en wat er te bouwen is:
+`docs/appstore.md`, onder "Het abonnement".
+
+### 6. De App Store
+
+De eigenaar heeft geen Mac en geen Android-toestel dat nog ondersteund wordt; Apple gaat dus voor.
+`.github/workflows/ios.yml` bouwt en ondertekent op een Mac van GitHub en `docs/appstore.md` zegt
+wat de eigenaar zelf moet doen (account, sleutel, vier geheimen, de winkelpagina). De bouwstraat
+heeft nog nooit gedraaid: de eerste run is de test, en de foutmelding daarvan is de volgende klus.
 
 ### Kleiner, maar het blijft anders liggen
 

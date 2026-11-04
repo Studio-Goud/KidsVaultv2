@@ -894,6 +894,45 @@ export function canPlace(design: Design, p: Placed, skip = -1): boolean {
   return design.some((q, i) => i !== skip && touches(p, q));
 }
 
+/**
+ * The nearest cell this part can actually go in, when the one under the finger will not do.
+ *
+ * A drop used to have to land exactly. That is fine for a one-row tank and hopeless for a
+ * five-row one or a booster two columns wide: the finger holds the middle, the foot ends up a row
+ * inside the stack or a row above it, and the answer was "Daar staat al iets" for a part that
+ * plainly belonged there. The owner's words for it were that the parts come in all sizes and do
+ * not fit when you put them down.
+ *
+ * So the drop looks around the cell the finger chose - one column either side, a few rows up or
+ * down - and takes the closest cell the rules allow. Sideways counts double, because a part in the
+ * wrong column is a different rocket, while a part a row too high is the same rocket once gravity
+ * has had it (`collapse`). Nothing is placed that a steadier hand could not have placed; the part
+ * only goes where that hand would have put it. The reach grows with the part, because the taller
+ * it is the further its foot can be from where the finger thinks it is.
+ */
+export function nearestSpot(design: Design, p: Placed, skip = -1): Placed | null {
+  if (canPlace(design, p, skip)) return p;
+  const part = partById(p.id);
+  const reach = part.rows + 1;
+  // A tank or a cone belongs in the column it was dropped on, so moving over a column costs more
+  // than any move up or down within reach. A fin or a strap-on booster belongs beside something,
+  // so for those the next column over is as near as the next row up.
+  const sideways = part.kind === 'fin' || part.kind === 'solid' ? 1 : reach + 1;
+  let best: Placed | null = null;
+  let bestScore = Infinity;
+  for (let dc = -1; dc <= 1; dc++) {
+    for (let dr = -reach; dr <= reach; dr++) {
+      const q: Placed = { ...p, col: p.col + dc, row: p.row + dr };
+      if (!canPlace(design, q, skip)) continue;
+      // the smallest move wins; a tie goes to the lower cell, which is where gravity would have
+      // taken it anyway
+      const score = Math.abs(dc) * sideways + Math.abs(dr) + (dr > 0 ? 0.25 : 0);
+      if (score < bestScore) { bestScore = score; best = q; }
+    }
+  }
+  return best;
+}
+
 /** Is the whole thing one piece? Dragging a part out from the middle can split it in two. */
 export function isOnePiece(design: Design): boolean {
   if (design.length < 2) return true;

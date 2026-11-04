@@ -131,16 +131,18 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: 'price',
-    q: 'What does €3.99 a month pay for?',
-    qNl: 'Waar gaat die €3,99 per maand naartoe?',
+    q: 'What does €3.99 a year pay for?',
+    qNl: 'Waar gaat die €3,99 per jaar naartoe?',
     a: [
       'The making of it: the games, the drawings, the voice, the checking of every fact, and the part nobody sees, which is keeping thirty-six things working on every phone shape there is.',
       'It is also the answer to the previous question. An app for children pays for itself in one of two ways, and the other one is your child.',
+      'The first three days are free, with a small choice of things to try. After that it is everything, for that one sum a year.',
       'Billing is not built yet. When it is, it will run through the App Store or Google Play, so cancelling happens where you cancel everything else. Nothing in the app asks for a card.',
     ],
     aNl: [
       'Naar het maken ervan: de spellen, de tekeningen, de stem, het nakijken van elk feit, en het deel dat niemand ziet, namelijk zesendertig dingen werkend houden op elk telefoonformaat dat er is.',
       'Het is ook het antwoord op de vorige vraag. Een kinderapp verdient zichzelf op één van twee manieren terug, en de andere manier is je kind.',
+      'De eerste drie dagen zijn gratis, met een kleine keuze om te proberen. Daarna is het alles, voor dat ene bedrag per jaar.',
       'Het afrekenen is nog niet gebouwd. Straks loopt het via de App Store of Google Play, zodat opzeggen gaat waar je alles opzegt. Nergens in de app wordt om een pasje gevraagd.',
     ],
   },

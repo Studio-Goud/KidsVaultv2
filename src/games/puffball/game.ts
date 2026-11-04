@@ -923,7 +923,7 @@ export class Puffball {
     ctx.fillRect(0, 0, this.w, this.h);
 
     ctx.textAlign = 'center';
-    heading(ctx, 'Stuifzwam', this.w / 2, 60 * u, this.fontU('900', 26), '#ffffff');
+    heading(ctx, T('Puffball', 'Stuifzwam'), this.w / 2, 60 * u, this.fontU('900', 26), '#ffffff');
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.font = this.fontU('700', 12.5);
     ctx.fillText(T('Count the squares, then step away.', 'Tel de vakjes en stap dan weg.'), this.w / 2, 84 * u);

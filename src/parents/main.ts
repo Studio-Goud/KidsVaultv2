@@ -13,6 +13,9 @@ import { NL, T } from '../util/lang';
 import { persist, save } from '../util/storage';
 import { uiSound } from '../platform/uisfx';
 
+// the file says `lang="nl"`; the app may be speaking English, and a screen reader goes by this
+document.documentElement.lang = NL() ? 'nl' : 'en';
+
 /**
  * The parent's half of the app.
  *
@@ -333,7 +336,7 @@ function weekPanel(id: string): HTMLElement {
     const ul = el('ul', 'skills');
     for (const w of week) {
       const e = byId(w.id);
-      const title = e ? e.title : w.id;
+      const title = e ? (NL() ? e.titleNl : e.title) : w.id;
       const what = e ? (NL() ? e.practisesNl : e.practises) : '';
       const li = el('li');
       li.innerHTML = `<b>${title} &middot; ${w.minutes} ${T('min', 'min')}</b><span>${what}</span>`;
@@ -520,8 +523,8 @@ function promisePanel(): HTMLElement {
 function subscriptionPanel(): HTMLElement {
   return panel(T('Subscription', 'Abonnement'),
     el('p', 'note', T(
-      'Suri costs €3.99 a month. That pays for the making of it, and it is why there is nothing to sell your child inside it.',
-      'Suri kost €3,99 per maand. Daarvan wordt het gemaakt, en daarom valt er binnen de app niets aan je kind te verkopen.')),
+      'Suri costs €3.99 a year. The first three days are free, with a small choice of things to try; after that, everything for that one sum a year. It pays for the making of it, and it is why there is nothing to sell your child inside it.',
+      'Suri kost €3,99 per jaar. De eerste drie dagen zijn gratis, met een kleine keuze om te proberen; daarna alles voor dat ene bedrag per jaar. Daarvan wordt het gemaakt, en daarom valt er binnen de app niets aan je kind te verkopen.')),
     el('p', 'note quiet', T(
       'Billing is not built yet. When it is, it runs through the App Store or Google Play, so cancelling is where you cancel everything else.',
       'Het afrekenen is nog niet gebouwd. Straks loopt het via de App Store of Google Play, zodat opzeggen gaat waar je alles opzegt.')));

@@ -382,7 +382,7 @@ export class Kiekeboe {
     bg.addColorStop(0, '#6ec3f2'); bg.addColorStop(0.55, '#b8e6f6'); bg.addColorStop(1, '#8ed47a');
     ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
     ctx.textAlign = 'center';
-    heading(ctx, 'Kiekeboe', w / 2, 46 * u, this.font('900', 28), '#123047');
+    heading(ctx, T('Peekaboo', 'Kiekeboe'), w / 2, 46 * u, this.font('900', 28), '#123047');
     ctx.fillStyle = 'rgba(18,48,71,0.75)';
     ctx.font = this.font('700', 13);
     ctx.fillText(T('Tap a place and see who is hiding.', 'Tik op een plek en kijk wie er zit.'), w / 2, 68 * u, w - 24 * u);

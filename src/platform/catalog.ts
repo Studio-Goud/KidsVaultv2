@@ -43,7 +43,9 @@ export type Nature = 'leren' | 'spelen' | 'beide';
 export interface Entry {
   /** matches the page: `moonshot` is `moonshot.html` and `__moon` on the window */
   id: string;
+  /** the name on the card, English and Dutch; the game draws the same name over its own screen */
   title: string;
+  titleNl: string;
   line: string;
   lineNl: string;
   practises: string;
@@ -64,7 +66,7 @@ export interface Entry {
 
 export const CATALOG: Entry[] = [
   {
-    id: 'dig', title: 'Opgraving',
+    id: 'dig', title: 'The Dig', titleNl: 'Opgraving',
     line: 'Brush the dirt away, find the skeleton and name the dinosaur.',
     lineNl: 'Borstel het zand weg, vind het skelet en benoem de dinosaurus.',
     practises: 'Patience, recognising a whole from its parts',
@@ -73,7 +75,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'rhythm', title: 'Klankhuis',
+    id: 'rhythm', title: 'Chime House', titleNl: 'Klankhuis',
     line: 'Nine chimes you can play, and nine levels of beat, bar and tune.',
     lineNl: 'Negen klankstaven om op te spelen, en negen niveaus van tel, maat en melodie.',
     practises: 'Holding a beat, long against short, hearing high from low',
@@ -82,7 +84,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'tidepool', title: 'Getijdenpoel',
+    id: 'tidepool', title: 'Tide Pool', titleNl: 'Getijdenpoel',
     line: 'Sort what the tide brings into the right pools. Then the rule changes.',
     lineNl: 'Sorteer wat het tij brengt in de juiste poelen. Dan verandert de regel.',
     practises: 'Thinking flexibly, switching rule',
@@ -91,7 +93,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'animals', title: 'Dierenboek',
+    id: 'animals', title: 'Animal Book', titleNl: 'Dierenboek',
     line: 'Thousands of real animals with real photographs: how big, where they live, what they eat.',
     lineNl: "Duizenden echte dieren met echte foto's: hoe groot, waar ze wonen en wat ze eten.",
     practises: 'Looking closely, comparing sizes, sorting into groups, looking something up',
@@ -100,7 +102,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'kiekeboe', title: 'Kiekeboe',
+    id: 'kiekeboe', title: 'Peekaboo', titleNl: 'Kiekeboe',
     line: 'Tap a bush, a barrel or a door and see which animal is hiding. Peek-a-boo for the youngest.',
     lineNl: 'Tik op een struik, een ton of een deur en kijk welk dier er zit. Kiekeboe voor de allerkleinsten.',
     practises: 'Pointing and tapping, recognising animals and their sounds, looking for a named animal',
@@ -109,7 +111,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'vingerverf', title: 'Vingerverf',
+    id: 'vingerverf', title: 'Finger Paint', titleNl: 'Vingerverf',
     line: 'Dip your finger in paint, mix the colours and hang your picture on the wall.',
     lineNl: 'Dip je vinger in de verf, meng de kleuren en hang je schilderij aan de muur.',
     practises: 'Making marks with a finger, trying colours against each other',
@@ -118,7 +120,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'trommel', title: 'Trommelkring',
+    id: 'trommel', title: 'Drum Circle', titleNl: 'Trommelkring',
     line: 'Listen to Suri at the campfire, then drum his rhythm back.',
     lineNl: 'Luister naar Suri bij het kampvuur en trommel zijn ritme na.',
     practises: 'Listening to a short rhythm and playing it back, low and high',
@@ -127,7 +129,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'liedje', title: 'Liedjesmaker',
+    id: 'liedje', title: 'Song Maker', titleNl: 'Liedjesmaker',
     line: 'Put singing animals in a row and hear your own tune.',
     lineNl: 'Zet zingende dieren op een rij en hoor je eigen liedje.',
     practises: 'Listening to a row of notes and putting things in an order',
@@ -136,7 +138,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'market', title: 'Marktdag',
+    id: 'market', title: 'Market Day', titleNl: 'Marktdag',
     line: 'Fill the basket with exactly what they asked for, share fairly, and ring the bell.',
     lineNl: 'Vul de mand met precies wat ze vroegen, deel eerlijk, en bel.',
     practises: 'Counting out, sharing fairly, how many more',
@@ -145,7 +147,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'nightwatch', title: 'Nachtwacht',
+    id: 'nightwatch', title: 'Night Watch', titleNl: 'Nachtwacht',
     line: 'The sky shows a figure in the stars. The lines fade. Draw it back.',
     lineNl: 'De hemel toont een figuur in de sterren. De lijnen vervagen. Teken hem terug.',
     practises: 'Visual working memory',
@@ -154,7 +156,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'postbode', title: 'Postbode Suri',
+    id: 'postbode', title: 'Postman Suri', titleNl: 'Postbode Suri',
     line: 'Suri has letters in his bag. Find the house with the number on the letter.',
     lineNl: 'Suri heeft brieven in zijn tas. Zoek het huis met het nummer van de brief.',
     practises: 'Reading numbers on doors, the order of numbers along a street, odd and even sides, counting on from a neighbour',
@@ -163,7 +165,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'rijmbos', title: 'Rijmbos',
+    id: 'rijmbos', title: 'Rhyme Wood', titleNl: 'Rijmbos',
     line: 'Animals hold up pictures. Tap the one that rhymes.',
     lineNl: 'Dieren houden plaatjes omhoog. Tik het plaatje dat rijmt.',
     practises: 'Hearing that two whole words end the same way',
@@ -172,7 +174,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'schaduw', title: 'Schaduwspel',
+    id: 'schaduw', title: 'Shadow Play', titleNl: 'Schaduwspel',
     line: 'Turn the thing in front of the lamp until its shadow fits the one on the wall.',
     lineNl: 'Draai het ding voor de lamp tot zijn schaduw past op die van de muur.',
     practises: 'Recognising a shape from its outline, turning a thing in the mind',
@@ -181,7 +183,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'mill', title: 'Watermolen',
+    id: 'mill', title: 'Water Mill', titleNl: 'Watermolen',
     line: 'Dig channels and the water finds its own way to the fields and the mill.',
     lineNl: 'Graaf geulen en het water vindt zelf zijn weg naar de akkers en de molen.',
     practises: 'Spatial reasoning, thinking ahead, cause and effect, saving up',
@@ -190,7 +192,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'letters', title: 'Letterbos',
+    id: 'letters', title: 'Letter Wood', titleNl: 'Letterbos',
     line: 'Build Dutch words: hear the word, drag the letters, see the picture.',
     lineNl: 'Bouw Nederlandse woorden: hoor het woord, sleep de letters, zie het plaatje.',
     practises: 'Building a word from a word you hear, letters that go together, ei and ij, au and ou',
@@ -199,7 +201,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'reis', title: 'De grote reis',
+    id: 'reis', title: 'The Big Journey', titleNl: 'De grote reis',
     line: 'Get in, press go, and it takes you from the sun to the edge, stopping at every world.',
     lineNl: 'Stap in, druk op start, en hij brengt je van de zon tot de rand, met een stop bij elke wereld.',
     practises: 'Being read to, how far apart things are, the order of the planets',
@@ -208,7 +210,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'diepzee', title: 'De diepzee',
+    id: 'diepzee', title: 'The Deep Sea', titleNl: 'De diepzee',
     line: 'The same again, straight down: from the waves to the deepest place there is.',
     lineNl: 'Hetzelfde maar dan omlaag: van de golven tot de diepste plek die er is.',
     practises: 'Being read to, how deep is deep, what lives where',
@@ -217,7 +219,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'tand', title: 'Suri en de reuzentand',
+    id: 'tand', title: 'Suri and the Giant Tooth', titleNl: 'Suri en de reuzentand',
     line: 'A story to step into: whose is the giant tooth from Grandpa’s box? Back in time to the mammoth, the chalk sea and the T. rex.',
     lineNl: 'Een verhaal om in te stappen: van wie is de reuzentand uit opa’s kist? Terug in de tijd naar de mammoet, de oerzee en de T. rex.',
     practises: 'Listening to a story, looking and comparing, older is deeper',
@@ -226,7 +228,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'lichtje', title: 'Suri en het lichtje in de diepte',
+    id: 'lichtje', title: 'Suri and the Light in the Deep', titleNl: 'Suri en het lichtje in de diepte',
     line: 'A story to step into: far down in the sea a light is blinking. Down in the submarine, past the reef, the lanternfish and a sperm whale, to see who makes it.',
     lineNl: 'Een verhaal om in te stappen: diep in de zee knippert een lichtje. Met de duikboot langs het rif, de lantaarnvissen en een potvis naar beneden, om te zien wie het maakt.',
     practises: 'Listening to a story, looking carefully, how deep is deep',
@@ -235,7 +237,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'satelliet', title: 'Suri en de verloren satelliet',
+    id: 'satelliet', title: 'Suri and the Lost Satellite', titleNl: 'Suri en de verloren satelliet',
     line: 'A story to step into: Suri’s satellite Stip has stopped answering. Up in a rocket, past the space station, the Moon and Mars, and through the rings of Saturn to fetch him.',
     lineNl: 'Een verhaal om in te stappen: Suri’s satelliet Stip antwoordt niet meer. Met de raket langs het ruimtestation, de maan en Mars, en door de ringen van Saturnus om hem op te halen.',
     practises: 'Listening to a story, steering, the order of the planets',
@@ -244,7 +246,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'buikpijn', title: 'Suri heeft buikpijn',
+    id: 'buikpijn', title: 'Suri Has a Tummy Ache', titleNl: 'Suri heeft buikpijn',
     line: 'A story to step into: Suri has a tummy ache. Go in with a bite of apple, through the mouth, the gullet, the stomach and the gut, and help the white blood cells clear up the germs.',
     lineNl: 'Een verhaal om in te stappen: Suri heeft buikpijn. Piepklein mee met een hapje appel, door de mond, de slokdarm, de maag en de darm, en help de witte bloedcellen de bacteriën opruimen.',
     practises: 'Listening to a story, where food goes in your own body',
@@ -253,7 +255,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'verkeer', title: 'Suri en de fietstocht',
+    id: 'verkeer', title: 'Suri and the Bike Ride', titleNl: 'Suri en de fietstocht',
     line: 'A story to step into: Suri cycles to grandma’s. Helmet and bell, look left, right and left again, the red cycle path, the zebra crossing and the traffic light.',
     lineNl: 'Een verhaal om in te stappen: Suri fietst naar oma. Helm en bel, links, rechts en nog eens links kijken, het rode fietspad, het zebrapad en het stoplicht.',
     practises: 'Listening to a story, looking before you cross, what the signs and the lights say',
@@ -262,7 +264,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'donker', title: 'Suri en het donker',
+    id: 'donker', title: 'Suri and the Dark', titleNl: 'Suri en het donker',
     line: 'A story to step into: Suri is scared when the light goes off. Sit with him, find what makes the shadow and the sound, breathe slowly together and pick a night light.',
     lineNl: 'Een verhaal om in te stappen: Suri is bang als het licht uitgaat. Zit bij hem, zoek wat de schaduw en het geluid maakt, adem rustig mee en kies een nachtlampje.',
     practises: 'Listening to a story, giving a feeling a name, what helps when you are scared',
@@ -271,7 +273,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'dino', title: 'De tijd van de dino’s',
+    id: 'dino', title: 'The Time of the Dinosaurs', titleNl: 'De tijd van de dino’s',
     line: 'Drill down through the ground and back in time, past real fossils from Trix to one of the very first dinosaurs.',
     lineNl: 'Boor door de grond naar beneden en terug in de tijd, langs echte fossielen, van Trix tot een van de allereerste dino’s.',
     practises: 'Being read to, how long ago long ago is, deeper ground is older ground',
@@ -280,7 +282,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'lichaam', title: 'Het menselijk lichaam',
+    id: 'lichaam', title: 'The Human Body', titleNl: 'Het menselijk lichaam',
     line: 'Shrink smaller than a grain of sand and travel from the top of your head to your toes.',
     lineNl: 'Word kleiner dan een zandkorrel en reis van je kruin tot je tenen, langs je hersenen, je hart en je botten.',
     practises: 'Being read to, where things are in your own body, what they are for',
@@ -289,7 +291,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'orbit', title: 'Planetarium',
+    id: 'orbit', title: 'Planetarium', titleNl: 'Planetarium',
     line: 'Order the planets, explore them in NASA photographs, and launch probes to reach them.',
     lineNl: 'Zet de planeten op volgorde, verken ze in NASA-opnamen en lanceer sondes om ze te bereiken.',
     practises: 'Ordering, comparing sizes, predicting motion, knowing the solar system',
@@ -300,7 +302,7 @@ export const CATALOG: Entry[] = [
   {
     // asked for by the owner: the calendar a child lives in, with a tree that changes under their
     // finger. Four to eight, because a two-year-old has no use for Tuesday
-    id: 'seasons', title: 'Het jaar rond',
+    id: 'seasons', title: 'Round the Year', titleNl: 'Het jaar rond',
     line: 'The days of the week, the months and the seasons, in a Dutch landscape that changes with the year and the day.',
     lineNl: 'De dagen van de week, de maanden en de seizoenen, in een Hollands landschap dat meeverandert met het jaar en de dag.',
     practises: 'The days and months in order, yesterday and tomorrow, the seasons, the parts of the day',
@@ -309,7 +311,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'evolutie', title: 'Van cel tot mens',
+    id: 'evolutie', title: 'From Cell to Human', titleNl: 'Van cel tot mens',
     line: 'The whole story of life, from the first cell to you: drag through time and watch one animal turn into the next.',
     lineNl: 'Het hele verhaal van het leven, van de eerste cel tot jou: sleep door de tijd en zie het ene dier in het volgende veranderen.',
     practises: 'Listening to a story, looking carefully, how change adds up over a long time',
@@ -318,7 +320,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'knikkerbaan', title: 'Knikkerbaan',
+    id: 'knikkerbaan', title: 'Marble Run', titleNl: 'Knikkerbaan',
     line: 'Place wooden planks so the marble rolls into the cup.',
     lineNl: 'Zet houten planken neer, zodat de knikker in het bekertje rolt.',
     practises: 'Thinking ahead about where a rolling thing will go',
@@ -327,7 +329,7 @@ export const CATALOG: Entry[] = [
     reads: false, speaks: true,
   },
   {
-    id: 'puffball', title: 'Stuifzwam',
+    id: 'puffball', title: 'Puffball', titleNl: 'Stuifzwam',
     line: 'Put down a puffball, count how far it reaches, and be somewhere else when it pops.',
     lineNl: 'Leg een stuifzwam neer, tel hoe ver hij reikt, en sta ergens anders als hij afgaat.',
     practises: 'Counting squares, comparing two numbers, planning a way out',
@@ -336,7 +338,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'numbers', title: 'Rekenrijk',
+    id: 'numbers', title: 'Number Land', titleNl: 'Rekenrijk',
     line: 'Every sum is something you can see and move: beads, crates, a ten-frame, a number line.',
     lineNl: 'Elke som is iets wat je kunt zien en verschuiven: kralen, kisten, een tienveld, een getallenlijn.',
     practises: 'Splitting to ten, adding and taking away, over the ten, the tables',
@@ -345,7 +347,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'clock', title: 'Klokkijken',
+    id: 'clock', title: 'Telling Time', titleNl: 'Klokkijken',
     line: 'Read the analogue clock and the digital clock, and say the time out loud.',
     lineNl: 'Lees de analoge en de digitale klok, en zeg de tijd hardop.',
     practises: 'Reading both clocks, saying the time in Dutch, counting on in minutes',
@@ -354,7 +356,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'circuit', title: 'Stroomkring',
+    id: 'circuit', title: 'Circuit', titleNl: 'Stroomkring',
     line: 'A bench of real parts and real physics. Close the loop and the lamp lights.',
     lineNl: 'Een werkbank met echte onderdelen en echte natuurkunde. Maak de kring rond en het lampje brandt.',
     practises: 'Cause and effect, reading a circuit, series against parallel, finding your own mistake',
@@ -363,7 +365,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'moonshot', title: 'Moonshot',
+    id: 'moonshot', title: 'Moonshot', titleNl: 'Moonshot',
     line: 'A workshop with a hundred parts and nothing locked. Build the rocket you want and fly it.',
     lineNl: 'Een werkplaats met honderd onderdelen en niets op slot. Bouw de raket die jij wilt en vlieg ermee.',
     practises: 'Weighing things up, cause and effect, shape against speed',
@@ -372,7 +374,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'atlas', title: 'Wereldatlas',
+    id: 'atlas', title: 'World Atlas', titleNl: 'Wereldatlas',
     line: 'Drag provinces, rivers, countries and flags onto a drawn map, from your own province outward.',
     lineNl: 'Sleep provincies, rivieren, landen en vlaggen op een getekende kaart, van je eigen provincie naar buiten.',
     practises: 'Where things are, reading a map, the Netherlands, Europe and the world',
@@ -381,7 +383,7 @@ export const CATALOG: Entry[] = [
     reads: true, speaks: true,
   },
   {
-    id: 'cloudhopper', title: 'Cloudhopper',
+    id: 'cloudhopper', title: 'Cloudhopper', titleNl: 'Cloudhopper',
     line: 'Draw a route for every incoming aircraft and bring it safely down.',
     lineNl: 'Teken voor elk binnenkomend toestel een route en breng het veilig aan de grond.',
     practises: 'Dividing attention, planning ahead, holding back',

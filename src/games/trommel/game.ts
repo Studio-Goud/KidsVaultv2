@@ -581,7 +581,7 @@ export class Trommel {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, this.w, this.h);
     ctx.textAlign = 'center';
-    heading(ctx, 'Trommelkring', this.w / 2, 60 * u, this.font('900', 26), '#fff4dc');
+    heading(ctx, T('Drum Circle', 'Trommelkring'), this.w / 2, 60 * u, this.font('900', 26), '#fff4dc');
     ctx.fillStyle = 'rgba(255,244,220,0.8)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Listen to Suri, then drum it back.', 'Luister naar Suri en trommel het na.'), this.w / 2, 84 * u);

@@ -1004,7 +1004,7 @@ export class Millstream {
     const headY = narrow ? vy + vh + 28 * u : 60 * u;
 
     ctx.textAlign = 'center';
-    heading(ctx, 'Watermolen', this.w / 2, headY, this.font('900', 26), '#123047');
+    heading(ctx, T('Water Mill', 'Watermolen'), this.w / 2, headY, this.font('900', 26), '#123047');
     ctx.fillStyle = 'rgba(18,48,71,0.7)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Dig, and the water finds its way.', 'Graaf, en het water vindt zijn weg.'), this.w / 2, headY + 24 * u);

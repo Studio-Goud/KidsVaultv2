@@ -27,6 +27,9 @@ import { persist, save } from '../util/storage';
 import { cleanChild } from '../platform/session';
 import { soundThenGo } from './homebtn';
 
+// the file says `lang="nl"`; the app may be speaking English, and a screen reader goes by this
+document.documentElement.lang = NL() ? 'nl' : 'en';
+
 
 
 /**
@@ -83,7 +86,7 @@ function card(g: Entry): HTMLElement {
   a.innerHTML = `
     <div class="gamethumb"></div>
     <div class="gamebody">
-      <div class="gamehead"><h3>${g.title}</h3><span class="agepill">${g.from}-${g.to}</span></div>
+      <div class="gamehead"><h3>${NL() ? g.titleNl : g.title}</h3><span class="agepill">${g.from}-${g.to}</span></div>
       <p>${NL() ? g.lineNl : g.line}</p>
       <div class="practises">${NL() ? g.practisesNl : g.practises}</div>
     </div>`;

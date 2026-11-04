@@ -5,7 +5,11 @@ itself is `docs/prompt.md`; the reasoning behind every big choice is `docs/decis
 
 ## What this is
 
-A Dutch-first hub of small things for children of two to eight, sold to parents at €3,99 a month.
+A hub of small things for children of two to eight, sold to parents at €3,99 a year, the first
+three days free (the owner's decision of 2026-11-04; `docs/appstore.md` says how it maps onto the
+stores). English (US) is the first language of the stores and the default on a phone that is not
+Dutch; the app speaks both, and in code the Dutch is still written first, because the voice
+pipeline and every spoken line start from it.
 Thirty-six entries: twenty-five games, four discovery journeys and seven story journeys. One guide, a meerkat called Suri, who
 is also the app. English and Dutch throughout, Dutch written first.
 
@@ -52,7 +56,7 @@ Three gates, all of which must be green before a commit claims to be finished:
 
 ```
 npx tsc --noEmit        # types
-npm test                # 1511 checks, no browser, tests/run.mjs
+npm test                # 1696 checks, no browser, tests/run.mjs
 npm run audit           # 49 screens x 5 screen shapes in a real browser, 0 faults
 ```
 

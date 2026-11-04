@@ -56,8 +56,8 @@ eerste versie in Play zijn er drie wegen:
    en is sowieso verplicht: een nieuw persoonlijk ontwikkelaarsaccount moet eerst twaalf testers
    veertien dagen laten testen voordat een app openbaar mag. **Mijn advies: begin hier.**
 2. **Een betaalde app, eenmalig.** Stel een prijs in in de Play Console, geen regel code. Past niet
-   bij €3,99 per maand, maar wel bij "niets te koop in de app".
-3. **Het abonnement van €3,99 per maand** via Google Play Billing. Dat vraagt een native plug-in (een
+   bij €3,99 per jaar met drie gratis dagen, maar wel bij "niets te koop in de app".
+3. **Het abonnement van €3,99 per jaar** via Google Play Billing. Dat vraagt een native plug-in (een
    tweede runtime-afhankelijkheid), een scherm voor ouders achter de code, en een proefperiode. Een
    eigen klus, die pas zin heeft na de test.
 
@@ -234,4 +234,4 @@ een zelfgekozen code, die bij de eerste keer wordt ingesteld.
   een Android-telefoon: kijk naar het opstartscherm, of er iets onder de statusbalk valt, of het
   geluid speelt en of het trillen werkt.
 - Het abonnement is niet gebouwd (zie boven).
-- iOS: het app-ID is meegegaan, verder niets. De App Store heeft een eigen rondje nodig.
+- iOS: zie `docs/appstore.md`; de bouwstraat staat klaar en heeft nog niet gedraaid.

@@ -70,7 +70,7 @@ const group = name => console.log(`\n${name}`);
 
 {
   const d = await bundle('src/games/moonshot/design.ts', 'design.mjs');
-  const { partById, stagesByColumn, deadWeight, dudEngines, buildProblem, isOnePiece, canPlace,
+  const { partById, stagesByColumn, deadWeight, dudEngines, buildProblem, isOnePiece, canPlace, nearestSpot,
     collapse, stillAttached, shapeOf, slipperiness, widthOf, taperSpan, canLift, isFlyable,
     PARTS, padThrust, totalThrust, DELAYS, clampDelay,
     kitOf, missionOf, holdFree, STOWABLE, totalMass, stowedMass, cleanDesign } = d;
@@ -216,6 +216,19 @@ const group = name => console.log(`\n${name}`);
   is('test_place_beside_rocket_is_allowed', canPlace(base, { id: 'srb-s', col: 3, row: 0 }), true);
   is('test_place_out_of_reach_is_refused', canPlace(base, { id: 'srb-s', col: 1, row: 0 }), false);
   is('test_place_on_top_of_stack_is_allowed', canPlace(base, { id: 'nose', col: 4, row: 5 }), true);
+  // a drop that misses by a cell lands where a steadier hand would have put it
+  is('test_nearest_exact_cell_is_kept_when_legal', JSON.stringify(nearestSpot(base, { id: 'nose', col: 4, row: 5 })), '{"id":"nose","col":4,"row":5}');
+  is('test_nearest_drop_inside_stack_climbs_to_its_top', JSON.stringify(nearestSpot(base, { id: 'tank-m', col: 4, row: 2 })), '{"id":"tank-m","col":4,"row":5}');
+  is('test_nearest_drop_floating_above_stack_comes_down', JSON.stringify(nearestSpot(base, { id: 'tank-m', col: 4, row: 7 })), '{"id":"tank-m","col":4,"row":5}');
+  is('test_nearest_prefers_own_column_over_neighbour', nearestSpot(base, { id: 'tank-s', col: 4, row: 2 }).col, 4);
+  is('test_nearest_tall_part_reaches_further_than_short_one', nearestSpot(base, { id: 'tank-xl', col: 4, row: 11 }) !== null, true);
+  is('test_nearest_far_away_finds_nothing', nearestSpot(base, { id: 'nose', col: 0, row: 20 }), null);
+  is('test_nearest_moving_a_part_ignores_its_old_cell', JSON.stringify(nearestSpot(base, { id: 'tank-s', col: 4, row: 1 }, 1)), '{"id":"tank-s","col":4,"row":1}');
+  is('test_nearest_booster_dropped_on_the_stack_goes_beside_it', nearestSpot(base, { id: 'srb-s', col: 4, row: 1 }).col !== 4, true);
+  is('test_nearest_never_lands_where_rules_forbid', [...Array(60)].every((_, k) => {
+    const q = nearestSpot(base, { id: 'srb-l', col: k % 9, row: Math.floor(k / 9) });
+    return q === null || canPlace(base, q);
+  }), true);
   is('test_onepiece_intact_rocket_is_one_piece', isOnePiece(base), true);
   is('test_onepiece_detached_part_is_not_one_piece', isOnePiece([...base, { id: 'nose', col: 1, row: 0 }]), false);
 
@@ -2859,7 +2872,7 @@ const group = name => console.log(`\n${name}`);
 
   is('test_catalog_every_id_is_unique', new Set(CATALOG.map(e => e.id)).size, CATALOG.length);
   is('test_catalog_every_row_is_named_in_both_languages',
-    CATALOG.every(e => e.title && e.line && e.lineNl && e.practises && e.practisesNl), true);
+    CATALOG.every(e => e.title && e.titleNl && e.line && e.lineNl && e.practises && e.practisesNl), true);
   is('test_catalog_every_row_has_at_least_one_subject',
     CATALOG.every(e => e.domains.length > 0), true);
   is('test_catalog_no_row_ends_before_it_begins',

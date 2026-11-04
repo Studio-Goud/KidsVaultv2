@@ -573,7 +573,7 @@ export class Knikkerbaan {
     ctx.fillRect(0, 0, this.w, this.h);
 
     ctx.textAlign = 'center';
-    heading(ctx, 'Knikkerbaan', this.w / 2, 60 * u, this.font('900', 26), '#fff3d6');
+    heading(ctx, T('Marble Run', 'Knikkerbaan'), this.w / 2, 60 * u, this.font('900', 26), '#fff3d6');
     ctx.fillStyle = 'rgba(255,243,214,0.85)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Place the planks. Roll the marble into the cup.', 'Zet de planken neer. Rol de knikker in het bekertje.'), this.w / 2, 84 * u, this.w - 24 * u);

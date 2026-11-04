@@ -466,7 +466,7 @@ export class Rijmbos {
     const ctx = this.ctx, u = this.u();
     paintClearing(ctx, this.w, this.h, this.t);
     ctx.textAlign = 'center';
-    heading(ctx, 'Rijmbos', this.w / 2, 60 * u, this.font('900', 28), '#123047');
+    heading(ctx, T('Rhyme Wood', 'Rijmbos'), this.w / 2, 60 * u, this.font('900', 28), '#123047');
     ctx.fillStyle = 'rgba(18,48,71,0.74)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Which word rhymes? Listen and tap.', 'Welk woord rijmt? Luister en tik.'), this.w / 2, 84 * u);

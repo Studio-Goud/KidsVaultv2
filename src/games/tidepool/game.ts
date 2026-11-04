@@ -688,7 +688,7 @@ export class Tidepool {
     ctx.fillRect(0, 0, this.w, this.h);
 
     ctx.textAlign = 'center';
-    heading(ctx, 'Getijdenpoel', this.w / 2, 60 * u, this.font('900', 26), '#123047');
+    heading(ctx, T('Tide Pool', 'Getijdenpoel'), this.w / 2, 60 * u, this.font('900', 26), '#123047');
     ctx.fillStyle = 'rgba(18,48,71,0.7)';
     ctx.font = this.font('700', 12.5);
     ctx.fillText(T('Sort what the tide brings. Mind the sign.', 'Sorteer wat het tij brengt. Let op het bord.'), this.w / 2, 84 * u);

@@ -931,8 +931,8 @@ export class Rhythm {
     const wide = this.w > this.h * 1.3;
     ctx.textAlign = 'center';
     ctx.font = this.font('900', wide ? 22 : 26);
-    const hx = this.headX('Klankhuis');
-    heading(ctx, 'Klankhuis', hx, 44 * u, this.font('900', wide ? 22 : 26), '#fff2d8');
+    const hx = this.headX(T('Chime House', 'Klankhuis'));
+    heading(ctx, T('Chime House', 'Klankhuis'), hx, 44 * u, this.font('900', wide ? 22 : 26), '#fff2d8');
     ctx.fillStyle = 'rgba(255, 244, 222, 0.82)';
     ctx.font = this.font('700', 11.5);
     const tag = this.easy
@@ -966,7 +966,7 @@ export class Rhythm {
     const ctx = this.ctx, u = this.u();
     ctx.textAlign = 'center';
     ctx.font = this.font('900', 23);
-    heading(ctx, 'Klankhuis', this.headX('Klankhuis'), 42 * u, this.font('900', 23), '#fff2d8');
+    heading(ctx, T('Chime House', 'Klankhuis'), this.headX(T('Chime House', 'Klankhuis')), 42 * u, this.font('900', 23), '#fff2d8');
     ctx.fillStyle = 'rgba(255, 244, 222, 0.8)';
     ctx.font = this.font('700', 11.5);
     const tag = T('Beat, bar and tune, one step at a time.', 'Tel, maat en melodie, stap voor stap.');
