@@ -1403,7 +1403,9 @@ export class Moonshot {
   /** The whole list of places, with the photographs, to pick one from. */
   private drawPicker(): void {
     const ctx = this.ctx, u = this.u();
-    ctx.fillStyle = 'rgba(6, 12, 24, 0.78)';
+    // Nearly solid: at three quarters the shelf and the tabs showed through between the lower
+    // planets, and on a phone that read as two screens drawn on top of each other.
+    ctx.fillStyle = 'rgba(6, 12, 24, 0.95)';
     ctx.fillRect(0, 0, this.w, this.h);
     this.hits.push({ id: 'closepick', x: 0, y: 0, w: this.w, h: this.h });
 
