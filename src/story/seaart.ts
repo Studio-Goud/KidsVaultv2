@@ -14,6 +14,28 @@
 type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
 
+/**
+ * The low sun's path on the water, or the moon's: a column of glints that wobble with the waves, each
+ * a soft ellipse fading out at its edge. Hard-edged rectangles read as a drawing fault on a calm sea
+ * (play check of 2026-11-05). `hz` is the horizon, `h` the bottom of the screen, `sx` where the sun
+ * stands, `rgb` the glint colour and `a` how strong it is in the middle of a glint.
+ */
+export function drawSunPath(ctx: Ctx, hz: number, h: number, sx: number, t: number, rgb: string, a: number): void {
+  for (let k = 0; k < 36; k++) {
+    const y = hz + (h - hz) * Math.pow(k / 36, 1.8) + 2;
+    const spread = 8 + (y - hz) * 0.5;
+    const cx = sx + Math.sin(t * 1.5 + k * 1.7) * spread * 0.3;
+    const rw = spread * (0.35 + 0.25 * Math.sin(k * 3.1)), rh = Math.max(1.5, (y - hz) * 0.035);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rw);
+    g.addColorStop(0, `rgba(${rgb}, ${a})`); g.addColorStop(1, `rgba(${rgb}, 0)`);
+    ctx.save();
+    ctx.translate(cx, y); ctx.scale(1, rh / rw);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, rw, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+}
+
 export interface SeaLook {
   facing: -1 | 1;
   /** 0..1 around one stroke of the fins or the tail */

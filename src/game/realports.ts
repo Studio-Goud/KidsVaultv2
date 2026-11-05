@@ -543,3 +543,26 @@ export function realLevel(port: RealPort, step: number, nl: boolean, W = 739, H 
     port, step,
   };
 }
+
+/**
+ * The place names on the cards are written in Dutch, as everything in the data is, and the English
+ * app used to show them that way: "Londen · Verenigd Koninkrijk" under Heathrow. The handful that
+ * differ are listed here; a name not in the list is the same in both languages.
+ */
+const EN_PLACES: Record<string, string> = {
+  Nederland: 'Netherlands',
+  Londen: 'London',
+  'Verenigd Koninkrijk': 'United Kingdom',
+  'Verenigde Staten': 'United States',
+  Oostenrijk: 'Austria',
+  'Koninkrijk der Nederlanden': 'Kingdom of the Netherlands',
+  Hongkong: 'Hong Kong',
+  'Verenigde Arabische Emiraten': 'United Arab Emirates',
+  Schotland: 'Scotland',
+};
+
+/** "Londen · Verenigd Koninkrijk", or the same line in English. */
+export function placeLine(p: Pick<RealPort, 'city' | 'country'>, nl: boolean): string {
+  const name = (s: string): string => (nl ? s : (EN_PLACES[s] ?? s));
+  return `${name(p.city)} · ${name(p.country)}`;
+}

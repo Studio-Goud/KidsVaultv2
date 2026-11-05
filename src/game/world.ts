@@ -516,9 +516,12 @@ export class World {
     for (let attempt = 0; attempt < 8; attempt++) {
       const side = this.rng();
       let pos: Vec;
-      if (side < 0.5) pos = { x: lerp(0.08, 0.92, this.rng()) * this.W, y: -70 };
-      else if (side < 0.75) pos = { x: -70, y: lerp(0.04, 0.55, this.rng()) * this.H };
-      else pos = { x: this.W + 70, y: lerp(0.04, 0.55, this.rng()) * this.H };
+      // just inside the edge of the map, not seventy units past it: on a phone the map is the
+      // screen, and an aircraft born that far out spent seconds out of sight and out of reach
+      const edge = 10;
+      if (side < 0.5) pos = { x: lerp(0.08, 0.92, this.rng()) * this.W, y: edge };
+      else if (side < 0.75) pos = { x: edge, y: lerp(0.04, 0.55, this.rng()) * this.H };
+      else pos = { x: this.W - edge, y: lerp(0.04, 0.55, this.rng()) * this.H };
       // aim at a random point in the middle band of the sea
       const target = { x: lerp(0.25, 0.75, this.rng()) * this.W, y: lerp(0.28, 0.5, this.rng()) * this.H };
       const heading = rot(pos, target);

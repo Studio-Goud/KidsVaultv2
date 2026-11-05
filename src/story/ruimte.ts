@@ -23,6 +23,7 @@ import { TAU } from './look';
 import { scatter, screenX, spot, type Palette, type View } from './world';
 import { drawArm, drawBootprint, drawCrater, drawIce, drawISS, drawLander, drawParachutes, drawRocketOnPad, drawStip, drawStone, drawTube } from './spaceart';
 import { bed, ruimteSfx, type Bed } from './ruimtesfx';
+import { drawSunPath } from './seaart';
 import { Stage, type Beast, type Pt } from './stage';
 
 type Scene = 'pad' | 'launch' | 'orbit' | 'cruise' | 'moon' | 'mars' | 'rings' | 'reentry' | 'descent' | 'sea';
@@ -46,6 +47,8 @@ export class Ruimte extends Stage {
   protected readonly chapters: Chapter[] = CHAPTERS;
   protected readonly title = { en: 'Suri and the lost satellite', nl: 'Suri en de verloren satelliet' };
   protected readonly lookAround = ASIDES.lookAround;
+  /** what is to be found starts just outside the view, so three seconds without it is long enough to say so */
+  protected hintAfter = 3;
 
   private scene: Scene = 'pad';
   private stars: Star[] = [];
@@ -216,7 +219,8 @@ export class Ruimte extends Stage {
     } else if (c.id === 'orbit') {
       this.scene = 'orbit'; this.props = []; this.target = 'moon';
       // the station, going round slowly, higher than you and a long way off
-      this.beast = { kind: 'iss', x: 0, z: 0, speed: 0, heading: 0, orbit: { r: 40, a: Math.PI * 0.75, w: 0.05 }, phase: 0, stride: 1, head: 0, jaw: 0, lift: 9 };
+      // just out of view on the left, drifting across in front
+      this.beast = { kind: 'iss', x: 0, z: 0, speed: 0, heading: 0, orbit: { r: 40, a: -0.65, w: 0.05 }, phase: 0, stride: 1, head: 0, jaw: 0, lift: 9 };
     } else if (c.id === 'moon') {
       this.scene = 'moon'; this.props = []; this.beast = null; this.target = 'mars';
       this.buildRocks(31, 'moon');
@@ -299,15 +303,15 @@ export class Ruimte extends Stage {
   }
 
   private placeLander(): void {
-    // behind you and to the right, a stone's throw away, in a patch without craters
-    const a = 2.3, d = 9;
+    // just out of view to the right, a stone's throw away, in a patch without craters
+    const a = 0.7, d = 9;
     this.beast = { kind: 'lander', x: Math.sin(a) * d, z: Math.cos(a) * d, speed: 0, heading: 0, phase: 0, stride: 1, head: 0, jaw: 0, lift: 0 };
     this.rocks = this.rocks.filter(k => Math.hypot(k.x - this.beast!.x, k.z - this.beast!.z) > 5);
   }
 
   private placeTube(): void {
-    // a few steps away, to the left behind you: small, so it has to be looked for
-    const a = -2.0, d = 5.5;
+    // a few steps away, just out of view to the left: small, so it has to be looked for
+    const a = -0.65, d = 5.5;
     this.beast = { kind: 'tube', x: Math.sin(a) * d, z: Math.cos(a) * d, speed: 0, heading: 0, phase: 0, stride: 1, head: 0, jaw: 0, lift: 0 };
     this.rocks = this.rocks.filter(k => Math.hypot(k.x - this.beast!.x, k.z - this.beast!.z) > 1.5);
   }
@@ -315,7 +319,8 @@ export class Ruimte extends Stage {
   private newChunk(z = 90): Chunk {
     // most of the ice is small, a few pieces are big; they come from anywhere in the lane, but
     // lean towards where the ship is, so steering matters
-    const big = Math.random() < 0.18;
+    // no big pieces once Stip is ahead, so he is not hidden behind the ice
+    const big = !this.stip && Math.random() < 0.18;
     return {
       x: this.ship.x + (Math.random() - 0.5) * 11, y: this.ship.y + (Math.random() - 0.5) * 6.5, z,
       size: big ? 1.4 + Math.random() * 1.2 : 0.25 + Math.random() * 0.7,
@@ -817,6 +822,14 @@ export class Ruimte extends Stage {
       } });
     }
     items.sort((a, b) => b.z - a.z).forEach(i => i.draw());
+    // Stip's light blinks over everything, ice included: it is what "there blinks a light" points at
+    if (s && s.caughtT < 0 && (this.t % 1.1) < 0.45) {
+      const x = hx + ((s.x - this.ship.x) * F) / s.z, y = hy + ((s.y - this.ship.y) * F) / s.z;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 24 * u);
+      g.addColorStop(0, 'rgba(255, 120, 90, 0.95)'); g.addColorStop(0.3, 'rgba(255, 120, 90, 0.5)'); g.addColorStop(1, 'rgba(255, 120, 90, 0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 24 * u, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#ffe0d8'; ctx.beginPath(); ctx.arc(x, y, 3.5 * u, 0, TAU); ctx.fill();
+    }
     // the sight in the middle of the window: where the capsule is going
     if (this.flyT >= 0 && !(s && s.caughtT >= 0)) {
       ctx.strokeStyle = 'rgba(160, 230, 255, 0.55)'; ctx.lineWidth = 2 * u;
@@ -933,7 +946,8 @@ export class Ruimte extends Stage {
     const ctx = this.ctx;
     if (b.kind === 'iss') drawISS(ctx, sp.x, sp.y, Math.max(this.w, this.h) * 0.11, this.t, Math.sin(b.orbit!.a));
     else if (b.kind === 'lander') drawLander(ctx, sp.x, sp.y, sp.s, this.t);
-    else if (b.kind === 'tube') drawTube(ctx, sp.x, sp.y, sp.s, this.t);
+    // the tube is a hand's length long; drawn no smaller than a fingertip, so it can be seen at all
+    else if (b.kind === 'tube') drawTube(ctx, sp.x, sp.y, Math.max(sp.s, 150 * this.u()), this.t);
   }
 
   protected worldItems(v: View): Array<{ d: number; draw: () => void }> {
@@ -984,12 +998,7 @@ export class Ruimte extends Stage {
     if (this.scene === 'sea') {
       // waves: lines on the water that move, and the path of the sun on it
       const hz = v.horizon, sx = screenX(v, 0.5);
-      for (let k = 0; k < 36; k++) {
-        const y = hz + (this.h - hz) * Math.pow(k / 36, 1.8) + 2;
-        const spread = 8 + (y - hz) * 0.5;
-        ctx.fillStyle = 'rgba(255, 215, 170, 0.35)';
-        ctx.fillRect(sx - spread / 2 + Math.sin(this.t * 1.5 + k * 1.7) * spread * 0.3, y, spread * (0.3 + 0.3 * Math.sin(k * 3.1)), Math.max(1, (y - hz) * 0.03));
-      }
+      drawSunPath(ctx, hz, this.h, sx, this.t, '255, 215, 170', 0.5);
       ctx.strokeStyle = 'rgba(255, 230, 200, 0.18)'; ctx.lineWidth = 1.2;
       for (let k = 0; k < 14; k++) {
         const y = hz + (this.h - hz) * Math.pow(k / 14, 1.7) + 4;
@@ -1063,14 +1072,20 @@ export class Ruimte extends Stage {
     }
     const photo = planetPhoto('saturn');
     if (photo) drawPhoto(ctx, photo, s.x + s.w * 0.42, s.y + s.h * 0.5, s.h * 0.24);
+    // Stip himself, small but a real shape with a soft glow round him, and his light blinking on top:
+    // a dot of a few pixels was not something a child could be asked to tap
+    const halo = ctx.createRadialGradient(s.sx, s.sy, 0, s.sx, s.sy, 26 * u);
+    halo.addColorStop(0, 'rgba(255, 230, 200, 0.55)'); halo.addColorStop(1, 'rgba(255, 230, 200, 0)');
+    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(s.sx, s.sy, 26 * u, 0, TAU); ctx.fill();
+    drawStip(ctx, s.sx, s.sy, 11 * u, this.t, Math.PI * 0.2, -0.3);
     const on = (this.t % 1.2) < 0.4;
     if (on) {
-      const g = ctx.createRadialGradient(s.sx, s.sy, 0, s.sx, s.sy, 14 * u);
+      const g = ctx.createRadialGradient(s.sx, s.sy, 0, s.sx, s.sy, 16 * u);
       g.addColorStop(0, 'rgba(255, 110, 90, 0.95)'); g.addColorStop(1, 'rgba(255, 110, 90, 0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(s.sx, s.sy, 14 * u, 0, TAU); ctx.fill();
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(s.sx, s.sy, 16 * u, 0, TAU); ctx.fill();
     }
     ctx.fillStyle = on ? '#ffd8d0' : '#8a3a30';
-    ctx.beginPath(); ctx.arc(s.sx, s.sy, 2.5 * u, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(s.sx, s.sy, 3 * u, 0, TAU); ctx.fill();
     ctx.restore();
     ctx.font = this.font('800', 11);
     ctx.textAlign = 'left';

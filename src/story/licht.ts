@@ -14,7 +14,7 @@ import { NL, T } from '../util/lang';
 import { ASIDES, CHAPTERS, DEPTH, ZONE_NAMES, zoneAt, type Chapter } from './lichtscript';
 import { TAU } from './look';
 import { EYE, scatter, screenX, spot, type Palette, type View } from './world';
-import { drawAnglerfish, drawCoral, drawLureGlow, drawSpermWhale, drawTurtle, lurePoint, type CoralKind, type SeaLook } from './seaart';
+import { drawAnglerfish, drawCoral, drawLureGlow, drawSpermWhale, drawSunPath, drawTurtle, lurePoint, type CoralKind, type SeaLook } from './seaart';
 import { bed, lichtSfx, type Bed } from './lichtsfx';
 import { Life } from './life';
 import { Stage, type Beast, type Pt } from './stage';
@@ -77,6 +77,8 @@ export class Licht extends Stage {
   protected readonly chapters: Chapter[] = CHAPTERS;
   protected readonly title = { en: 'Suri and the light in the deep', nl: 'Suri en het lichtje in de diepte' };
   protected readonly lookAround = ASIDES.lookAround;
+  /** the animals come in from just outside the view, so three seconds without them is long enough to say so */
+  protected hintAfter = 3;
 
   private world: World = 'surface';
   private night = false;
@@ -93,6 +95,8 @@ export class Licht extends Stage {
   private auto: { from: number; to: number; t: number; dur: number; then: () => void } | null = null;
   private idleT = 0;
   private nagged = false;
+  /** the button has been touched, if only tapped: then a child who lets go gets the hint to hold it */
+  private tappedDown = false;
   private sinkRate = 0;
 
   private lamps = false;
@@ -158,7 +162,7 @@ export class Licht extends Stage {
     this.auto = null;
     this.revealT = -1;
     this.flashT = 0;
-    this.idleT = 0; this.nagged = false;
+    this.idleT = 0; this.nagged = false; this.tappedDown = false;
     if (c.id === 'boat') {
       this.world = 'surface'; this.night = false; this.depth = 0;
       this.screenOn = false; this.spottedT = 0;
@@ -238,7 +242,7 @@ export class Licht extends Stage {
     }
     this.props = scatter(51, [['rock', 26, 1.3], ['weed', 30, 1.2], ['shell', 30, 1]], 0.3, 8);
     this.beast = withTurtle
-      ? { kind: 'turtle', x: 0, z: 0, speed: 0.6, heading: 0, orbit: { r: 4.2, a: Math.PI * 0.8, w: 0.6 / 4.2 }, phase: 0, stride: 1.3, head: 0, jaw: 0, lift: 1.7 }
+      ? { kind: 'turtle', x: 0, z: 0, speed: 0.6, heading: 0, orbit: { r: 4.2, a: -0.7, w: 0.6 / 4.2 }, phase: 0, stride: 1.3, head: 0, jaw: 0, lift: 1.7 }
       : null;
   }
 
@@ -251,8 +255,9 @@ export class Licht extends Stage {
   }
 
   private whaleArrives(): void {
-    // from behind you, going round in a wide slow circle, a little above
-    const a = this.look.yaw + Math.PI * 0.85;
+    // from just out of view on the left, going round in a wide slow circle, a little above: he comes
+    // across in front of you, and a child who turns to look meets him sooner
+    const a = this.look.yaw - 0.7;
     this.beast = { kind: 'whale', x: 0, z: 0, speed: 1.6, heading: 0, orbit: { r: 19, a, w: 1.6 / 19 }, phase: 0, stride: 6, head: 0, jaw: 0, lift: 2.4 };
   }
 
@@ -296,7 +301,7 @@ export class Licht extends Stage {
       } else {
         this.sinkRate = 0;
         this.idleT += dt;
-        if (this.depth > this.dive.from + 5 && this.idleT > 3 && !this.nagged) { this.nagged = true; this.aside(ASIDES.holdOn); }
+        if ((this.tappedDown || this.depth > this.dive.from + 5) && this.idleT > 3 && !this.nagged) { this.nagged = true; this.aside(ASIDES.holdOn); }
       }
     }
 
@@ -385,6 +390,7 @@ export class Licht extends Stage {
   }
 
   protected press(id: string): void {
+    if (id === 'down') this.tappedDown = true;
     if (id === 'lamp') {
       this.lamps = !this.lamps;
       lichtSfx.lamp();
@@ -511,15 +517,10 @@ export class Licht extends Stage {
   private drawDeck(v: View): void {
     const ctx = this.ctx, u = this.u();
     const hz = v.horizon;
-    // the low sun's path on the water, and glints on every wave
+    // the low sun's path on the water, or the moon's, and glints on every wave
     const sx = screenX(v, (this.night ? NIGHT : DUSK).sunAt);
-    for (let k = 0; k < 40; k++) {
-      const y = hz + (this.h - hz) * Math.pow(k / 40, 1.8) + 2;
-      const spread = 8 + (y - hz) * 0.5;
-      const wob = Math.sin(this.t * 1.5 + k * 1.7) * spread * 0.3;
-      ctx.fillStyle = this.night ? 'rgba(220, 230, 255, 0.18)' : 'rgba(255, 210, 160, 0.4)';
-      ctx.fillRect(sx - spread / 2 + wob, y, spread * (0.3 + 0.3 * Math.sin(k * 3.1)), Math.max(1, (y - hz) * 0.03));
-    }
+    if (this.night) drawSunPath(ctx, hz, this.h, sx, this.t, '220, 230, 255', 0.3);
+    else drawSunPath(ctx, hz, this.h, sx, this.t, '255, 210, 160', 0.55);
     ctx.strokeStyle = this.night ? 'rgba(180, 200, 255, 0.12)' : 'rgba(255, 220, 190, 0.18)';
     ctx.lineWidth = 1.2;
     for (let k = 0; k < 16; k++) {

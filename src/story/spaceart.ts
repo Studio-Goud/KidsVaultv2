@@ -245,7 +245,7 @@ export function drawTube(ctx: Ctx, x: number, y: number, s: number, t: number): 
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(-0.12);
-  const L = 0.2 * s, R = Math.max(1.5, 0.018 * s);
+  const L = 0.2 * s, R = Math.max(1.5, 0.018 * s, L * 0.12);
   ctx.fillStyle = 'rgba(40, 10, 0, 0.35)';
   ctx.beginPath(); ctx.ellipse(0.02 * s, R * 0.8, L * 0.6, R * 0.6, 0, 0, TAU); ctx.fill();
   const g = ctx.createLinearGradient(0, -R, 0, R);

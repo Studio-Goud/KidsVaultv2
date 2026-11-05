@@ -184,23 +184,28 @@ export function placementOk(level: Level, others: Plank[], p: Plank): boolean {
   return true;
 }
 
-/** The nearest legal spot to a plank that was let go somewhere it cannot stay, or null. */
+/**
+ * How far a plank may be moved from where it was let go to a spot where it can stay, in world
+ * units: the next hole over, and no further. It used to look four holes out, so a plank dropped
+ * in the cup turned up a whole marble-height higher, where no finger had put it. Like
+ * `nearestSpot` in Moonshot: a plank that fits nowhere close goes back, it does not wander.
+ */
+export const PLACE_REACH = 0.6;
+
+/** The spot a let-go plank lands on: where it was dropped if that is free, else the nearest free hole within `PLACE_REACH`, else null. */
 export function nearestPlacement(level: Level, others: Plank[], p: Plank): Plank | null {
   const base = { ...p, x: snap(p.x), y: snap(p.y), deg: snapDeg(p.deg) };
   if (placementOk(level, others, base)) return base;
-  for (let ring = 1; ring <= 4; ring++) {
-    let best: Plank | null = null, bd = 1e9;
-    for (let i = -ring; i <= ring; i++) {
-      for (let j = -ring; j <= ring; j++) {
-        if (Math.max(Math.abs(i), Math.abs(j)) !== ring) continue;
-        const q = { ...base, x: base.x + i * GRID, y: base.y + j * GRID };
-        const d = i * i + j * j;
-        if (d < bd && placementOk(level, others, q)) { best = q; bd = d; }
-      }
+  let best: Plank | null = null, bd = 1e9;
+  for (let i = -2; i <= 2; i++) {
+    for (let j = -2; j <= 2; j++) {
+      const d = Math.hypot(i * GRID, j * GRID);
+      if (d === 0 || d > PLACE_REACH) continue;
+      const q = { ...base, x: base.x + i * GRID, y: base.y + j * GRID };
+      if (d < bd && placementOk(level, others, q)) { best = q; bd = d; }
     }
-    if (best) return best;
   }
-  return null;
+  return best;
 }
 
 // ------------------------------------------------------------------ physics

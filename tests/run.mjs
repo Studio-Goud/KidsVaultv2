@@ -380,7 +380,16 @@ const group = name => console.log(`\n${name}`);
 
 {
   const { route, routeNow, stopOpen, stopShort, WORLDS } = await bundle('src/game/progress.ts', 'progress.mjs');
-  const { REAL_PORTS } = await bundle('src/game/realports.ts', 'realports.mjs');
+  const { REAL_PORTS, placeLine } = await bundle('src/game/realports.ts', 'realports.mjs');
+  group('Cloudhopper — the place under a field, in the app\'s language');
+  is('test_placeline_dutch_keeps_the_dutch_names',
+    placeLine({ city: 'Londen', country: 'Verenigd Koninkrijk' }, true), 'Londen · Verenigd Koninkrijk');
+  is('test_placeline_english_translates_city_and_country',
+    placeLine({ city: 'Londen', country: 'Verenigd Koninkrijk' }, false), 'London · United Kingdom');
+  is('test_placeline_english_keeps_a_name_that_is_the_same',
+    placeLine({ city: 'Innsbruck', country: 'Oostenrijk' }, false), 'Innsbruck · Austria');
+  is('test_placeline_every_field_has_an_english_line_without_dutch_words',
+    REAL_PORTS.every(p => !/Nederland|Londen|Verenigd|Oostenrijk|Hongkong|Schotland/.test(placeLine(p, false))), true);
   group('Cloudhopper — the journey');
   const stops = route();
   const needs = stops.map(s => s.needs);
@@ -742,7 +751,7 @@ const group = name => console.log(`\n${name}`);
 
 {
   const {
-    LEVELS, distractors, inRule, keyOf, makeQuestion, rngFor, starsFor, stepOverTen, targetOf,
+    LEVELS, distractors, inRule, keyOf, makeQuestion, rngFor, starsFor, stepOverTen, targetOf, askLine,
   } = await bundle('src/games/numbers/model.ts', 'numbers-model.mjs');
   const { numberWord, sumSymbols, sumWords } = await bundle('src/games/numbers/numberwords.ts', 'numberwords.mjs');
   const level = id => LEVELS.find(l => l.id === id);
@@ -777,6 +786,12 @@ const group = name => console.log(`\n${name}`);
   is('test_numberword_english_hyphenates_the_twenties', numberWord(21, false), 'twenty-one');
   is('test_numberword_english_teens_are_one_word', numberWord(13, false), 'thirteen');
   is('test_numberword_english_hundred_reads_as_one_hundred', numberWord(100, false), 'one hundred');
+
+  group('Rekenrijk — de vraag hardop, voor wie nog niet leest');
+  is('test_numbers_ask_adding_says_plus_as_a_word', askLine({ op: 'add', a: 1, b: 2 }, true), 'Hoeveel is 1 plus 2?');
+  is('test_numbers_ask_over_the_ten_names_the_step', askLine({ op: 'cross', a: 27, b: 8 }, true), 'Hoeveel is 27 plus 8? Eerst de tien vol.');
+  is('test_numbers_ask_taking_away_asks_what_is_left', askLine({ op: 'sub', a: 7, b: 3 }, false), '7 apples, 3 go out. How many are left?');
+  is('test_numbers_ask_times_asks_for_apples', askLine({ op: 'times', a: 5, b: 2 }, true), '5 rijen van 2. Hoeveel appels?');
 
   group('Rekenrijk — de som opgeschreven en uitgesproken');
   is('test_sumsymbols_adding_reads_left_to_right', sumSymbols('add', 8, 5, 13), '8 + 5 = 13');
@@ -877,7 +892,12 @@ const group = name => console.log(`\n${name}`);
   const cross = { op: 'cross', stage: 'line', a: 27, b: 8, answer: 35, step: stepOverTen(27, 8), line: { lo: 20, hi: 40 } };
   const crossWrong = distractors(cross, rng);
   is('test_distractor_over_the_ten_offers_the_dropped_carry', crossWrong.includes(25), true);
-  is('test_distractor_over_the_ten_offers_the_digits_side_by_side', crossWrong.includes(215), true);
+  // 215 is a real mistake, but beside 35 and 25 it is answered by its size alone, so it is the
+  // last thing offered and never one of the three a four-button level shows
+  is('test_distractor_over_the_ten_keeps_the_digits_side_by_side_out_of_the_first_three',
+    crossWrong.slice(0, 3).includes(215), false);
+  is('test_distractor_over_the_ten_first_three_stay_within_ten_of_the_answer',
+    crossWrong.slice(0, 3).every(v => Math.abs(v - 35) <= 10), true);
   is('test_distractor_over_the_ten_never_offers_the_answer', crossWrong.includes(35), false);
   is('test_distractor_over_the_ten_puts_the_carry_mistake_first', crossWrong[0], 25);
 
@@ -3773,8 +3793,17 @@ const group = name => console.log(`\n${name}`);
   is('test_knikker_snap_grid_and_degrees', [m.snap(2.3), m.snapDeg(22), m.snapDeg(200)], [2.5, 15, 75]);
   is('test_knikker_placement_rejects_a_plank_through_a_peg', m.placementOk(m.LEVELS[2], [], { x: 3.5, y: 7, deg: 0, len: 3 }), false);
   is('test_knikker_placement_rejects_off_board', m.placementOk(m.LEVELS[0], [], { x: 0.5, y: 6, deg: 0, len: 3 }), false);
-  const near = m.nearestPlacement(m.LEVELS[2], [], { x: 3.5, y: 7, deg: 0, len: 3 });
-  is('test_knikker_nearest_placement_moves_clear_of_the_peg', !!near && m.placementOk(m.LEVELS[2], [], near), true);
+  // a plank lands where it was let go, or one hole over at most (PLACE_REACH): it used to be
+  // carried up to four holes away, out of the cup and up the board, where no finger had put it
+  const free = { x: 2.5, y: 6, deg: 0, len: 3 };
+  is('test_knikker_nearest_placement_free_spot_lands_where_let_go', m.nearestPlacement(m.LEVELS[0], [], free), free);
+  const grazing = m.nearestPlacement(m.LEVELS[2], [], { x: 3.5, y: 7.5, deg: 0, len: 3 });
+  is('test_knikker_nearest_placement_moves_one_hole_clear_of_the_peg',
+    !!grazing && m.placementOk(m.LEVELS[2], [], grazing) && Math.hypot(grazing.x - 3.5, grazing.y - 7.5) <= m.PLACE_REACH, true);
+  is('test_knikker_nearest_placement_through_the_peg_centre_finds_nothing_near',
+    m.nearestPlacement(m.LEVELS[2], [], { x: 3.5, y: 7, deg: 0, len: 3 }), null);
+  is('test_knikker_nearest_placement_in_the_cup_is_not_carried_up_the_board',
+    m.nearestPlacement(m.LEVELS[0], [], { x: m.LEVELS[0].cupX, y: 13.3, deg: 0, len: 3 }), null);
 }
 
 // ---------------------------------------------------------------- Schaduwspel
@@ -4074,6 +4103,21 @@ const group = name => console.log(`\n${name}`);
     [recordLevelResult('test:a', 1, 0, false).best, recordLevelResult('test:a', 1, 0, false).stars], [10, 3]);
 }
 
+// ---------------------------------------------------------------- Planetarium: what the audit can press
+
+{
+  group('Planetarium — every tab hands its taps to the audit');
+  const orbitSrc = (await import('node:fs')).readFileSync('src/games/orbit/game.ts', 'utf8');
+  // the tabs, the arrows, the moons and the missions all go through `hits`; debugState used to
+  // leave them out, so the audit never pressed a thing on this game
+  is('test_orbit_debug_state_lists_the_hits_as_buttons', /buttons: this\.hits\.map/.test(orbitSrc), true);
+  // what the guide repeats is chosen per tab, not the puzzle's question on every one of them
+  is('test_orbit_spoken_line_follows_the_open_tab',
+    /if \(this\.mode === 'missions'\) return this\.missions\.spoken\(\)/.test(orbitSrc) && /if \(this\.mode === 'explore'\)/.test(orbitSrc) && /if \(this\.mode === 'scale'\)/.test(orbitSrc), true);
+  const missionSrc = (await import('node:fs')).readFileSync('src/games/orbit/missionscreen.ts', 'utf8');
+  is('test_orbit_mission_control_says_its_lines_out_loud', /this\.message = text; this\.messageT = secs;\s*forgetLine\(\); speakLine\(text\);/.test(missionSrc), true);
+}
+
 // ---------------------------------------------------------------- Het jaar rond: days, months, seasons
 
 {
@@ -4117,6 +4161,14 @@ const group = name => console.log(`\n${name}`);
     remainingShuffled(rngFor(LEVELS.find(l => l.id === 'order'), 1), 1).sort((a, b) => a - b), [1, 2, 3, 4, 5, 6]);
   is('test_seasons_stars_for_a_perfect_level_is_three', starsFor(6, 6), 3);
   is('test_seasons_stars_for_a_level_with_no_first_tries_is_zero', starsFor(0, 6), 0);
+  // the day a wagon says is the day in the app's language: every day has both names, and the game
+  // never hands a bare `.nl` to its voice (it said "Donderdag" to an English child once)
+  is('test_seasons_every_day_is_named_in_both_languages', DAYS.every(d => d.en && d.nl && d.en !== d.nl), true);
+  const seasonsSrc = (await import('node:fs')).readFileSync('src/games/seasons/game.ts', 'utf8');
+  is('test_seasons_wagon_names_are_never_said_in_dutch_only', /say\(DAYS\[[^\]]+\]\.nl\)/.test(seasonsSrc), false);
+  // the end card's buttons must be the only live hits while it is up: the wagons under it used
+  // to catch the tap on Volgende
+  is('test_seasons_end_card_clears_the_hits_under_it', /this\.hits = \[\]; this\.drawEnd\(\)/.test(seasonsSrc), true);
 }
 
 {

@@ -252,13 +252,14 @@ export function distractors(q: SumOnly, rng: () => number): number[] {
     case 'cross': {
       // the carry dropped: 27 + 8 gives 15 in the units, and the 5 is written where the 7 was
       add(tensOf(a) * 10 + unitsOf(unitsOf(a) + b));
-      // the tens and the units written down side by side: 27 + 8 = 215. It is offered every round
-      // rather than kept in reserve, because it is the mistake the number line actually answers -
-      // the line stops at a hundred, and the child can see that the number is not on it
-      add(tensOf(a) * 100 + (unitsOf(a) + b));
       // the count that started on the number it was standing on
       add(answer - 1); add(answer + 1);
       add(answer - 10); add(answer + 10);
+      // the tens and the units written side by side (27 + 8 = 215) used to be offered too. It is a
+      // real mistake, but a button saying 315 beside 45 and 35 is answered by its size alone, and a
+      // child who picks by size has not done the sum; so the near-misses come first and it waits
+      // at the back for a level that asks for more than four
+      add(tensOf(a) * 100 + (unitsOf(a) + b));
       break;
     }
     case 'diff':
@@ -488,5 +489,27 @@ export function targetOf(q: Question): number {
     case 'line': return q.step ? q.step.to : q.b;
     case 'array': return q.a * q.b;
     default: return 0;
+  }
+}
+
+/**
+ * The question in words a child can be told: the card is for the ones who can already read. The
+ * sign is said as a word, because a device voice reads "+" as anything from "plus" to nothing.
+ */
+export function askLine(q: Pick<Question, 'op' | 'a' | 'b'>, nl: boolean): string {
+  switch (q.op) {
+    case 'split':
+      return nl ? `Splits ${q.a} in ${q.b} en hoeveel?` : `Split ${q.a} into ${q.b} and how many?`;
+    case 'sub':
+      return nl ? `${q.a} appels, er gaan er ${q.b} uit. Hoeveel blijven er over?` : `${q.a} apples, ${q.b} go out. How many are left?`;
+    case 'diff':
+      return nl ? `Hoeveel is het van ${q.a} naar ${q.b}?` : `How far is it from ${q.a} to ${q.b}?`;
+    case 'times':
+      return nl ? `${q.a} rijen van ${q.b}. Hoeveel appels?` : `${q.a} rows of ${q.b}. How many apples?`;
+    case 'bridge':
+    case 'cross':
+      return nl ? `Hoeveel is ${q.a} plus ${q.b}? Eerst de tien vol.` : `How much is ${q.a} plus ${q.b}? Fill the ten first.`;
+    default:
+      return nl ? `Hoeveel is ${q.a} plus ${q.b}?` : `How much is ${q.a} plus ${q.b}?`;
   }
 }

@@ -147,8 +147,20 @@ export class Seasons {
 
   canBack(): boolean { return this.phase !== 'levels'; }
   back(): void { this.phase = 'levels'; this.cardPop = 0; }
-  /** What the guide in the corner repeats: the line being shown, or else the question. */
-  spoken(): string { return this.noteT > 0 && this.note ? this.note : this.question(); }
+  /**
+   * What the guide in the corner repeats: after a wrong answer the right one, which is what the
+   * green button says and what a child who cannot read it needs; otherwise the line being shown,
+   * or else the question.
+   */
+  spoken(): string {
+    if (this.fb === 'wrong' && this.q) return this.optionLabel(this.q.answer);
+    return this.noteT > 0 && this.note ? this.note : this.question();
+  }
+
+  private optionLabel(i: number): string {
+    const o = this.q!.options[i];
+    return NL() ? o.nl : o.en;
+  }
 
   debugState(): Record<string, unknown> {
     return {
@@ -290,6 +302,20 @@ export class Seasons {
     speakLine(text);
   }
 
+  /**
+   * "Die niet." and then the name of the thing tapped: two of Ruth's recordings back to back when
+   * she has both, since the names are recorded on their own and the refusal is one line for all
+   * seven; otherwise the device voice says the two as one.
+   */
+  private sayNo(name: string): void {
+    const no = T('Not that one.', 'Die niet.');
+    this.note = `${no} ${name}.`;
+    this.noteT = 3.5;
+    if (!sayRecorded([no, name])) { forgetLine(); speakLine(this.note); }
+  }
+
+  private dayName(i: number): string { return NL() ? DAYS[i].nl : DAYS[i].en; }
+
   private nextQuestion(): void {
     if (this.level.id === 'order') {
       this.q = null;
@@ -352,12 +378,14 @@ export class Seasons {
       sfx.wagon();
       this.placed = [...this.placed, dayIndex];
       this.remaining = this.remaining.filter(d => d !== dayIndex);
-      this.say(DAYS[dayIndex].nl);
+      this.say(this.dayName(dayIndex));
       this.settle(true);
     } else {
       this.orderWrong = dayIndex;
       this.orderWrongT = 0.5;
       sfx.wrong();
+      // the tile is named as well as shaken, so a child hears which day was the wrong one
+      this.sayNo(this.dayName(dayIndex));
       this.wrongCount++;
       this.streak = 0;
     }
@@ -539,7 +567,12 @@ export class Seasons {
       if (isAnswerable && this.fb === 'none') {
         sfx.pick();
         this.answer(this.q!.options.findIndex(o => o.nl === DAYS[i].nl));
-      } else if (this.fb === 'none') { sfx.wagon(); this.say(DAYS[i].nl); }
+      } else if (this.fb === 'none' && this.level.id === 'week' && this.q) {
+        // a wagon that is not one of the three answers: named, with a "no", so the tap is not
+        // mistaken for an answer that went unheard. It costs nothing - it was never an option
+        sfx.wrong();
+        this.sayNo(this.dayName(i));
+      } else if (this.fb === 'none') { sfx.wagon(); this.say(this.dayName(i)); }
       return;
     }
     if (id.startsWith('place:')) {
@@ -582,7 +615,9 @@ export class Seasons {
     ctx.restore();
     vignette(ctx, this.w, this.h, 0.16);
     this.drawChrome();
-    if (this.phase === 'won') this.drawEnd();
+    // the end card covers the picture, so nothing under it may keep catching taps: the wagons
+    // drawn first used to win the hit test from Opnieuw and Volgende, which then did nothing
+    if (this.phase === 'won') { this.hits = []; this.drawEnd(); }
   }
 
   private backdrop(): void {

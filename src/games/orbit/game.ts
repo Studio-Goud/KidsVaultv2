@@ -22,7 +22,7 @@ import { chunkyButton } from '../../render/look';
 import { paintSpace } from './paint';
 import { orbit as osfx } from './orbitsfx';
 import { NL, T } from '../../util/lang';
-import { speakLine } from '../../platform/voice';
+import { forgetLine, speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'picking' | 'flying' | 'wrong' | 'roundDone' | 'finished';
@@ -118,11 +118,15 @@ export class Orbit {
   canBack(): boolean { return this.openMoon !== null; }
   back(): void { this.openMoon = null; }
 
-  debugState(): { phase: Phase; round: number; placed: number; next: string | null; choices: Array<{ id: string; x: number; y: number; placed: boolean }> } {
+  debugState(): Record<string, unknown> {
     return {
-      phase: this.phase, round: this.round, placed: this.placedCount,
+      mode: this.mode, phase: this.phase, round: this.round, placed: this.placedCount,
       next: this.want[this.placedCount]?.id ?? null,
-      choices: this.choices.map(c => ({ id: c.body.id, x: Math.round(c.pos.x), y: Math.round(c.pos.y), placed: c.placed })),
+      choices: this.choices.map(c => ({ id: c.body.id, x: Math.round(c.pos.x), y: Math.round(c.pos.y), r: Math.round(c.r), placed: c.placed })),
+      explore: EXPLORE_WORLDS[this.exploreIndex].id,
+      spoken: this.spoken(),
+      // every tab's taps, the missions' included: the audit presses what it finds here
+      buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
     };
   }
 
@@ -161,9 +165,12 @@ export class Orbit {
   /** How wide a body is on screen, rings included. */
   private halfWidth(b: Body, r: number): number { return r * reachOf(b); }
 
-  /** A planet on the track must fit its slot, so the track radius follows the spacing. */
+  /**
+   * A planet on the track must fit its slot, rings included: with eight slots on a phone Saturn's
+   * rings used to lie over Jupiter and Uranus, so the radius follows the spacing and the reach.
+   */
   private trackR(b: Body, step: number): number {
-    return Math.min(radiusFor(b, this.maxR()), step * 0.40);
+    return Math.min(radiusFor(b, this.maxR()), step * 0.40, (step * 0.5) / reachOf(b));
   }
 
   private layout(): void {
@@ -193,7 +200,11 @@ export class Orbit {
     const rowH = Math.min(tray.h / rows, this.maxR() * 3.2);
     const y0 = tray.y + (tray.h - rowH * rows) / 2;
     loose.forEach((c, i) => {
-      c.r = radiusFor(c.body, this.maxR()) * 1.3 * scale;
+      // never smaller than a fingertip can see: with all eight in the tray the shrink that fits
+      // Saturn's rings made Mercury and Mars dots of a few pixels. The order of sizes is kept
+      // for the giants, where it is the point of the last round; the rocky four were already
+      // indistinguishable by eye at that scale
+      c.r = Math.max(10 * this.u(), radiusFor(c.body, this.maxR()) * 1.3 * scale);
       const col = i % cols, row = Math.floor(i / cols);
       // a short final row is centred rather than left over on one side
       const inRow = Math.min(cols, loose.length - row * cols);
@@ -256,7 +267,11 @@ export class Orbit {
     this.choices = shuffled.map(b => ({ body: b, pos: { x: 0, y: 0 }, r: 20, placed: false }));
     this.layout();
     this.phase = 'picking'; this.phaseT = 0;
+    this.speakNow();
   }
+
+  /** Say what the guide would repeat, now, even when it is the same line as before. */
+  private speakNow(): void { forgetLine(); speakLine(this.spoken()); }
 
   private update(dt: number): void {
     if (this.mode === 'missions') { this.missions.update(dt); return; }
@@ -270,12 +285,12 @@ export class Orbit {
       osfx.place(this.placedCount);
       this.placedCount++;
       this.layout();
-      if (this.placedCount >= this.want.length) { osfx.roundDone(); this.phase = 'roundDone'; this.phaseT = 0; }
+      if (this.placedCount >= this.want.length) { osfx.roundDone(); this.phase = 'roundDone'; this.phaseT = 0; this.speakNow(); }
       else this.phase = 'picking';
     }
     if (this.phase === 'wrong' && this.phaseT > 0.7) { this.wrongId = null; this.phase = 'picking'; }
     if (this.phase === 'roundDone' && this.phaseT > 2.4) {
-      if (this.round + 1 >= ROUNDS.length) { this.phase = 'finished'; this.phaseT = 0; }
+      if (this.round + 1 >= ROUNDS.length) { this.phase = 'finished'; this.phaseT = 0; this.speakNow(); }
       else this.startRound(this.round + 1);
     }
   }
@@ -292,6 +307,8 @@ export class Orbit {
       if (this.mode !== hit.slice(4)) osfx.tab();
       this.mode = hit.slice(4) as Mode;
       this.openMoon = null;
+      // each tab says what it is for as it opens; the quiz asks its question again
+      this.speakNow();
       return;
     }
     if (this.mode === 'missions') { this.missions.onDown(p, hit); return; }
@@ -302,12 +319,14 @@ export class Orbit {
         this.exploreIndex = (this.exploreIndex + d + EXPLORE_WORLDS.length) % EXPLORE_WORLDS.length;
         this.openMoon = null;
         osfx.turn();
+        this.speakNow();
         return;
       }
       if (hit.startsWith('moon:')) {
         const id = hit.slice(5);
         this.openMoon = this.openMoon && this.openMoon.id === id ? null : (moonsOf(EXPLORE_WORLDS[this.exploreIndex].id).find(m => m.id === id) ?? null);
         osfx.moon();
+        this.speakNow();
         return;
       }
     }
@@ -324,13 +343,16 @@ export class Orbit {
           r0: c.r, r1: this.trackR(c.body, step), t0: this.t,
         };
         this.fact = `${nameOf(c.body)} - ${factOf(c.body)}`;
-        this.factT = 3.2;
+        // long enough for the fact to be heard, not only read, before the question comes back
+        this.factT = 5;
         osfx.pick();
         this.phase = 'flying'; this.phaseT = 0;
+        this.speakNow();
       } else {
         osfx.wrong();
         this.wrongId = c.body.id;
         this.phase = 'wrong'; this.phaseT = 0;
+        this.speakNow();
       }
       return;
     }
@@ -427,6 +449,15 @@ export class Orbit {
       lg.addColorStop(1, 'rgba(170, 198, 255, 0)');
       ctx.strokeStyle = lg; ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.moveTo(bx0, by); ctx.lineTo(bx1, by); ctx.stroke();
+      // a soft halo round each, so a small planet is still a thing to aim a finger at
+      for (const c of loose) {
+        const hr = Math.max(c.r + 10 * u, 22 * u);
+        const hg = ctx.createRadialGradient(c.pos.x, c.pos.y, c.r * 0.8, c.pos.x, c.pos.y, hr);
+        hg.addColorStop(0, 'rgba(170, 200, 255, 0.22)');
+        hg.addColorStop(1, 'rgba(170, 200, 255, 0)');
+        ctx.fillStyle = hg;
+        ctx.beginPath(); ctx.arc(c.pos.x, c.pos.y, hr, 0, TAU); ctx.fill();
+      }
       // each one casts a little onto it
       for (const c of loose) {
         const sg = ctx.createRadialGradient(c.pos.x, by, 0, c.pos.x, by, c.r * 1.2);
@@ -446,13 +477,16 @@ export class Orbit {
       const shake = this.wrongId === c.body.id ? Math.sin(this.t * 40) * 5 : 0;
       drawBody(ctx, c.body, c.pos.x + shake, c.pos.y, c.r, this.dpr);
       if (c.placed) {
-        // with eight planets the slots are too narrow for eight names, so only the newest is spelled out
+        // with eight planets the slots are too narrow for eight names in a row, so only the newest
+        // is spelled out until the round is done; then they go under and over the track by turns,
+        // each with two slots' width, so "Uranus" and "Neptunus" no longer run into each other
         const k = this.want.findIndex(x => x.id === c.body.id);
         const roomy = this.want.length <= 5;
         if (roomy || k === this.placedCount - 1 || this.phase === 'roundDone') {
-          ctx.fillStyle = roomy ? 'rgba(226,236,255,0.85)' : 'rgba(226,236,255,0.55)';
-          ctx.font = this.font('800', roomy ? 10 : 8.5); ctx.textAlign = 'center';
-          ctx.fillText(nameOf(c.body), c.pos.x, this.trackY() + 26 * this.u(), 64 * this.u());
+          const above = !roomy && k % 2 === 1;
+          ctx.fillStyle = roomy ? 'rgba(226,236,255,0.85)' : 'rgba(226,236,255,0.7)';
+          ctx.font = this.font('800', roomy ? 10 : 9); ctx.textAlign = 'center';
+          ctx.fillText(nameOf(c.body), c.pos.x, this.trackY() + (above ? -22 : 26) * this.u(), roomy ? 64 * this.u() : stp * 1.9);
         }
       }
     }
@@ -469,15 +503,29 @@ export class Orbit {
   }
 
   /**
-   * The question, and which set of planets it is about.
-   *
-   * Written out as one sentence rather than two lines, because that is how it has to be heard: a
-   * child who cannot read gets "Which comes next? The four rocky planets, nearest the sun first."
+   * What the guide in the corner repeats: the line that belongs to the tab that is open. The
+   * puzzle's question, and which set of planets it is about, written out as one sentence rather
+   * than two lines, because that is how it has to be heard: a child who cannot read gets "Which
+   * comes next? The four rocky planets, nearest the sun first." While a planet has just landed,
+   * its name and its one true thing; on Verken the planet or moon on screen; on Op schaal the
+   * one lesson that screen has; on Missies whatever mission control last said.
    */
   spoken(): string {
+    if (this.mode === 'missions') return this.missions.spoken();
+    if (this.mode === 'explore') {
+      const b = EXPLORE_WORLDS[this.exploreIndex];
+      if (this.openMoon) return `${NL() ? this.openMoon.nameNl : this.openMoon.name}. ${NL() ? this.openMoon.factNl : this.openMoon.fact}`;
+      return `${nameOf(b)}. ${factOf(b)}`;
+    }
+    if (this.mode === 'scale') {
+      return T('The real thing. No picture can be honest about size and distance at once.',
+        'Hoe het echt is. Geen plaatje kan tegelijk eerlijk zijn over grootte en afstand.');
+    }
+    if (this.phase === 'finished') return T('You know your way around. Eight planets, in both orders.', 'Je kent de weg nu. Acht planeten, in allebei de volgordes.');
+    if (this.factT > 0 && this.fact && this.phase !== 'roundDone') return this.fact.replace(' - ', '. ');
     const r = ROUNDS[this.round];
-    const ask = this.phase === 'roundDone' ? T('That is the order', 'Dat is de volgorde')
-      : this.phase === 'wrong' ? T('Not that one yet', 'Die nog even niet')
+    const ask = this.phase === 'roundDone' ? T('That is the order.', 'Dat is de volgorde.')
+      : this.phase === 'wrong' ? T('Not that one yet.', 'Die nog even niet.')
         : T('Which comes next?', 'Welke komt hierna?');
     return `${ask} ${NL() ? r.titleNl : r.title}.`;
   }
@@ -486,7 +534,6 @@ export class Orbit {
     const ctx = this.ctx;
     ctx.textAlign = 'center';
     const r = ROUNDS[this.round];
-    speakLine(this.spoken());
     ctx.fillStyle = '#eaf2ff'; ctx.font = this.font('900', 19);
     ctx.fillText(
       this.phase === 'roundDone' ? T('That is the order', 'Dat is de volgorde')

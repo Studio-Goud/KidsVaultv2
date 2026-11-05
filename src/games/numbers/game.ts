@@ -25,7 +25,7 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
-import { safeArea, uiScale } from '../../util/ui';
+import { GUIDE_KEEP, safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
@@ -33,8 +33,8 @@ import {
   heading, hexA, outlinedText, Particles, Shake, vignette,
 } from '../../render/look';
 import {
-  inRule, keyOf, LEVELS, makeQuestion, optionsFor, parMsFor, rngFor, starsFor, targetOf, teachLine,
-  type Level, type Question,
+  askLine, inRule, keyOf, LEVELS, makeQuestion, optionsFor, parMsFor, rngFor, starsFor, targetOf,
+  teachLine, type Level, type Question,
 } from './model';
 import {
   cleanTopics, nextStep, pickNext, recordTopic, topicOf, type Topics,
@@ -49,7 +49,7 @@ import {
 } from './paint';
 import { numbersfx } from './numbersfx';
 import { NL, T } from '../../util/lang';
-import { speakLine } from '../../platform/voice';
+import { forgetLine, sayRecorded, speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won';
@@ -153,7 +153,10 @@ export class Numbers {
   private ps = new Particles();
   private shake = new Shake();
   private cardPop = 0;
+  /** the last line said out loud: what the guide in the corner repeats on a tap */
   private note = '';
+  /** the line in the strip under the objects, which is the hint and not the question itself */
+  private banner = '';
   private noteT = 0;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -218,7 +221,9 @@ export class Numbers {
       stars: this.earned,
       countOn: save.numbers.countOn,
       safeTop: this.st,
-      buttons: this.hits.map(b => ({ id: b.id, x: Math.round(b.x + b.w / 2), y: Math.round(b.y + b.h / 2) })),
+      /** the last line said out loud, which is also what the guide repeats */
+      note: this.note,
+      buttons: this.hits.map(b => ({ id: b.id, x: Math.round(b.x + b.w / 2), y: Math.round(b.y + b.h / 2), w: Math.round(b.w), h: Math.round(b.h) })),
       grabs: this.grabs.map(g => ({ id: g.id, x: Math.round(g.x), y: Math.round(g.y), r: Math.round(g.w / 2) })),
     };
   }
@@ -246,16 +251,26 @@ export class Numbers {
     return `${weight} ${Math.round(size * this.u())}px Nunito, system-ui, sans-serif`;
   }
 
-  private grid(r: Rect, n: number, cols: number, gap: number): Rect[] {
+  /**
+   * `n` buttons of one size in rows of `cols`, a short last row centred under the full ones, so a
+   * third answer never sits alone in the corner with the guide.
+   */
+  private pack(r: Rect, n: number, cols: number, gap: number): Rect[] {
     const rows = Math.max(1, Math.ceil(n / cols));
     const cw = (r.w - gap * (cols - 1)) / cols;
     const ch = (r.h - gap * (rows - 1)) / rows;
     const out: Rect[] = [];
-    for (let i = 0; i < n; i++) {
-      const c = i % cols, row = Math.floor(i / cols);
-      out.push({ x: r.x + c * (cw + gap), y: r.y + row * (ch + gap), w: cw, h: ch });
+    for (let row = 0; row < rows; row++) {
+      const inRow = Math.min(cols, n - row * cols);
+      const x0 = r.x + (r.w - (inRow * cw + (inRow - 1) * gap)) / 2;
+      for (let c = 0; c < inRow; c++) out.push({ x: x0 + c * (cw + gap), y: r.y + row * (ch + gap), w: cw, h: ch });
     }
     return out;
+  }
+
+  /** Three answers go in one row when each still gets a thumb's width; otherwise two columns. */
+  private optCols(n: number, w: number, gap: number): number {
+    return n === 3 && (w - gap * 2) / 3 >= 96 * this.u() ? 3 : 2;
   }
 
   /**
@@ -283,13 +298,14 @@ export class Numbers {
       const caption: Rect = { x: colX, y: card.y + cardH + 7 * u, w: rightW, h: capH };
       const optTop = caption.y + capH + 10 * u;
       const optArea: Rect = { x: colX, y: optTop, w: rightW, h: Math.max(60 * u, h - optTop - 16 * u) };
-      const rows = Math.ceil(n / 2);
+      const cols = this.optCols(n, rightW, gap);
+      const rows = Math.ceil(n / cols);
       const btnH = Math.min(58 * u, (optArea.h - gap * (rows - 1)) / rows);
       const stackH = btnH * rows + gap * (rows - 1);
       const area: Rect = { x: optArea.x, y: optArea.y + (optArea.h - stackH) / 2, w: rightW, h: stackH };
       return {
         card, caption, optArea,
-        opts: this.grid(area, n, 2, gap),
+        opts: this.pack(area, n, cols, gap),
         stage: { x: pad, y: top, w: colX - pad * 2, h: h - top - 16 * u },
         wide,
       };
@@ -297,19 +313,21 @@ export class Numbers {
 
     // a tall phone has room to spare once the objects have what they need, and the best place for
     // it is the buttons a thumb has to hit and the card the sum is written on - not more empty mat
-    const rows = Math.ceil(n / 2);
-    const free = Math.max(0, h - (top + cardH + 8 * u + capH + 8 * u + 16 * u)
+    const cols = this.optCols(n, w - pad * 2, gap);
+    const rows = Math.ceil(n / cols);
+    // the guide stands in the bottom-left corner, so the answers end above him, never beside him
+    const bottom = h - Math.max(26 * u, GUIDE_KEEP);
+    const free = Math.max(0, bottom - (top + cardH + 8 * u + capH + 8 * u)
       - this.want() - (54 * u * rows + gap * (rows - 1)) - 10 * u);
     const btnH = 54 * u + Math.min((free * 0.5) / rows, 46 * u);
     const cardTall = cardH + Math.min(free * 0.45, 84 * u);
     const card: Rect = { x: pad, y: top, w: w - pad * 2, h: cardTall };
     const stackH = btnH * rows + gap * (rows - 1);
-    const bottom = h - 26 * u;
     const optArea: Rect = { x: pad, y: bottom - stackH, w: w - pad * 2, h: stackH };
     const caption: Rect = { x: pad, y: optArea.y - capH - 8 * u, w: w - pad * 2, h: capH };
     return {
       card, caption, optArea,
-      opts: this.grid(optArea, n, 2, gap),
+      opts: this.pack(optArea, n, cols, gap),
       stage: { x: pad, y: card.y + cardTall + 8 * u, w: w - pad * 2, h: caption.y - (card.y + cardTall) - 16 * u },
       wide,
     };
@@ -366,13 +384,19 @@ export class Numbers {
         basket: { x: s.x + s.w - bkw - 4 * u, y: big.y + bh - bkh, w: bkw, h: bkh },
       };
     }
-    const bw = Math.min(s.w * 0.6, s.h * 1.6);
+    let bw = Math.min(s.w * 0.6, s.h * 1.6);
+    let sw = Math.max(bw * 0.22, (bw * Math.max(1, Math.min(5, this.q.b))) / 9);
+    // the push is the whole point of the stage, so the little crate always has a real journey to
+    // make. Two crates that filled the width used to leave it standing against the big one from
+    // the start, with nothing to slide: the crates give up width before the journey does.
+    const journey = Math.max(80 * u, Math.min(s.w * 0.3, s.w - bw - sw - 6 * u));
+    const room = s.w - journey - 6 * u;
+    if (bw + sw > room) { const k = room / (bw + sw); bw *= k; sw *= k; }
     // a crate is as deep as the apples in it: a sum to five in a two-row crate is half empty box
     const bh = Math.min(bw * (0.2 + rows * 0.18), s.h * 0.5);
-    const big: Rect = { x: s.x + (s.w - bw) / 2, y: s.y + s.h * 0.4 - bh / 2, w: bw, h: bh };
-    const sw = Math.max(bw * 0.22, (bw * Math.max(1, Math.min(5, this.q.b))) / 9);
-    const smallX1 = s.x + s.w - sw;
+    const big: Rect = { x: s.x + (s.w - (bw + 5 + sw + journey)) / 2, y: s.y + s.h * 0.4 - bh / 2, w: bw, h: bh };
     const smallX0 = big.x + bw + 5;
+    const smallX1 = smallX0 + journey;
     const x = smallX1 + (smallX0 - smallX1) * clamp(this.mergeT, 0, 1);
     return {
       big, rows,
@@ -522,7 +546,9 @@ export class Numbers {
     this.cardPop = 0;
     this.phase = 'play';
     this.nextQuestion();
-    this.say(NL() ? this.level.hintNl : this.level.hint, 6);
+    this.banner = NL() ? this.level.hintNl : this.level.hint;
+    this.noteT = 6;
+    this.ask(true);
   }
 
   /** The last thing the game said, so the guide in the corner can say it again. */
@@ -530,10 +556,24 @@ export class Numbers {
 
   private say(text: string, secs = 3.5): void {
     this.note = text;
+    this.banner = text;
     this.noteT = secs;
-    // audio-first: the note is the game's instruction, so it is heard as well as read.
-    // Today that is the machine's own voice; a recording slots in without touching this.
+    // audio-first: the note is the game's instruction, so it is heard as well as read. A line that
+    // comes round twice is said twice: these are answers to a tap, not a hint to be kept quiet.
+    forgetLine();
     speakLine(text);
+  }
+
+  /**
+   * Say the question out loud, since a four-year-old cannot read it: after the level's hint on the
+   * first round, on its own after that. Ruth's recordings are played back to back when she has
+   * them all; otherwise the device voice says the lines as one.
+   */
+  private ask(withHint: boolean): void {
+    const q = askLine(this.q, NL());
+    const lines = withHint ? [this.banner, q] : [q];
+    this.note = lines.join(' ');
+    if (!sayRecorded(lines)) { forgetLine(); speakLine(this.note); }
   }
 
   private nextQuestion(): void {
@@ -561,6 +601,8 @@ export class Numbers {
     this.at = this.q.a;
     this.rows = 1;
     this.cols = 1;
+    // the first question of a level is asked by start(), after the hint
+    if (this.round > 0) this.ask(false);
   }
 
   private answer(value: number, index: number): void {
@@ -580,6 +622,10 @@ export class Numbers {
       // the last level watches how fast, and fades the apples out for a child who no longer needs
       // to count them. It never speeds anything up and never takes a star away.
       if (this.lastSecs <= FAST_AT) this.fastStreak++; else this.fastStreak = 0;
+      // the figures were the answer; the sum in words is the thing worth carrying away
+      this.note = sumWords(this.q.op, this.q.a, this.q.b, this.q.answer, NL());
+      forgetLine();
+      speakLine(this.note);
     } else {
       this.fb = 'wrong';
       this.fbT = WRONG_FOR;
@@ -588,8 +634,11 @@ export class Numbers {
       this.fastStreak = 0;
       this.shake.add(0.45);
       numbersfx.wrong();
-      // the objects now make the right answer themselves
+      // the objects now make the right answer themselves, and the step is said as well as shown
       this.settle();
+      this.note = `${sumWords(this.q.op, this.q.a, this.q.b, this.q.answer, NL())}. ${teachLine(this.q, NL())}`;
+      forgetLine();
+      speakLine(this.note);
     }
     this.noteAttempt(value === this.q.answer);
   }
@@ -1225,7 +1274,9 @@ export class Numbers {
     const lit = this.lit(q.answer);
     drawArray(ctx, g, this.cols, this.rows, this.fb === 'none' ? this.fade : 0, this.drag === 'handle', lit);
     const hd = arrayHandle(g, this.cols, this.rows);
-    if (this.fb === 'none') this.grabs.push({ id: 'handle', x: hd.x, y: hd.y, w: g.cell * 1.5, h: g.cell * 1.5, round: true });
+    // the knob is drawn no smaller than a fingertip, and is grabbed from a thumb's width around it
+    const hr = Math.max(g.cell * 1.5, 48 * u);
+    if (this.fb === 'none') this.grabs.push({ id: 'handle', x: hd.x, y: hd.y, w: hr, h: hr, round: true });
     ctx.textAlign = 'center';
     outlinedText(ctx, `${this.rows} × ${this.cols}`, g.x + g.cell * this.cols * 0.5,
       g.y + g.cell * this.rows + 26 * u,
@@ -1350,23 +1401,9 @@ export class Numbers {
     }
   }
 
+  /** The spoken question, written: the sign as a sign, since the card is for those who read. */
   private questionLine(nl: boolean): string {
-    const q = this.q;
-    switch (q.op) {
-      case 'split':
-        return nl ? `Splits ${q.a} in ${q.b} en hoeveel?` : `Split ${q.a} into ${q.b} and how many?`;
-      case 'sub':
-        return nl ? `${q.a} appels, er gaan er ${q.b} uit.` : `${q.a} apples, ${q.b} go out.`;
-      case 'diff':
-        return nl ? `Hoeveel is het van ${q.a} naar ${q.b}?` : `How far is it from ${q.a} to ${q.b}?`;
-      case 'times':
-        return nl ? `${q.a} rijen van ${q.b}. Hoeveel appels?` : `${q.a} rows of ${q.b}. How many apples?`;
-      case 'bridge':
-      case 'cross':
-        return nl ? `${q.a} + ${q.b}. Eerst de tien vol.` : `${q.a} + ${q.b}. Fill the ten first.`;
-      default:
-        return nl ? `Hoeveel is ${q.a} + ${q.b}?` : `How much is ${q.a} + ${q.b}?`;
-    }
+    return askLine(this.q, nl).replace(' plus ', ' + ');
   }
 
   /** The strip under the objects: the level's hint, the correction, or what was just read out. */
@@ -1381,7 +1418,7 @@ export class Numbers {
     let tone = 'rgba(18,48,71,0.8)';
     if (wrong) { text = teachLine(this.q, nl); tone = '#a5432a'; }
     else if (this.fb === 'right') { text = T('Right.', 'Goed zo.'); tone = '#2f7a4c'; }
-    else if (this.noteT > 0) text = this.note;
+    else if (this.noteT > 0) text = this.banner;
     // the panel over the answers is already saying what to do, so the strip does not say it twice
     else text = this.ready() ? T('Now pick the answer.', 'Kies nu het antwoord.') : '';
     if (!text) return;
@@ -1551,12 +1588,16 @@ export class Numbers {
     this.w / 2, y + 158 * u, cw - 40 * u);
     ctx.restore();
 
-    const bw = Math.min(138 * u, (cw - 30 * u) / 2), bh = 50 * u, by = y + ch - 70 * u;
-    this.button('retry', T('Again', 'Opnieuw'), this.w / 2 - bw - 6 * u, by, bw, bh);
+    // three ways on, and the ladder is always one of them: a child who has had enough of the
+    // tables should not have to find the arrow in the corner to get back to the crates
+    const gap = 8 * u, bw = Math.min(110 * u, (cw - 28 * u - gap * 2) / 3), bh = 50 * u, by = y + ch - 70 * u;
+    const x0 = this.w / 2 - bw * 1.5 - gap;
+    this.button('levels', T('Levels', 'Niveaus'), x0, by, bw, bh);
+    this.button('retry', T('Again', 'Opnieuw'), x0 + bw + gap, by, bw, bh);
     if (this.levelIndex + 1 < LEVELS.length) {
-      this.button('next', T('Next', 'Volgende'), this.w / 2 + 6 * u, by, bw, bh, '#4fae6e', '#ffffff');
+      this.button('next', T('Next', 'Volgende'), x0 + (bw + gap) * 2, by, bw, bh, '#4fae6e', '#ffffff');
     } else {
-      this.button('levels', T('All levels', 'Alle niveaus'), this.w / 2 + 6 * u, by, bw, bh, '#4fae6e', '#ffffff');
+      this.button('levels', T('All levels', 'Alle niveaus'), x0 + (bw + gap) * 2, by, bw, bh, '#4fae6e', '#ffffff');
     }
   }
 

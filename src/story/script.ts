@@ -163,6 +163,7 @@ export const ASIDES = {
   hush: { say: 'Shh. Keep still. He is only sniffing.', sayNl: 'Sst. Stil blijven. Hij snuffelt alleen maar.' },
   lookAround: { say: 'Turn round, or drag your finger across the screen.', sayNl: 'Draai je om, of veeg met je vinger over het scherm.' },
   notYet: { say: 'Not yet. First find the animal.', sayNl: 'Nog niet. Zoek eerst het dier.' },
+  nearer: { say: 'Closer. Let go of it on the animal.', sayNl: 'Dichterbij. Laat hem los op het dier.' },
 };
 
 /** The step after this one in this story, running on into the next chapter; null at the very end. */

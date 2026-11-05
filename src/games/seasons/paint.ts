@@ -58,17 +58,26 @@ export function drawYearWheel(ctx: Ctx, cx: number, cy: number, r: number, rot: 
   void u;
 }
 
-/** One month's label, laid along the wheel at its wedge - called once per month by the game. */
+/**
+ * One month's label in its wedge - called once per month by the game. Upright, not turned with
+ * the wheel: a child reads "mrt" sideways no better than upside down. As large as the wedge
+ * allows: three letters fit the wedge's width at two thirds out, which on a phone is about
+ * twice the size the labels used to be; never smaller than the smallest line the game sets.
+ */
 export function wheelMonthLabel(ctx: Ctx, cx: number, cy: number, r: number, rot: number, i: number, text: string, u: number): void {
   const a = ((i + 0.5) / 12) * TAU - Math.PI / 2 + rot * TAU;
-  const rr = r * 0.63;
+  const rr = r * 0.64;
+  const wedgeW = (TAU * rr) / 12;
+  const size = Math.max(11 * u, Math.min(17 * u, wedgeW * 0.3));
   ctx.save();
   ctx.translate(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
-  ctx.rotate(a + Math.PI / 2);
-  ctx.fillStyle = 'rgba(18,48,71,0.85)';
-  ctx.font = `800 ${Math.round(11 * u)}px Nunito, system-ui, sans-serif`;
+  ctx.font = `900 ${Math.round(size)}px Nunito, system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  ctx.lineWidth = Math.max(2, size * 0.22);
+  ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+  ctx.strokeText(text, 0, 0);
+  ctx.fillStyle = '#123047';
   ctx.fillText(text, 0, 0);
   ctx.restore();
 }

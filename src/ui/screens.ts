@@ -3,7 +3,7 @@ import { drawPlane } from '../render/planes';
 import type { Report } from '../game/postmortem';
 import { LEVELS_PER_WORLD, MAX_STARS, WORLDS, buildMission, firstAppearance, grandTotalStars, missionId, missionUnlocked, portMissionUnlocked, portStars, portUnlocked, route, routeNow, stopOpen, stopShort, worldStars, worldUnlocked } from '../game/progress';
 import { UPGRADES, buyUpgrade, nextCost, upgradeDesc, upgradeName } from '../game/upgrades';
-import { PORTS_IN_ORDER } from '../game/realports';
+import { PORTS_IN_ORDER, placeLine } from '../game/realports';
 import { lang, t } from '../i18n';
 import { levelProgress, persist, realId, save, upgradeLevel } from '../util/storage';
 
@@ -141,7 +141,7 @@ export class UI {
       b.appendChild(c);
       this.actions.makePortThumb(p.id, c);
       const meta = document.createElement('div'); meta.className = 'meta';
-      meta.innerHTML = `<div class="name">${p.name}</div><div class="info"><span>${p.city} · ${p.country}</span></div>` +
+      meta.innerHTML = `<div class="name">${p.name}</div><div class="info"><span>${placeLine(p, lang() === 'nl')}</span></div>` +
         `<div class="info"><span>${svgStar(true, 12)} ${stars} / 12</span><span>${p.runways.length} ${lang() === 'nl' ? (p.runways.length === 1 ? 'baan' : 'banen') : (p.runways.length === 1 ? 'runway' : 'runways')}</span></div>` +
         // the "still locked" line belongs with the other facts at the foot of the card; centred
         // under the padlock it landed straight on top of them
@@ -259,7 +259,7 @@ export class UI {
         const firstOpen = done.findIndex(d => !d.completed);
         const nextStep = firstOpen === -1 ? 3 : firstOpen;
         meta.innerHTML = `<div class="name">${p.name}</div>`
-          + `<div class="info"><span>${p.city} · ${p.country}</span></div>`
+          + `<div class="info"><span>${placeLine(p, lang() === 'nl')}</span></div>`
           + `<div class="info"><span>${svgStar(true, 12)} ${portStars(p.id)} / 12</span><span>${p.runways.length} ${lang() === 'nl' ? (p.runways.length === 1 ? 'baan' : 'banen') : (p.runways.length === 1 ? 'runway' : 'runways')}</span></div>`
           + (open ? '' : `<div class="lockline">${stopShort(stop)} ${t('starsToUnlock')}</div>`);
         b.appendChild(meta);

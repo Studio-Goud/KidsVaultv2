@@ -16,6 +16,7 @@ import {
   type Fate, type Mission, type Probe,
 } from './missions';
 import { NL, T } from '../../util/lang';
+import { forgetLine, speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Stage = 'pick' | 'aim' | 'fly' | 'burn' | 'done';
@@ -106,7 +107,30 @@ export class MissionScreen {
     this.say(NL() ? this.mission.hintNl : this.mission.hint, 7);
   }
 
-  private say(text: string, secs = 3): void { this.message = text; this.messageT = secs; }
+  /** Shown under the title and said out loud: mission control talks, it does not only write. */
+  private say(text: string, secs = 3): void {
+    this.message = text; this.messageT = secs;
+    forgetLine(); speakLine(text);
+  }
+
+  /** What the guide in the corner repeats: the last thing said, else what this screen is for. */
+  spoken(): string {
+    if (this.messageT > 0 && this.message) return this.message;
+    if (this.stage === 'pick') return T('Missions. Aim where the planet will be, not where it is.', 'Missies. Richt waar de planeet zal zijn, niet waar hij is.');
+    if (this.stage === 'done') return this.doneLine();
+    return NL() ? this.mission.hintNl : this.mission.hint;
+  }
+
+  /** The verdict on the card at the end, as one spoken line. */
+  private doneLine(): string {
+    const r = this.result;
+    const what = r === 'arrived' ? T('Orbit achieved.', 'In een baan.') : r === 'sun' ? T('Into the sun.', 'In de zon.') : r === 'lost' ? T('Lost to deep space.', 'Verloren in de ruimte.') : T('Out of time.', 'Tijd om.');
+    if (r === 'arrived') return what;
+    const why = r === 'sun' ? T('Too slow: you fell all the way in.', 'Te langzaam: je viel helemaal naar binnen.')
+      : r === 'lost' ? T('Too fast: you never came back.', 'Te snel: je kwam nooit meer terug.')
+        : T('The orbit never crossed the target.', 'De baan kruiste het doel nooit.');
+    return `${what} ${why}`;
+  }
 
   private fromBodyId(): string { return this.legs === 0 ? this.mission.from : this.mission.to; }
 
@@ -161,6 +185,10 @@ export class MissionScreen {
       save.coins = Math.max(0, Math.round(save.coins + 30 + this.earned * 20)); persist();
       snd.arrive();
     } else snd.lost();
+    // the card is read out as well as shown; the message itself stays empty so the card is not
+    // doubled by the box under the title
+    this.messageT = 0;
+    forgetLine(); speakLine(this.doneLine());
   }
 
   // ---------- input ----------
@@ -168,7 +196,11 @@ export class MissionScreen {
   /** Returns true when the tap was ours. */
   onDown(p: Vec, hit: string | null): boolean {
     if (hit) {
-      if (hit.startsWith('mission:')) { const i = Number(hit.slice(8)); if (this.unlocked(i)) { this.start(i); snd.tap(); } else snd.lost(); return true; }
+      if (hit.startsWith('mission:')) {
+        const i = Number(hit.slice(8));
+        if (this.unlocked(i)) { this.start(i); snd.tap(); } else { snd.lost(); this.say(T('Finish the one before first.', 'Eerst de vorige.'), 3); }
+        return true;
+      }
       if (hit === 'missions') { this.stage = 'pick'; snd.tap(); return true; }
       if (hit === 'retry') { this.start(this.index); return true; }
       if (hit === 'next') { this.start(Math.min(MISSIONS.length - 1, this.index + 1)); return true; }
@@ -200,6 +232,11 @@ export class MissionScreen {
   onUp(): void {
     if (!this.dragging) return;
     this.dragging = false;
+    // the verdict of the dotted line, once the finger is off: said at every change of the line
+    // it would stutter, said never it is only a colour
+    if (this.stage === 'aim' && this.lastPred && Math.hypot(this.dv.x, this.dv.y) > 0.01) {
+      this.say(this.lastPred.arrives ? T('On course. Launch.', 'Op koers. Lanceren maar.') : T('Like this it misses. Try another push.', 'Zo mist hij nog. Probeer een andere duw.'), 4);
+    }
     if (this.stage === 'burn' && this.probe) {
       const cost = Math.hypot(this.dv.x, this.dv.y);
       if (cost > 0.005) {

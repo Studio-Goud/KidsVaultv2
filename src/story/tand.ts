@@ -33,6 +33,8 @@ export class Tand extends Stage {
   protected readonly chapters: Chapter[] = CHAPTERS;
   protected readonly title = { en: 'Suri and the giant tooth', nl: 'Suri en de reuzentand' };
   protected readonly lookAround = ASIDES.lookAround;
+  /** the animals start just outside the view, so three seconds without them is long enough to say so */
+  protected hintAfter = 3;
 
   private world: World = 'garden';
 
@@ -58,6 +60,8 @@ export class Tand extends Stage {
   private glint: { x: number; z: number } | null = null;
   private matchT = -1;
   private breathT = 0;
+  /** how much of its pace the orbiting animal is going at: 1 walking, 0 waiting for the tooth */
+  private beastGo = 1;
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas);
@@ -75,7 +79,7 @@ export class Tand extends Stage {
   protected palette(): Palette { return PALETTES[this.world === 'tunnel' ? 'garden' : this.world]; }
 
   protected gauge(): string {
-    return this.world === 'garden' ? '' : `${this.yearsLabel()} ${T('years ago', 'jaar geleden')}`;
+    return this.world === 'garden' || this.years < 1 ? '' : `${this.yearsLabel()} ${T('years ago', 'jaar geleden')}`;
   }
 
   /** The box of sand at the bottom of the garden scene: where the tooth is. */
@@ -102,6 +106,7 @@ export class Tand extends Stage {
     this.verdict = null;
     this.glint = null;
     this.matchT = -1;
+    this.beastGo = 1;
     if (c.id === 'garden') this.buildGarden();
     else if (c.id === 'drill') { this.world = 'tunnel'; this.lever = 0; this.years = 0; }
     else if (c.id === 'ice') this.buildIce();
@@ -154,8 +159,10 @@ export class Tand extends Stage {
     this.world = 'ice';
     this.life = new Life('ice', 6);
     this.props = [...scatter(21, [['drift', 40, 1.4], ['rock', 16, 1.2], ['conifer', 10, 1.4]], 0.4, 12), ...near(22, [['drift', 16, 0.6], ['rock', 8, 0.35]])];
-    // the mammoth walks a slow circle round you, starting behind you, so you have to turn to find him
-    this.beast = { kind: 'mammoth', x: 0, z: 0, speed: 0.9, heading: 0, orbit: { r: 14, a: Math.PI * 0.9, w: 0.9 / 14 }, phase: 0, stride: 2.2, head: 0, jaw: 0, lift: 0 };
+    // the mammoth walks a slow circle round you, starting just out of view on the left and coming
+    // across in front: one swipe finds him, and standing still finds him too. Twelve metres out,
+    // inside the conifer that the scatter puts straight ahead at fourteen, so he is not behind it.
+    this.beast = { kind: 'mammoth', x: 0, z: 0, speed: 0.9, heading: 0, orbit: { r: 12, a: -0.75, w: 0.9 / 12 }, phase: 0, stride: 2.2, head: 0, jaw: 0, lift: 0 };
     this.years = YEARS.ice;
   }
 
@@ -163,7 +170,8 @@ export class Tand extends Stage {
     this.world = 'sea';
     this.life = new Life('sea', 7);
     this.props = [...scatter(31, [['weed', 40, 1.5], ['rock', 18, 1.3], ['shell', 30, 1]], 0.3, 8), ...near(32, [['weed', 18, 0.7], ['shell', 24, 0.6], ['rock', 6, 0.4]])];
-    this.beast = { kind: 'mosasaur', x: 0, z: 0, speed: 2.2, heading: 0, orbit: { r: 17, a: -Math.PI * 0.75, w: -2.2 / 17 }, phase: 0, stride: 3, head: 0, jaw: 0, lift: 3.2 };
+    // just out of view on the right, swimming across in front
+    this.beast = { kind: 'mosasaur', x: 0, z: 0, speed: 2.2, heading: 0, orbit: { r: 17, a: 0.85, w: -2.2 / 17 }, phase: 0, stride: 3, head: 0, jaw: 0, lift: 3.2 };
     this.years = YEARS.sea;
   }
 
@@ -181,9 +189,15 @@ export class Tand extends Stage {
     this.years = YEARS.forest;
   }
 
-  /** The Triceratops grazes behind you and to your left, head down, until you find him. */
+  /** The Triceratops grazes just out of view to your left, head down, until you find him. */
   private keepTrike(): void {
-    this.beast = { kind: 'trike', x: Math.sin(-2.3) * 14, z: Math.cos(-2.3) * 14, speed: 0, heading: 0, phase: 0, stride: 1.6, head: -0.8, jaw: 0, lift: 0 };
+    this.beast = { kind: 'trike', x: Math.sin(-0.8) * 14, z: Math.cos(-0.8) * 14, speed: 0, heading: 0, phase: 0, stride: 1.6, head: -0.8, jaw: 0, lift: 0 };
+  }
+
+  /** Once found, an animal stays where it is until the tooth or the fern has been held up to it. */
+  private holdsStill(): boolean {
+    const w = this.waiting();
+    return this.flags.has('found') && !this.flags.has('compared') && !this.flags.has('fed') && (w === 'compared' || w === 'fed' || w === null);
   }
 
   private trexEnters(): void {
@@ -268,10 +282,14 @@ export class Tand extends Stage {
       return;
     }
     if (b.orbit) {
-      b.orbit.a += b.orbit.w * dt;
+      // he walks on, or swims on, until he is found: then he waits, in view, for the tooth
+      const go = this.holdsStill() ? 0 : 1;
+      this.beastGo += (go - this.beastGo) * Math.min(1, dt * 2);
+      b.orbit.a += b.orbit.w * this.beastGo * dt;
       b.x = Math.sin(b.orbit.a) * b.orbit.r;
       b.z = Math.cos(b.orbit.a) * b.orbit.r;
-      b.phase += (b.speed * dt) / b.stride;
+      // a mosasaur that waits still sways its tail a little
+      b.phase += (b.speed * dt * (b.kind === 'mosasaur' ? 0.25 + 0.75 * this.beastGo : this.beastGo)) / b.stride;
     }
     if (b.kind === 'trike') {
       // grazing: head down and a slow chew, head up once the child has found him
@@ -314,7 +332,9 @@ export class Tand extends Stage {
       if (this.sniffT <= 0) { this.sniffT = 2.2; this.hushed++; if (this.hushed <= 2) this.aside(ASIDES.hush); }
       return false;
     }
-    if (w === 'dug' && this.inBox(p)) { this.brushing = true; this.brushAt(p); return true; }
+    // a finger in the box brushes, and once the tooth is free it still does not turn the camera
+    // away from Suri and the shed
+    if (this.world === 'garden' && this.inBox(p)) { if (w === 'dug') { this.brushing = true; this.brushAt(p); } return true; }
     if (w === 'lever') {
       const L = this.leverRect();
       if (p.x > L.x - 30 * u && p.x < L.x + L.w + 30 * u && p.y > L.y - 30 * u && p.y < L.y + L.h + 30 * u) { this.leverHeld = true; return true; }
@@ -322,6 +342,8 @@ export class Tand extends Stage {
     if ((w === 'compared' || w === 'fed') && Math.hypot(p.x - this.trayAt().x, p.y - this.trayAt().y) < 50 * u) {
       this.carry = { kind: w === 'fed' ? 'fern' : 'tooth', x: p.x, y: p.y };
       storySfx.pick();
+      // the hand that carries the tooth cannot turn the camera, so the animal is brought into view
+      if (this.beast && !this.beastScreen().on) this.turnTo(Math.atan2(this.beast.x, this.beast.z), 1.5);
       return true;
     }
     if (w === 'picked' && this.glint) {
@@ -376,18 +398,31 @@ export class Tand extends Stage {
     if (clean > 0.6 && !this.flags.has('dug')) { this.flags.add('dug'); this.sand.fill(true); }
   }
 
-  /** The tooth or the fern let go near the animal's head: that is holding it up to him. */
+  /**
+   * The tooth or the fern let go on the animal: that is holding it up to him. Anywhere on his body
+   * counts, because the head of a mosasaur is six metres from the point he is drawn at and can be
+   * off the screen while the rest of him is not (play check of 2026-11-05). Let go elsewhere, Suri
+   * says to bring it closer and the camera turns to the animal if he is out of view.
+   */
   private drop(c: Carry): void {
     const b = this.beast;
-    if (!b || !this.beastScreen().on) return;
+    if (!b) return;
+    const u = this.u();
     const sp = spot(this.view(), b.x, b.z, b.lift);
-    // the head is well in front of the hips and well above the ground
     const facing = this.facingOf(b);
-    const headX = sp.x + facing * sp.s * (b.kind === 'mosasaur' ? 6 : b.kind === 'trike' ? 3.5 : 2.4);
-    const headY = sp.y - sp.s * (b.kind === 'mosasaur' ? 0 : b.kind === 'trike' ? 1.8 : 2.6);
-    if (Math.hypot(c.x - headX, c.y - headY) >= Math.max(80 * this.u(), sp.s * 2.2)) return;
-    if (c.kind === 'fern') { this.flags.add('fed'); storySfx.munch(); this.verdict = { t: 0, ok: true, x: headX, y: headY }; }
-    else { this.flags.add('compared'); storySfx.wrong(); this.verdict = { t: 0, ok: false, x: headX, y: headY }; }
+    // the body in the animal's own metres: behind and in front of the hips, above and below them
+    const ext = b.kind === 'mosasaur' ? { back: 8.5, front: 7, up: 1.8, down: 1.8 } : b.kind === 'trike' ? { back: 4.5, front: 4.5, up: 3.2, down: 0.3 } : { back: 2.5, front: 3.5, up: 3.4, down: 0.3 };
+    const dx = ((c.x - sp.x) * facing) / sp.s, dy = (c.y - sp.y) / sp.s, m = (40 * u) / sp.s;
+    const hit = this.beastScreen().on && dx > -ext.back - m && dx < ext.front + m && dy > -ext.up - m && dy < ext.down + m;
+    if (!hit) {
+      if (!this.beastScreen().on) this.turnTo(Math.atan2(b.x, b.z), 1.5);
+      if (!isSpeaking()) this.aside(ASIDES.nearer);
+      return;
+    }
+    // the mark goes where the tooth was let go, kept on the screen: the head itself may be past the edge
+    const x = Math.max(40 * u, Math.min(this.w - 40 * u, c.x)), y = Math.max(40 * u, Math.min(this.h - 120 * u, c.y));
+    if (c.kind === 'fern') { this.flags.add('fed'); storySfx.munch(); this.verdict = { t: 0, ok: true, x, y }; }
+    else { this.flags.add('compared'); storySfx.wrong(); this.verdict = { t: 0, ok: false, x, y }; }
   }
 
   // ---------------------------------------------------------------- drawing
@@ -648,9 +683,12 @@ export class Tand extends Stage {
     const ly = wide ? cy : Math.max(60 * u, cy - R - 40 * u);
     ctx.textAlign = 'center';
     outlinedText(ctx, label, lx, ly, this.font('900', 24), '#fff6dc', 'rgba(40, 24, 10, 0.9)', 6);
-    ctx.fillStyle = 'rgba(255, 246, 220, 0.8)';
-    ctx.font = this.font('800', 12);
-    ctx.fillText(T('years ago', 'jaar geleden'), lx, ly + 20 * u);
+    // "now" is not a number of years ago
+    if (this.years >= 1) {
+      ctx.fillStyle = 'rgba(255, 246, 220, 0.8)';
+      ctx.font = this.font('800', 12);
+      ctx.fillText(T('years ago', 'jaar geleden'), lx, ly + 20 * u);
+    }
 
     // the handle, only while it is waiting to be pulled
     if (CHAPTERS[this.place.chapter].id === 'drill') {

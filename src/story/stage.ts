@@ -70,6 +70,8 @@ export abstract class Stage {
 
   protected seenT = 0;
   protected lostT = 0;
+  /** seconds without the animal in view before the arrow and the spoken hint; a story may shorten it */
+  protected hintAfter = 7;
   private hinted = false;
   private guideT = 0;
   protected titleT = 0;
@@ -295,7 +297,7 @@ export abstract class Stage {
     const central = bs.on && Math.abs(bs.sx - this.w / 2) < this.w * 0.3;
     if (central) { this.seenT += dt; this.lostT = 0; } else { this.seenT = 0; this.lostT += dt; }
     if (this.seenT > 0.6) { this.flags.add('found'); this.onFound(this.beast); }
-    if (this.lostT > 7 && !this.hinted) { this.hinted = true; this.aside(this.lookAround); }
+    if (this.lostT > this.hintAfter && !this.hinted) { this.hinted = true; this.aside(this.lookAround); }
   }
 
   // ---------------------------------------------------------------- input
@@ -383,7 +385,7 @@ export abstract class Stage {
     items.sort((a, b) => b.d - a.d).forEach(i => i.draw());
     this.drawOver(v, pal);
     // the hint: an arrow at the edge of the screen pointing the short way round to the animal
-    if (this.waiting() === 'found' && this.beast && this.lostT > 3.5 && !this.beastScreen().on) {
+    if (this.waiting() === 'found' && this.beast && this.lostT > Math.min(3.5, this.hintAfter) && !this.beastScreen().on) {
       const a = wrapAngle(Math.atan2(this.beast.x, this.beast.z) - this.look.yaw);
       const left = a < 0;
       const x = left ? 26 * u : this.w - 26 * u, y = this.h * 0.45;

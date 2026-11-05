@@ -211,7 +211,13 @@ const input = new Input(canvas, () => (mode === 'playing' ? world : null), rende
   if (mode !== 'playing') return false;
   const hit = renderer.hudHit(sx, sy);
   if (hit === 'pause') { pause(); return true; }
-  if (hit === 'build') { openBuild(); return true; }
+  if (hit === 'build') {
+    // an aircraft that has flown in under the button is still an aircraft: a finger that lands on
+    // it is drawing a route, not shopping, and a shop that opens mid-shift from a drag is a trap
+    if (world.planeAt(renderer.toWorld(sx, sy), 46 / Math.max(1, renderer.zoom * 0.7))) return false;
+    openBuild();
+    return true;
+  }
   if (hit === 'slowmo') { world.activateSlowmo(); return true; }
   if (hit && hit.startsWith('cmd:')) {
     const p = world.selected !== null ? world.planeById(world.selected) : undefined;

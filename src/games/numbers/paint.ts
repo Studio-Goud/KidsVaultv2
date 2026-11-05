@@ -636,7 +636,8 @@ export function drawArray(
   ctx.save();
   if (held) { ctx.shadowColor = 'rgba(30, 90, 60, 0.6)'; ctx.shadowBlur = g.cell * 0.5; }
   ctx.fillStyle = '#4fae6e';
-  ctx.beginPath(); ctx.arc(hd.x, hd.y, g.cell * 0.28, 0, TAU); ctx.fill();
+  // a knob a thumb can find: never smaller than a fingertip, whatever the cells have shrunk to
+  ctx.beginPath(); ctx.arc(hd.x, hd.y, Math.max(g.cell * 0.28, 15), 0, TAU); ctx.fill();
   ctx.restore();
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = Math.max(1.6, g.cell * 0.05);

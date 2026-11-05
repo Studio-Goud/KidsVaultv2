@@ -27,7 +27,7 @@ import {
 } from './paint';
 import { bleedEdges, chunkyButton, drawStar as drawStarGem, easeOutBack, glassPanel, heading, Particles } from '../../render/look';
 import { NL, T } from '../../util/lang';
-import { speakLine } from '../../platform/voice';
+import { forgetLine, sayRecorded, speakLine } from '../../platform/voice';
 import { simpleNow } from '../../platform/who';
 
 type Ctx = CanvasRenderingContext2D;
@@ -194,7 +194,11 @@ export class Knikkerbaan {
     this.ps.clear();
     this.cupGlow = 0; this.marblePop = 0;
     this.phase = 'build'; this.phaseT = 0; this.cardPop = 0;
-    this.say(T('Let the marble roll into the cup.', 'Laat de knikker in het bekertje rollen.'), 4);
+    // the board's name first, so a tap in the list is answered with what was chosen, then what
+    // to do: two of Ruth's recordings back to back when she has both, else the device says both
+    const line = T('Let the marble roll into the cup.', 'Laat de knikker in het bekertje rollen.');
+    this.note = line; this.noteT = 4;
+    if (!sayRecorded([nameOf(this.level), line])) { forgetLine(); speakLine(`${nameOf(this.level)}. ${line}`); }
   }
 
   /** The plank hint for this board, which the guide in the corner reads on a tap. */
@@ -206,6 +210,8 @@ export class Knikkerbaan {
 
   private say(text: string, secs = 3): void {
     this.note = text; this.noteT = secs;
+    // a plank dropped beside the board twice is answered twice: these lines answer a hand
+    forgetLine();
     speakLine(text);
   }
 
@@ -303,7 +309,11 @@ export class Knikkerbaan {
     const hit = this.hitAt(p);
     if (hit) {
       this.held0 = hit;
-      if (hit.startsWith('level:')) { const i = Number(hit.slice(6)); if (this.unlocked(i)) { sfx.tap(); this.start(i); } else sfx.shrug(); }
+      if (hit.startsWith('level:')) {
+        const i = Number(hit.slice(6));
+        if (this.unlocked(i)) { sfx.tap(); this.start(i); }
+        else { sfx.shrug(); forgetLine(); speakLine(T('First the board before it.', 'Eerst het bord ervoor.')); }
+      }
       else if (hit === 'levels') { this.phase = 'levels'; this.cardPop = 0; this.drag = null; sfx.tap(); }
       else if (hit === 'retry') { sfx.tap(); this.start(this.levelIndex); }
       else if (hit === 'next') { sfx.tap(); this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1)); }
@@ -313,8 +323,9 @@ export class Knikkerbaan {
     if (this.phase !== 'build' || this.drag) return;
     try { this.canvas.setPointerCapture(e.pointerId); } catch { /* a synthetic pointer has nothing to capture */ }
     const L = this.layout(), u = this.u(), w = this.toWorld(p, L);
-    // the turning handle first, since it sits where a plank end would otherwise be
-    const handleR = Math.max(20 * u, 0.5 * L.s) / L.s;
+    // the turning handle first, since it sits where a plank end would otherwise be; a fingertip
+    // wide at the least (44 px across), whatever the board's scale
+    const handleR = Math.max(22 * u, 0.5 * L.s) / L.s;
     for (const q of this.placed) {
       const hp = this.handlePos(q.p);
       if (Math.hypot(hp.x - w.x, hp.y - w.y) < handleR) {
@@ -392,9 +403,10 @@ export class Knikkerbaan {
     }
     const q = nearestPlacement(this.level, others, d.pose);
     if (q) { this.placed.push({ id: d.id, p: q }); sfx.place(); return; }
-    // nowhere to stand: a plank from the wall goes back where it was, a new one back to the tray
-    if (d.before) this.placed.push({ id: d.id, p: d.before });
-    else sfx.remove();
+    // nowhere to stand: a plank from the wall goes back where it was, a new one back to the tray.
+    // Said, either way: a plank that silently vanishes from the gap beside the board looks lost
+    if (d.before) { this.placed.push({ id: d.id, p: d.before }); this.say(T('It cannot go there.', 'Daar past hij niet.'), 3); }
+    else { sfx.remove(); this.say(T('Back in the tray.', 'Terug in de bak.'), 3); }
   }
 
   // ---------- drawing ----------
@@ -424,7 +436,7 @@ export class Knikkerbaan {
     for (const q of this.placed) paintPlank(ctx, v, q.p);
     if (this.phase === 'build') for (const q of this.placed) {
       const hp = this.handlePos(q.p);
-      paintHandle(ctx, L.bx + hp.x * L.s, L.by + hp.y * L.s, Math.max(13 * u, 0.42 * L.s), false);
+      paintHandle(ctx, L.bx + hp.x * L.s, L.by + hp.y * L.s, Math.max(15 * u, 0.42 * L.s), false);
     }
     paintCupBack(ctx, v, this.level.cupX);
     this.drawMarble(L);
@@ -433,7 +445,7 @@ export class Knikkerbaan {
       const d = this.drag;
       paintPlank(ctx, v, d.pose, { ghost: true, bad: this.dragBad, lift: 5 });
       const hp = this.handlePos(d.pose);
-      if (d.kind === 'rotate') paintHandle(ctx, L.bx + hp.x * L.s, L.by + hp.y * L.s, Math.max(13 * u, 0.42 * L.s), true);
+      if (d.kind === 'rotate') paintHandle(ctx, L.bx + hp.x * L.s, L.by + hp.y * L.s, Math.max(15 * u, 0.42 * L.s), true);
     }
     this.ps.draw(ctx);
     this.drawTray(L);
