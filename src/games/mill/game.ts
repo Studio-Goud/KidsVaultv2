@@ -790,7 +790,8 @@ export class Millstream {
     for (let k = 0; k < edges.length; k += 2) {
       if (edges[k + 1] - edges[k] > gapW) { gapW = edges[k + 1] - edges[k]; gapL = edges[k]; }
     }
-    const beside = gapW >= 120 * u;
+    // a strip narrower than this makes a card taller than it is wide, so the card goes under the springs instead
+    const beside = gapW >= 150 * u;
     const tw = beside ? Math.min(gapW, this.w - 32 * u) : this.w - 32 * u;
     const line = this.goalLine();
     ctx.save();

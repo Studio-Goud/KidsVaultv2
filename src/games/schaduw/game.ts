@@ -17,7 +17,7 @@ import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, recordLevelResult } from '../../util/storage';
 import {
-  angleDiff, CLEAN_BELOW, DWELL, hintDirection, hintsAfter, LEVELS, LINE_INSTRUCTION, LINE_YES, makeRound, matchScore, objectById,
+  angleDiff, CLEAN_BELOW, DWELL, hintDirection, hintsAfter, LEVELS, LINE_INSTRUCTION, LINE_YES, lockedLine, makeRound, matchScore, objectById,
   objectsFor, PITCH_MAX, project, rngFor, SIMPLE_LEVEL, starsFor, type Level, type ObjectModel, type Round, type Shadow, type Way,
 } from './model';
 import { schaduwSfx as sfx } from './schaduwsfx';
@@ -337,7 +337,11 @@ export class Schaduw {
     const hit = this.hitAt(p);
     if (hit) {
       this.held0 = hit;
-      if (hit.startsWith('level:')) { const i = Number(hit.slice(6)); if (this.unlocked(i)) this.start(i); else sfx.tap(); }
+      if (hit.startsWith('level:')) {
+        const i = Number(hit.slice(6));
+        if (this.unlocked(i)) this.start(i);
+        else { sfx.tap(); this.say(lockedLine(i, NL()), 4); }
+      }
       else if (hit === 'levels') { this.phase = 'levels'; this.cardPop = 0; sfx.tap(); }
       else if (hit === 'retry') this.start(this.levelIndex);
       else if (hit === 'next') this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1));
@@ -408,9 +412,11 @@ export class Schaduw {
     if (this.phase !== 'play' || this.solved) return;
     const way = this.hintWay();
     if (way) {
-      const s = L.k * 0.3;
-      const y = way === 'up' ? L.objY - L.k * 1.5 : L.tableY + L.tableRx * Math.sin(CAM) + L.k * 0.55;
-      drawArrow(ctx, L.objX, y, s, way, 0.9, Math.sin(this.t * 4));
+      // big enough to see and right under the turntable, which is the thing being turned: at a
+      // third of the turntable they were fifteen pixels of chevron floating well below it
+      const s = Math.max(24 * u, L.k * 0.45);
+      const y = way === 'up' ? L.objY - L.k * 1.5 : L.tableY + L.tableRx * Math.sin(CAM) + s * 0.75;
+      drawArrow(ctx, L.objX, y, s, way, 0.95, Math.sin(this.t * 4));
     } else if (!this.touched && this.objT > 1) {
       // before the first touch, a hand shows the whole of the gesture and no word is needed
       const hx = L.objX + Math.sin(this.t * 2.2) * L.k * 0.8;
@@ -525,9 +531,21 @@ export class Schaduw {
     ctx.fillRect(0, 0, this.w, this.h);
     ctx.textAlign = 'center';
     heading(ctx, T('Shadow Play', 'Schaduwspel'), this.w / 2, 60 * u, this.font('900', 26), '#fff2c6');
-    ctx.fillStyle = 'rgba(255,242,198,0.78)';
-    ctx.font = this.font('700', 12.5);
-    ctx.fillText(T('Turn the thing until its shadow fits.', 'Draai het ding tot de schaduw past.'), this.w / 2, 84 * u, this.w - 24 * u);
+    // the line under the title, or for a moment what a tap on a closed card just said
+    if (this.noteT > 0) {
+      ctx.font = this.font('800', 12.5);
+      const tw = Math.min(this.w - 24 * u, ctx.measureText(this.note).width + 32 * u);
+      ctx.save();
+      ctx.globalAlpha = clamp(this.noteT, 0, 1);
+      glassPanel(ctx, this.w / 2 - tw / 2, 70 * u, tw, 30 * u, 15 * u, 0.93);
+      ctx.fillStyle = '#2b2140';
+      ctx.fillText(this.note, this.w / 2, 90 * u, tw - 22 * u);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = 'rgba(255,242,198,0.78)';
+      ctx.font = this.font('700', 12.5);
+      ctx.fillText(T('Turn the thing until its shadow fits.', 'Draai het ding tot de schaduw past.'), this.w / 2, 84 * u, this.w - 24 * u);
+    }
     const cols = this.w > 640 * u ? 3 : 1;
     const pad = 14 * u;
     const cw = Math.min(260 * u, (this.w - 28 * u - (cols - 1) * pad) / cols);
@@ -594,11 +612,16 @@ export class Schaduw {
       ctx.fillText(lineOf(L), x + 14 * u, y + art + 50 * u, cw - 28 * u);
       for (let sI = 0; sI < 3; sI++) drawStarGem(ctx, x + cw - 64 * u + sI * 20 * u, y + art + 24 * u, 8 * u, sI < p.stars);
       if (!open) {
+        // a padlock you cannot miss: on a dark disc, and nearly twice the size it was, because a
+        // small white lock on a dimmed picture read as a smudge
         ctx.save();
         ctx.translate(x + cw / 2, y + art / 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.95)';
-        ctx.strokeStyle = 'rgba(43,33,64,0.55)';
-        ctx.lineWidth = 3 * u;
+        ctx.fillStyle = 'rgba(20, 12, 40, 0.72)';
+        ctx.beginPath(); ctx.arc(0, 0, 30 * u, 0, TAU); ctx.fill();
+        ctx.scale(1.7, 1.7);
+        ctx.fillStyle = '#ffe9a8';
+        ctx.strokeStyle = 'rgba(43,33,64,0.8)';
+        ctx.lineWidth = 2.6 * u;
         ctx.beginPath(); ctx.arc(0, -6 * u, 7 * u, Math.PI, 0); ctx.stroke();
         ctx.beginPath(); ctx.roundRect(-11 * u, -6 * u, 22 * u, 17 * u, 4 * u); ctx.fill(); ctx.stroke();
         ctx.restore();

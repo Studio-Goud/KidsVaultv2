@@ -382,6 +382,15 @@ export const SIMPLE_LEVEL: Level = { id: 0, name: 'Turn', nameNl: 'Draaien', lin
 export const LINE_INSTRUCTION = { en: 'Turn the thing until the shadow fits.', nl: 'Draai het ding tot de schaduw past.' };
 export const LINE_YES = { en: 'Yes, that fits.', nl: 'Ja, zo past hij.' };
 
+/**
+ * What a tap on a level that is not open yet says. A tap that only clicks teaches a child that
+ * the card is broken; this says what has to happen first, in terms of the level before it.
+ */
+export function lockedLine(index: number, nl: boolean): string {
+  const before = index;   // levels are numbered from one on the cards, so "the one before" is the index itself
+  return nl ? `Eerst niveau ${before} afmaken, dan gaat deze open.` : `Finish level ${before} first, then this one opens.`;
+}
+
 /** Seconds without a fit before the arrow shows, and again before the second hint. Product decision. */
 export const HINT_AFTER = 10;
 /** An object counts as "without help" when it needed fewer than this many hints. */

@@ -3763,6 +3763,8 @@ const group = name => console.log(`\n${name}`);
   const m = await bundle('src/games/schaduw/model.ts', 'schaduwmodel.mjs');
   group('Schaduwspel - a real shadow of a real shape');
   is('test_schaduw_nine_objects_with_names_and_lines', m.OBJECTS.length === 9 && m.OBJECTS.every(o => o.nameNl && o.lineNl) && m.objectById('teapot').lineNl === 'Een theepot.', true);
+  is('test_schaduw_locked_level_says_which_level_comes_first', m.lockedLine(2, true), 'Eerst niveau 2 afmaken, dan gaat deze open.');
+  is('test_schaduw_locked_level_says_it_in_english_too', m.lockedLine(2, false), 'Finish level 2 first, then this one opens.');
   const teapot = m.objectById('teapot'), duck = m.objectById('duck'), chair = m.objectById('chair'), boot = m.objectById('boot');
   is('test_schaduw_project_gives_one_polygon_per_face', m.project(teapot, 0, 0).length === teapot.faces.length && m.project(teapot, 0, 0).every(p => p.length >= 3), true);
   is('test_schaduw_shadow_stays_inside_the_wall', m.OBJECTS.every(o => [0, 0.7, 2].every(yaw => [0, 0.6].every(pitch =>
