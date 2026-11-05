@@ -295,11 +295,16 @@ async function render(voice, dry) {
   mkdirSync(OUT, { recursive: true });
   const rows = [...kept];
   const replace = row => { const i = rows.findIndex(c => c.id === row.id); if (i >= 0) rows[i] = row; else rows.push(row); };
+  // The other language is written back with its own stamps filled in, because `_model` below is
+  // about to change: a Dutch clip without a stamp would otherwise read as made by the new model.
+  const other = LANG === 'nl' ? 'en' : 'nl';
+  const otherRows = (raw[other] ?? []).map(c => ({ ...c, voice: c.voice ?? voicesNow[other], model: c.model ?? raw._model }));
+  const sorted = () => rows.slice().sort((a, b) => a.id.localeCompare(b.id));
   const save = () => writeFileSync(MANIFEST, JSON.stringify({
     _: 'Recorded lines, rendered by scripts/voice.mjs. Filed under lineKey() of their words; a line not in here falls back to the device voice. See docs/voice.md.',
     _voice: { ...voicesNow, [LANG]: voice }, _model: MODEL,
-    nl: LANG === 'nl' ? rows.slice().sort((a, b) => a.id.localeCompare(b.id)) : raw.nl ?? [],
-    en: LANG === 'en' ? rows.slice().sort((a, b) => a.id.localeCompare(b.id)) : raw.en ?? [],
+    nl: LANG === 'nl' ? sorted() : otherRows,
+    en: LANG === 'en' ? sorted() : otherRows,
   }, null, 1) + '\n');
 
   let done = 0, failed = 0;
