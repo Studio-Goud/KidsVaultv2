@@ -37,11 +37,19 @@ const MANIFEST = 'public/voice/clips.json';
 /** which half of the app to record: `--lang en` for the English lines, in their own voice */
 const LANG = arg('--lang') === 'en' ? 'en' : 'nl';
 const OUT = `public/voice/${LANG}`;
-/** the model: multilingual v2 is ElevenLabs' steadiest for long-form Dutch. Override with --model */
-const MODEL = arg('--model') ?? 'eleven_multilingual_v2';
-/** 32 kbit/s mono at 22 kHz: a voice on a phone speaker needs no more, and 700 lines ship inside the app */
-const FORMAT = 'mp3_22050_32';
-const KBPS = 32;
+/**
+ * The model. Multilingual v2 was the steadiest for long-form Dutch and carried the first twelve
+ * thousand lines; on 2026-11-05 the owner listened to both and chose v3, which is the more
+ * natural of the two, for both languages. Override with --model.
+ */
+const MODEL = arg('--model') ?? 'eleven_v3';
+/**
+ * 64 kbit/s mono at 44 kHz. The first recordings were 32 kbit/s at 22 kHz, which a phone speaker
+ * barely notices; the owner wanted the voices as good as they can be, and 64 is the most that keeps
+ * twelve thousand clips under the 200 MB Google Play allows for one download.
+ */
+const FORMAT = 'mp3_44100_64';
+const KBPS = 64;
 
 const SAMPLES = LANG === 'en' ? [
   'Hi, I am Suri. Shall we do something together?',
@@ -217,10 +225,13 @@ async function tts(voice, text) {
   const body = {
     text: readable(text),
     model_id: MODEL,
-    // steady rather than theatrical: the same line should sound the same every time a child hears it
-    voice_settings: { stability: 0.55, similarity_boost: 0.8, style: 0.15, use_speaker_boost: true },
+    // steady rather than theatrical: the same line should sound the same every time a child hears
+    // it. v3 knows only stability and similarity, and its stability is three steps: 0.5 is "natural"
+    voice_settings: MODEL.startsWith('eleven_v3')
+      ? { stability: 0.5, similarity_boost: 0.8 }
+      : { stability: 0.55, similarity_boost: 0.8, style: 0.15, use_speaker_boost: true },
   };
-  if (MODEL !== 'eleven_multilingual_v2') body.language_code = 'nl';
+  if (MODEL !== 'eleven_multilingual_v2') body.language_code = LANG;
   const r = await api(`/v1/text-to-speech/${voice}?output_format=${FORMAT}`, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
   });
@@ -263,19 +274,27 @@ async function render(voice, dry) {
   const { lineKey } = await lineKeyFn();
   const all = harvest(await letterbos());
   const raw = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : {};
-  // a different voice or model means every recording in this language is out of date, so start again;
   // before 2026-10-01 the manifest held one voice for both languages, as a string
   const voicesNow = typeof raw._voice === 'object' && raw._voice ? raw._voice : { nl: raw._voice, en: raw._voice };
-  const same = voicesNow[LANG] === voice && raw._model === MODEL;
-  const kept = same ? (raw[LANG] ?? []).filter(c => existsSync(join('public/voice', c.file))) : [];
-  const have = new Set(kept.map(c => c.id));
-  const todo = all.filter(t => !have.has(lineKey(t)));
+  // Every clip remembers the voice and model that made it; one from before that was true gets the
+  // manifest's old voice and model stamped on. A clip from an earlier voice is not thrown away when
+  // the voice changes: it keeps playing until the new voice has said the same line, because a
+  // whole language is more than a month of credit and a child should hear George rather than the
+  // phone while Matilda is still being recorded.
+  const kept = (raw[LANG] ?? [])
+    .filter(c => existsSync(join('public/voice', c.file)))
+    .map(c => ({ ...c, voice: c.voice ?? voicesNow[LANG], model: c.model ?? raw._model }));
+  const current = new Set(kept.filter(c => c.voice === voice && c.model === MODEL).map(c => c.id));
+  const todo = all.filter(t => !current.has(lineKey(t)));
   const chars = todo.reduce((a, t) => a + t.length, 0);
-  console.log(`${all.length} lines, ${kept.length} already recorded, ${todo.length} to do, ${chars} characters`);
+  const earlier = new Set(kept.map(c => c.id));
+  const old = todo.filter(t => earlier.has(lineKey(t))).length;
+  console.log(`${all.length} lines, ${current.size} already recorded, ${todo.length} to do (${old} of them still in an earlier voice), ${chars} characters`);
   if (dry || !todo.length) return;
 
   mkdirSync(OUT, { recursive: true });
   const rows = [...kept];
+  const replace = row => { const i = rows.findIndex(c => c.id === row.id); if (i >= 0) rows[i] = row; else rows.push(row); };
   const save = () => writeFileSync(MANIFEST, JSON.stringify({
     _: 'Recorded lines, rendered by scripts/voice.mjs. Filed under lineKey() of their words; a line not in here falls back to the device voice. See docs/voice.md.',
     _voice: { ...voicesNow, [LANG]: voice }, _model: MODEL,
@@ -291,7 +310,7 @@ async function render(voice, dry) {
       try {
         const mp3 = await tts(voice, t);
         writeFileSync(join(OUT, `${id}.mp3`), mp3);
-        rows.push({ id, file: `${LANG}/${id}.mp3`, secs: Math.round((mp3.length * 8 / (KBPS * 1000)) * 10) / 10, text: t });
+        replace({ id, file: `${LANG}/${id}.mp3`, secs: Math.round((mp3.length * 8 / (KBPS * 1000)) * 10) / 10, text: t, voice, model: MODEL });
       } catch (e) {
         failed++;
         console.error(`\n  failed: ${t.slice(0, 60)} - ${String(e.message).slice(0, 160)}`);
