@@ -22,7 +22,7 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
-import { safeArea, uiScale } from '../../util/ui';
+import { GUIDE_KEEP, safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import { lang, t } from '../../i18n';
@@ -33,7 +33,7 @@ import {
 import { isVowelUnit, spellingName } from './phonics';
 import {
   firstEmpty, isSolved, LEVELS, makeQuestion, rngFor, sayLabel, starsFor, teachElsewhere,
-  teachFor, tileFits,
+  teachFor, teachHelp, tileFits,
   type Level, type Question,
 } from './model';
 import { drawPicture } from './pictures';
@@ -305,8 +305,11 @@ export class Letters {
     const th = clamp(Math.min(slotH, rackH || maxTile), minTile * 0.7, maxTile);
 
     const rackTotal = rows.length ? rows.length * th + (rows.length - 1) * gap : 0;
-    // the row of dots that counts the level off lives under the rack, so the rack stops short
-    const rackTop = h - 22 * u - rackTotal;
+    // the row of dots that counts the level off lives under the rack, so the rack stops short.
+    // On a phone the rack also stays above Suri's corner: a rack of six tiles reaches the left
+    // edge, and the leftmost tile sat under him, where a drag made him talk instead of lifting it.
+    // In the wide layout the rack is in the right column, well clear of him.
+    const rackTop = h - (wide ? 22 * u : Math.max(22 * u, GUIDE_KEEP)) - rackTotal;
     const slotsY = rackTop - (rackTotal > 0 ? 18 * u : 0) - th - (wide ? 8 * u : 6 * u);
     const bandY = slotsY - bandH - 8 * u;
 
@@ -450,7 +453,7 @@ export class Letters {
     const elsewhere = mine >= 0;
     this.glowSlot = elsewhere ? mine : slot;
     this.glowT = TEACH_FOR;
-    this.teach = elsewhere ? teachElsewhere(unit, NL()) : teachFor(this.q, slot, unit, NL());
+    this.teach = elsewhere ? teachElsewhere(this.q, unit, NL()) : teachFor(this.q, slot, unit, NL());
     this.teachT = TEACH_FOR;
     const want = elsewhere ? unit : this.q.parts[slot];
     // the correction is on screen; what is heard is the word it belongs to, whole
@@ -472,7 +475,7 @@ export class Letters {
     this.glowT = 1.4;
     // the slot is no longer the place a mistake was made, it is a slot with the right tile in it
     this.badSlot = -1;
-    this.teach = NL() ? `Ik zet de ${want} even voor je neer.` : `I will put the ${want} in for you.`;
+    this.teach = teachHelp(this.q, want, NL());
     this.teachT = 2.6;
     lettersfx.land();
     const r = this.layout().slots[slot];

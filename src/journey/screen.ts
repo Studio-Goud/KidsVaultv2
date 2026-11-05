@@ -72,6 +72,8 @@ export class JourneyScreen {
   private hummed = false;
   /** the end has been counted for this ride; pressing "again" starts a new one */
   private counted = false;
+  /** where the gauge was drawn this frame, so the spoken line can keep off it */
+  private gauge: { x: number; y: number; w: number; h: number } | null = null;
 
   constructor(private canvas: HTMLCanvasElement, private j: Journey) {
     this.fx = journeySfx(j.id);
@@ -168,8 +170,10 @@ export class JourneyScreen {
   /** Where a point on the route sits on the rail. */
   private railY(at: number): number {
     // clear of the map button at the top and of the spoken line at the bottom. The rail is the
-    // one thing on the screen that is always drawn, so it is the one that gives way.
-    const top = 66 * this.u();
+    // one thing on the screen that is always drawn, so it is the one that gives way. The craft is
+    // 30 tall and carries its reading beside it, so the top end sits well under the button: at 66
+    // the rocket, home at the end of the big trip, touched "Overzicht".
+    const top = 78 * this.u();
     const bot = this.h - 160 * this.u();
     return this.j.axis === 'up' ? bot - at * (bot - top) : top + at * (bot - top);
   }
@@ -310,8 +314,11 @@ export class JourneyScreen {
     drawPicture(ctx, this.j, next, cx, cy, r * pop, this.t);
 
     if (here) {
-      heading(ctx, NL() ? here.titleNl : here.title, cx, this.headY() + 6 * u,
-        this.font('900', 21), '#ffffff');
+      // between the map button on the left and the home button on the right, with a little air
+      // on both sides: "The Challenger Deep" at full size ran from one into the other
+      const title = NL() ? here.titleNl : here.title;
+      const room = (this.w - 56 - 8 * u) - (12 * u + 94 * u + 8 * u);
+      heading(ctx, title, cx, this.headY() + 6 * u, this.fitFont('900', 21, title, room), '#ffffff');
       const who = credit(here);
       if (who) {
         ctx.font = this.font('700', 8);
@@ -362,8 +369,11 @@ export class JourneyScreen {
     ctx.fillText(shown, x + 12 * u, cy - 1 * u);
     ctx.font = this.font('700', 8.5);
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.fillText(NL() ? this.j.unitNl : this.j.unit, x + 12 * u, cy + 10 * u);
+    const unit = NL() ? this.j.unitNl : this.j.unit;
+    ctx.fillText(unit, x + 12 * u, cy + 10 * u);
     ctx.textAlign = 'center';
+    const gw = 12 * u + Math.max(ctx.measureText(unit).width, (() => { ctx.font = this.font('900', 11); return ctx.measureText(shown).width; })());
+    this.gauge = { x: x - 15 * u, y: cy - 15 * u, w: 15 * u + gw, h: 30 * u };
   }
 
   /** The bottom of the screen: what is being said, and what you can do about it. */
@@ -407,18 +417,39 @@ export class JourneyScreen {
     const ctx = this.ctx, u = this.u();
     // clear of the rail on one side and the screen edge on the other, over the same middle the
     // buttons use, so the line and the buttons read as one thing
-    const mid = this.midX();
-    const maxW = Math.min(this.w - this.rail() - 20 * u, (this.w - mid) * 2 - 16 * u);
+    let lo = this.rail() + 11 * u;
+    const hi = this.w - 8 * u;
     ctx.font = this.font('800', 12.5);
-    const rows = wrap(ctx, text, maxW - 28 * u);
     const lh = 17 * u;
-    const ph = rows.length * lh + 18 * u;
-    const pw = Math.min(maxW, Math.max(...rows.map(r => ctx.measureText(r).width)) + 28 * u);
-    const y = bottom - ph - 12 * u;
+    let rows = wrap(ctx, text, hi - lo - 28 * u);
+    let ph = rows.length * lh + 18 * u;
+    let y = bottom - ph - 12 * u;
+    // at the last stop the craft stands at the foot of the rail, where a line of three rows
+    // reaches up to it and "231 miljoen jaar geleden" came out as "231 miljoe". When the two
+    // meet, the line moves over and wraps again in the room that is left; everywhere else it
+    // does not move at all.
+    const g = this.gauge;
+    if (g && y < g.y + g.h && y + ph > g.y && lo < g.x + g.w) {
+      lo = g.x + g.w + 6 * u;
+      rows = wrap(ctx, text, hi - lo - 28 * u);
+      ph = rows.length * lh + 18 * u;
+      y = bottom - ph - 12 * u;
+    }
+    const mid = (lo + hi) / 2;
+    const pw = Math.min(hi - lo, Math.max(...rows.map(r => ctx.measureText(r).width)) + 28 * u);
     glassPanel(ctx, mid - pw / 2, y, pw, ph, 15 * u, 0.9);
     ctx.fillStyle = '#123047';
     ctx.textAlign = 'center';
     rows.forEach((r, i) => ctx.fillText(r, mid, y + 13 * u + lh * (i + 0.6)));
+  }
+
+  /** The font at `size`, or as much smaller as it takes for the text to fit in `room`. */
+  private fitFont(weight: string, size: number, text: string, room: number): string {
+    const ctx = this.ctx;
+    ctx.font = this.font(weight, size);
+    const tw = ctx.measureText(text).width;
+    if (tw <= room) return ctx.font;
+    return this.font(weight, Math.max(12, size * room / tw));
   }
 
   /** Every stop at once, and you may open any of them. */
@@ -431,15 +462,24 @@ export class JourneyScreen {
       this.font('900', 17), '#ffffff');
 
     // everyone whose work is on this page, in full, because some of these licences ask for it.
-    // It is measured first because the grid has to leave room for it: three lines of credit on a
-    // small phone would otherwise sit on top of the last row of names.
+    // It is measured first because the grid has to leave room for it: lines of credit on a small
+    // phone would otherwise sit on top of the last row of names. Nothing is cut off: a credit
+    // that is only half there is not a credit. When all of it does not leave the grid its
+    // smallest cells, it is set a size smaller instead.
     const owed = [...new Set(this.j.stops.map(credit).filter(Boolean))];
-    ctx.font = this.font('700', 8);
-    const creditRows = owed.length ? wrap(ctx, owed.join(' \u00b7 '), this.w - 30 * u).slice(0, 3) : [];
-    const top = 54 * u, bot = this.h - (78 + creditRows.length * 11) * u;
+    const top = 54 * u;
     const n = this.j.stops.length;
     const cols = Math.max(3, Math.min(5, Math.floor((this.w - 24 * u) / (86 * u))));
     const rows = Math.ceil(n / cols);
+    let creditSize = 8, creditRows: string[] = [];
+    for (const size of [8, 7]) {
+      creditSize = size;
+      ctx.font = this.font('700', size);
+      creditRows = owed.length ? wrap(ctx, owed.join(' \u00b7 '), this.w - 30 * u) : [];
+      if (this.h - (78 + creditRows.length * (size + 3)) * u - top >= rows * 56 * u) break;
+    }
+    const creditLh = (creditSize + 3) * u;
+    const bot = this.h - 78 * u - creditRows.length * creditLh;
     const cw = (this.w - 24 * u) / cols;
     const ch = clamp((bot - top) / rows, 56 * u, 150 * u);
     // the grid sits in the middle of what is left rather than at the top of it: eleven stops on a
@@ -461,15 +501,19 @@ export class JourneyScreen {
       ctx.fillStyle = seen ? '#ffffff' : 'rgba(255,255,255,0.7)';
       ctx.font = this.font('800', 10);
       ctx.textAlign = 'center';
-      ctx.fillText(NL() ? s.titleNl : s.title, cx, cy + ch * 0.3, cw - 8 * u);
+      // a name wider than its cell goes over two rows rather than being squeezed to the edge,
+      // and the rows stay inside the cell: "Waar het licht ophoudt" ran from one wall to the other
+      const name = wrap(ctx, NL() ? s.titleNl : s.title, cw - 12 * u).slice(0, 2);
+      const nameY = Math.min(cy + ch * 0.3, cy + ch / 2 - 4 * u - (name.length - 1) * 11 * u);
+      name.forEach((row, k) => ctx.fillText(row, cx, nameY + k * 11 * u, cw - 8 * u));
       this.hits.push({ id: 'stop:' + s.id, x: cx - cw / 2, y: cy - ch / 2, w: cw, h: ch });
     });
 
     if (creditRows.length) {
-      ctx.font = this.font('700', 8);
+      ctx.font = this.font('700', creditSize);
       ctx.fillStyle = 'rgba(255,255,255,0.45)';
       ctx.textAlign = 'center';
-      creditRows.forEach((r, i) => ctx.fillText(r, this.w / 2, this.h - 64 * u + (i - creditRows.length + 1) * 11 * u));
+      creditRows.forEach((r, i) => ctx.fillText(r, this.w / 2, this.h - 64 * u + (i - creditRows.length + 1) * creditLh));
     }
     if (seenAll(this.j, this.trip.seen)) {
       ctx.font = this.font('800', 10.5);

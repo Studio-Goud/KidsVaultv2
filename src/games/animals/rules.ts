@@ -65,6 +65,22 @@ export function fold(s: string): string {
 }
 
 /**
+ * The names a child actually says, pointed at what the dataset calls the animal. The data has a
+ * "Gedomesticeerd Rund" and a "Domestic Cat", and a five year old types "koe" and "cat". Keyed by
+ * the scientific name, which is the one name that does not get renamed. There is no chicken in
+ * the data to point "kip" at; "varken" lands on the wild boar, which is the same species.
+ */
+export const EVERYDAY: Record<string, string[]> = {
+  'Bos taurus': ['koe', 'stier', 'kalf', 'cow', 'bull', 'calf'],
+  'Felis catus': ['kat', 'poes', 'kitten', 'cat'],
+  'Canis familiaris': ['hond', 'puppy', 'dog'],
+  'Equus caballus': ['paard', 'pony', 'veulen', 'horse', 'foal'],
+  'Ovis aries': ['schaap', 'lam', 'sheep', 'lamb'],
+  'Capra hircus': ['geit', 'bok', 'goat'],
+  'Sus scrofa': ['varken', 'pig', 'hog'],
+};
+
+/**
  * How well one animal answers one query, or 0 for not at all.
  *
  * A name that starts with what was typed beats a name that merely contains it, the Dutch name
@@ -76,6 +92,8 @@ export function score(a: Animal, q: string): number {
   const squashed = q.replace(/ /g, '');
   let best = 0;
   const fields: Array<[string, number]> = [[a.n, 100], [a.e, 80], [a.s, 60], [a.f, 40]];
+  // an everyday name counts as much as the Dutch one: "koe" has to put the cow above the sea cow
+  for (const alias of EVERYDAY[a.s] ?? []) fields.push([alias, 100]);
   for (const [raw, weight] of fields) {
     const f = fold(raw);
     if (!f) continue;
@@ -270,6 +288,19 @@ export const STATUS_TONE: Record<string, string> = {
   lc: '#5da65f', nt: '#9fbd4a', vu: '#e0b13a', en: '#e08a3a', cr: '#d95a44',
   ew: '#a4553f', ex: '#7a6b63',
 };
+
+/**
+ * What the book says out loud when an animal's page opens: its name, then how long it is and
+ * where it lives. The page shows a great deal more, but a child who cannot read gets the one
+ * line that matters, in the order the page is laid out.
+ */
+export function pageLine(a: Animal, nl: boolean): string {
+  const parts = [nl ? a.n : a.e];
+  if (a.z) parts.push(nl ? `Zo'n ${sizeLabel(a.z, true)} lang` : `About ${sizeLabel(a.z, false)} long`);
+  const conts = a.w.map(c => (nl ? CONTINENT_NL : CONTINENT_EN)[c]).filter(Boolean);
+  if (conts.length) parts.push(nl ? `Leeft in ${joinNames(conts, true)}` : `Lives in ${joinNames(conts, false)}`);
+  return parts.join('. ') + '.';
+}
 
 /** A list of names as a sentence: "Europa, Azië en Afrika". */
 export function joinNames(names: string[], nl: boolean): string {

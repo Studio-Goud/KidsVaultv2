@@ -32,11 +32,12 @@ import { paintNightSky } from './paint';
 import { night } from './nightsfx';
 import {
   capacity, closestPair, footRoom, grabRadius, headRoom, layoutSky, minStarGap, planNext,
-  playField, squareOf, type Field, type Placed, type Plan,
+  playField, sideButton, simplePuzzle, squareOf, type Field, type Placed, type Plan,
 } from './sky';
 import { EMPTY_HAND, lift, move, press, runLength, starAt, type Hand } from './swipe';
 import { cleanBook, masteryOf, record, type Attempt, type Book } from '../../platform/skill';
 import { speakLine } from '../../platform/voice';
+import { simpleNow } from '../../platform/who';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'showing' | 'turning' | 'drawing' | 'wrong' | 'solved' | 'missed' | 'rest';
@@ -45,8 +46,14 @@ interface Edge { a: number; b: number; wrong?: boolean; t0: number }
 
 /** How many figures before the sky offers a rest. It is an offer, never an end. */
 const REST_EVERY = 6;
-/** Two goes at a figure, and then the sky shows it rather than letting a child grind at it. */
-const TRIES_PER_FIGURE = 2;
+/**
+ * A wrong line springs back the moment it is drawn, so nothing wrong ever stands in the sky. After
+ * this many of them the sky shows the figure rather than letting a child grind at it. Never in the
+ * simplest shape, where nothing can be missed.
+ */
+const WRONG_LINES_PER_FIGURE = 3;
+/** How long a refused line takes to spring back, in seconds. */
+const SPRING_SECONDS = 0.6;
 /** How long the sky takes to turn over, in seconds. */
 const TURN_SECONDS = 0.7;
 
@@ -83,6 +90,8 @@ export class NightWatch {
   private tries = 0;
   private drawT0 = 0;
   private seed = Math.floor(Math.random() * 1e9);
+  /** the simplest shape, for a child of two or three: small figures, no look-alikes, nothing missed */
+  private easy = simpleNow();
 
   private book: Book = cleanBook(save.skills);
   private recent: Attempt[] = [];
@@ -129,7 +138,8 @@ export class NightWatch {
    * two distances the whole feel rests on, so they can be checked against the sky as drawn.
    */
   debugState(): {
-    phase: Phase; round: number; tonight: string[]; difficulty: number; move: Plan['move'];
+    phase: Phase; round: number; tonight: string[]; difficulty: number; move: Plan['move']; easy: boolean;
+    buttons: Array<{ id: string; x: number; y: number }>;
     figure: string; made: boolean; oneStroke: boolean; showMs: number; fade: string;
     turn: number; mirror: boolean; distractors: number;
     stars: Array<{ x: number; y: number; fig: number | null }>;
@@ -142,7 +152,8 @@ export class NightWatch {
     const p = this.plan.puzzle;
     const f = this.field();
     return {
-      phase: this.phase, round: this.round, tonight: this.tonight.map(x => x.name),
+      phase: this.phase, round: this.round, tonight: this.tonight.map(x => x.name), easy: this.easy,
+      buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
       difficulty: Math.round(this.plan.difficulty * 1000) / 1000, move: this.plan.move,
       figure: p.id, made: p.made, oneStroke: p.oneStroke, showMs: p.showMs, fade: p.fade,
       turn: p.turn, mirror: p.mirror, distractors: p.distractors,
@@ -198,14 +209,14 @@ export class NightWatch {
   private u(): number { return uiScale(this.w, this.h); }
 
   /** The strips above and below the sky, and the sky itself: all three worked out in `sky.ts`. */
-  private headRoom(): number { return headRoom(this.u(), this.h); }
-  private footRoom(): number { return footRoom(this.u(), this.h); }
+  private headRoom(): number { return headRoom(this.u(), this.h, this.w); }
+  private footRoom(): number { return footRoom(this.u(), this.h, this.w); }
   private field(): Field { return playField(this.w, this.h, this.u()); }
 
   // ---------- rounds ----------
 
   private startRound(): void {
-    this.plan = planNext({
+    this.plan = this.easy ? { puzzle: simplePuzzle(this.round, this.field(), this.u(), this.seed + this.round * 7919), difficulty: 0, move: 'hold' } : planNext({
       vm: masteryOf(this.book, 'visualMemory'),
       pattern: masteryOf(this.book, 'pattern'),
       recent: this.recent,
@@ -237,7 +248,7 @@ export class NightWatch {
       if (p === 'showing') night.show();
       else if (p === 'turning') night.turn();
       else if (p === 'solved') night.solved();
-      else if (p === 'wrong' || p === 'missed') night.wrong();
+      else if (p === 'missed') night.wrong();
     }
     this.phase = p;
     this.phaseT = 0;
@@ -253,7 +264,7 @@ export class NightWatch {
       this.setPhase(p.turn || p.mirror ? 'turning' : 'drawing');
     }
     if (this.phase === 'turning' && this.phaseT > TURN_SECONDS) this.setPhase('drawing');
-    if (this.phase === 'wrong' && this.phaseT > 1.1) {
+    if (this.phase === 'wrong' && this.phaseT > SPRING_SECONDS) {
       this.drawn = this.drawn.filter(e => !e.wrong);
       this.setPhase('drawing');
     }
@@ -282,6 +293,9 @@ export class NightWatch {
       hints: this.peeks,
       tries: this.tries + 1,
     };
+    // the simplest shape is not on the ladder, so it writes nothing into the book: a toddler's
+    // evenings would otherwise meet a four-year-old with a sky already halfway up the dial
+    if (this.easy) return;
     this.book = record(record(this.book, 'visualMemory', a), 'pattern', a);
     this.recent = [...this.recent, a].slice(-6);
     save.skills = Object.fromEntries(
@@ -349,6 +363,7 @@ export class NightWatch {
     }
     if (m.a === undefined || m.b === undefined) return;
     if (m.event === 'add') {
+      if (!this.isTarget(m.a, m.b)) { this.refuse(m.a, m.b); return; }
       this.drawn.push({ a: m.a, b: m.b, t0: this.t });
       this.pops.set(m.b, this.t);
       night.lock(runLength(before) + this.drawn.length - 1);
@@ -365,38 +380,47 @@ export class NightWatch {
     }
   }
 
-  private check(): void {
-    let bad = 0;
-    for (const e of this.drawn) {
-      const fa = this.stars[e.a].fig, fb = this.stars[e.b].fig;
-      const ok = fa !== null && fb !== null && this.target.has(edgeKey(fa, fb));
-      e.wrong = !ok;
-      if (!ok) bad++;
-    }
-    if (bad === 0) {
-      this.remember(true);
-      const p = this.plan.puzzle;
-      this.tonight.push({ name: this.nameOf(p), lore: p.lore });
-      if (p.made) this.seenMade.push(p.id);
-      this.hand = EMPTY_HAND;
-      this.pointer = null;
-      // a figure drawn back is a thing played to its end, and the overview counts those
-      countFinished();
-      this.setPhase('solved');
+  /** Is this line one of the figure's? Only a line between two of its stars can be. */
+  private isTarget(a: number, b: number): boolean {
+    const fa = this.stars[a].fig, fb = this.stars[b].fig;
+    return fa !== null && fb !== null && this.target.has(edgeKey(fa, fb));
+  }
+
+  /**
+   * A line that is not in the figure springs back at once, softly, and the finger starts again.
+   *
+   * It used to stand there, counted, until as many lines were drawn as the figure has, and only
+   * then was the whole sky judged: one wrong line at the start meant "not quite" before the figure
+   * was even finished. Nothing wrong stands in the sky now.
+   */
+  private refuse(a: number, b: number): void {
+    this.drawn.push({ a, b, wrong: true, t0: this.t });
+    this.hand = EMPTY_HAND;
+    this.pointer = null;
+    this.tries++;
+    night.undo();
+    haptic('light');
+    if (!this.easy && this.tries >= WRONG_LINES_PER_FIGURE) {
+      // enough; the sky shows what it was rather than letting a child grind at it
+      this.remember(false);
+      if (this.plan.puzzle.made) this.seenMade.push(this.plan.puzzle.id);
+      this.setPhase('missed');
       return;
     }
-    this.remember(false);
-    this.tries++;
-    this.shake = 1;
-    if (this.tries >= TRIES_PER_FIGURE) {
-      // two goes is enough; the sky shows what it was rather than letting a child grind at it
-      if (this.plan.puzzle.made) this.seenMade.push(this.plan.puzzle.id);
-      this.hand = EMPTY_HAND;
-      this.pointer = null;
-      this.setPhase('missed');
-    } else {
-      this.setPhase('wrong');
-    }
+    this.setPhase('wrong');
+  }
+
+  /** Every line in the sky is one of the figure's, so when there are enough, it is back. */
+  private check(): void {
+    this.remember(true);
+    const p = this.plan.puzzle;
+    this.tonight.push({ name: this.nameOf(p), lore: p.lore });
+    if (p.made) this.seenMade.push(p.id);
+    this.hand = EMPTY_HAND;
+    this.pointer = null;
+    // a figure drawn back is a thing played to its end, and the overview counts those
+    countFinished();
+    this.setPhase('solved');
   }
 
   /** A hand-made figure has a name. A made-up one gets its own counts, which is honest. */
@@ -411,7 +435,8 @@ export class NightWatch {
     const p = this.plan.puzzle;
     if (this.phase === 'showing') return t('nwLook');
     if (this.phase === 'turning') return p.mirror ? t('nwMirrors') : t('nwTurns');
-    if (this.phase === 'wrong') return t('nwNotQuite');
+    // in the simplest shape a line that springs back is not a mistake to be named
+    if (this.phase === 'wrong') return this.easy ? t('nwDraw') : t('nwNotQuite');
     if (this.phase === 'solved' || this.phase === 'missed') return this.nameOf(p);
     return t('nwDraw');
   }
@@ -532,8 +557,9 @@ export class NightWatch {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const e of this.drawn) {
       const a = this.stars[e.a], b = this.stars[e.b];
-      const grow = clamp((this.t - e.t0) * 14, 0, 1);
-      ctx.strokeStyle = e.wrong ? 'rgba(255,120,130,0.95)' : 'rgba(255,238,190,0.92)';
+      // a refused line shrinks back to the star it came from, which is what "no" looks like
+      const grow = e.wrong ? 1 - clamp((this.t - e.t0) / SPRING_SECONDS, 0, 1) : clamp((this.t - e.t0) * 14, 0, 1);
+      ctx.strokeStyle = e.wrong ? 'rgba(255,170,150,0.8)' : 'rgba(255,238,190,0.92)';
       ctx.lineWidth = 3 * Math.min(1.6, u);
       ctx.shadowColor = e.wrong ? 'rgba(255,90,110,0.7)' : 'rgba(255,220,140,0.6)';
       ctx.shadowBlur = 12;
@@ -631,14 +657,23 @@ export class NightWatch {
     }
 
     if (this.phase === 'drawing') {
-      const foot = this.footRoom();
-      const bh = Math.min(48 * u, foot * 0.62), bw = Math.min(196 * u, this.w - 60 * u);
-      const x = this.w / 2 - bw / 2, y = this.h - foot + (foot - bh) / 2;
+      let x: number, y: number, bw: number, bh: number;
+      if (sideButton(this.w, this.h, u)) {
+        // sideways: beside the sky, so the sky keeps its height (see `sideButton`)
+        const f = this.field();
+        const margin = this.w - (f.x + f.w);
+        bw = Math.min(160 * u, margin - 24 * u); bh = 48 * u;
+        x = f.x + f.w + (margin - bw) / 2; y = f.y + f.h / 2 - bh / 2;
+      } else {
+        const foot = this.footRoom();
+        bh = Math.min(48 * u, foot * 0.62); bw = Math.min(196 * u, this.w - 60 * u);
+        x = this.w / 2 - bw / 2; y = this.h - foot + (foot - bh) / 2;
+      }
       const face = chunkyButton(ctx, x, y, bw, bh, { tone: '#2f4a86' });
       ctx.fillStyle = '#eaf2ff';
       ctx.font = this.fit(t('nwShowAgain'), '900', Math.min(14 * u, bw / 13), bw - 22 * u);
       ctx.textAlign = 'center';
-      ctx.fillText(t('nwShowAgain'), this.w / 2, face.y + bh * 0.63);
+      ctx.fillText(t('nwShowAgain'), x + bw / 2, face.y + bh * 0.63);
       this.hits.push({ id: 'peek', x, y, w: bw, h: bh });
     }
   }

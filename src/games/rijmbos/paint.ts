@@ -312,12 +312,33 @@ const ICONS: Record<string, Icon> = {
     path(c, k => { k.moveTo(0, 18); k.bezierCurveTo(-32, -4, -18, -28, 0, -10); k.bezierCurveTo(18, -28, 32, -4, 0, 18); }, '#e0443a');
     dot(c, -16, -30, 3, '#e0443a'); dot(c, 16, 30, 3, '#e0443a');
   },
+  // a tail on its own is a shape nobody knows; a cat seen from behind, tail up, says the word
   tail: c => {
-    c.save(); c.rotate(0.6);
-    oval(c, 0, 0, 18, 40, '#e8873a');
-    path(c, k => { k.ellipse(0, -22, 17, 19, 0, Math.PI * 1.05, Math.PI * 1.95); k.closePath(); }, '#fff');
-    path(c, k => { k.ellipse(0, -22, 17, 19, 0, Math.PI * 1.05, Math.PI * 1.95); k.bezierCurveTo(10, -26, -10, -26, -17, -22); }, '#fff');
-    c.restore();
+    oval(c, 0, 18, 30, 24, '#8a8a92');
+    poly(c, [-24, -8, -22, -34, -8, -18], '#8a8a92'); poly(c, [24, -8, 22, -34, 8, -18], '#8a8a92');
+    oval(c, 0, -4, 26, 22, '#8a8a92');
+    tube(c, k => { k.moveTo(16, 36); k.bezierCurveTo(50, 34, 56, -10, 44, -36); k.bezierCurveTo(38, -48, 24, -42, 28, -30); }, 12, '#8a8a92');
+    for (const y of [-8, 2]) line(c, [-6, y, 6, y], 2.4, '#5e5e68');
+  },
+  jellyfish: c => {
+    path(c, k => { k.moveTo(-36, 6); k.bezierCurveTo(-36, -40, 36, -40, 36, 6); k.closePath(); }, '#f2a6d6');
+    curve(c, k => { k.moveTo(-28, -8); k.bezierCurveTo(-18, -26, 18, -26, 28, -8); }, 3, '#fff');
+    for (const x of [-26, -13, 0, 13, 26]) {
+      curve(c, k => { k.moveTo(x, 8); k.bezierCurveTo(x - 8, 20, x + 8, 32, x - 2, 44); }, 6, INK);
+      curve(c, k => { k.moveTo(x, 8); k.bezierCurveTo(x - 8, 20, x + 8, 32, x - 2, 44); }, 3, '#f7c9e6');
+    }
+    dot(c, -10, -4, 2.6); dot(c, 10, -4, 2.6);
+  },
+  pole: c => {
+    box(c, -8, -44, 16, 88, 4, '#c9a06a');
+    for (const y of [-30, -10, 10, 30]) line(c, [-8, y, 8, y], 2.4, '#8a6540');
+    oval(c, 0, 44, 30, 7, '#8fd079');
+  },
+  bowl: c => {
+    oval(c, 0, -12, 40, 12, '#f0e1c2');
+    path(c, k => { k.moveTo(-40, -12); k.bezierCurveTo(-38, 30, 38, 30, 40, -12); k.closePath(); }, '#5aa0d8');
+    oval(c, 0, -12, 34, 8, '#dbeefb');
+    box(c, -16, 28, 32, 8, 3, '#5aa0d8');
   },
   moon: c => {
     const ix = 16, iy = -6, r = 28;

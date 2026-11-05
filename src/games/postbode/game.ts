@@ -38,6 +38,16 @@ type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won';
 
 const nameOf = (l: Level): string => (NL() ? l.nameNl : l.name);
+
+/**
+ * The glide after a finger lets go: the speed decays by e every 1/GLIDE_DECAY s, so the street
+ * travels speed/GLIDE_DECAY further. A quick flick of 220 px used to carry it four houses past
+ * where the finger stopped, so the speed is capped at what glides one house (a product decision).
+ */
+const GLIDE_DECAY = 4.5;
+const GLIDE_MAX_HOUSES = 1;
+/** How far a finger may wobble and still be a tap on a house; a tap with 16 px of wobble did nothing at 10. */
+const TAP_WOBBLE = 14;
 const saveKey = (l: Level): string => `postbode:${l.id}`;
 
 interface Hit { id: string; x: number; y: number; w: number; h: number }
@@ -267,7 +277,7 @@ export class Postbode {
         this.cam += (this.camGoal - this.cam) * Math.min(1, dt * 6);
         if (Math.abs(this.camGoal - this.cam) < 0.5) this.camGoal = null;
       } else if (Math.abs(this.vel) > 8) {
-        this.cam += this.vel * dt; this.vel *= Math.exp(-dt * 4.5);
+        this.cam += this.vel * dt; this.vel *= Math.exp(-dt * GLIDE_DECAY);
       } else this.vel = 0;
     }
     this.cam = clamp(this.cam, 0, max);
@@ -341,7 +351,7 @@ export class Postbode {
     const d = this.drag;
     if (!d) return;
     const p = this.at(e), u = this.u();
-    if (Math.abs(p.x - d.x0) > 10 * u) d.moved = true;
+    if (Math.abs(p.x - d.x0) > TAP_WOBBLE * u) d.moved = true;
     if (!d.moved) return;
     const lay = this.lay();
     const old = this.cam;
@@ -356,7 +366,12 @@ export class Postbode {
     const d = this.drag;
     this.drag = null;
     if (!d || this.phase !== 'play') return;
-    if (d.moved) { if (performance.now() - d.lastT > 90) this.vel = 0; return; }
+    if (d.moved) {
+      if (performance.now() - d.lastT > 90) this.vel = 0;
+      const cap = this.lay().pitch * GLIDE_MAX_HOUSES * GLIDE_DECAY;
+      this.vel = clamp(this.vel, -cap, cap);
+      return;
+    }
     const p = this.at(e);
     const id = this.hitAt(p) ?? d.id;
     if (id === 'bell') this.tapHouse(this.letter ? this.letter.n : -1, true);

@@ -84,8 +84,23 @@ export interface Field { x: number; y: number; w: number; h: number; s: number }
  * the sky so short that two stars of the Hare came within a fingertip of each other. So on a short
  * screen the strips take a share of it instead of a fixed amount.
  */
-export const headRoom = (u: number, h: number): number => Math.min(122 * u, h * 0.22);
-export const footRoom = (u: number, h: number): number => Math.min(96 * u, h * 0.17);
+export const headRoom = (u: number, h: number, w = 0): number =>
+  sideButton(w, h, u) ? Math.min(122 * u, h * 0.17) : Math.min(122 * u, h * 0.22);
+export const footRoom = (u: number, h: number, w = 0): number =>
+  sideButton(w, h, u) ? 14 * u : Math.min(96 * u, h * 0.17);
+
+/**
+ * On a phone held sideways the button under the sky costs the sky a fifth of its height, and the
+ * sky is the whole game. When the screen is wide enough that the field (capped at 1.4 to 1) leaves
+ * room for a button beside it, the button goes there and the sky gets the height back: the Hare
+ * at 250 px tall had its stars 36 px apart against a 26 px reach, which is one wobble from the
+ * wrong star.
+ */
+export function sideButton(w: number, h: number, u: number): boolean {
+  if (w < h * 1.5) return false;
+  const availH = h - Math.min(122 * u, h * 0.17) - 14 * u;
+  return (w - 40 * u - availH * 1.4) / 2 >= 120 * u;
+}
 
 /**
  * The sky itself. It follows the screen rather than staying square, so a tablet held sideways
@@ -93,7 +108,7 @@ export const footRoom = (u: number, h: number): number => Math.min(96 * u, h * 0
  * look like different figures.
  */
 export function playField(w: number, h: number, u: number): Field {
-  const top = headRoom(u, h), bottom = footRoom(u, h);
+  const top = headRoom(u, h, w), bottom = footRoom(u, h, w);
   const availW = w - 40 * u, availH = h - top - bottom;
   let fw = availW, fh = availH;
   if (fw / fh > 1.4) fw = fh * 1.4;
@@ -519,6 +534,22 @@ export function planNext(o: {
     ? madePuzzle(rung.figure, d, o.field, o.u, o.seed)
     : generatedPuzzle(d, o.field, o.u, o.seed);
   return { puzzle, difficulty: d, move: step.move };
+}
+
+/** How long the sky stays lit in the simplest shape: a product decision, long enough to look twice. */
+export const SIMPLE_SHOW_MS = 5000;
+/** The simplest shape only shows hand-made figures with at most this many stars. */
+export const SIMPLE_MAX_STARS = 6;
+
+/**
+ * The simplest shape of the sky, for a child of two or three (`src/platform/who.ts`): the smallest
+ * hand-made figures in turn, nothing else in the sky to take for a star, a long look, and no turn
+ * or mirror. The ladder and the skill book are not consulted: a toddler is not climbing anything.
+ */
+export function simplePuzzle(round: number, f: Field, u: number, seed: number): Puzzle {
+  const small = madeLadder().map(r => r.figure).filter(fig => fig.stars.length <= SIMPLE_MAX_STARS);
+  const base = madePuzzle(small[round % small.length], 0, f, u, seed);
+  return { ...base, distractors: 0, crowd: 0, showMs: SIMPLE_SHOW_MS, fade: 'together', turn: 0, mirror: false };
 }
 
 // ---------------------------------------------------------------- putting it on the screen

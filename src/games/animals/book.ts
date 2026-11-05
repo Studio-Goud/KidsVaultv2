@@ -24,7 +24,7 @@ import { SIZES, drawCover, onPhoto, photo, photoCount, photoUrl } from '../../pl
 import { worldMap } from './worldmap';
 import {
   CONTINENT_EN, CONTINENT_NL, GROUPS, STATUS_EN, STATUS_NL, STATUS_TONE,
-  clipBox, facts, groupById, joinNames, search, shapeOf, shelf, sizeLabel,
+  clipBox, facts, groupById, joinNames, pageLine, search, shapeOf, shelf, sizeLabel,
   type Animal, type GroupId,
 } from './rules';
 import { speakLine } from '../../platform/voice';
@@ -284,12 +284,12 @@ export class AnimalBook {
       persist();
     }
     this.go('detail');
-    // its call, if it has one, after its name has been said - not on top of it
+    // its call, if it has one, after its name, length and home have been said - not on top of them
     if (a) {
       const which = a.i;
       setTimeout(() => {
         if (this.view === 'detail' && this.list[this.at]?.i === which) playOnce(`animal.${which}`, CALL);
-      }, 1400);
+      }, 3400);
     }
   }
 
@@ -552,11 +552,12 @@ export class AnimalBook {
   }
 
   /** The strip along the top of every screen: where you are, and how much of the book you have seen. */
-  private header(title: string, sub: string): number {
+  private header(title: string, sub: string, spoken = title): number {
     // The strip says where you are, which is the only instruction this book has. It is spoken the
-    // first time it appears, so a child who cannot read still knows which shelf they are on.
-    this.said = title;
-    speakLine(title);
+    // first time it appears, so a child who cannot read still knows which shelf they are on. An
+    // animal's page says more than its title: the name, and then the two things under it.
+    this.said = spoken;
+    speakLine(spoken);
     const ctx = this.ctx;
     const u = this.u();
     const h = 62 * u;
@@ -858,7 +859,7 @@ export class AnimalBook {
     const u = this.u();
     const pad = 16 * u;
     const inner = this.w - pad * 2;
-    const top = this.header(nameOf(a), otherName(a));
+    const top = this.header(nameOf(a), otherName(a), pageLine(a, NL()));
 
     // Turned sideways there is twice the width and half the height, so the photograph and the
     // names take one column and the cards take the other. One page down the middle of a laptop
@@ -874,8 +875,17 @@ export class AnimalBook {
     ctx.clip();
     // the whole page slides with a sideways swipe, and eases in from the side it was turned to
     if (Math.abs(this.slide) > 0.5) ctx.translate(this.slide, 0);
-    const y0 = top + pad - this.scroll;
-    let y = y0;
+    let y = top + pad - this.scroll;
+
+    // One step along the shelf, either way, and the surprise: at the top of the page, where they
+    // are seen without scrolling. At the foot of the cards they were a screen and a half down on
+    // a phone, and nobody found them.
+    const bw = (colW - 20 * u) / 3;
+    this.button('prev', pad, y, bw, 46 * u, T('◀ Before', '◀ Vorige'), this.at > 0 ? '#5c8ba8' : '#b9c7cf');
+    this.button('surprise', pad + bw + 10 * u, y, bw, 46 * u, t('animalsSurprise'), '#e0913a');
+    this.button('next', pad + (bw + 10 * u) * 2, y, bw, 46 * u, T('Next ▶', 'Volgende ▶'), this.at < this.list.length - 1 ? '#5c8ba8' : '#b9c7cf');
+    y += 46 * u + pad;
+    const y0 = y;
 
     // the photograph, as big as the column allows
     const ph = Math.min(colW * 0.7, two ? this.h * 0.74 : this.h * 0.42);
@@ -884,7 +894,8 @@ export class AnimalBook {
     // corner says so without words
     if (hasSample(`animal.${a.i}`)) {
       this.hits.push({ id: 'call', x: pad, y, w: colW, h: ph - 20 * u });
-      const r = 17 * u, bx = pad + colW - r - 10 * u, by = y + r + 10 * u;
+      // a thumb-sized note: the whole photograph takes the tap, but the mark has to look like it
+      const r = 22 * u, bx = pad + colW - r - 10 * u, by = y + r + 10 * u;
       ctx.save();
       ctx.fillStyle = 'rgba(255,255,255,0.92)';
       ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fill();
@@ -952,14 +963,6 @@ export class AnimalBook {
     let r = two ? y0 : y;
     r = this.whereCard(a, rightX, r, colW) + pad;
     r = this.factsCard(a, rightX, r, colW) + pad;
-
-    // one step along the shelf, either way
-    const bw = (colW - 10 * u) / 2;
-    this.button('prev', rightX, r, bw, 46 * u, T('◀ Before', '◀ Vorige'), this.at > 0 ? '#5c8ba8' : '#b9c7cf');
-    this.button('next', rightX + bw + 10 * u, r, bw, 46 * u, T('Next ▶', 'Volgende ▶'), this.at < this.list.length - 1 ? '#5c8ba8' : '#b9c7cf');
-    r += 62 * u;
-    this.button('surprise', rightX, r, colW, 46 * u, t('animalsSurprise'), '#e0913a');
-    r += 70 * u;
 
     ctx.restore();
     this.scrollMax = Math.max(0, Math.max(r, leftBottom) + this.scroll - this.h);

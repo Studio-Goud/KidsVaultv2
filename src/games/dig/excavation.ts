@@ -19,11 +19,11 @@ import { makeRng, ValueNoise } from '../../util/rng';
 import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
-import { bodyPath, bones, drawCrest } from './anatomy';
+import { bodyPath, bones, drawCrest, drawSilhouette } from './anatomy';
 import { DINOS, ERAS, type Dino } from './dinos';
 import { dig } from './digsfx';
 import { drawFossil, fossilPhoto, FOSSILS, loadAllFossils } from './fossilphoto';
-import { buildSite, MAX_DEPTH, progress, soften, starsFor, strike, TOOLS, toolById, type Site, type Tool } from './site';
+import { buildSite, MAX_DEPTH, progress, soften, starsFor, strike, TOOLS, toolById, unlockLine, type Site, type Tool } from './site';
 import {
   bleedEdges, breathe, chunkyButton, drawStar as drawStarGem, easeOutBack, glassPanel, heading,
   outlinedText,
@@ -276,7 +276,13 @@ export class DinoDig {
       } else if (this.stamina <= 0) {
         this.phase = p.exposed >= 0.55 ? 'ask' : 'failed';
         this.phaseT = 0;
-        if (this.phase === 'failed') dig.tired();
+        if (this.phase === 'failed') {
+          dig.tired();
+          // the heading and the advice are written down, but the last thing heard was still
+          // whatever the rock said a moment ago
+          this.say(T('The light went. Too much is still buried. Spend the brush where the rock is soft.',
+            'Het licht was op. Er zit nog te veel onder. Gebruik de kwast waar het gesteente zacht is.'), 6);
+        }
       } else if (p.exposed >= 0.985) {
         this.phase = 'ask'; this.phaseT = 0; dig.complete();
       }
@@ -319,7 +325,8 @@ export class DinoDig {
       const t = toolById(id.slice(5));
       if (!this.unlocked(t)) {
         dig.wrong();
-        this.say(T('Find ' + t.unlockAt + ' fossils first.', 'Vind eerst ' + t.unlockAt + ' fossielen.'));
+        const line = unlockLine(t.unlockAt);
+        this.say(T(line.en, line.nl));
         return;
       }
       this.tool = t; dig.tap();
@@ -337,6 +344,8 @@ export class DinoDig {
       this.phase = 'wrong'; this.phaseT = 0;
       this.shake = 1;
       dig.wrong();
+      // a shake and a red button say nothing to a child who is not looking at the button
+      this.say(T('Not that one. Look at the shape again.', 'Die niet. Kijk nog eens naar de vorm.'), 3);
     }
   }
 
@@ -573,11 +582,15 @@ export class DinoDig {
       // Each choice carries the animal's own outline beside its name. A child who cannot read the
       // three names can still match the shape they have just dug out against three shapes.
       const side = this.beside();
-      const bw = side ? Math.min(340 * u, this.w - slab.x - slab.w - 28 * u) : Math.min(360 * u, this.w - 40 * u);
-      const bh = 52 * u;
+      // The stack runs down to the bottom of the screen, and the bottom left corner is the guide's.
+      // So, like the tool belt, it keeps out of that corner: on a phone it gives up width on the
+      // left rather than hide its last choice under him.
+      const keepClear = 58 * u;
+      const bw = side ? Math.min(340 * u, this.w - slab.x - slab.w - 28 * u) : Math.min(360 * u, this.w - keepClear - 12 * u);
+      const bh = 56 * u;
       const gap = 7 * u;
       const stackH = this.options.length * bh + (this.options.length - 1) * gap;
-      const cx = side ? slab.x + slab.w + 14 * u + bw / 2 : this.w / 2;
+      const cx = side ? slab.x + slab.w + 14 * u + bw / 2 : Math.max(this.w / 2, keepClear + bw / 2);
       // the last one has to be on the screen either way
       const y0 = side
         ? Math.max(this.headY() + 16 * u, (this.h - stackH) / 2)
@@ -608,28 +621,21 @@ export class DinoDig {
       tone: bad ? '#d06a58' : strong ? '#fdf6e6' : '#efe3cc',
       pressed: this.held0 === id,
     });
-    let textCx = cx;
+    let textCx = cx, textW = w - 20;
     if (shape) {
-      const sw = Math.min(w * 0.34, h * 2.2), sh = h * 0.82;
-      const sx = x + w * 0.035, sy = face.y + (h - sh) / 2;
-      ctx.save();
-      const ink = bad ? 'rgba(255,255,255,0.88)' : 'rgba(74, 56, 35, 0.8)';
-      ctx.fillStyle = ink;
-      // the outline is built from overlapping limbs; at this size they leave seams, so the same
-      // colour is stroked over the fill to close them into one silhouette
-      ctx.strokeStyle = ink;
-      ctx.lineWidth = Math.max(1.4, sw * 0.055);
-      ctx.lineJoin = 'round';
-      bodyPath(ctx, shape, { x: sx, y: sy, w: sw, h: sh });
-      ctx.fill('nonzero');
-      ctx.stroke();
-      ctx.restore();
-      textCx = cx + sw * 0.5;
+      // The animal's box is taller than the button: the body plan leaves the top third of its
+      // box for plates and the bottom for feet, so a box the height of the button gave a thumbnail
+      // nobody could tell from the next one. Its vertical middle is the button's middle.
+      const sw = Math.min(w * 0.4, 130 * this.u()), sh = h * 1.4;
+      const sx = x + w * 0.03, sy = face.y + h / 2 - sh * 0.59;
+      drawSilhouette(ctx, shape, { x: sx, y: sy, w: sw, h: sh }, bad ? '#ffffff' : '#5a4530');
+      textCx = sx + sw + (x + w - sx - sw) / 2;
+      textW = x + w - sx - sw - 14;
     }
     ctx.fillStyle = bad ? '#ffffff' : '#4a3823';
     ctx.font = this.font('900', h > 40 * this.u() ? 15 : 12);
     ctx.textAlign = 'center';
-    ctx.fillText(label, textCx, face.y + h * 0.63, w - (shape ? w * 0.42 : 20));
+    ctx.fillText(label, textCx, face.y + h * 0.63, textW);
     this.hits.push({ id, x, y, w, h });
   }
 
@@ -711,7 +717,8 @@ export class DinoDig {
   private drawCard(): void {
     const ctx = this.ctx, u = this.u();
     const d = this.dino;
-    const y = this.h - 134 * u;
+    // the stars are the lowest thing on the card, and the Next button stands under the card
+    const y = this.h - 150 * u;
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(74,56,35,0.78)'; ctx.font = this.font('700', 12.5);
     ctx.fillText(factOf(d), this.w / 2, 88 * u, this.w - 36 * u);
@@ -803,8 +810,9 @@ export class DinoDig {
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(74,56,35,0.45)'; ctx.font = this.font('700', 8.5);
     const lines = [...new Set(Object.values(FOSSILS).map(f => f.credit))];
-    ctx.fillText(T('Fossil photographs:', 'Fossielfoto’s:'), this.w / 2, this.h - 90 * u);
-    lines.slice(0, 3).forEach((c, i) => ctx.fillText(c, this.w / 2, this.h - 78 * u + i * 10 * u, this.w - 24 * u));
+    // three lines of credit, all of them above the button rather than the last one under it
+    ctx.fillText(T('Fossil photographs:', 'Fossielfoto’s:'), this.w / 2, this.h - 104 * u);
+    lines.slice(0, 3).forEach((c, i) => ctx.fillText(c, this.w / 2, this.h - 92 * u + i * 10 * u, this.w - 24 * u));
     ctx.textAlign = 'left';
   }
 }

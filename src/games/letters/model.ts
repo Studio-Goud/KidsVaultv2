@@ -286,8 +286,20 @@ export function teachFor(q: Question, slot: number, given: string, nl: boolean):
  * That is a different mistake from reaching for a letter the word does not use at all, and it
  * deserves a different sentence: not "no", but "yes, and here is where it goes".
  */
-export function teachElsewhere(unit: string, nl: boolean): string {
+export function teachElsewhere(q: Question, unit: string, nl: boolean): string {
+  if (q.kind === 'sentence') return nl ? `“${unit}” hoort hier.` : `“${unit}” goes here.`;
   return nl ? `De ${unit} hoort hier.` : `The ${unit} goes here.`;
+}
+
+/**
+ * What the game says when it puts a tile in by itself. A letter is "de t"; a word tile is the
+ * word itself, between quotes, because "de eet" is not a thing anyone says.
+ */
+export function teachHelp(q: Question, want: string, nl: boolean): string {
+  if (q.kind === 'sentence') {
+    return nl ? `Ik zet “${want}” even voor je neer.` : `I will put “${want}” in for you.`;
+  }
+  return nl ? `Ik zet de ${want} even voor je neer.` : `I will put the ${want} in for you.`;
 }
 
 /** The sound spelled out for a caption, which is the spelling itself between slashes. */

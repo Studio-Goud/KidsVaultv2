@@ -21,7 +21,7 @@ import { clamp, TAU } from '../../util/math';
 import { safeArea, uiScale, GUIDE_KEEP } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import {
-  EXAMPLES, PLAYS_BEFORE_END, emptySong, exampleSong, filled, isEmpty, move, noteFor, place, remove,
+  ANIMAL_IDS, EXAMPLES, PLAYS_BEFORE_END, emptySong, exampleSong, filled, isEmpty, move, noteFor, place, remove,
   shelfFor, slotCount, songLength, stepAt, type AnimalId, type Song, type Tempo,
 } from './model';
 import { liedjeSfx } from './liedjesfx';
@@ -34,6 +34,9 @@ import { simpleNow } from '../../platform/who';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'compose' | 'play' | 'end';
+
+/** How long a second tap on "Nieuw" has to come within: a product decision, long enough to read "Echt?". */
+const CLEAR_CONFIRM_SECS = 3;
 interface Hit { id: string; x: number; y: number; w: number; h: number }
 interface Rect { x: number; y: number; w: number; h: number }
 interface Drag { animal: AnimalId; from: number | null; moved: boolean; sx: number; sy: number; x: number; y: number }
@@ -116,7 +119,7 @@ export class Liedjesmaker {
   debugState(): Record<string, unknown> {
     return {
       phase: this.phase(), easy: this.easy, song: this.song.slice(), tempo: this.tempo, selected: this.selected,
-      plays: this.plays, ended: this.ended, playing: this.play !== null, spot: this.spot,
+      plays: this.plays, ended: this.ended, playing: this.play !== null, spot: this.spot, note: this.spoken(),
       dragging: this.drag ? { animal: this.drag.animal, from: this.drag.from, moved: this.drag.moved } : null,
       filled: filled(this.song),
       buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
@@ -142,6 +145,8 @@ export class Liedjesmaker {
   }
 
   private floorY = 0;
+  /** when "Nieuw" was last tapped once, so the second tap can be told from a new first one */
+  private clearAskedAt = -1e9;
   private ctrlY = 0;
   private exY = 0;
   private cellSize = 0;
@@ -164,7 +169,7 @@ export class Liedjesmaker {
 
     const ch = 44 * u;
     this.ctrlY = shelfY - 10 * u - ch;
-    const eh = 34 * u;
+    const eh = 44 * u;
     this.exY = this.easy ? this.ctrlY : this.ctrlY - 8 * u - eh;
 
     const top = 56 * u;
@@ -187,7 +192,9 @@ export class Liedjesmaker {
     let best = -1, bd = 1e9;
     this.slotRects.forEach((r, i) => {
       const d = Math.hypot(r.x + r.w / 2 - x, r.y + r.h / 2 - y);
-      if (d < r.w * 0.62 && d < bd) { bd = d; best = i; }
+      // a narrow magnet: letting go just under a row used to land the animal in that row when a
+      // child meant to take it away (0.62 of a cell pulled from the next row down)
+      if (d < r.w * 0.45 && d < bd) { bd = d; best = i; }
     });
     return best;
   }
@@ -223,6 +230,17 @@ export class Liedjesmaker {
       liedjeSfx.done();
       this.say(T('A lovely song. Another one?', 'Mooi liedje. Nog een?'), 6);
     }
+  }
+
+  /**
+   * "Nieuw" wipes a whole song in one tap, so it asks for a second one within a few seconds. A
+   * stage with nothing on it has nothing to lose and is cleared at once.
+   */
+  private askClear(): void {
+    if (isEmpty(this.song) || this.t - this.clearAskedAt < CLEAR_CONFIRM_SECS) { this.clearAskedAt = -1e9; this.clearAll(); return; }
+    this.clearAskedAt = this.t;
+    liedjeSfx.tap();
+    this.say(T('Everything gone? Tap once more.', 'Alles weg? Tik nog een keer.'), CLEAR_CONFIRM_SECS);
   }
 
   /** Clear the stage for the next song. The only thing "Nieuw" and "Nog een keer" both do. */
@@ -305,13 +323,15 @@ export class Liedjesmaker {
       liedjeSfx.tap();
       this.say(this.tempo === 'fast' ? T('Faster.', 'Sneller.') : T('Slower.', 'Langzamer.'), 2);
     }
-    else if (id === 'clear' || id === 'again') this.clearAll();
+    else if (id === 'again') this.clearAll();
+    else if (id === 'clear') this.askClear();
     else if (id.startsWith('ex:')) {
       const i = Number(id.slice(3));
       this.song = exampleSong(i, this.song.length);
       this.play = null; this.spot = -1; this.litAt = [];
       liedjeSfx.drop();
-      this.say(NL() ? EXAMPLES[i].sayNl : EXAMPLES[i].say, 4);
+      // the name first, so a tap on a button says what the button is
+      this.say(NL() ? `${EXAMPLES[i].nameNl}. ${EXAMPLES[i].sayNl}` : `${EXAMPLES[i].name}. ${EXAMPLES[i].say}`, 4);
     }
   }
 
@@ -480,7 +500,8 @@ export class Liedjesmaker {
     return out;
   }
 
-  private button(id: string, x: number, y: number, w: number, h: number, label: string, tone: string, ink: string, icon = false, size = 16): void {
+  /** `below` pushes the label down, leaving the top of the face for a picture drawn by the caller. */
+  private button(id: string, x: number, y: number, w: number, h: number, label: string, tone: string, ink: string, icon = false, size = 16, below = 0): void {
     const ctx = this.ctx, u = this.u();
     const face = chunkyButton(ctx, x, y, w, h, { tone, pressed: this.pressed === id });
     this.hits.push({ id, x, y, w, h });
@@ -491,7 +512,7 @@ export class Liedjesmaker {
     const room = w - (icon ? 40 : 16) * u;
     while (fs > 9 && ctx.measureText(label).width > room) { fs--; ctx.font = this.font('900', fs); }
     const tw = ctx.measureText(label).width;
-    const cx = x + w / 2 + (icon ? 12 * u : 0), cy = face.y + h / 2;
+    const cx = x + w / 2 + (icon ? 12 * u : 0), cy = face.y + h / 2 + below;
     ctx.fillText(label, cx, cy + 1);
     if (icon) {
       const ix = cx - tw / 2 - 16 * u, s = 8 * u;
@@ -504,24 +525,42 @@ export class Liedjesmaker {
     const u = this.u(), w = this.w;
     const pad = 12 * u, gap = 8 * u, ch = 44 * u;
     const count = this.easy ? 2 : 3;
-    const bw = Math.min(160 * u, (w - 2 * pad - gap * (count - 1)) / count);
-    const x0 = (w - (bw * count + gap * (count - 1))) / 2;
+    const bw = Math.min(this.easy ? 140 * u : 160 * u, (w - 2 * pad - gap * (count - 1)) / count);
+    // in the simple shape "Nieuw" would sit right beside "Speel", one slip from wiping the song;
+    // the two go to opposite ends instead
+    const spread = this.easy ? Math.max(gap, w - 2 * pad - bw * count) : gap;
+    const x0 = (w - (bw * count + spread * (count - 1))) / 2;
     let i = 0;
-    const nextX = (): number => x0 + i++ * (bw + gap);
+    const nextX = (): number => x0 + i++ * (bw + spread);
     this.button('play', nextX(), this.ctrlY, bw, ch, T('Play', 'Speel'), '#7ed957', '#16391a', true, 17);
     if (!this.easy) {
       this.button('tempo', nextX(), this.ctrlY, bw, ch,
         this.tempo === 'slow' ? T('Faster', 'Sneller') : T('Slower', 'Langzamer'), '#ffd24a', '#4a3300', false, 16);
     }
     if (this.ended) this.button('again', nextX(), this.ctrlY, bw, ch, T('Another go', 'Nog een keer'), '#ff9f5a', '#4a1f00', false, 16);
-    else this.button('clear', nextX(), this.ctrlY, bw, ch, T('New', 'Nieuw'), '#fff6e0', '#4a2c0b', false, 16);
+    else {
+      const asking = this.t - this.clearAskedAt < CLEAR_CONFIRM_SECS;
+      this.button('clear', nextX(), this.ctrlY, bw, ch, asking ? T('Sure?', 'Echt?') : T('New', 'Nieuw'), asking ? '#ffd9b0' : '#fff6e0', '#4a2c0b', false, 16);
+    }
 
     if (this.easy) return;
-    const eh = 34 * u;
+    const eh = 44 * u;
     const ew = Math.min(190 * u, (w - 2 * pad - gap * 2) / 3);
     const ex0 = (w - (ew * 3 + gap * 2)) / 2;
     EXAMPLES.forEach((ex, k) => {
-      this.button(`ex:${k}`, ex0 + k * (ew + gap), this.exY, ew, eh, NL() ? ex.nameNl : ex.name, '#fff1c9', '#5a3a10', false, 13);
+      const x = ex0 + k * (ew + gap);
+      this.button(`ex:${k}`, x, this.exY, ew, eh, NL() ? ex.nameNl : ex.name, '#fff1c9', '#5a3a10', false, 12, 9 * u);
+      // the tune itself as a picture above the name: one dot per place, in the animal's colour,
+      // higher for a higher voice, so the three buttons look as different as the three tunes sound
+      const step = Math.min(7 * u, (ew - 20 * u) / ex.song.length);
+      const dx = x + ew / 2 - ((ex.song.length - 1) * step) / 2;
+      ex.song.forEach((a, i) => {
+        if (!a) return;
+        this.ctx.fillStyle = BODY[a];
+        this.ctx.beginPath();
+        this.ctx.arc(dx + i * step, this.exY + 17 * u - ANIMAL_IDS.indexOf(a) * 2.4 * u, 2.6 * u, 0, TAU);
+        this.ctx.fill();
+      });
     });
   }
 

@@ -279,7 +279,14 @@ export class Rijmbos {
     this.held0 = hit;
     if (hit.startsWith('level:')) {
       const i = Number(hit.slice(6));
-      if (this.unlocked(i)) this.start(i); else rijmSfx.wrong();
+      if (this.unlocked(i)) this.start(i);
+      else {
+        // a locked card that only buzzes is a puzzle; the way in is said instead
+        rijmSfx.wrong();
+        const prev = nameOf(LEVELS[i - 1]);
+        this.qLine = T(`Play ${prev} first.`, `Speel eerst ${prev}.`);
+        this.speak(this.qLine);
+      }
     } else if (hit.startsWith('card:')) this.pickCard(Number(hit.slice(5)));
     else if (hit === 'hear') { rijmSfx.tap(); this.speak(this.qLine); }
     else if (hit === 'retry') this.start(this.levelIndex);

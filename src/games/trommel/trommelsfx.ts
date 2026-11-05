@@ -74,6 +74,9 @@ export const trommelSfx = withSamples('trommel', {
     ping(720, 0.14, 0.14, 'triangle', 520);
     puff('bandpass', 2600, 1.4, 0.07, 0.1);
   },
+  /** the same two drums, touched while it is not your turn: heard, so the drum is never dead, but quiet */
+  boemZacht(): void { ping(150, 0.3, 0.1, 'sine', 62); },
+  tikZacht(): void { ping(720, 0.1, 0.045, 'triangle', 520); },
   tap(): void { ping(520, 0.07, 0.05, 'sine'); },
   /** a pattern played back well */
   right(): void { [523, 659].forEach((f, i) => ping(f, 0.3, 0.06, 'triangle', undefined, i * 0.1)); },

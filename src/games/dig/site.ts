@@ -44,6 +44,17 @@ export const TOOLS: Tool[] = [
 
 export const toolById = (id: string): Tool => TOOLS.find(t => t.id === id) ?? TOOLS[0];
 
+/**
+ * What a locked tool says when it is tapped, in both languages. The hammer costs one find, and
+ * "1 fossielen" is the kind of line a parent notices and a child repeats.
+ */
+export function unlockLine(unlockAt: number): { en: string; nl: string } {
+  return {
+    en: 'Find ' + unlockAt + (unlockAt === 1 ? ' fossil' : ' fossils') + ' first.',
+    nl: 'Vind eerst ' + unlockAt + (unlockAt === 1 ? ' fossiel.' : ' fossielen.'),
+  };
+}
+
 /** How deep the rock goes. Two layers: one to break the surface, one to reach the bone. */
 export const MAX_DEPTH = 2;
 

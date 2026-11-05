@@ -518,6 +518,8 @@ export class Rhythm {
       nudge();
       this.shake.add(0.4);
     }
+    // the verdict is written in the strip, and a child who is watching the ball has not read it
+    this.say(this.clean ? T('On the beat.', 'Op de tel.') : this.lateOrEarly(), 3);
   }
 
   /**
@@ -774,9 +776,11 @@ export class Rhythm {
         : Math.min(wide ? 126 * u : 252 * u, h * (wide ? 0.44 : 0.33));
     // the frame the chimes hang in needs a rail above the longest bar and one below it
     const rail = 16 * u;
+    // as wide as on the opening screen: nine bars on a phone are narrow enough without a rail's
+    // worth of room given away on either side
     const keys: Rect = {
-      x: pad + rail * 0.8, y: h - keysH - pad * 0.8 - rail,
-      w: w - pad * 2 - rail * 1.6, h: keysH,
+      x: pad, y: h - keysH - pad * 0.8 - rail,
+      w: w - pad * 2, h: keysH,
     };
     const stage: Rect = {
       x: pad, y: keysTop,
@@ -921,7 +925,9 @@ export class Rhythm {
     ctx.restore();
     vignette(ctx, this.w, this.h, 0.22);
     this.drawChrome();
-    if (this.phase === 'won') this.drawEnd();
+    // the card at the end covers the room, and nothing behind it may still take a tap: a Next
+    // that was left live under it counted a round that was never played
+    if (this.phase === 'won') { this.hits = []; this.drawEnd(); }
   }
 
   // ---- the opening screen: the instrument, and two doors off it
@@ -955,9 +961,17 @@ export class Rhythm {
     this.drawChimes(keys, { free: true });
     if (this.easy) return;
 
-    const bw = Math.min(170 * u, (this.w - pad * 2 - 12 * u) / 2);
-    this.button('levels', T('Levels', 'Niveaus'), this.w / 2 - bw - 6 * u, by, bw, bh, '#f0b653', '#40260a');
-    this.button('make', T('Make your own', 'Zelf maken'), this.w / 2 + 6 * u, by, bw, bh, '#4fae6e', '#ffffff');
+    let bw = Math.min(170 * u, (this.w - pad * 2 - 12 * u) / 2);
+    let cx = this.w / 2;
+    // the two doors stand in the strip along the bottom, and the bottom left corner is the
+    // guide's; on a phone the pair gives up a little width and moves off him
+    const keepClear = 58 * u;
+    if (cx - bw - 6 * u < keepClear) {
+      bw = Math.min(bw, (this.w - keepClear - pad - 12 * u) / 2);
+      cx = keepClear + bw + 6 * u;
+    }
+    this.button('levels', T('Levels', 'Niveaus'), cx - bw - 6 * u, by, bw, bh, '#f0b653', '#40260a');
+    this.button('make', T('Make your own', 'Zelf maken'), cx + 6 * u, by, bw, bh, '#4fae6e', '#ffffff');
   }
 
   // ---- the ladder
@@ -1021,8 +1035,11 @@ export class Rhythm {
       ctx.fillStyle = open ? '#123047' : 'rgba(18,48,71,0.55)';
       ctx.font = this.font('900', 12.5);
       ctx.fillText(nameOf(L), x + cw / 2, y + art + 16 * u, cw - 14 * u);
-      for (let sI = 0; sI < 3; sI++) {
-        drawStar(ctx, x + cw / 2 + (sI - 1) * 18 * u, y + art + 33 * u, 7.5 * u, sI < p.stars);
+      // nothing is scored in the sequencer, so it shows no stars it could never fill
+      if (L.kind !== 'make') {
+        for (let sI = 0; sI < 3; sI++) {
+          drawStar(ctx, x + cw / 2 + (sI - 1) * 18 * u, y + art + 33 * u, 7.5 * u, sI < p.stars);
+        }
       }
       if (!open) {
         ctx.save();
@@ -1187,7 +1204,8 @@ export class Rhythm {
       ctx.textAlign = 'left';
     } else if (needsAgain) {
       this.button('again', T('Again', 'Nog eens'), r.x + r.w - bw - 8 * u, r.y + (r.h - bh) / 2, bw, bh, '#f0b653', '#40260a');
-    } else if (this.step === 'judge') {
+    } else if (this.step === 'judge' && this.phase === 'play') {
+      // once the card is up the level is over, and a Next behind it would be a second ending
       this.button('go', T('Next', 'Verder'), r.x + r.w - bw - 8 * u, r.y + (r.h - bh) / 2, bw, bh, '#4fae6e', '#ffffff');
     }
   }
@@ -1455,8 +1473,10 @@ export class Rhythm {
         cross: midi === crossMidi,
         dim: this.round.pool.length > 0 && !this.round.pool.includes(midi),
       });
-      // the card at the end of a level covers the room; nothing behind it takes a tap
-      if (this.phase !== 'won') this.hits.push({ id: `chime:${i}`, x: b.x, y: r.y, w: b.w, h: r.h });
+      // a bar takes the gap on either side too, so a finger landing between two bars is not
+      // a finger that hit nothing
+      const half = (rects[1].x - rects[0].x - rects[0].w) / 2;
+      this.hits.push({ id: `chime:${i}`, x: b.x - half, y: r.y, w: b.w + half * 2, h: r.h });
     });
     // the pointing hand goes away the moment a bar has actually been hit
     if (o.free && !this.struck.some(t => t > 0)) {

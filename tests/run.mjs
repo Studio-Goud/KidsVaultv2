@@ -593,7 +593,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- Dierenboek: finding it, and how big it is
 
 {
-  const { fold, search, scaleBar, sizeLabel, compareToChild, facts, shelf, shapeOf, joinNames, clipBox, GROUPS } =
+  const { fold, search, scaleBar, sizeLabel, compareToChild, facts, shelf, shapeOf, joinNames, clipBox, GROUPS, pageLine } =
     await bundle('src/games/animals/rules.ts', 'animalrules.mjs');
 
   const animal = (over) => ({
@@ -637,6 +637,20 @@ const group = name => console.log(`\n${name}`);
     search(book, 'gewone zee').map(a => a.s), ['Phoca vitulina']);
   is('test_search_a_whole_word_match_beats_a_squashed_one',
     search(book, 'zeester')[0].n, 'Zeester');
+  // the names a child says are not the names the dataset uses
+  const rund = animal({ i: 6, n: 'Gedomesticeerd Rund', e: 'Domestic Cattle', s: 'Bos taurus', g: 'mam', z: 250, w: ['eu', 'as'], o: 500 });
+  const huiskat = animal({ i: 7, n: 'Huiskat', e: 'Domestic Cat', s: 'Felis catus', g: 'mam', o: 400 });
+  const wildekat = animal({ i: 8, n: 'Wilde Kat', e: 'European Wildcat', s: 'Felis silvestris', g: 'mam', o: 300 });
+  const farm = [...book, rund, huiskat, wildekat];
+  is('test_search_koe_finds_the_domestic_cattle', search(farm, 'koe').map(a => a.s), ['Bos taurus']);
+  is('test_search_cow_finds_it_in_english_too', search(farm, 'cow').map(a => a.s), ['Bos taurus']);
+  is('test_search_kat_puts_the_house_cat_before_the_wildcat', search(farm, 'kat').slice(0, 2).map(a => a.n), ['Huiskat', 'Wilde Kat']);
+  is('test_search_an_everyday_name_nobody_has_finds_nothing', search(farm, 'kip').length, 0);
+
+  group('Dierenboek — what a page says out loud');
+  is('test_pageline_says_name_length_and_home_in_dutch', pageLine(rund, true), "Gedomesticeerd Rund. Zo'n 2,5 m lang. Leeft in Europa en Azië.");
+  is('test_pageline_says_name_length_and_home_in_english', pageLine(rund, false), 'Domestic Cattle. About 2.5 m long. Lives in Europe and Asia.');
+  is('test_pageline_skips_what_is_not_known', pageLine(huiskat, true), 'Huiskat.');
 
   group('Dierenboek — the animal beside a child');
   const lion = scaleBar(200, 120, 100);
@@ -1446,7 +1460,7 @@ const group = name => console.log(`\n${name}`);
 {
   const {
     LEVELS, makeQuestion, rngFor, rackFor, cutsOf, tileFits, isSolved, firstEmpty, starsFor,
-    teachFor, chooseQuestion, ladderQuestion, sentenceQuestion,
+    teachFor, teachHelp, teachElsewhere, chooseQuestion, ladderQuestion, sentenceQuestion,
   } = await bundle('src/games/letters/model.ts', 'lettermodel.mjs');
   const { byWord } = await bundle('src/games/letters/words.ts', 'letterwords2.mjs');
   const level = id => LEVELS.find(l => l.id === id);
@@ -1483,6 +1497,14 @@ const group = name => console.log(`\n${name}`);
     'aa is één klank: twee letters, samen /aa/.');
   is('test_teach_names_the_sound_that_belongs_there',
     teachFor({ kind: 'build', parts: ['k', 'a', 't'] }, 2, 's', true), 'Hier hoort de t.');
+  is('test_teach_help_names_a_letter_with_its_article',
+    teachHelp({ kind: 'build', parts: ['k', 'a', 't'] }, 't', true), 'Ik zet de t even voor je neer.');
+  is('test_teach_help_says_a_word_tile_as_the_word_itself',
+    teachHelp({ kind: 'sentence', parts: ['de', 'kat', 'eet'] }, 'eet', true), 'Ik zet “eet” even voor je neer.');
+  is('test_teach_elsewhere_says_a_word_tile_as_the_word_itself',
+    teachElsewhere({ kind: 'sentence', parts: ['de', 'kat', 'eet'] }, 'eet', true), '“eet” hoort hier.');
+  is('test_teach_help_says_a_word_tile_in_english_without_the',
+    teachHelp({ kind: 'sentence', parts: ['de', 'kat', 'eet'] }, 'eet', false), 'I will put “eet” in for you.');
 
   group('Letterbos — woorden hakken');
   is('test_cuts_fall_between_the_sounds', cutsOf(['m', 'aa', 'n']), [1, 3]);
@@ -2691,8 +2713,12 @@ const group = name => console.log(`\n${name}`);
     stamp(generatedPuzzle(0.8, phone.f, phone.u, 4242)), stamp(generatedPuzzle(0.8, phone.f, phone.u, 4242)));
   is('test_generator_a_different_seed_makes_a_different_figure',
     stamp(generatedPuzzle(0.8, phone.f, phone.u, 4242)) !== stamp(generatedPuzzle(0.8, phone.f, phone.u, 77)), true);
-  is('test_generator_a_short_sideways_sky_gets_a_smaller_figure_than_a_tall_one',
-    avgOn(SCREENS[2], 1, p => p.stars.length) < avgOn(SCREENS[1], 1, p => p.stars.length), true);
+  // since the button moved beside the sky, a sideways sky is deep enough for the whole figure;
+  // it still never gets a bigger one than an upright phone, and a small phone still gets fewer
+  is('test_generator_a_sideways_sky_gets_no_bigger_figure_than_a_tall_one',
+    avgOn(SCREENS[2], 1, p => p.stars.length) <= avgOn(SCREENS[1], 1, p => p.stars.length), true);
+  is('test_generator_a_small_phone_gets_a_smaller_figure_than_a_tall_one',
+    avgOn(SCREENS[0], 1, p => p.stars.length) < avgOn(SCREENS[1], 1, p => p.stars.length), true);
   is('test_generator_gives_a_made_up_figure_no_name_to_pretend_with',
     (() => { const p = generatedPuzzle(0.9, phone.f, phone.u, 7); return [p.made, p.name, p.nameNl, p.lore]; })(),
     [false, '', '', '']);
@@ -2745,6 +2771,16 @@ const group = name => console.log(`\n${name}`);
   is('test_frame_a_half_turn_keeps_the_whole_field', frameFor(phone.f, 2).w, phone.f.w);
   is('test_field_a_sideways_phone_still_gets_a_sky_deep_enough_for_a_fingertip',
     playField(844, 390, uiScale(844, 390)).s * 0.18 > minStarGap(uiScale(844, 390), playField(844, 390, uiScale(844, 390)).s), true);
+  // sideways, the button moves beside the sky and the sky gets the height back
+  is('test_field_a_sideways_phone_puts_the_button_beside_the_sky', [S.sideButton(844, 390, 1), S.sideButton(726, 369, 1), S.sideButton(390, 844, 1)], [true, true, false]);
+  is('test_field_a_sideways_sky_is_taller_than_the_strips_used_to_leave', playField(726, 369, 1).h > 369 - 369 * 0.22 - 369 * 0.17, true);
+  is('test_field_an_upright_phone_keeps_its_strips', [S.headRoom(1, 844, 390), S.footRoom(1, 844, 390)], [122, 96]);
+  // the simplest shape: small hand-made figures, nothing to mistake for a star, a long look
+  const simple = [0, 1, 2, 3].map(r => S.simplePuzzle(r, phone.f, phone.u, 5));
+  is('test_simple_puzzle_has_no_distractors_no_turn_no_mirror', simple.every(p => p.distractors === 0 && p.turn === 0 && !p.mirror && p.fade === 'together'), true);
+  is('test_simple_puzzle_shows_long_and_stays_small', simple.every(p => p.showMs === S.SIMPLE_SHOW_MS && p.made && p.stars.length <= S.SIMPLE_MAX_STARS), true);
+  is('test_simple_puzzle_starts_with_the_kite_and_comes_round_again', [simple[0].id, simple[3].id], ['kite', 'kite']);
+  is('test_simple_puzzle_lays_out_only_the_figure', layoutSky(simple[1], phone.f, phone.u, 9).stars.every(st => st.fig !== null), true);
 
   group('Night Watch — the ladder without a top');
   const fresh = { level: 0.08, seen: 0, streak: 0, slump: 0 };
@@ -3214,7 +3250,7 @@ const group = name => console.log(`\n${name}`);
 
 {
   const { SIMPLE_UPTO, simpleFor } = await bundle('src/platform/who.ts', 'who.mjs');
-  const { TOOLS, buildSite, soften, strike } = await bundle('src/games/dig/site.ts', 'digsite.mjs');
+  const { TOOLS, buildSite, soften, strike, unlockLine } = await bundle('src/games/dig/site.ts', 'digsite.mjs');
   group('Suri - the simple shape of a game');
 
   is('test_simple_a_two_year_old_gets_the_simple_shape', simpleFor(2), true);
@@ -3259,11 +3295,18 @@ const group = name => console.log(`\n${name}`);
       for (let i = 0; i < a.hard.length; i++) if (a.hard[i] < brush.maxHard * 0.9 && a.hard[i] !== b.hard[i]) return false;
       return true; })(), true);
   is('test_dig_the_brush_can_never_break_bone', brush.risk, 0);
+  // the hammer costs one find, and the line that says so has to count to one
+  is('test_dig_unlock_line_for_one_find_is_singular', unlockLine(1), { en: 'Find 1 fossil first.', nl: 'Vind eerst 1 fossiel.' });
+  is('test_dig_unlock_line_for_four_finds_is_plural', unlockLine(4), { en: 'Find 4 fossils first.', nl: 'Vind eerst 4 fossielen.' });
+  is('test_dig_the_hammer_is_the_tool_that_costs_one_find', TOOLS.find(t => t.id === 'hammer').unlockAt, 1);
 }
 
 {
-  const { SIMPLE_LEVEL, LEVELS, makeRule, nextRule, rngFor, spawnCreature, poolFor } = await bundle('src/games/tidepool/model.ts', 'tidemodel.mjs');
+  const { SIMPLE_LEVEL, LEVELS, makeRule, nextRule, rngFor, spawnCreature, poolFor, switchLine } = await bundle('src/games/tidepool/model.ts', 'tidemodel.mjs');
   group('Getijdenpoel - the simple tide, for two and three');
+  // the switch is heard, and what is heard is what the sign now says
+  is('test_tide_switch_line_names_the_new_rule_in_dutch', switchLine('kind', true), 'Nieuwe regel: sorteer op soort.');
+  is('test_tide_switch_line_names_the_new_rule_in_english', switchLine('colour', false), 'New rule: sort by colour.');
   is('test_tide_simple_sorts_on_colour_only', SIMPLE_LEVEL.dims.join(','), 'colour');
   is('test_tide_simple_never_switches_the_rule', SIMPLE_LEVEL.switchEvery, 0);
   is('test_tide_simple_has_one_creature_on_the_water', SIMPLE_LEVEL.atOnce, 1);
@@ -3567,6 +3610,27 @@ const group = name => console.log(`\n${name}`);
   is('test_vingerverf_a_colour_is_said_once', [seen.see('x'), seen.see('x')], [true, false]);
 }
 
+// ---------------------------------------------------------------- Marktdag
+
+{
+  const m = await bundle('src/games/market/model.ts', 'marketmodel.mjs');
+  group('Marktdag - orders without a clock, crates clear of the guide');
+  // rule 2: nothing in a game is timed, so no level and no order carries a patience any more
+  is('test_market_levels_carry_no_patience', m.LEVELS.some(L => 'patience' in L), false);
+  is('test_market_order_carries_no_patience', 'patience' in m.makeOrder(m.LEVELS[0], m.rngFor(m.LEVELS[0], 1), 0), false);
+  // the guide is 10..56 px in the corner; a crate row that starts at 60 is clear of him
+  const phone2 = m.crateRow(390, 1, 2, 74);
+  is('test_market_craterow_phone_two_crates_starts_right_of_the_guide', [phone2.x0 >= m.GUIDE_BOX, phone2.lift], [true, false]);
+  const phone5 = m.crateRow(390, 1, 5, 74);
+  is('test_market_craterow_phone_five_crates_lifts_above_the_guide', [phone5.x0, phone5.lift], [12, true]);
+  is('test_market_craterow_landscape_five_crates_starts_right_of_the_guide', m.crateRow(726, 1, 5, 74).lift, false);
+  const ok = m.check({ kind: 'share', who: 'fox', wants: { strawberry: 6 }, between: 2, already: {} }, [{ strawberry: 3 }, { strawberry: 3 }]);
+  is('test_market_check_fair_share_is_ok', ok.ok, true);
+  const unequal = m.check({ kind: 'share', who: 'fox', wants: { strawberry: 6 }, between: 2, already: {} }, [{ strawberry: 4 }, { strawberry: 2 }]);
+  is('test_market_check_unequal_share_names_it', [unequal.ok, unequal.unequal], [false, true]);
+  is('test_market_fruitname_plural_nl', [m.fruitName('apple', 1, true), m.fruitName('apple', 2, true)], ['appel', 'appels']);
+}
+
 // ---------------------------------------------------------------- Trommelkring
 
 {
@@ -3714,6 +3778,9 @@ const group = name => console.log(`\n${name}`);
   is('test_rijmbos_every_family_has_three_or_more', ['nl', 'en'].every(l => fam(l).every(f => f.length >= 3)), true);
   is('test_rijmbos_no_two_families_share_a_rime', ['nl', 'en'].every(l => { const r = fam(l).map(f => m.rime(m.textOf(f[0], l))); return new Set(r).size === r.length; }), true);
   is('test_rijmbos_icons_unique_per_language', [m.WORDS, m.WORDS_EN].every(ws => new Set(ws.map(w => w.icon)).size === ws.length), true);
+  // "schal" was not a word; "sjaal" is, and it rhymes with paal and schaal, not with bal
+  is('test_rijmbos_sjaal_rhymes_with_paal_not_bal', [m.WORDS.some(w => w.nl === 'schal'), m.isRhyme('sjaal', 'paal'), m.isRhyme('sjaal', 'bal')], [false, true, false]);
+  is('test_rijmbos_aal_and_al_are_both_families', ['aal', 'al'].every(r => fam('nl').some(f => m.rime(f[0].nl) === r)), true);
   const kat = m.WORDS.find(w => w.nl === 'kat');
   is('test_rijmbos_level_three_sets_kast_as_a_trap_for_kat', (() => { const q = m.makeQuestionFor(3, kat, makeRng(7), 'nl'); return q.cards.some(c => m.textOf(c.word ?? c, 'nl') === 'kast' && !c.right); })(), true);
   const q1 = m.makeQuestion(1, makeRng(7));

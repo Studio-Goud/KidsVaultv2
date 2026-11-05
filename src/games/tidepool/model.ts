@@ -191,6 +191,14 @@ export function colourLine(colour: Colour, nl: boolean): string {
   return nl ? c[colour][1] : c[colour][0];
 }
 
+/**
+ * What the guide says the moment the sign changes. The pingel and the flashing sign are for the
+ * eyes; a child watching a crab drift has to hear what the sign now says.
+ */
+export function switchLine(dim: Dim, nl: boolean): string {
+  return (nl ? 'Nieuwe regel: ' : 'New rule: ') + dimLabel(dim, nl).toLowerCase() + '.';
+}
+
 export function dimLabel(dim: Dim, nl: boolean): string {
   const d: Record<Dim, [string, string]> = {
     kind: ['Sort by KIND', 'Sorteer op SOORT'], colour: ['Sort by COLOUR', 'Sorteer op KLEUR'],

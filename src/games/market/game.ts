@@ -4,8 +4,8 @@
  * You keep a fruit stall. Customers come up one at a time with an order card: pictures and a
  * numeral, never a sum. You tap crates to fill the basket, take fruit out again if you overshoot,
  * and ring the bell when you think it is right. A wrong basket is not the end: the customer looks
- * puzzled and the card shows what is off, and you get another go. Take too long and they wander
- * off to another stall.
+ * puzzled and says what is off, and you get another go. Nobody is timed: a customer only walks
+ * off after two wrong baskets, never because a child counted slowly (rule 2 in CLAUDE.md).
  *
  * It practises counting out, keeping two counts at once, sharing equally, and how many more.
  * Everything is drawn with canvas paths and every sound is synthesised.
@@ -18,11 +18,11 @@ import { levelProgress, persist, recordLevelResult, save } from '../../util/stor
 import { market, Square } from './marketsfx';
 import {
   bleedEdges, breathe, chunkyButton, drawStar as drawStarGem, easeOutBack, easeOutCubic,
-  glassPanel, heading, outlinedText, Particles, progressRing, vignette,
+  glassPanel, heading, outlinedText, Particles, vignette,
 } from '../../render/look';
 import { paintBasket, paintBell, paintCrate, paintCustomer, paintFruit, paintSquare, paintStall, type Mood } from './paint';
 import {
-  check, FRUITS, fruitName, LEVELS, makeOrder, rngFor, starsFor,
+  check, crateRow, FRUITS, fruitName, GUIDE_BOX, LEVELS, makeOrder, rngFor, starsFor,
   type Basket, type Customer, type Fruit, type Level, type Order,
 } from './model';
 import { NL, T } from '../../util/lang';
@@ -67,7 +67,6 @@ export class MarketDay {
   private order: Order | null = null;
   private baskets: Basket[] = [{}];
   private active = 0;
-  private patience = 1;
   private strikes = 0;
   private served = 0;
   private left = 0;
@@ -122,7 +121,7 @@ export class MarketDay {
   debugState(): Record<string, unknown> {
     return {
       phase: this.phase, level: this.level.id, index: this.index, order: this.order, baskets: this.baskets, active: this.active,
-      served: this.served, left: this.left, wrong: this.wrong, coins: this.coins, patience: Math.round(this.patience * 100) / 100,
+      served: this.served, left: this.left, wrong: this.wrong, coins: this.coins, verdictText: this.verdictText,
       buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
     };
   }
@@ -186,7 +185,6 @@ export class MarketDay {
     this.baskets = Array.from({ length: this.order.between }, () => ({}));
     if (this.order.kind === 'more') this.baskets[0] = { ...this.order.already };
     this.active = 0;
-    this.patience = 1;
     this.strikes = 0;
     this.arriveT = 0.6;
     this.leaveT = 0;
@@ -203,6 +201,9 @@ export class MarketDay {
     this.phase = this.earned > 0 ? 'won' : 'failed'; this.phaseT = 0;
     this.square.stop();
     if (this.earned > 0) market.complete(); else market.fail();
+    this.say(this.earned > 0
+      ? T('The stall is sold out. Well done.', 'De kraam is uitverkocht. Goed gedaan.')
+      : T('A quiet day. Shall we try again?', 'Een stille dag. Nog een keer?'), 4);
   }
 
   private update(dt: number): void {
@@ -223,13 +224,6 @@ export class MarketDay {
     }
     if (this.arriveT > 0) return;
     if (this.mood !== 'waiting' && this.verdictT <= 0 && this.leaveT <= 0) this.mood = 'waiting';
-    this.patience -= dt / this.order.patience;
-    if (this.patience <= 0) {
-      this.left++;
-      market.leaves();
-      this.say(T('They gave up waiting.', 'Ze zijn het wachten zat.'), 2.5);
-      this.leaveT = 0.9;
-    }
   }
 
   // ---------- input ----------
@@ -321,6 +315,9 @@ export class MarketDay {
     }
     this.verdictText = parts.join(' · ');
     this.verdictT = 3.5;
+    // the correction is the one thing a child must get, so it is said, not only written in red
+    const line = parts.join(', ') + '.';
+    this.say(line.charAt(0).toUpperCase() + line.slice(1), 3.5);
     if (this.strikes >= 2) {
       this.left++;
       market.leaves();
@@ -358,18 +355,16 @@ export class MarketDay {
     const r = 42 * u;
     // they stand behind the counter, not under it: on a short screen that means further up
     const cy = Math.min(236 * u, this.counterTop() - r * 1.5);
-    // how long they will wait, as a ring behind them, so it never cuts across a face
-    progressRing(ctx, cx, cy, r + 13 * u, clamp(this.patience, 0, 1),
-      this.patience > 0.35 ? '#5fae6a' : '#e0574a', 6 * u, 'rgba(255,255,255,0.4)');
     paintCustomer(ctx, o.who, cx, cy, r, this.t, this.mood);
 
     this.drawOrderCard(o, cx, cy, r);
   }
 
   /**
-   * The order, on a scrap of paper pinned up beside the customer. Small counts are shown as that
-   * many pieces of fruit, so a child can count the card itself; bigger ones as one piece and a
-   * word, so nobody loses their place counting a picture.
+   * The order, on a scrap of paper pinned up beside the customer. Every count is shown as that
+   * many pieces of fruit, in rows of five, so a child who cannot read the numeral can count the
+   * card itself. One piece and the word "6" was a reading task in disguise: whoever did not read
+   * saw a six and one strawberry.
    */
   private drawOrderCard(o: Order, cx: number, cy: number, r: number): void {
     const ctx = this.ctx, u = this.u();
@@ -377,8 +372,9 @@ export class MarketDay {
     const cardX = Math.min(this.w * 0.46, cx + r * 1.5);
     // on a wide screen the card must not stretch to the far edge; an order is a note, not a banner
     const cardW = Math.min(this.w - cardX - 14 * u, 300 * u);
-    const lineH = 34 * u;
-    const cardH = 30 * u + items.length * lineH;
+    const perRow = 5, rowH = 19 * u;
+    const lineH = (f: Fruit): number => 34 * u + (Math.ceil((o.wants[f] ?? 0) / perRow) - 1) * rowH;
+    const cardH = 30 * u + items.reduce((h, f) => h + lineH(f), 0);
     const cardY = Math.max(52 * u, cy - r - 16 * u);
     const tilt = -0.02;
 
@@ -408,22 +404,19 @@ export class MarketDay {
     ctx.fill();
 
     ctx.textAlign = 'left';
-    items.forEach((f, i) => {
-      const y = cardY + 26 * u + i * lineH;
+    let y = cardY + 26 * u;
+    for (const f of items) {
       const n = o.wants[f] ?? 0;
+      const rows = Math.ceil(n / perRow);
       ctx.fillStyle = '#2d1f10';
       ctx.font = this.font('900', 23);
-      ctx.fillText(String(n), cardX + 13 * u, y + 9 * u);
-      if (n <= 5) {
-        const step = Math.min(23 * u, (cardW - 56 * u) / Math.max(1, n));
-        for (let k = 0; k < n; k++) paintFruit(ctx, f, cardX + 48 * u + k * step + step * 0.4, y, step * 0.4, false);
-      } else {
-        paintFruit(ctx, f, cardX + 54 * u, y, 11 * u, false);
-        ctx.fillStyle = 'rgba(45,31,16,0.75)';
-        ctx.font = this.font('800', 11.5);
-        ctx.fillText(fruitName(f, n, NL()), cardX + 72 * u, y + 4 * u, cardW - 84 * u);
+      ctx.fillText(String(n), cardX + 13 * u, y + 9 * u + (rows - 1) * rowH * 0.5);
+      const step = Math.min(23 * u, (cardW - 56 * u) / Math.min(perRow, Math.max(1, n)));
+      for (let k = 0; k < n; k++) {
+        paintFruit(ctx, f, cardX + 48 * u + (k % perRow) * step + step * 0.4, y + Math.floor(k / perRow) * rowH, step * 0.4, false);
       }
-    });
+      y += lineH(f);
+    }
     // what kind of order it is, in one line at the foot of the card
     ctx.fillStyle = 'rgba(45,31,16,0.6)';
     ctx.font = this.font('800', 9.5);
@@ -435,8 +428,17 @@ export class MarketDay {
     ctx.restore();
   }
 
-  /** The crates and the bell live on the counter at the bottom; the counter starts just above them. */
-  private crateTop(): number { return this.h - 66 * this.u() - 20 * this.u(); }
+  /**
+   * The crates and the bell live on the counter at the bottom; the counter starts just above them.
+   * The row keeps clear of the guide in the bottom-left corner, see `crateRow` in the model.
+   */
+  private crateLeft(): number { return crateRow(this.w, this.u(), this.level.fruits.length, this.bellW()).x0; }
+  private crateTop(): number {
+    const u = this.u();
+    const lift = crateRow(this.w, u, this.level.fruits.length, this.bellW()).lift;
+    return this.h - 66 * u - (lift ? GUIDE_BOX * u + 4 * u : 20 * u);
+  }
+  private bellW(): number { return 74 * this.u(); }
   /** The counter is deep enough for the baskets to stand on it rather than float above it. */
   private counterTop(): number { return this.crateTop() - Math.min(156 * this.u(), this.h * 0.3); }
 
@@ -495,10 +497,11 @@ export class MarketDay {
     const ctx = this.ctx, u = this.u();
     const fruits = this.level.fruits;
     const n = fruits.length;
-    const bellW = 74 * u;
-    const cw = Math.min(82 * u, (this.w - 24 * u - bellW - 8 * u * n) / n), ch = 66 * u;
+    const bellW = this.bellW();
+    const x0 = this.crateLeft();
+    const cw = Math.min(82 * u, (this.w - x0 - 12 * u - bellW - 8 * u * n) / n), ch = 66 * u;
     const y = this.crateTop();
-    let x = 12 * u;
+    let x = x0;
     for (const f of fruits) {
       paintCrate(ctx, x, y, cw, ch, f, u, this.held0 === `crate:${f}`);
       ctx.textAlign = 'center';

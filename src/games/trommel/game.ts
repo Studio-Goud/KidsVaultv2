@@ -365,7 +365,15 @@ export class Trommel {
     if (!hit) return;
     this.held0 = hit;
     if (hit.startsWith('drum')) { this.onDrum(hit === 'drum:R' ? 'R' : 'L', hit === 'drum', e.timeStamp / 1000, p); return; }
-    if (hit.startsWith('level:')) { const i = Number(hit.slice(6)); if (this.unlocked(i)) this.startLevel(i); else this.soft(); }
+    if (hit.startsWith('level:')) {
+      const i = Number(hit.slice(6));
+      if (this.unlocked(i)) this.startLevel(i);
+      else {
+        // a locked card that only ticks is a puzzle; the way in is said instead
+        this.soft();
+        this.say(T(`Play ${nameOf(LEVELS[i - 1])} first.`, `Speel eerst ${nameOf(LEVELS[i - 1])}.`), 3);
+      }
+    }
     else if (hit === 'levels') { this.phase = 'levels'; trommelSfx.tap(); }
     else if (hit === 'retry') { if (this.easy) this.startFree(); else this.startLevel(this.levelIndex); }
     else if (hit === 'next') this.startLevel(Math.min(LEVELS.length - 1, this.levelIndex + 1));
@@ -385,7 +393,14 @@ export class Trommel {
       if (++this.freeHits >= FREE_HITS) this.endFree();
       return;
     }
-    if (this.phase !== 'turn') return;
+    if (this.phase !== 'turn') {
+      // while Suri plays, or between two turns, the drum still answers a hand - quietly, and the
+      // hit is not counted. A drum that does nothing teaches a child to stop touching it.
+      (side === 'L' ? trommelSfx.boemZacht : trommelSfx.tikZacht)();
+      feel('light');
+      if (side === 'L') this.flashL = Math.max(this.flashL, 0.45); else this.flashR = Math.max(this.flashR, 0.45);
+      return;
+    }
     if (this.hitsIn.length === 0) this.metroOrigin = ts;
     this.hitsIn.push({ beat: 0, side });
     this.times.push(ts);
@@ -438,7 +453,7 @@ export class Trommel {
     this.ps.draw(ctx);
     vignette(ctx, this.w, this.h, 0.2, '10, 8, 30');
 
-    if (active) {
+    if (active || this.phase === 'listen' || this.phase === 'between') {
       const top = L.cy - L.ry, bottom = L.cy + L.ry + L.depth;
       if (this.easy) this.hits.push({ id: 'drum', x: L.cx - L.rx, y: top, w: L.rx * 2, h: bottom - top });
       else {

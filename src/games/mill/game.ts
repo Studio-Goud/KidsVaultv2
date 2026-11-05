@@ -120,8 +120,8 @@ export class Millstream {
     window.addEventListener('resize', () => { this.resize(); if (this.phase === 'levels') this.reshape(); });
     canvas.addEventListener('pointerdown', e => this.onDown(e));
     canvas.addEventListener('pointermove', e => this.onMove(e));
-    canvas.addEventListener('pointerup', () => { this.digging = false; this.held = null; });
-    canvas.addEventListener('pointercancel', () => { this.digging = false; this.held = null; });
+    canvas.addEventListener('pointerup', () => this.release());
+    canvas.addEventListener('pointercancel', () => this.release());
     (window as unknown as { __mill?: Millstream }).__mill = this;
     const loop = (ms: number): void => {
       const now = ms / 1000;
@@ -233,6 +233,17 @@ export class Millstream {
     this.say(NL() ? this.level.hintNl : this.level.hint, 6);
   }
 
+  /**
+   * The finger comes off. During the quiet minute the countdown starts over from here: it stood
+   * still while the finger was down, because a child half way along a channel when the water
+   * came had the water running over half a channel.
+   */
+  private release(): void {
+    if (this.digging && this.prep > 0) this.prep = PREP_SECONDS;
+    this.digging = false;
+    this.held = null;
+  }
+
   /** Open the spring: either the quiet minute ran out, or the button was pressed. */
   private openSpring(): void {
     if (this.prep <= 0) return;
@@ -279,9 +290,9 @@ export class Millstream {
     if (this.phase !== 'play') { this.stream.update(0); return; }
     this.idle += dt;
 
-    // the quiet minute: dig all you like, nothing is flowing yet
+    // the quiet minute: dig all you like, nothing is flowing yet, and the clock waits for the finger
     if (this.prep > 0) {
-      this.prep = Math.max(0, this.prep - dt);
+      if (!this.digging) this.prep = Math.max(0, this.prep - dt);
       if (this.prep === 0) this.openSpring();
       this.stream.update(0);
       return;
@@ -354,7 +365,7 @@ export class Millstream {
       this.dryFor += dt;
       this.settleT = this.moving < 0.04 ? this.settleT + dt : 0;
       if (this.settleT > 2.2 || (after < 0.3 && this.settleT > 0.6) || this.dryFor > 14) {
-        this.fail(T('The water ran out before everything was done.', 'Het water was op voordat alles klaar was.'));
+        this.fail(this.ranOutWhy());
       }
     }
   }
@@ -380,6 +391,28 @@ export class Millstream {
   private fail(why: string): void {
     this.failWhy = why;
     this.phase = 'failed'; this.phaseT = 0; this.cardPop = 0;
+    // the reason is the one line on the card that matters, so it is heard too
+    this.say(why);
+  }
+
+  /**
+   * Why the water ran out before the work was done, as what actually happened: the water never
+   * got anywhere, or most of it went into the sea. Only when neither is true is it just "ran out".
+   */
+  private ranOutWhy(): string {
+    const L = this.level, v = this.valley;
+    const nothing = L.fields.every((_, i) => v.filled[i] < 1) && L.wheels.every((_, i) => v.turned[i] < 0.5);
+    if (nothing) {
+      const many = L.fields.length + L.wheels.length > 1;
+      return many
+        ? T('The water did not reach anything. The channel has to go all the way.', 'Het water kwam nergens aan. De geul moet helemaal tot het eind.')
+        : (L.fields.length
+          ? T('The water did not reach the field. The channel has to go all the way.', 'Het water kwam niet bij de akker. De geul moet helemaal tot het eind.')
+          : T('The water did not reach the wheel. The channel has to go all the way.', 'Het water kwam niet bij het rad. De geul moet helemaal tot het eind.'));
+    }
+    const all = L.springFor * L.springRate * L.springs.length;
+    if (this.wasted > all * 0.5) return T('Most of the water ran into the sea.', 'Het meeste water liep de zee in.');
+    return T('The water ran out before everything was done.', 'Het water was op voordat alles klaar was.');
   }
 
   // ---------- input ----------
@@ -419,7 +452,11 @@ export class Millstream {
     if (id === 'retry') { this.start(this.levelIndex); return; }
     if (id === 'next') { this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1)); return; }
     if (id === 'tool:dig' || id === 'tool:bank') { this.tool = id.slice(5) as Tool; mill.tap(); return; }
-    if (id === 'village') { this.phase = 'village'; this.phaseT = 0; this.pickedPlot = null; this.villageNote = ''; mill.tap(); return; }
+    if (id === 'village') {
+      this.phase = 'village'; this.phaseT = 0; this.pickedPlot = null; this.villageNote = ''; mill.tap();
+      this.say(blurbFor(null, NL()));
+      return;
+    }
     if (id.startsWith('plot:')) { this.tapPlot(id.slice(5)); return; }
   }
 
@@ -430,11 +467,14 @@ export class Millstream {
   private tapPlot(id: string): void {
     const b = buildById(id);
     const nl = NL();
+    // the plot's line is written under the green and said as well: a child who cannot read yet
+    // still finds out what a bridge is for by touching it
     if (hasBuilt(id)) {
       this.pickedPlot = id;
       this.villageOk = true;
       this.villageNote = blurbFor(id, nl);
       mill.tap();
+      this.say(this.villageNote);
       return;
     }
     if (this.pickedPlot !== id) {
@@ -442,6 +482,7 @@ export class Millstream {
       this.villageOk = grain() >= b.cost;
       this.villageNote = blurbFor(id, nl);
       mill.tap();
+      this.say(this.villageNote);
       return;
     }
     if (build(id)) {
@@ -449,13 +490,16 @@ export class Millstream {
       this.villageOk = true;
       this.villageNote = nl ? `${b.nameNl} staat er. ${b.whatNl}` : `${b.name} is up. ${b.what}`;
       mill.complete();
+      this.say(this.villageNote);
       return;
     }
     this.villageOk = false;
+    const short = b.cost - grain();
     this.villageNote = nl
-      ? `Nog ${b.cost - grain()} schoven nodig. Bevloei een vallei, dan komen ze binnen.`
-      : `${b.cost - grain()} more sheaves needed. Water a valley and they come in.`;
+      ? `Nog ${short} ${short === 1 ? 'schoof' : 'schoven'} nodig. Bevloei een vallei, dan komen ze binnen.`
+      : `${short} more ${short === 1 ? 'sheaf' : 'sheaves'} needed. Water a valley and they come in.`;
     mill.blocked();
+    this.say(this.villageNote);
   }
 
   private stroke(p: Vec): void {
@@ -675,7 +719,6 @@ export class Millstream {
       this.toolButton('tool:bank', T('Bank', 'Ophogen'), this.w / 2 + 7 * u, yb, bw, bh, this.tool === 'bank');
       if (this.prep > 0) this.drawPrep(yb - 16 * u);
     }
-    this.smallButton('levels', T('Valleys', 'Valleien'), 14 * u, 12 * u, 92 * u, 44 * u);
     ctx.textAlign = 'left';
   }
 
@@ -734,24 +777,39 @@ export class Millstream {
 
     // What to do, high up and out of the way of the digging - and fading out well before the water
     // comes, so the last seconds are a clear view of the valley rather than a card over the spring.
+    // It sits beside the springs, in the widest stretch of sky-edge between them, because the
+    // spring is where every stroke starts and the card used to sit right on top of it.
     const fade = clamp((this.prep - PREP_SECONDS * 0.45) / (PREP_SECONDS * 0.2), 0, 1);
     const inset = this.topInset();
+    const g = this.grid(), v = this.valley;
+    const springX = this.level.springs.map(([sx]) => g.x + (sx * (v.cols - 1) + 0.5) * g.cell).sort((a, b) => a - b);
+    const springY = Math.max(...this.level.springs.map(([, sy]) => g.y + (sy * (v.rows - 1) + 0.5) * g.cell));
+    const keep = 34 * u;
+    const edges = [8 * u, ...springX.flatMap(x => [x - keep, x + keep]), this.w - 8 * u];
+    let gapL = 0, gapW = 0;
+    for (let k = 0; k < edges.length; k += 2) {
+      if (edges[k + 1] - edges[k] > gapW) { gapW = edges[k + 1] - edges[k]; gapL = edges[k]; }
+    }
+    const beside = gapW >= 120 * u;
+    const tw = beside ? Math.min(gapW, this.w - 32 * u) : this.w - 32 * u;
+    const line = this.goalLine();
     ctx.save();
     ctx.globalAlpha = fade;
     ctx.font = this.font('900', 14);
-    const line = this.goalLine();
-    let tw = ctx.measureText(line).width;
+    const head = wrapLines(ctx, line, tw - 26 * u);
     ctx.font = this.font('800', 11.5);
-    tw = Math.min(this.w - 32 * u, Math.max(tw, ctx.measureText(NL() ? this.level.hintNl : this.level.hint).width) + 40 * u);
-    ctx.font = this.font('900', 14);
-    const gy = inset + 48 * u;
-    glassPanel(ctx, this.w / 2 - tw / 2, gy, tw, 62 * u, 16 * u, 0.94);
+    const hint = wrapLines(ctx, NL() ? this.level.hintNl : this.level.hint, tw - 26 * u);
+    const th = head.length * 18 * u + hint.length * 15 * u + 24 * u;
+    const gx = beside ? gapL : this.w / 2 - tw / 2;
+    const gy = beside ? inset + 8 * u : springY + 36 * u;
+    glassPanel(ctx, gx, gy, tw, th, 16 * u, 0.94);
     ctx.textAlign = 'center';
     ctx.fillStyle = '#123047';
-    ctx.fillText(line, this.w / 2, gy + 26 * u, tw - 26 * u);
+    ctx.font = this.font('900', 14);
+    head.forEach((row, i) => ctx.fillText(row, gx + tw / 2, gy + 21 * u + i * 18 * u, tw - 26 * u));
     ctx.font = this.font('800', 11.5);
     ctx.fillStyle = 'rgba(18, 48, 71, 0.68)';
-    ctx.fillText(NL() ? this.level.hintNl : this.level.hint, this.w / 2, gy + 48 * u, tw - 26 * u);
+    hint.forEach((row, i) => ctx.fillText(row, gx + tw / 2, gy + 21 * u + head.length * 18 * u + 2 * u + i * 15 * u, tw - 26 * u));
     ctx.restore();
 
     // and the button

@@ -37,8 +37,6 @@ export interface Order {
   between: number;
   /** for 'more': what is already in the basket before you start */
   already: Partial<Record<Fruit, number>>;
-  /** how long they will wait, in seconds */
-  patience: number;
 }
 
 export interface Level {
@@ -52,7 +50,6 @@ export interface Level {
   maxCount: number;
   /** which fruit are on the stall today */
   fruits: Fruit[];
-  patience: number;
   /** how many ways a sharing order splits, where the level is named after the answer */
   share?: number;
   hint: string;
@@ -60,23 +57,23 @@ export interface Level {
 }
 
 export const LEVELS: Level[] = [
-  { id: 'firstmorning', name: 'First morning', nameNl: 'De eerste ochtend', customers: 6, kinds: ['count'], maxCount: 3, fruits: ['apple', 'pear'], patience: 40,
+  { id: 'firstmorning', name: 'First morning', nameNl: 'De eerste ochtend', customers: 6, kinds: ['count'], maxCount: 3, fruits: ['apple', 'pear'],
     hint: 'Tap the crate to put fruit in the basket. Ring the bell when it is right.', hintNl: 'Tik op de kist om fruit in de mand te doen. Bel als het klopt.' },
-  { id: 'uptofive', name: 'Up to five', nameNl: 'Tot vijf', customers: 7, kinds: ['count'], maxCount: 5, fruits: ['apple', 'pear', 'strawberry'], patience: 36,
+  { id: 'uptofive', name: 'Up to five', nameNl: 'Tot vijf', customers: 7, kinds: ['count'], maxCount: 5, fruits: ['apple', 'pear', 'strawberry'],
     hint: 'Count out loud if it helps. Nobody minds.', hintNl: 'Hardop tellen mag. Niemand vindt dat gek.' },
-  { id: 'twothings', name: 'Two things at once', nameNl: 'Twee dingen tegelijk', customers: 7, kinds: ['count', 'mixed'], maxCount: 4, fruits: ['apple', 'pear', 'plum'], patience: 36,
+  { id: 'twothings', name: 'Two things at once', nameNl: 'Twee dingen tegelijk', customers: 7, kinds: ['count', 'mixed'], maxCount: 4, fruits: ['apple', 'pear', 'plum'],
     hint: 'Some orders have two kinds of fruit. Do one, then the other.', hintNl: 'Sommige bestellingen hebben twee soorten fruit. Doe de een, dan de ander.' },
-  { id: 'fairshare', name: 'Fair shares', nameNl: 'Eerlijk delen', customers: 7, kinds: ['count', 'share'], maxCount: 6, fruits: ['strawberry', 'plum'], patience: 40,
+  { id: 'fairshare', name: 'Fair shares', nameNl: 'Eerlijk delen', customers: 7, kinds: ['count', 'share'], maxCount: 6, fruits: ['strawberry', 'plum'],
     hint: 'Two baskets, and they must get the same. One for you, one for me.', hintNl: 'Twee manden, en ze moeten hetzelfde krijgen. Een voor jou, een voor mij.' },
-  { id: 'howmanymore', name: 'How many more', nameNl: 'Hoeveel erbij', customers: 8, kinds: ['count', 'more'], maxCount: 6, fruits: ['apple', 'carrot', 'pear'], patience: 38,
+  { id: 'howmanymore', name: 'How many more', nameNl: 'Hoeveel erbij', customers: 8, kinds: ['count', 'more'], maxCount: 6, fruits: ['apple', 'carrot', 'pear'],
     hint: 'The basket already has some in it. Add only what is missing.', hintNl: 'Er zit al wat in de mand. Doe er alleen bij wat mist.' },
-  { id: 'threeways', name: 'Three ways', nameNl: 'In drieën', customers: 8, kinds: ['share', 'mixed'], maxCount: 9, fruits: ['strawberry', 'plum', 'carrot'], patience: 40,
+  { id: 'threeways', name: 'Three ways', nameNl: 'In drieën', customers: 8, kinds: ['share', 'mixed'], maxCount: 9, fruits: ['strawberry', 'plum', 'carrot'],
     share: 3,
     hint: 'When they want to share, it is three baskets now. One, one, one, then round again.',
     hintNl: 'Als ze willen delen, zijn het nu drie manden. Een, een, een, en dan weer rond.' },
-  { id: 'busystall', name: 'The busy stall', nameNl: 'De drukke kraam', customers: 10, kinds: ['count', 'mixed', 'share', 'more'], maxCount: 8, fruits: ['apple', 'pear', 'strawberry', 'plum'], patience: 30,
-    hint: 'A little of everything, and they are in more of a hurry.', hintNl: 'Van alles wat, en ze hebben meer haast.' },
-  { id: 'marketday', name: 'Market day', nameNl: 'Marktdag', customers: 12, kinds: ['count', 'mixed', 'share', 'more'], maxCount: 10, fruits: FRUITS, patience: 26,
+  { id: 'busystall', name: 'The busy stall', nameNl: 'De drukke kraam', customers: 10, kinds: ['count', 'mixed', 'share', 'more'], maxCount: 8, fruits: ['apple', 'pear', 'strawberry', 'plum'],
+    hint: 'A little of everything, and bigger orders.', hintNl: 'Van alles wat, en de bestellingen zijn groter.' },
+  { id: 'marketday', name: 'Market day', nameNl: 'Marktdag', customers: 12, kinds: ['count', 'mixed', 'share', 'more'], maxCount: 10, fruits: FRUITS,
     hint: 'The whole village is here. Breathe, count, ring.', hintNl: 'Het hele dorp is er. Adem, tel, bel.' },
 ];
 
@@ -109,7 +106,7 @@ export function makeOrder(level: Level, rng: () => number, index: number): Order
     const have = n(1, total - 1);
     wants[f] = total; already[f] = have;
   }
-  return { kind, who, wants, between, already, patience: level.patience };
+  return { kind, who, wants, between, already };
 }
 
 export type Basket = Partial<Record<Fruit, number>>;
@@ -146,4 +143,19 @@ export function starsFor(served: number, left: number, wrong: number, total: num
   if (left === 0 && wrong <= 1) return 3;
   if (left <= 1 && wrong <= 3) return 2;
   return 1;
+}
+
+/** The guide button in the corner: 46 px square, 10 px in from the left and the bottom. */
+export const GUIDE_BOX = 56;
+
+/**
+ * Where the crate row starts, at `u` scale on a screen `w` wide with `n` crates and a bell.
+ *
+ * The first crate used to lie under the guide in the bottom-left corner. On a screen wide enough
+ * for every crate to stay a finger wide (44 px) the row starts to his right; on a narrow one the
+ * row keeps its left edge and lifts above him instead, which `lift` says.
+ */
+export function crateRow(w: number, u: number, n: number, bellW: number): { x0: number; lift: boolean } {
+  const shifted = (w - 60 * u - 12 * u - bellW - 8 * u * n) / n >= 44 * u;
+  return { x0: shifted ? 60 * u : 12 * u, lift: !shifted };
 }

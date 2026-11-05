@@ -15,7 +15,7 @@ import { safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
-  COLOUR_HEX, colourLine, dimLabel, labelFor, LEVELS, makeRule, nextRule, poolFor, rngFor, SIMPLE_LEVEL, spawnCreature, starsFor,
+  COLOUR_HEX, colourLine, dimLabel, labelFor, LEVELS, makeRule, nextRule, poolFor, rngFor, SIMPLE_LEVEL, spawnCreature, starsFor, switchLine,
   type Colour, type Creature, type Dim, type Kind, type Level, type Rule,
 } from './model';
 import { Sea, tide } from './tidesfx';
@@ -77,6 +77,8 @@ export class Tidepool {
   private sinceSwitch = 0;
   private switchFlash = 0;
   private spawnIn = 1;
+  /** why the last tide was lost: three wrong pools, or too much carried off by the water */
+  private lost: 'shells' | 'tide' = 'tide';
   private nextId = 1;
   private held: Creature | null = null;
   private holdOffset = { x: 0, y: 0 };
@@ -193,7 +195,9 @@ export class Tidepool {
   /** How big a creature is on screen. */
   private radius(c: Creature): number {
     const f = this.field();
-    return Math.min(f.w, f.h) * (c.size === 'big' ? 0.062 : 0.042) * (this.u() > 1.3 ? 0.9 : 1);
+    // a fifth bigger than they were: a starfish of 32 px was a thing to squint at, and the pools
+    // are wide enough to take it
+    return Math.min(f.w, f.h) * (c.size === 'big' ? 0.074 : 0.05) * (this.u() > 1.3 ? 0.9 : 1);
   }
 
   // ---------- levels ----------
@@ -241,6 +245,7 @@ export class Tidepool {
     this.sinceSwitch = 0;
     this.switchFlash = 1.6;
     tide.switchRule();
+    this.say(switchLine(this.rule.dim, NL()), 3);
   }
 
   private update(dt: number): void {
@@ -265,8 +270,12 @@ export class Tidepool {
         if (!this.creatures.some(o => !o.gone && !o.landing && Math.abs(o.x - c.x) < 0.2 && o.y < 0.25)) break;
         c.x = 0.15 + this.rng() * 0.7;
       }
-      // it comes in far enough down the water to be seen at once, not behind the sign
-      c.y = 0.16;
+      // It comes in far enough down the water to be seen at once: below the sign, and below the
+      // strip under it where the guide's words and NEW RULE appear, which is where the first
+      // seconds of every creature were spent half hidden. A short wide screen has no such room,
+      // so there it comes in at the old height and keeps its drift.
+      const clear = (180 * this.u() + Math.min(this.w, this.h) * 0.074) / this.h;
+      c.y = clamp(clear, 0.16, SHORE - 0.3);
       this.creatures.push(c);
       // a toddler hears what matters about it, since the sign is words
       if (this.easy && this.spawned > 0) this.say(colourLine(c.colour, NL()), 2.5);
@@ -300,7 +309,13 @@ export class Tidepool {
       }
     }
 
-    if (this.shells <= 0 && !this.easy) { this.phase = 'failed'; this.phaseT = 0; this.sea.stop(); tide.fail(); return; }
+    if (this.shells <= 0 && !this.easy) {
+      this.phase = 'failed'; this.phaseT = 0; this.lost = 'shells';
+      this.sea.stop(); tide.fail();
+      // the card says what happened, and so does the guide: it was the pools, not the tide
+      this.say(T('Three times the wrong pool. Look at the sign.', 'Drie keer de verkeerde poel. Kijk naar het bord.'), 4);
+      return;
+    }
     if (this.resolved >= L.count) {
       if (this.easy) {
         // no stars, no coins, nothing written down: the tide is sorted, and that is the whole ending
@@ -314,7 +329,7 @@ export class Tidepool {
       this.earned = starsFor(this.correct, this.wrong, this.missed, L.count);
       recordLevelResult(saveKey(L), this.correct, this.earned, this.earned > 0);
       save.coins = Math.max(0, Math.round(save.coins + 15 + this.earned * 15)); persist();
-      this.phase = this.earned > 0 ? 'won' : 'failed'; this.phaseT = 0;
+      this.phase = this.earned > 0 ? 'won' : 'failed'; this.phaseT = 0; this.lost = 'tide';
       this.sea.stop();
       if (this.earned > 0) tide.complete(); else tide.fail();
     }
@@ -562,15 +577,6 @@ export class Tidepool {
     ctx.textAlign = 'center';
     ctx.fillText(dimLabel(this.rule.dim, NL()), this.w / 2, sy + sh * 0.63, sw - 24 * u);
     ctx.restore();
-    if (this.switchFlash > 0) {
-      ctx.textAlign = 'center';
-      const pop = easeOutBack(clamp((1.6 - this.switchFlash) * 3, 0, 1));
-      ctx.save();
-      ctx.translate(this.w / 2, sy + sh + 20 * u);
-      ctx.scale(pop, pop);
-      outlinedText(ctx, T('NEW RULE', 'NIEUWE REGEL'), 0, 0, this.font('900', 13), '#c9452f', '#ffffff', 5);
-      ctx.restore();
-    }
 
     // how far through the tide you are, as a row of drops filling up
     const total = this.level.count;
@@ -610,7 +616,9 @@ export class Tidepool {
       const tw = Math.min(this.w - 36 * u, ctx.measureText(this.note).width + 32 * u);
       const ny = 140 * u;
       glassPanel(ctx, this.w / 2 - tw / 2, ny, tw, 30 * u, 15 * u, 0.93);
-      ctx.fillStyle = '#123047';
+      // the words under the sign are the switch's announcement now, spoken and written in one
+      // place; while the sign still flashes they are red, as NEW RULE used to be
+      ctx.fillStyle = this.switchFlash > 0 ? '#c9452f' : '#123047';
       ctx.textAlign = 'center';
       ctx.fillText(this.note, this.w / 2, ny + 20 * u, tw - 22 * u);
       ctx.restore();
@@ -652,7 +660,9 @@ export class Tidepool {
     ctx.fillRect(x, y, cw, 92 * u);
     ctx.restore();
     ctx.textAlign = 'center';
-    heading(ctx, won ? T('The tide is sorted', 'Het tij is gesorteerd') : T('The tide got away', 'Het tij was te snel'),
+    heading(ctx, won ? T('The tide is sorted', 'Het tij is gesorteerd')
+      : this.lost === 'shells' ? T('Three times the wrong pool', 'Drie keer de verkeerde poel')
+        : T('The tide got away', 'Het tij was te snel'),
       this.w / 2, y + 50 * u, this.font('900', 20), '#123047');
     if (won && !this.easy) {
       for (let i = 0; i < 3; i++) {

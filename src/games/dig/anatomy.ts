@@ -190,18 +190,20 @@ export function drawCrest(ctx: Ctx, d: Dino, slab: Box, fill: string, stroke: st
   }
 }
 
-/** The living animal, as one merged silhouette. */
-export function bodyPath(ctx: Ctx, d: Dino, slab: Box): void {
+/**
+ * The parts of the living animal, in the order they are laid down. `flush` is called after each
+ * part: left out, they stack up into one path; given, every part can be filled on its own.
+ */
+function bodyParts(ctx: Ctx, d: Dino, slab: Box, flush?: () => void): void {
   const P = mapper(slab);
   const S = slab.w * 0.9;
   const j = joints(d, P, S);
   const c = P([d.body.x, d.body.y]);
 
-  ctx.beginPath();
-
   // tail
   const tailCtrl = P([(d.body.x + d.tail.to[0]) / 2, (d.body.y + d.tail.to[1]) / 2 + d.tail.sag]);
   taper(ctx, j.rear, j.tip, tailCtrl, d.tail.thick * S, 0.012 * S);
+  flush?.();
 
   // legs
   for (const l of d.legs) {
@@ -214,19 +216,50 @@ export function bodyPath(ctx: Ctx, d: Dino, slab: Box): void {
     ctx.lineTo(foot.x + l.thick * 0.9 * S, foot.y + l.thick * 0.6 * S);
     ctx.lineTo(foot.x - l.thick * 1.3 * S, foot.y + l.thick * 0.6 * S);
     ctx.closePath();
+    flush?.();
   }
 
   // body
   ctx.moveTo(c.x + d.body.rx * slab.w * 0.9, c.y);
   ctx.ellipse(c.x, c.y, d.body.rx * S, d.body.ry * S, d.body.rot, 0, TAU);
+  flush?.();
 
   // neck
   const neckCtrl = lerpV(j.front, j.head, 0.5);
   neckCtrl.y += d.neck.curve * S;
   taper(ctx, j.front, j.head, neckCtrl, d.neck.thick * 2.1 * S, d.neck.thick * 1.25 * S);
+  flush?.();
 
   // head
   headPath(ctx, d, j.head, S);
+  flush?.();
+}
+
+/** The living animal, as one merged silhouette. */
+export function bodyPath(ctx: Ctx, d: Dino, slab: Box): void {
+  ctx.beginPath();
+  bodyParts(ctx, d, slab);
+}
+
+/**
+ * The animal as a flat shape in one colour, crest and all: the thing a child who cannot read
+ * matches against what they have just dug out.
+ *
+ * One merged path will not do here. The ellipse of the body winds the other way from the limbs,
+ * so where they overlap the nonzero rule cancels them into holes, and stroking the seams shut
+ * left pale lines through the animal. Filling each part on its own leaves nothing to cancel; and
+ * without the plates, horns or club the three choices were three of the same brown lizard.
+ */
+export function drawSilhouette(ctx: Ctx, d: Dino, box: Box, ink: string): void {
+  ctx.save();
+  ctx.fillStyle = ink;
+  ctx.strokeStyle = ink;
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(1, box.w * 0.012);
+  ctx.beginPath();
+  bodyParts(ctx, d, box, () => { ctx.fill(); ctx.stroke(); ctx.beginPath(); });
+  if (d.crest) drawCrest(ctx, d, box, ink, ink);
+  ctx.restore();
 }
 
 export interface Bones {
