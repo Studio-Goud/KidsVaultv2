@@ -74,6 +74,8 @@ export class JourneyScreen {
   private counted = false;
   /** where the gauge was drawn this frame, so the spoken line can keep off it */
   private gauge: { x: number; y: number; w: number; h: number } | null = null;
+  /** where the spoken line was drawn this frame: for the audit, to see the two keep apart */
+  private panel: { x: number; y: number; w: number; h: number } | null = null;
 
   constructor(private canvas: HTMLCanvasElement, private j: Journey) {
     this.fx = journeySfx(j.id);
@@ -111,6 +113,7 @@ export class JourneyScreen {
       held: this.trip.held, beat: this.trip.beat, going: this.trip.going, done: this.trip.done,
       seen: this.trip.seen, index: this.index, said: this.said,
       reading: Math.round(reading(this.j, this.trip.at)),
+      gauge: this.gauge && roundRect(this.gauge), panel: this.panel && roundRect(this.panel),
       buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
     };
   }
@@ -160,7 +163,7 @@ export class JourneyScreen {
   private midX(): number { return this.keepClear() + (this.w - this.keepClear() - 12 * this.u()) / 2; }
   private headY(): number { return 32 * this.u(); }
   /** Where the bottom band starts: the buttons and, when held, the line above them. */
-  private bandY(): number { return this.h - (this.trip.held ? 148 : 96) * this.u(); }
+  private bandY(): number { return this.h - (this.trip.held || this.trip.done ? 148 : 96) * this.u(); }
 
   private stage(): { x: number; y: number; w: number; h: number } {
     const top = this.headY() + 18 * this.u();
@@ -255,6 +258,7 @@ export class JourneyScreen {
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.translate(this.sl, this.st);
     this.hits = [];
+    this.panel = null;
 
     this.sky();
     this.drawMotes();
@@ -302,7 +306,9 @@ export class JourneyScreen {
     const cx = st.x + st.w / 2, cy = st.y + st.h * 0.46;
     const full = Math.max(38 * u, Math.min(st.w * 0.38, st.h * 0.42));
 
-    const here = stopById(this.j, this.trip.held);
+    // once the ride is over the last stop stays as it was, full size, while the closing line is
+    // said: worked out as the next stop ahead it is no distance away and shrank to a fifth
+    const here = stopById(this.j, this.trip.held) ?? (this.trip.done ? this.j.stops[this.j.stops.length - 1] ?? null : null);
     const next = here ?? this.nextAhead();
     if (!next) return;
 
@@ -428,8 +434,10 @@ export class JourneyScreen {
     // reaches up to it and "231 miljoen jaar geleden" came out as "231 miljoe". When the two
     // meet, the line moves over and wraps again in the room that is left; everywhere else it
     // does not move at all.
-    const g = this.gauge;
-    if (g && y < g.y + g.h && y + ph > g.y && lo < g.x + g.w) {
+    // A few pixels of air are part of keeping apart: the panel touching "cm vanaf je kruin" from
+    // below read as one thing on top of the other (play check of 2026-11-05).
+    const g = this.gauge, air = 6 * u;
+    if (g && y < g.y + g.h + air && y + ph > g.y - air && lo < g.x + g.w + air) {
       lo = g.x + g.w + 6 * u;
       rows = wrap(ctx, text, hi - lo - 28 * u);
       ph = rows.length * lh + 18 * u;
@@ -438,6 +446,7 @@ export class JourneyScreen {
     const mid = (lo + hi) / 2;
     const pw = Math.min(hi - lo, Math.max(...rows.map(r => ctx.measureText(r).width)) + 28 * u);
     glassPanel(ctx, mid - pw / 2, y, pw, ph, 15 * u, 0.9);
+    this.panel = { x: mid - pw / 2, y, w: pw, h: ph };
     ctx.fillStyle = '#123047';
     ctx.textAlign = 'center';
     rows.forEach((r, i) => ctx.fillText(r, mid, y + 13 * u + lh * (i + 0.6)));
@@ -551,3 +560,6 @@ export function wrap(ctx: Ctx, text: string, maxW: number): string[] {
   if (row) rows.push(row);
   return rows;
 }
+
+const roundRect = (r: { x: number; y: number; w: number; h: number }): { x: number; y: number; w: number; h: number } =>
+  ({ x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h) });

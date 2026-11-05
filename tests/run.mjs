@@ -289,6 +289,9 @@ const group = name => console.log(`\n${name}`);
   is('test_walk_player_new_direction_turns', stepDirections(true, left, right), [left]);
   is('test_walk_mole_left_alone_carries_on', stepDirections(false, none, right), [right]);
   is('test_walk_mole_given_a_direction_prefers_it', stepDirections(false, left, right), [left, right]);
+  const puffSrc = (await import('node:fs')).readFileSync('src/games/puffball/game.ts', 'utf8');
+  // the end card's heading is said as well as written, for a child who cannot read it
+  is('test_puffball_winning_is_said_out_loud', /this\.say\(T\('The wood is quiet again\.', 'Het bos is weer stil\.'\)/.test(puffSrc), true);
 }
 
 // ---------------------------------------------------------------- Moonshot: the three example rockets
@@ -3988,6 +3991,13 @@ const group = name => console.log(`\n${name}`);
   is('test_donker_three_night_lights_each_named', LIGHTS.length === 3 && LIGHTS.every(l => l.nl && l.en && l.colour), true);
   is('test_donker_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
   is('test_donker_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);
+  // the scene: "de vlek is gewoon de schaduw van een jas" needs the shape and the coat on one
+  // screen; a phone held upright sees about 0.84 radians (390 px over a lens of 464 px)
+  const donkerSrc = (await import('node:fs')).readFileSync('src/story/donker.ts', 'utf8');
+  const angle = k => Number((donkerSrc.match(new RegExp(`${k}: (-?[0-9.]+)`)) || [])[1]);
+  is('test_donker_shape_and_coat_fit_on_one_upright_screen', Math.abs(angle('chair') - angle('shadow')) + 0.2 <= 0.84, true);
+  is('test_donker_window_shuts_from_a_short_pull', /this\.winK < 0\.4\) this\.closeWindow/.test(donkerSrc), true);
+  is('test_donker_the_way_to_look_shows_after_a_second_and_a_half', /this\.lostT <= 1\.5/.test(donkerSrc), true);
 }
 
 // ---------------------------------------------------------------- Suri heeft buikpijn
@@ -4066,6 +4076,9 @@ const group = name => console.log(`\n${name}`);
   const { mixBody, extent } = await bundle('src/evo/body.ts', 'evobody.mjs');
   const { nextGeneration } = await bundle('src/evo/moths.ts', 'evomoths.mjs');
   group('Van cel tot mens — the line, the bodies and how selection works');
+  const evoSrc = (await import('node:fs')).readFileSync('src/evo/evo.ts', 'utf8');
+  // a tap counts within a fingertip of a moth, not within 1.6 times a 14 px moth
+  is('test_evo_moth_tap_reaches_at_least_thirty_px', /Math\.max\(s \* 1\.6, 30 \* this\.u\(\)\)/.test(evoSrc), true);
   const lines = STOPS.flatMap(s => s.lines);
   is('test_evo_every_line_is_said_in_both_languages', lines.filter(l => !(l.say && l.sayNl)).length, 0);
   is('test_evo_the_moth_lines_are_said_in_both_languages', Object.values(MOTH_LINES).every(l => l.say && l.sayNl), true);
