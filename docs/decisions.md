@@ -1060,3 +1060,27 @@ zonder uitzondering, zonder leeg canvas en zonder "undefined" in een gesproken r
 gerepareerd punt door zijn reparateur in een browser nagespeeld op 390x844, de meeste ook op
 320x568. Niet nagekeken: een echte telefoon, liggend bij de meeste reparaties, en de geluiden en
 stemmen zijn door niemand gehoord.
+
+## 2026-11-05 — De stem opnieuw: v3, Matilda voor het Engels, Ruth blijft voor het Nederlands
+
+De eigenaar wilde de hoogst haalbare kwaliteit, vooral in het Engels, en kreeg luisterproeven in
+plaats van een advies: dezelfde regels in de huidige instelling, in hogere bitrate, en met
+ElevenLabs' v3. Ruth op v3 vond hij "top"; George overtuigde in geen enkele vorm, en uit negen
+andere stemmen koos hij **Matilda** (Amerikaans, alt, rustig). Beide talen op v3; Engels op
+64 kbit/s, Nederlands op 32 omdat beide op 64 de stem boven de 200 MB van Google Play zou
+brengen; een keuze van de eigenaar met Apple voorop. Hoe en waarom staat in `docs/voice.md`.
+
+Het script wisselt nu opname voor opname in plaats van een hele taal tegelijk: elke rij in het
+manifest draagt haar stem en model, en een oude opname blijft spelen tot de nieuwe stem dezelfde
+regel heeft gezegd. Dat bleek meteen nodig: één maand Creator-tegoed (121.000) was precies genoeg
+voor heel het Engels (6024 regels, Matilda) en 4562 van de 6269 Nederlandse regels. De 1707 die
+wachten zijn diernamen uit het Dierenboek, met opzet achteraan gezet; die klinken tot volgende
+maand nog als Ruth op v2, nooit als de telefoon. Volgende maand is het één opdracht:
+`npm run voice -- render yO6w2xlECAQRFP6pX7Hw --kbps 32`.
+
+De API-sleutel is tijdens dit werk in het gesprek geplakt en moet daarom vervangen worden; dat is
+aan de eigenaar gezegd. Hij staat in geen enkel bestand.
+
+Nagekeken: 6024 Engelse en 4562 Nederlandse opnamen, 0 mislukt behalve op het tegoed; elke rij in
+`clips.json` gestempeld; de stem is nu 169 MB (65 Nederlands, 104 Engels). Niet nagekeken: niemand
+heeft Matilda of Ruth op v3 in de app gehoord, alleen in de proeven.
