@@ -397,8 +397,10 @@ export class Knikkerbaan {
       return;
     }
     if (overTray) {
-      // back to the tray: a plank taken off the wall goes home, a new one never left
-      if (d.kind === 'move') sfx.remove();
+      // back to the tray: a plank taken off the wall goes home, and says so, since the strip
+      // between the board and the tray counts as the tray and a plank let go there looked lost;
+      // a new one never left
+      if (d.kind === 'move') { sfx.remove(); this.say(T('Back in the tray.', 'Terug in de bak.'), 3); }
       return;
     }
     const q = nearestPlacement(this.level, others, d.pose);
