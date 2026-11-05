@@ -841,10 +841,10 @@
   {
    "id": "t039f5d12",
    "file": "nl/t039f5d12.mp3",
-   "secs": 2.4,
+   "secs": 2.1,
    "text": "3,2 miljoen jaar geleden",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t03bb1515",
@@ -4444,7 +4444,7 @@
    "secs": 2.4,
    "text": "250 miljoen jaar geleden",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t1613cea2",
@@ -7105,10 +7105,10 @@
   {
    "id": "t23287c98",
    "file": "nl/t23287c98.mp3",
-   "secs": 3.7,
+   "secs": 3.9,
    "text": "3,17 ton brandstof, 3 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t23288f16",
@@ -8297,10 +8297,10 @@
   {
    "id": "t2a0fde76",
    "file": "nl/t2a0fde76.mp3",
-   "secs": 3.7,
+   "secs": 3.8,
    "text": "16,5 ton brandstof, 6 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t2a10a52f",
@@ -13809,10 +13809,10 @@
   {
    "id": "t44f62215",
    "file": "nl/t44f62215.mp3",
-   "secs": 3.6,
+   "secs": 3.8,
    "text": "1,06 ton brandstof, 1 rij hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t45043392",
@@ -14881,10 +14881,10 @@
   {
    "id": "t4a4b8184",
    "file": "nl/t4a4b8184.mp3",
-   "secs": 3.7,
+   "secs": 4.6,
    "text": "10,78 ton brandstof, 2 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t4a4c69e3",
@@ -18401,10 +18401,10 @@
   {
    "id": "t5be0c41d",
    "file": "nl/t5be0c41d.mp3",
-   "secs": 4.1,
+   "secs": 4.2,
    "text": "13,75 ton brandstof, 5 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t5be5dbfa",
@@ -18441,10 +18441,10 @@
   {
    "id": "t5c15a6ba",
    "file": "nl/t5c15a6ba.mp3",
-   "secs": 4.4,
+   "secs": 4.1,
    "text": "21,56 ton brandstof, 4 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t5c1c6af0",
@@ -28057,10 +28057,10 @@
   {
    "id": "t8bcc20d1",
    "file": "nl/t8bcc20d1.mp3",
-   "secs": 4.6,
+   "secs": 5,
    "text": "'s Nachts komt hij omhoog om te eten en voor de ochtend zakt hij weer.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t8bd37e0f",
@@ -30569,10 +30569,10 @@
   {
    "id": "t97720a06",
    "file": "nl/t97720a06.mp3",
-   "secs": 3.2,
+   "secs": 3.4,
    "text": "2,11 ton brandstof, 2 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "t9772deca",
@@ -34521,10 +34521,10 @@
   {
    "id": "tab1d2b52",
    "file": "nl/tab1d2b52.mp3",
-   "secs": 3.1,
+   "secs": 3.4,
    "text": "11,0 ton brandstof, 4 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "tab25a721",
@@ -35225,10 +35225,10 @@
   {
    "id": "tadf6d772",
    "file": "nl/tadf6d772.mp3",
-   "secs": 1,
+   "secs": 0.8,
    "text": "...en uit.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "tadff04ce",
@@ -36945,10 +36945,10 @@
   {
    "id": "tb71f4ced",
    "file": "nl/tb71f4ced.mp3",
-   "secs": 1.4,
+   "secs": 1.1,
    "text": "'s-Hertogenbosch",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "tb7247a20",
@@ -39745,10 +39745,10 @@
   {
    "id": "tc5ce693d",
    "file": "nl/tc5ce693d.mp3",
-   "secs": 4.6,
+   "secs": 4.3,
    "text": "26,73 ton brandstof, 3 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "tc5d7154c",
@@ -40305,10 +40305,10 @@
   {
    "id": "tc8a94dcb",
    "file": "nl/tc8a94dcb.mp3",
-   "secs": 2.8,
+   "secs": 2.6,
    "text": "365 miljoen jaar geleden",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "tc8b918a9",
@@ -42113,10 +42113,10 @@
   {
    "id": "td17bc8e7",
    "file": "nl/td17bc8e7.mp3",
-   "secs": 4.6,
+   "secs": 4.5,
    "text": "26,95 ton brandstof, 5 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "td17ded24",
@@ -43385,10 +43385,10 @@
   {
    "id": "td7c1c366",
    "file": "nl/td7c1c366.mp3",
-   "secs": 2.7,
+   "secs": 3,
    "text": "1,4 miljard km van de zon",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "td7c39399",
@@ -44081,10 +44081,10 @@
   {
    "id": "tdb22276a",
    "file": "nl/tdb22276a.mp3",
-   "secs": 3.2,
+   "secs": 3.1,
    "text": "228 miljoen km van de zon",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "tdb29e6b9",
@@ -45881,10 +45881,10 @@
   {
    "id": "te41f2016",
    "file": "nl/te41f2016.mp3",
-   "secs": 3.5,
+   "secs": 4.1,
    "text": "2,75 ton brandstof, 1 rij hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "te44dca34",
@@ -47129,10 +47129,10 @@
   {
    "id": "tea89f44c",
    "file": "nl/tea89f44c.mp3",
-   "secs": 3.9,
+   "secs": 4.4,
    "text": "16,17 ton brandstof, 3 rijen hoog.",
    "voice": "yO6w2xlECAQRFP6pX7Hw",
-   "model": "eleven_multilingual_v2"
+   "model": "eleven_v3"
   },
   {
    "id": "teaa1db5a",

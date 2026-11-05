@@ -44,12 +44,14 @@ const OUT = `public/voice/${LANG}`;
  */
 const MODEL = arg('--model') ?? 'eleven_v3';
 /**
- * 64 kbit/s mono at 44 kHz. The first recordings were 32 kbit/s at 22 kHz, which a phone speaker
- * barely notices; the owner wanted the voices as good as they can be, and 64 is the most that keeps
- * twelve thousand clips under the 200 MB Google Play allows for one download.
+ * Mono at 44 kHz; the bitrate is per language. The first recordings were 32 kbit/s at 22 kHz,
+ * which a phone speaker barely notices. The owner wanted the voices as good as they can be: the
+ * English, the first language, is 64 kbit/s (104 MB for six thousand clips). Both languages at 64
+ * would put the voice past the 200 MB Google Play allows for one download, so the Dutch is 32 at
+ * 44 kHz, the owner's choice of 2026-11-05. Override with --kbps 32|64|96|128.
  */
-const FORMAT = 'mp3_44100_64';
-const KBPS = 64;
+const KBPS = Number(arg('--kbps') ?? 64);
+const FORMAT = `mp3_44100_${KBPS}`;
 
 const SAMPLES = LANG === 'en' ? [
   'Hi, I am Suri. Shall we do something together?',
@@ -331,7 +333,7 @@ async function render(voice, dry) {
 }
 
 // the flags that take a value: their value is not a voice id
-const [cmd, ...rest] = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !['--model', '--lang'].includes(all[i - 1] ?? ''));
+const [cmd, ...rest] = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !['--model', '--lang', '--kbps'].includes(all[i - 1] ?? ''));
 if (cmd === 'voices') await voices();
 else if (cmd === 'sample' && rest.length) await sample(rest);
 else if (cmd === 'render' && rest[0]) await render(rest[0], process.argv.includes('--dry'));

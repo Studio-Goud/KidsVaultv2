@@ -205,8 +205,10 @@ Twee overwegingen die meewogen: Suri is in het Nederlands een vrouw, dus een vro
 is voor een kind van vier hetzelfde stokstaartje; en Amerikaans, omdat Engels (VS) de hoofdtaal
 van de winkels wordt.
 
-**Wat er in het script veranderde.** Standaardmodel `eleven_v3`, 64 kbit/s mono op 44 kHz (was
-32 op 22; 64 is het meeste dat twaalfduizend clips onder de 200 MB van Google Play houdt). v3 kent
+**Wat er in het script veranderde.** Standaardmodel `eleven_v3`, mono op 44 kHz, bitrate per taal
+met `--kbps`: het Engels op 64 (104 MB voor 6024 clips, tegen 56 MB op 32 kbit/s bij 22 kHz), het
+Nederlands op 32, omdat allebei op 64 de stem op ruim 220 MB zou brengen en Google Play 200 MB per
+download toestaat; de keuze van de eigenaar, met Apple voorop. v3 kent
 alleen `stability` en `similarity_boost`, en zijn stabiliteit is drie standen; 0,5 is "natuurlijk".
 De `language_code` is nu de taal die opgenomen wordt; hij stond vast op `nl`, ook voor het Engels.
 
@@ -219,6 +221,6 @@ die eerst, met de diernamen achteraan, zodat het tegoed op de verkeerde plek opr
 opraakt. De volgende maand is het dezelfde opdracht:
 
     npm run voice -- render XrExE9yKIg1WjnnlVkGX --lang en
-    npm run voice -- render yO6w2xlECAQRFP6pX7Hw
+    npm run voice -- render yO6w2xlECAQRFP6pX7Hw --kbps 32
 
 Volgorde, op aanwijzing van de eigenaar: eerst het Engels helemaal, daarna het Nederlands.
