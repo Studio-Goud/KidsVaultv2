@@ -205,10 +205,21 @@ export class Rhythm {
 
   canBack(): boolean { return this.phase !== 'home'; }
   back(): void {
+    this.leave(this.phase === 'play' || this.phase === 'won' ? 'levels' : 'home');
+  }
+
+  /**
+   * Out of a level, to the ladder or the opening screen. The round is put back to an empty one:
+   * an echo round leaves a pool of allowed bars behind, and the instrument on the opening screen
+   * was still dimming the bars outside it.
+   */
+  private leave(to: 'home' | 'levels'): void {
     stopAll();
     this.seqOn = false;
-    if (this.phase === 'play' || this.phase === 'won') this.phase = 'levels';
-    else this.phase = 'home';
+    this.round = makeRound(LEVELS[0], rngFor(LEVELS[0], 0), 0);
+    this.wrongAt = -1;
+    this.picked = null;
+    this.phase = to;
     this.cardPop = 0;
   }
 
@@ -770,16 +781,21 @@ export class Rhythm {
     // because the thing above them needs what is left. The chimes get more than the drum does:
     // nine bars a child has to aim at want the room, and a drum is one big target.
     const onChimes = this.level.kind === 'echo' || this.level.kind === 'tune';
-    const keysH = this.level.kind === 'make' ? 0
+    const keysH0 = this.level.kind === 'make' ? 0
       : onChimes
         ? Math.min(wide ? 132 * u : 268 * u, h * (wide ? 0.46 : 0.4))
         : Math.min(wide ? 126 * u : 252 * u, h * (wide ? 0.44 : 0.33));
-    // the frame the chimes hang in needs a rail above the longest bar and one below it
+    // The frame the chimes hang in needs a rail above the longest bar and one below it, and the
+    // whole of it stops above the guide's corner: the longest bar stands at the left edge and
+    // ran on under him, so the bottom of its hit box was his. The chimes give up height on a
+    // short wide screen rather than push the strip above them off the top.
     const rail = 16 * u;
+    const keepClear = 68 * u;
+    const keysH = Math.min(keysH0, Math.max(60 * u, h - keepClear - keysTop - 70 * u));
     // as wide as on the opening screen: nine bars on a phone are narrow enough without a rail's
     // worth of room given away on either side
     const keys: Rect = {
-      x: pad, y: h - keysH - pad * 0.8 - rail,
+      x: pad, y: h - keysH - keepClear,
       w: w - pad * 2, h: keysH,
     };
     const stage: Rect = {
@@ -873,8 +889,8 @@ export class Rhythm {
     if (id.startsWith('rung:')) { this.answerRung(Number(id.slice(5))); return; }
     switch (id) {
       case 'pad': this.tapBeat(); break;
-      case 'levels': uiTap(); stopAll(); this.seqOn = false; this.phase = 'levels'; this.cardPop = 0; break;
-      case 'home': uiTap(); stopAll(); this.seqOn = false; this.phase = 'home'; this.cardPop = 0; break;
+      case 'levels': uiTap(); this.leave('levels'); break;
+      case 'home': uiTap(); this.leave('home'); break;
       case 'make': uiTap(); this.start(LEVELS.length - 1); break;
       case 'retry': uiTap(); this.start(this.levelIndex); break;
       case 'next': uiTap(); this.start(Math.min(LEVELS.length - 1, this.levelIndex + 1)); break;
