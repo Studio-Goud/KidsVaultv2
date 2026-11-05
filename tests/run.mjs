@@ -503,7 +503,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- Klokkijken: the ladder and its traps
 
 {
-  const { LEVELS, distractors, makeQuestion, isRight, starsFor, rngFor } =
+  const { LEVELS, distractors, makeQuestion, isRight, starsFor, rngFor, askLine, correctionLine } =
     await bundle('src/games/clock/model.ts', 'clockmodel.mjs');
   const level = id => LEVELS.find(l => l.id === id);
 
@@ -581,6 +581,26 @@ const group = name => console.log(`\n${name}`);
     return true;
   });
   is('test_questions_a_level_never_asks_the_same_time_twice_running', noRepeats, true);
+
+  group('Klokkijken — the question and the correction, said out loud');
+  // a four-year-old cannot read the card, so every question is also a line in words
+  is('test_clock_ask_reading_asks_what_time_it_is',
+    askLine({ kind: 'read', t: { h: 3, m: 0 }, options: [], answer: 0 }, level('hours'), true), 'Hoe laat is het?');
+  is('test_clock_ask_twentyfour_hour_level_gives_the_part_of_the_day',
+    askLine({ kind: 'read', t: { h: 15, m: 0 }, options: [], answer: 0 }, level('day'), true),
+    "Het is 's middags. Hoe laat is het?");
+  is('test_clock_ask_setting_says_the_time_in_words_not_figures',
+    askLine({ kind: 'set', t: { h: 3, m: 30 }, options: [], answer: 0 }, level('setit'), true), 'Zet de klok op half vier.');
+  is('test_clock_ask_matching_says_the_time_in_words',
+    askLine({ kind: 'match', t: { h: 4, m: 20 }, options: [], answer: 0 }, level('match'), false),
+    'Which clock says twenty past four?');
+  is('test_clock_ask_elapsed_says_start_wait_and_question',
+    askLine({ kind: 'elapsed', t: { h: 14, m: 45 }, from: { h: 14, m: 20 }, plus: 25, options: [], answer: 0 }, level('later'), true),
+    'Het is tien voor half drie. De bus gaat over 25 minuten. Hoe laat is dat?');
+  is('test_clock_correction_starts_with_the_reading_capitalised',
+    correctionLine({ h: 3, m: 30 }, true), 'Half vier. Korte wijzer tussen 3 en 4: het uur is 3.');
+  is('test_clock_correction_in_english_too',
+    correctionLine({ h: 6, m: 0 }, false), "Six o'clock. Short hand right on the 6.");
 
   group('Klokkijken — stars for what was read first time');
   is('test_stars_all_read_first_time_is_three', starsFor(8, 8), 3);
@@ -3884,7 +3904,10 @@ const group = name => console.log(`\n${name}`);
   is('test_verkeer_at_the_zebra_you_still_look_first', /kijken we eerst/.test(said('zebrapad')), true);
   is('test_verkeer_red_is_stop_and_green_is_go', /Rood betekent stop. Groen betekent gaan/.test(said('stoplicht')), true);
   // a look is a real turn of the head, held for a moment, and the red light is a floor not a timer
-  is('test_verkeer_a_look_is_a_real_turn', LOOK_YAW > 0.5 && LOOK_YAW < 1.2 && LOOK_HOLD > 0, true);
+  is('test_verkeer_a_look_is_a_real_turn', LOOK_YAW > 0.3 && LOOK_YAW < 1.2 && LOOK_HOLD > 0, true);
+  // one swipe must do: a full-width swipe turns by the field of view (390/(844*0.55) = 0.84 rad on a
+  // phone held upright) and a child's swipe is about 60% of the width (play check of 2026-11-05)
+  is('test_verkeer_one_short_swipe_counts_as_a_look', LOOK_YAW <= 0.84 * 0.6, true);
   is('test_verkeer_the_red_light_is_short_enough_to_wait_out', RED_MIN >= 3 && RED_MIN <= 8, true);
   is('test_verkeer_never_says_leert', steps.some(({ s }) => 'sayNl' in s && /\bleer/i.test(s.sayNl)), false);
   is('test_verkeer_no_exclamation_marks', steps.some(({ s }) => 'sayNl' in s && /!/.test(s.sayNl + s.say)), false);

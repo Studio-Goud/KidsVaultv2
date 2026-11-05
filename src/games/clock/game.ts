@@ -19,7 +19,7 @@
  */
 
 import { clamp, TAU, type Vec } from '../../util/math';
-import { safeArea, uiScale } from '../../util/ui';
+import { GUIDE_KEEP, safeArea, uiScale } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { levelProgress, persist, recordLevelResult, save } from '../../util/storage';
 import {
@@ -31,8 +31,8 @@ import {
   spoken,
 } from './dutchtime';
 import {
-  isRight, LEVELS, makeQuestion, optionsFor, parMsFor, rngFor, starsFor, teachLine,
-  type Level, type Question, type Time,
+  askLine, correctionLine, isRight, LEVELS, makeQuestion, optionsFor, parMsFor, rngFor, starsFor,
+  teachLine, type Level, type Question, type Time,
 } from './model';
 import {
   cleanTopics, nextStep, pickNext, recordTopic, topicOf, type Topics,
@@ -41,7 +41,7 @@ import { masteryRing, nextRing } from '../../platform/progress';
 import { dialRadius, drawClockFace, drawDigital, drawRoom, HOUR_LEN, MINUTE_LEN } from './paint';
 import { clocksfx } from './clocksfx';
 import { NL, T } from '../../util/lang';
-import { speakLine } from '../../platform/voice';
+import { forgetLine, sayRecorded, speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won';
@@ -131,7 +131,10 @@ export class Clock {
   private ps = new Particles();
   private shake = new Shake();
   private cardPop = 0;
+  /** the last line said out loud: what the guide in the corner repeats on a tap */
   private note = '';
+  /** the line in the strip under the question, which is the hint and not the question itself */
+  private banner = '';
   private noteT = 0;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -189,8 +192,10 @@ export class Clock {
       minuteNumbers: save.clock.minuteNumbers,
       diff: Number(this.diff.toFixed(3)),
       mastery: Number((this.topics[this.level.id]?.level ?? 0).toFixed(3)),
+      /** the last line said out loud, which is also what the guide repeats */
+      note: this.note,
       clock: { x: Math.round(L.clock.cx), y: Math.round(L.clock.cy), r: Math.round(L.clock.r) },
-      buttons: this.hits.map(b => ({ id: b.id, x: Math.round(b.x + b.w / 2), y: Math.round(b.y + b.h / 2) })),
+      buttons: this.hits.map(b => ({ id: b.id, x: Math.round(b.x + b.w / 2), y: Math.round(b.y + b.h / 2), w: Math.round(b.w), h: Math.round(b.h) })),
     };
   }
 
@@ -218,19 +223,6 @@ export class Clock {
 
   private font(weight: string, size: number): string {
     return `${weight} ${Math.round(size * this.u())}px Nunito, system-ui, sans-serif`;
-  }
-
-  /** A row-major grid of equal cells inside a rectangle. */
-  private grid(r: Rect, n: number, cols: number, gap: number): Rect[] {
-    const rows = Math.max(1, Math.ceil(n / cols));
-    const cw = (r.w - gap * (cols - 1)) / cols;
-    const ch = (r.h - gap * (rows - 1)) / rows;
-    const out: Rect[] = [];
-    for (let i = 0; i < n; i++) {
-      const c = i % cols, row = Math.floor(i / cols);
-      out.push({ x: r.x + c * (cw + gap), y: r.y + row * (ch + gap), w: cw, h: ch });
-    }
-    return out;
   }
 
   /**
@@ -271,7 +263,7 @@ export class Clock {
         return {
           clock: { cx: colX + rightW / 2, cy: (free.top + free.bottom) / 2, r: dw / 2 },
           prompt, band, check, wide,
-          opts: this.squared(pane, n, 2, gap * 1.6, true),
+          opts: this.tiles(pane, n, gap * 1.6),
         };
       }
       const btnH = Math.min(60 * u, (free.bottom - free.top - gap * (rows - 1)) / rows);
@@ -279,7 +271,7 @@ export class Clock {
       const area: Rect = {
         x: colX, y: free.top + (free.bottom - free.top - stackH) / 2, w: rightW, h: stackH,
       };
-      const opts = this.q.kind === 'set' ? [] : this.grid(area, n, cols, gap);
+      const opts = this.q.kind === 'set' ? [] : this.pack(area, n, cols, (area.w - gap * (cols - 1)) / cols, btnH, gap);
       const r = Math.max(50 * u, Math.min(cw / 2, (h - top - 20 * u) / 2));
       return {
         clock: { cx: pad + cw / 2, cy: top + (h - top - 20 * u) / 2, r },
@@ -290,13 +282,30 @@ export class Clock {
     const promptH = (this.q.kind === 'elapsed' ? 92 : 62) * u;
     const prompt: Rect = { x: pad, y: top, w: w - pad * 2, h: promptH };
     const band: Rect = { x: pad, y: prompt.y + promptH + 8 * u, w: w - pad * 2, h: bandH };
-    const btnH = isMatch ? Math.min(140 * u, (w - pad * 2 - gap) / 2) : 54 * u;
-    const stackH = btnH * rows + gap * (rows - 1);
-    const bottom = h - 18 * u;
-    const area: Rect = { x: pad, y: bottom - stackH, w: w - pad * 2, h: stackH };
-    const opts = this.q.kind === 'set' ? [] : this.squared(area, n, cols, gap, isMatch);
-    const check: Rect = { x: w / 2 - 90 * u, y: bottom - 58 * u, w: 180 * u, h: 58 * u };
+    // the guide stands in the bottom-left corner, so the lowest row of anything pressable ends
+    // above him rather than beside him: a button that is a third under his feet reads as ":00"
+    const bottom = h - Math.max(18 * u, GUIDE_KEEP);
     const clockTop = band.y + bandH + 8 * u;
+    const check: Rect = { x: w / 2 - 90 * u, y: bottom - 58 * u, w: 180 * u, h: 58 * u };
+    if (isMatch) {
+      // the digital card is one short line of figures; the faces under it get all the rest, and
+      // the card gives up width first on a short screen so the faces stay readable
+      const dcw = Math.min(300 * u, w - 56 * u, Math.max(120 * u, (bottom - clockTop) * 0.5));
+      const dh = dcw * 0.42;
+      const cy = clockTop + 4 * u + dh / 2;
+      // room under the card for the reading in words after a wrong answer
+      const tilesTop = cy + Math.max(dh / 2 + 44 * u, dcw * 0.34 + 10 * u);
+      const area: Rect = { x: pad, y: tilesTop, w: w - pad * 2, h: Math.max(60 * u, bottom - tilesTop) };
+      return {
+        clock: { cx: w / 2, cy, r: dcw / 2 },
+        prompt, band, check, wide,
+        opts: this.tiles(area, n, gap),
+      };
+    }
+    const btnH = 54 * u;
+    const stackH = btnH * rows + gap * (rows - 1);
+    const area: Rect = { x: pad, y: bottom - stackH, w: w - pad * 2, h: stackH };
+    const opts = this.q.kind === 'set' ? [] : this.pack(area, n, cols, (area.w - gap * (cols - 1)) / cols, btnH, gap);
     const clockBottom = (this.q.kind === 'set' ? check.y : area.y) - 14 * u;
     const r = Math.max(46 * u, Math.min(w * 0.44, (clockBottom - clockTop) / 2));
     return {
@@ -306,24 +315,42 @@ export class Clock {
   }
 
   /**
-   * The answer grid, with the faces on a matching question pulled in to squares.
-   *
-   * A clock on a tile twice as wide as it is tall is a clock the height of the tile with a lot of
-   * empty card either side of it, which reads as a small clock. Squaring the tiles and centring
-   * the row gives the same face a third more diameter for nothing.
+   * `n` cells of one size in rows of `cols`, the block centred in the area and a short last row
+   * centred under the full ones, so a third answer never sits alone in the corner with the guide.
    */
-  private squared(area: Rect, n: number, cols: number, gap: number, square: boolean): Rect[] {
-    const cells = this.grid(area, n, cols, gap);
-    if (!square || !cells.length) return cells;
-    const side = Math.min(cells[0].w, cells[0].h);
-    if (side >= cells[0].w - 1) return cells;
-    const rows = Math.ceil(n / cols);
-    void rows;
-    const usedW = cols * side + gap * (cols - 1);
-    const x0 = area.x + (area.w - usedW) / 2;
-    return cells.map((c, i) => ({
-      x: x0 + (i % cols) * (side + gap), y: c.y + (c.h - side) / 2, w: side, h: side,
-    }));
+  private pack(area: Rect, n: number, cols: number, cw: number, ch: number, gap: number): Rect[] {
+    const rows = Math.max(1, Math.ceil(n / cols));
+    const blockH = rows * ch + (rows - 1) * gap;
+    const y0 = area.y + (area.h - blockH) / 2;
+    const out: Rect[] = [];
+    for (let row = 0; row < rows; row++) {
+      const inRow = Math.min(cols, n - row * cols);
+      const rowW = inRow * cw + (inRow - 1) * gap;
+      const x0 = area.x + (area.w - rowW) / 2;
+      for (let c = 0; c < inRow; c++) {
+        out.push({ x: x0 + c * (cw + gap), y: y0 + row * (ch + gap), w: cw, h: ch });
+      }
+    }
+    return out;
+  }
+
+  /**
+   * The faces to choose between, as the biggest squares the area allows.
+   *
+   * Three faces in one row of three or in two rows of two is a question of which screen this is:
+   * a tall phone has the height for two rows and gets faces half the screen wide, a short one
+   * does better with one row. So every column count is tried and the one with the biggest tile
+   * wins; the difference between two faces is a hand a few minutes apart, and that needs size.
+   */
+  private tiles(area: Rect, n: number, gap: number): Rect[] {
+    let best: Rect[] = [], bestSide = 0;
+    for (const cols of [2, 3, 4]) {
+      if (cols > n && cols !== 2) continue;
+      const rows = Math.ceil(n / cols);
+      const side = Math.min((area.w - gap * (cols - 1)) / cols, (area.h - gap * (rows - 1)) / rows);
+      if (side > bestSide) { bestSide = side; best = this.pack(area, n, cols, side, side, gap); }
+    }
+    return best;
   }
 
   // ---------- the run of a level ----------
@@ -346,7 +373,21 @@ export class Clock {
     this.cardPop = 0;
     this.phase = 'play';
     this.nextQuestion();
-    this.say(NL() ? this.level.hintNl : this.level.hint, 6);
+    this.banner = NL() ? this.level.hintNl : this.level.hint;
+    this.noteT = 6;
+    this.ask(true);
+  }
+
+  /**
+   * Say the question out loud, since a four-year-old cannot read it: after the level's hint on the
+   * first round, on its own after that. Ruth's recordings are played back to back when she has
+   * them all; otherwise the device voice says the lines as one.
+   */
+  private ask(withHint: boolean): void {
+    const q = askLine(this.q, this.level, NL());
+    const lines = withHint ? [this.banner, q] : [q];
+    this.note = lines.join(' ');
+    if (!sayRecorded(lines)) { forgetLine(); speakLine(this.note); }
   }
 
   /** The last thing the game said, so the guide in the corner can say it again. */
@@ -354,9 +395,11 @@ export class Clock {
 
   private say(text: string, secs = 3.5): void {
     this.note = text;
+    this.banner = text;
     this.noteT = secs;
-    // audio-first: the note is the game's instruction, so it is heard as well as read.
-    // Today that is the machine's own voice; a recording slots in without touching this.
+    // audio-first: the note is the game's instruction, so it is heard as well as read. A reading
+    // that comes round twice is said twice: these are answers to a tap, not a hint to be kept quiet.
+    forgetLine();
     speakLine(text);
   }
 
@@ -375,6 +418,8 @@ export class Clock {
     this.hands = this.q.kind === 'set'
       ? { ...(this.q.start ?? { h: 12, m: 0 }) }
       : { ...(this.q.kind === 'elapsed' ? (this.q.from ?? this.q.t) : this.q.t) };
+    // the first question of a level is asked by start(), after the hint
+    if (this.round > 0) this.ask(false);
   }
 
   /** The time the face is showing, which is not the answer on an elapsed-time question. */
@@ -397,6 +442,10 @@ export class Clock {
       const L = this.layout();
       this.ps.spawn('spark', L.clock.cx, L.clock.cy, 16, { colour: '#ffd873', speed: 260, size: L.clock.r * 0.12, max: 0.9, spread: TAU });
       this.ps.spawn('ring', L.clock.cx, L.clock.cy, 2, { colour: 'rgba(120, 220, 160, 0.9)', speed: 0, size: L.clock.r * 0.5, max: 0.8 });
+      // the figures were the answer; the words are the thing worth carrying away
+      this.note = spoken(this.q.t.h, this.q.t.m, NL());
+      forgetLine();
+      speakLine(this.note);
     } else {
       this.fb = 'wrong';
       this.fbT = WRONG_FOR;
@@ -404,6 +453,10 @@ export class Clock {
       this.streak = 0;
       this.shake.add(0.5);
       clocksfx.wrong();
+      // the correction is the only part of this game that teaches, so it is heard, not just read
+      this.note = correctionLine(this.q.t, NL());
+      forgetLine();
+      speakLine(this.note);
     }
     this.noteAttempt(ok);
   }
@@ -680,7 +733,7 @@ export class Clock {
     ctx.fillStyle = 'rgba(18,48,71,0.85)';
     ctx.font = this.font('700', 11.5);
     ctx.textAlign = 'center';
-    this.wrapText(this.note, b.x + b.w / 2, b.y + b.h / 2 + 4 * u, b.w - 24 * u, 14 * u, 3);
+    this.wrapText(this.banner, b.x + b.w / 2, b.y + b.h / 2 + 4 * u, b.w - 24 * u, 14 * u, 3);
     ctx.restore();
   }
 

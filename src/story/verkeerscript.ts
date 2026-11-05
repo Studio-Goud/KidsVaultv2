@@ -36,11 +36,15 @@ export interface Chapter extends TaleChapter {
 }
 
 /**
- * How far the camera must turn to have "looked left" or "looked right", in radians. 0.8 is about
- * 46 degrees: far enough that the road is seen running away along its length rather than across the
- * screen, near enough that a four-year-old with one finger gets there in two swipes. Product decision.
+ * How far the camera must turn to have "looked left" or "looked right", in radians. 0.45 is about
+ * 26 degrees: far enough that the middle of the screen is on the road to one side rather than on the
+ * house across it, and near enough that one swipe gets there. A full-width swipe turns the camera by
+ * the field of view (`look.ts`), 0.84 rad on a phone held upright, and a child's swipe is shorter
+ * than the screen: the play check of 2026-11-05 found that 0.8 needed two swipes and three looks
+ * cost seven. The camera is turned back to the front before each look (`verkeer.ts`), so every look
+ * starts from the same place. Product decision.
  */
-export const LOOK_YAW = 0.8;
+export const LOOK_YAW = 0.45;
 /** How long the look must be held, in seconds, so sweeping past it does not count. Product decision. */
 export const LOOK_HOLD = 0.35;
 

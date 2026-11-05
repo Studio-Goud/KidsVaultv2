@@ -21,7 +21,7 @@
 import { T } from '../util/lang';
 import { drawGuide } from '../platform/guide';
 import { isSpeaking } from '../platform/voice';
-import { ASIDES, CHAPTERS, LOOK_HOLD, LOOK_YAW, RED_MIN, RIDE_LEN, ROAD_NEAR, ROAD_WIDTH, TO_KERB, TO_OMA, type Chapter } from './verkeerscript';
+import { ASIDES, CHAPTERS, LOOK_HOLD, LOOK_YAW, RED_MIN, RIDE_LEN, ROAD_NEAR, ROAD_WIDTH, TO_KERB, TO_OMA, nextPlace, type Chapter } from './verkeerscript';
 import { wrapAngle } from './look';
 import { spot, type Palette, type PropKind, type View } from './world';
 import {
@@ -62,6 +62,14 @@ const LANE_NEAR = ROAD_NEAR + ROAD_WIDTH * 0.25;
 const LANE_FAR = ROAD_NEAR + ROAD_WIDTH * 0.75;
 /** Where the car stops for the zebra crossing: its nose a little before the stripes, which start at x = -1.8. */
 const STOP_X = -4.5;
+/** Where the bike's front wheel meets the kerb, in metres walked: the bike stands `groupZ` ahead of the camera. */
+const ZEBRA_KERB = 3.4;
+/**
+ * The passing car is followed by the camera until it is in front of you. The camera turns towards a
+ * guided angle with a lag (`look.ts`, 2.2 per second); pointing it this many metres ahead of the car
+ * cancels that lag at the car's speed, so the car stays in the middle of the screen as it passes.
+ */
+const CAR_LEAD = CAR_V / 2.2;
 const CAR_COLOURS = ['#e8743b', '#3f8ff0', '#f7c531', '#4fae6e', '#d8402f', '#8a5fb0'];
 
 const NUDGES: Record<string, Aside> = {
@@ -112,6 +120,7 @@ export class Verkeer extends Stage {
 
   private idleT = 0;
   private nagged = false;
+  private lastStep = -1;
   private lastWait: string | null = null;
   private playing: Bed | null = null;
 
@@ -140,7 +149,7 @@ export class Verkeer extends Stage {
     this.travel = 0; this.speed = 0; this.phase = 0;
     this.cars = []; this.beast = null; this.life = null;
     this.autoWalk = false; this.autoRide = false;
-    this.lookT = 0; this.passIn = -1; this.passSent = false; this.idleT = 0; this.nagged = false; this.lastWait = null;
+    this.lookT = 0; this.passIn = -1; this.passSent = false; this.idleT = 0; this.nagged = false; this.lastWait = null; this.lastStep = -1;
     this.light = 'red'; this.goT = 0; this.spawnT = 0.6; this.shakeGo = 0;
     this.fadeIn = c.id === 'thuis' ? 0 : 1;
     this.ring = 0;
@@ -264,14 +273,19 @@ export class Verkeer extends Stage {
     this.doorT = this.doorT > 0 ? Math.min(1, this.doorT + dt * 1.2) : 0;
     if (this.fly) { this.fly.t += dt / 0.6; if (this.fly.t >= 1) { this.fly = null; this.helmetOn = true; } }
 
-    // a hint, once, when the child has not done the thing for a while
+    const key = this.place.chapter * 100 + this.place.step;
+    if (key !== this.lastStep) { this.lastStep = key; this.onStep(); }
+
+    // a hint, once, when the child has not done the thing for a while; sooner at the zebra crossing,
+    // where the bike keeps rolling until the child taps stop
     if (w !== this.lastWait) { this.lastWait = w; this.idleT = 0; this.nagged = false; }
     if (w && NUDGES[w] && this.held === null) {
       this.idleT += dt;
-      if (this.idleT > 9 && !this.nagged && !isSpeaking()) { this.nagged = true; this.aside(NUDGES[w]); }
+      if (this.idleT > (w === 'stopped' ? 4 : 9) && !this.nagged && !isSpeaking()) { this.nagged = true; this.aside(NUDGES[w]); }
     }
 
     this.moveCars(dt);
+    this.followPass();
     this.moveBike(dt, w);
     this.looking(dt, w);
     this.scenes(dt, w);
@@ -281,6 +295,29 @@ export class Verkeer extends Stage {
       if (c) { this.beast.x = c.x; this.beast.z = c.z - this.travel; }
     }
     this.ambience();
+  }
+
+  /**
+   * The start of a step. Each look begins facing the road again: the line that asks for it turns the
+   * camera back to the front, so one swipe is one look, and left, right, left is three swipes rather
+   * than seven (play check of 2026-11-05).
+   */
+  private onStep(): void {
+    if (this.scene !== 'stoep') return;
+    const s = this.step(), next = nextPlace(this.place);
+    const after = next && next.chapter === this.place.chapter ? this.chapters[next.chapter].steps[next.step] : undefined;
+    if (s && 'say' in s && after && 'wait' in after && (after.wait === 'left' || after.wait === 'right' || after.wait === 'left2')) this.turnTo(0, 1.2);
+  }
+
+  /**
+   * The car that comes once the child has looked left passes where the child is looking: the camera
+   * goes with it until it is in front, then it is the child's again and the car drives off to the
+   * right in view. Without this a child who swung far round saw nothing go by.
+   */
+  private followPass(): void {
+    if (this.scene !== 'stoep') return;
+    const c = this.cars.find(k => k.kind === 'pass');
+    if (c && c.x < 1.5) this.turnTo(Math.atan2(c.x + CAR_LEAD, c.z - this.travel), 0.25);
   }
 
   private moveCars(dt: number): void {
@@ -304,7 +341,9 @@ export class Verkeer extends Stage {
       if (w === 'atkerb' && this.held === 'walk') { v = WALK; if (this.travel + v * dt >= TO_KERB) { this.travel = TO_KERB; this.flags.add('atkerb'); v = 0; } }
       if (this.autoWalk) { v = WALK; if (this.travel >= ROAD_NEAR + ROAD_WIDTH + 1.2) { this.travel = ROAD_NEAR + ROAD_WIDTH + 1.2; this.autoWalk = false; this.flags.add('over'); v = 0; } }
     } else if (this.scene === 'zebrapad') {
-      if (w === 'stopped') { v = WALK * 0.7; if (this.travel + v * dt >= 3.4) { this.travel = 3.4; this.flags.add('stopped'); v = 0; } }
+      // the bike rolls on slowly until the child taps stop; at the kerb it halts by itself and still
+      // waits for the tap, because stopping before the road is what the chapter is about
+      if (w === 'stopped') { v = WALK * 0.4; if (this.travel + v * dt >= ZEBRA_KERB) { this.travel = ZEBRA_KERB; v = 0; } }
       if (w === 'crossed' && this.held === 'walk') { v = WALK; if (this.travel + v * dt >= ROAD_NEAR + ROAD_WIDTH + 1.2) { this.flags.add('crossed'); v = 0; } }
     } else if (this.scene === 'stoplicht') {
       if (this.autoRide) { v = 2.4; if (this.travel + v * dt >= ROAD_NEAR + ROAD_WIDTH + 1.6) { this.autoRide = false; this.flags.add('over'); v = 0; } }

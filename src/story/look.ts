@@ -83,8 +83,12 @@ export class Look {
   }
 
   update(dt: number): void {
-    if (this.guided != null) this.target = this.yaw + wrapAngle(this.guided - this.yaw);
-    else if (this.gyroYaw != null && this.dragX == null) this.target = this.gyroYaw;
+    if (this.guided != null) {
+      this.target = this.yaw + wrapAngle(this.guided - this.yaw);
+      // the compass follows the story's turn, as it follows a drag, so the camera is not snatched
+      // back to where the phone points the moment the story hands it over
+      if (this.gyroYaw != null && this.gyroBase != null) { this.gyroBase += this.gyroYaw - this.target; this.gyroYaw = this.target; }
+    } else if (this.gyroYaw != null && this.dragX == null) this.target = this.gyroYaw;
     const k = Math.min(1, dt * (this.guided != null ? 2.2 : 10));
     this.yaw += wrapAngle(this.target - this.yaw) * k;
   }

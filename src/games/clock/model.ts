@@ -13,7 +13,7 @@
  */
 
 import { makeRng } from '../../util/rng';
-import { normalise, plusMinutes, sameTime } from './dutchtime';
+import { dayPart, durationLabel, normalise, plusMinutes, sameTime, spoken } from './dutchtime';
 
 export type QKind = 'read' | 'set' | 'match' | 'elapsed';
 
@@ -284,4 +284,37 @@ export function teachLine(t: Time, nl: boolean): string {
   return nl
     ? `Korte wijzer tussen ${here} en ${next}: het uur is ${here}.`
     : `Short hand between ${here} and ${next}: the hour is ${here}.`;
+}
+
+/**
+ * The question in words a child can be told, since the card above the clock is for the ones who
+ * can already read. The reading itself is said in words, never as figures: "half vier" is what
+ * the level is about, and a device voice makes a hash of "4:20".
+ */
+export function askLine(q: Question, level: Level, nl: boolean): string {
+  const t = q.t;
+  if (q.kind === 'set') {
+    return nl ? `Zet de klok op ${spoken(t.h, t.m, true)}.` : `Set the clock to ${spoken(t.h, t.m, false)}.`;
+  }
+  if (q.kind === 'match') {
+    return nl ? `Welke klok zegt ${spoken(t.h, t.m, true)}?` : `Which clock says ${spoken(t.h, t.m, false)}?`;
+  }
+  if (q.kind === 'elapsed') {
+    const from = q.from ?? t;
+    const wait = durationLabel(q.plus ?? 0, nl);
+    return nl
+      ? `Het is ${spoken(from.h, from.m, true)}. De bus gaat over ${wait}. Hoe laat is dat?`
+      : `It is ${spoken(from.h, from.m, false)}. The bus goes in ${wait}. What time is that?`;
+  }
+  // on the twenty-four hour levels the hands alone cannot say, so the part of the day is given
+  if (level.h24) {
+    return nl ? `Het is ${dayPart(t.h, true)}. Hoe laat is het?` : `It is ${dayPart(t.h, false)}. What time is it?`;
+  }
+  return nl ? 'Hoe laat is het?' : 'What time is it?';
+}
+
+/** The reading in words and what the hands are doing, said after a wrong answer. */
+export function correctionLine(t: Time, nl: boolean): string {
+  const words = spoken(t.h, t.m, nl);
+  return `${words[0].toUpperCase()}${words.slice(1)}. ${teachLine(t, nl)}`;
 }
