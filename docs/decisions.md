@@ -980,3 +980,85 @@ bekeken. Niet nagekeken: een echte telefoon, de iOS-bouwstraat, en drie spellen 
 Nachtwacht, Planetarium) geven op hun beginscherm geen `buttons` door, zodat het speelscript en
 de audit daar alleen de knoppen van de pagina zelf zien; dat is een gat in de audit, niet in het
 spel, en het staat open.
+
+## 2026-11-05 — Alles gespeeld zoals een kind, en wat dat opleverde
+
+De eigenaar vroeg of nu alles nagekeken was of alleen de raket, en het eerlijke antwoord was:
+alleen de raket. De audit en een tikscript vinden crashes en knoppen op de verkeerde plek, niet
+een sleep die geweigerd wordt terwijl een kind duidelijk iets bedoelde. Dus zijn alle zesendertig
+dingen plus de voorpagina en het ouderscherm door zes controleurs gespeeld, van beginscherm tot
+eindkaart, in het Nederlands en in het Engels en waar het bestaat in de peutervorm, met echte
+tikken en vegen van Playwright en een schermafbeelding bij elke bevinding. Daarna heeft per groep
+een reparateur de lijst afgewerkt, in zijn eigen bestanden, met een eigen dev-server, zonder git.
+De maat voor "onhandig" was de raket: een onderdeel dat niet landt waar je het neerzet.
+
+**Wat er mis was, in soorten.** Vier dingen kwamen in bijna elk spel terug, en die zeggen meer
+over het project dan de losse fouten:
+
+1. **Knoppen onder de gids in de hoek.** Opgraving (antwoordknop), Klankhuis (Niveaus en de
+   langste klokjesbalk), Marktdag (de appelkist: een kind dat op appels tikte kreeg geen appel),
+   Letterbos (de linkse tegel zodra het rek zes tegels heeft, waardoor "zwaan", "fiets" en alle
+   zinnetjes niet af te maken waren), Rekenrijk en Klokkijken (de linker antwoordknop, "8:00" te
+   zien als ":00"), Vingerverf (de rode pot), Planetarium (het tabblad op een klein scherm). De
+   gids is een DOM-knop boven het canvas, en de audit vond deze overlappingen niet, omdat hij op
+   die plek alleen checkt wat `buttons` zegt en de helft van de spellen hun rijen tegen de
+   onderrand legden. `GUIDE_KEEP` in `src/util/ui.ts` is nu de afspraak: niets drukbaars links
+   onder die lijn.
+2. **Regel 6 geschonden op precies het moment dat het ertoe doet.** Rekenrijk zei de som niet,
+   Klokkijken de vraag niet, Marktdag niet dat je fout belde en niet dat de dag om was, Opgraving
+   niet dat een antwoord fout was, Getijdenpoel niet dat de regel wisselde, Stuifzwam niet dat je
+   gewonnen had, Het jaar rond niet dat een tegel fout lag, Planetarium zei op elk tabblad de
+   puzzelvraag. Allemaal gerepareerd met `say()`; `note` in `debugState()` is overal de laatst
+   gesproken regel, zodat een script het kan nalezen.
+3. **Dingen die niet landden waar je ze neerzette.** Naast de raket: de Knikkerbaan droeg een
+   plank tot vier gaatjes ver weg (nu hoogstens één, zoals `nearestSpot`), de kleine kist in
+   Rekenrijk stond bij een tweede getal van drie of meer al tegen de grote en schoof niet,
+   Vingerverf dipte niet als de vinger op een pot begon, Postbode schoot bij een flinke veeg vier
+   huizen door, de Liedjesmaker zette een dier in de rij als je het net eronder losliet om het
+   weg te halen, Nachtwacht liet een verkeerde lijn meetellen tot het aantal klopte.
+4. **Engels dat Nederlands bleef.** Het jaar rond zei "Donderdag" in het Engels; Cloudhopper
+   schreef "Innsbruck · Oostenrijk" op de Engelse wereldkaart.
+
+Daarnaast één regel-2-schending: Marktdag had een leeglopende ring per klant en een klant die na
+veertig seconden wegliep. Een klok in een spel; weg. En drie dingen die de audit blind maakten:
+Nachtwacht en Planetarium gaven geen `buttons` door en Nachtwacht had geen peutervorm hoewel de
+catalogus "vanaf 3" zegt; beide hersteld. Zodra Planetarium zijn knoppen doorgaf, vond de audit
+meteen het tabblad onder de gids op 320x568.
+
+**De verhalen.** In de reuzentand liep de mammoet door terwijl je hem de tand moest geven en nam
+de mosasaurus de tand alleen aan bij zijn kop, die buiten beeld lag; nu staan dieren stil zodra ze
+gevonden zijn, nemen ze de tand op hun hele lijf aan, en draait de camera naar het dier als je de
+tand oppakt. In de fietstocht telde één veeg niet als "kijken" (0,8 rad gevraagd, 0,75 gehaald)
+en reed de auto buiten beeld voorbij; nu telt één veeg en volgt de camera de auto. Het zebrapad
+wacht nu echt op de tik op Stop, met een hint na vier seconden en nooit een mislukking. In het
+donker stond het lampje twee schermbreedtes buiten beeld toen Ruth "Tik op het lampje" zei; de
+stoel met de jas staat nu naast het kastje, zodat vlek, jas en lamp samen in beeld passen. "Draai
+je om" klopt daardoor minder letterlijk; die regel heeft een opname en is niet veranderd.
+
+**Wat bewust niet gedaan is.** De voorpagina met zesendertig kaarten in één lijst (een ontwerp,
+geen fout); de uitleg vooraf van Cloudhopper, die nog tekst is; de tabelgetallen in Verken van
+Planetarium; de percelen in het dorp van de Watermolen (stippellijn-ovalen); de Iguanodon-foto
+met steigers; de schildpad in het lichtje die achter je begint. Staan hier, zodat ze niet
+verdwijnen.
+
+**De stem.** Tientallen nieuwe Nederlandse regels ("Nieuwe regel: sorteer op soort.", "Drie keer
+de verkeerde poel.", "Dichterbij. Laat hem los op het dier.", de vragen van Rekenrijk en
+Klokkijken) vallen op de telefoonstem tot de eigenaar `npm run voice` draait. `npm run voicecheck`
+laat zien welke.
+
+**Over het werken met helpers.** Zeven tegelijk (zes controleurs en een reparateur) hebben het
+vijfuursbudget twee keer in een paar uur opgemaakt; elke helper speelt in een browser en bekijkt
+schermafbeeldingen, en dat is per uur ongeveer wat een lang gesprek kost. Drie tegelijk was de
+maat die het wel volhield. Na elke afgeronde groep is gecommit, met "tussenstand" in de titel waar
+het dat was, zodat een herstart van de werkruimte niets kwijtraakte; dat is twee keer nodig
+geweest.
+
+Nagekeken: tsc; 1777 tests (81 nieuw); `npm run audit` op de nieuwe bouw 0 fouten over 49
+schermen x 5 maten, na één gevonden en herstelde fout in Planetarium; een speelscript dat op elk
+van de 38 pagina's tachtig keer willekeurig tikt en sleept, in het Nederlands en in het Engels,
+zonder uitzondering, zonder leeg canvas en zonder "undefined" in een gesproken regel (op de bouw
+van de ochtend; de run op de eindbouw liep nog toen dit werd vastgelegd en wordt hieronder
+nagedragen); elk
+gerepareerd punt door zijn reparateur in een browser nagespeeld op 390x844, de meeste ook op
+320x568. Niet nagekeken: een echte telefoon, liggend bij de meeste reparaties, en de geluiden en
+stemmen zijn door niemand gehoord.

@@ -16,7 +16,7 @@ import { drawScale } from './scale';
 import { MissionScreen } from './missionscreen';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
 import { CREDITS, loadAllMoons, loadAllPlanets } from '../../platform/planetphoto';
-import { safeArea, uiScale } from '../../util/ui';
+import { safeArea, uiScale, GUIDE_KEEP } from '../../util/ui';
 import { unlockAudio } from '../../util/audio';
 import { chunkyButton } from '../../render/look';
 import { paintSpace } from './paint';
@@ -234,7 +234,8 @@ export class Orbit {
     const widths = labels.map(([, l]) => ctx.measureText(l).width + pad * 2.2);
     const total = widths.reduce((a, b) => a + b, 0) + pad * (labels.length - 1);
     let x = (this.w - total) / 2;
-    const y = this.h - bh - 14 * u;
+    // On a narrow phone the row runs into the guide's corner, so it sits above him instead.
+    const y = this.tabsLifted() ? this.h - GUIDE_KEEP - bh - 4 * u : this.h - bh - 14 * u;
     const hits: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
     labels.forEach(([id, label], i) => {
       const bw = widths[i];
@@ -251,8 +252,14 @@ export class Orbit {
     return hits;
   }
 
+  /**
+   * Whether the tab row has to sit above the guide rather than beside him. Four tabs are about
+   * 300 px wide; centred on anything narrower than 360 px the first one lands in his corner.
+   */
+  private tabsLifted(): boolean { return this.w < 360; }
+
   /** How much room the tab bar takes off the bottom of every screen. */
-  private tabRoom(): number { return 68 * this.u(); }
+  private tabRoom(): number { return this.tabsLifted() ? GUIDE_KEEP + 56 * this.u() : 68 * this.u(); }
 
   // ---------- rounds ----------
 

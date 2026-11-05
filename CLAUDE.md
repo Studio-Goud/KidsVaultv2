@@ -56,7 +56,7 @@ Three gates, all of which must be green before a commit claims to be finished:
 
 ```
 npx tsc --noEmit        # types
-npm test                # 1696 checks, no browser, tests/run.mjs
+npm test                # 1777 checks, no browser, tests/run.mjs
 npm run audit           # 49 screens x 5 screen shapes in a real browser, 0 faults
 ```
 
