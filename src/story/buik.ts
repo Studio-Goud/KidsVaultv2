@@ -627,7 +627,7 @@ export class Buik extends Stage {
       ctx.textAlign = 'center';
       ctx.font = this.font('900', 14);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.fillText(T(`${left} germs left`, `nog ${left} bacteriën`), w / 2, h * 0.1 + 40 * u);
+      ctx.fillText(T(left === 1 ? 'one germ left' : `${left} germs left`, left === 1 ? 'nog één bacterie' : `nog ${left} bacteriën`), w / 2, h * 0.1 + 40 * u);
     }
   }
 
