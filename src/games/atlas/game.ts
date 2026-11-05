@@ -1323,12 +1323,19 @@ export class Atlas {
     this.w / 2, y + 152 * u, cw - 36 * u, 14 * u, 2);
     ctx.restore();
 
-    const bw = Math.min(136 * u, (cw - 28 * u) / 2), bh = 48 * u, by = y + ch - 66 * u;
-    this.button('retry', T('Again', 'Opnieuw'), this.w / 2 - bw - 5 * u, by, bw, bh);
-    if (nextLevel(this.level.id)) {
-      this.button('next', T('Next', 'Volgende'), this.w / 2 + 5 * u, by, bw, bh, '#4fae6e', '#ffffff');
+    // the ladder is always one of the ways on, not only after the last level: a child who wants a
+    // different map should not have to find the arrow in the corner to get to it
+    const next = nextLevel(this.level.id);
+    const n = next ? 3 : 2, gap = 8 * u;
+    const bw = Math.min(n === 3 ? 108 * u : 136 * u, (cw - 28 * u - gap * (n - 1)) / n), bh = 48 * u, by = y + ch - 66 * u;
+    const x0 = this.w / 2 - (bw * n + gap * (n - 1)) / 2;
+    if (next) {
+      this.button('levels', T('Levels', 'Niveaus'), x0, by, bw, bh);
+      this.button('retry', T('Again', 'Opnieuw'), x0 + bw + gap, by, bw, bh);
+      this.button('next', T('Next', 'Volgende'), x0 + (bw + gap) * 2, by, bw, bh, '#4fae6e', '#ffffff');
     } else {
-      this.button('levels', T('All levels', 'Alle niveaus'), this.w / 2 + 5 * u, by, bw, bh, '#4fae6e', '#ffffff');
+      this.button('retry', T('Again', 'Opnieuw'), x0, by, bw, bh);
+      this.button('levels', T('All levels', 'Alle niveaus'), x0 + bw + gap, by, bw, bh, '#4fae6e', '#ffffff');
     }
   }
 

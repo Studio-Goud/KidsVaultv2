@@ -29,6 +29,20 @@ export const GERMS = 5;
 
 /** How far down the gullet one swipe takes the bite: four or five swipes, and you are there. */
 export const SQUEEZE = 0.24;
+/**
+ * The shortest swipe, in pixels on a phone held upright, that counts as one squeeze. A swipe counts
+ * once however long it is, so the gullet takes four or five swipes and not one long one (play check
+ * of 2026-11-05: 40 px did nothing and one swipe of 310 px finished it). Product decision.
+ */
+export const SWIPE_MIN = 40;
+/**
+ * Seconds after a chew or a knead before the next tap counts. Short enough that a child drumming on
+ * the screen, about eight taps a second, has every tap counted (the play check found four taps
+ * 120 ms apart gave one chew); a knead is a bigger squeeze of the whole bag and keeps a little more.
+ * Product decisions.
+ */
+export const CHEW_GAP = 0.1;
+export const KNEAD_GAP = 0.3;
 
 export const CHAPTERS: Chapter[] = [
   {
@@ -141,6 +155,7 @@ export const ASIDES = {
   lookAround: { say: 'Turn round, or drag your finger across the screen.', sayNl: 'Draai je om, of veeg met je vinger over het scherm.' },
   swipe: { say: 'Swipe down with your finger, from top to bottom.', sayNl: 'Veeg met je vinger naar beneden, van boven naar onder.' },
   drag: { say: 'Put your finger on a white cell and drag it to a germ.', sayNl: 'Zet je vinger op een witte cel en sleep hem naar een bacterie.' },
+  sent: { say: 'There goes a white cell. You can drag them too.', sayNl: 'Daar gaat een witte cel. Je kunt ze ook zelf slepen.' },
 };
 
 /** The step after this one in this story, running on into the next chapter; null at the very end. */

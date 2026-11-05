@@ -12,6 +12,7 @@ import { QUESTIONS, domainsWithCounts } from './faq';
 import { NL, T } from '../util/lang';
 import { persist, save } from '../util/storage';
 import { uiSound } from '../platform/uisfx';
+import { forgetLine, speakLine } from '../platform/voice';
 
 // the file says `lang="nl"`; the app may be speaking English, and a screen reader goes by this
 document.documentElement.lang = NL() ? 'nl' : 'en';
@@ -147,7 +148,11 @@ function askForCode(): void {
     (boxes as HTMLElement & { clear?: () => void }).clear?.();
     bad.textContent = a.why === 'waiting'
       ? T('Too many tries. Wait a minute.', 'Te vaak geprobeerd. Wacht even een minuutje.')
-      : T('That is not the code.', 'Dat is de code niet.');
+      : T('That is not it. Try again.', 'Dat is hem niet. Probeer het nog eens.');
+    // said as well as written: the boxes empty themselves the moment the fourth digit goes in, and
+    // a line under them is easy to miss when your eyes are on the keyboard
+    forgetLine();
+    speakLine(bad.textContent);
   });
 
   show(
@@ -472,6 +477,9 @@ function childScreen(id: string): void {
     panel('',
       button(T('This one is playing', 'Deze speelt nu'), 'mint', () => {
         save.family.playing = id; persist(); overview();
+        // a different screen, so it opens at its top: kept at the child page's scroll position it
+        // used to land the parent halfway down the promises, with the child they chose out of sight
+        window.scrollTo(0, 0);
       }),
       button(T('Remove this child', 'Dit kind verwijderen'), 'quiet', () => {
         const rest = list.filter(x => x.id !== id);

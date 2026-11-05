@@ -205,6 +205,8 @@ export class Ruimte extends Stage {
   protected setup(c: Chapter): void {
     this.auto = null;
     this.idleT = 0; this.nagged = false;
+    // the photo belongs to the launch pad; a jump past the cue that puts it away must not carry it along
+    if (c.id !== 'pad') this.photoOn = false;
     this.boost = 0;
     this.drop = 0;
     this.flashT = 0;
@@ -237,7 +239,7 @@ export class Ruimte extends Stage {
       // a few chunks already drifting ahead, so the rings are there before the flying starts
       for (let i = 0; i < 14; i++) this.chunks.push(this.newChunk(20 + i * 5));
     } else if (c.id === 'home') {
-      this.scene = 'cruise'; this.beast = null; this.target = 'earth'; this.boost = 0;
+      this.scene = 'cruise'; this.props = []; this.rocks = []; this.beast = null; this.target = 'earth'; this.boost = 0;
     }
   }
 
@@ -813,16 +815,18 @@ export class Ruimte extends Stage {
         ctx.globalAlpha = Math.min(1, (90 - s.z) / 20);
         drawStip(ctx, x, y, Math.max(6 * u, r), this.t, s.dish, s.caughtT >= 0 ? 0 : Math.sin(this.t * 0.6) * 0.5);
         ctx.globalAlpha = 1;
-        // a ring round him until he is caught, so a small child can see where to steer
-        if (s.caughtT < 0) {
-          ctx.strokeStyle = `rgba(255, 200, 120, ${0.4 + 0.3 * Math.sin(this.t * 5)})`;
-          ctx.lineWidth = 3 * u;
-          ctx.beginPath(); ctx.arc(x, y, Math.max(22 * u, r * 1.6), 0, TAU); ctx.stroke();
-        }
       } });
     }
     items.sort((a, b) => b.z - a.z).forEach(i => i.draw());
-    // Stip's light blinks over everything, ice included: it is what "there blinks a light" points at
+    // Stip's ring and light go over everything, ice included: a chunk passing in front must not hide
+    // what "there blinks a light" points at
+    if (s && s.caughtT < 0) {
+      const x = hx + ((s.x - this.ship.x) * F) / s.z, y = hy + ((s.y - this.ship.y) * F) / s.z, r = (1.1 * F) / s.z;
+      // a ring round him until he is caught, so a small child can see where to steer
+      ctx.strokeStyle = `rgba(255, 200, 120, ${0.4 + 0.3 * Math.sin(this.t * 5)})`;
+      ctx.lineWidth = 3 * u;
+      ctx.beginPath(); ctx.arc(x, y, Math.max(22 * u, r * 1.6), 0, TAU); ctx.stroke();
+    }
     if (s && s.caughtT < 0 && (this.t % 1.1) < 0.45) {
       const x = hx + ((s.x - this.ship.x) * F) / s.z, y = hy + ((s.y - this.ship.y) * F) / s.z;
       const g = ctx.createRadialGradient(x, y, 0, x, y, 24 * u);

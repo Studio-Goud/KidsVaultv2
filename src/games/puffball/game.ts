@@ -31,7 +31,7 @@ import {
   type Board, type Level, type PickupKind, type Puff,
 } from './model';
 import { NL, T } from '../../util/lang';
-import { speakLine } from '../../platform/voice';
+import { forgetLine, sayRecorded, speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'levels' | 'play' | 'won' | 'lost';
@@ -263,7 +263,11 @@ export class Puffball {
     this.phase = 'play';
     this.phaseT = 0;
     this.cardPop = 0;
-    this.say(NL() ? this.level.hintNl : this.level.hint, 6);
+    // the night's name first, so a tap in the list is answered with what was chosen, then its
+    // hint: two of Ruth's recordings back to back when she has both, else the device says both
+    const hint = NL() ? this.level.hintNl : this.level.hint;
+    this.note = hint; this.noteT = 6;
+    if (!sayRecorded([nameOf(this.level), hint])) { forgetLine(); speakLine(`${nameOf(this.level)}. ${hint}`); }
   }
 
   /** The last thing the game said, so the guide in the corner can say it again. */
@@ -513,6 +517,8 @@ export class Puffball {
       save.coins = Math.max(0, Math.round(save.coins + 20 + this.earned * 15));
       persist();
       puff.complete();
+      // the card's heading, said: a child who cannot read it should still hear that it worked
+      this.say(T('The wood is quiet again.', 'Het bos is weer stil.'), 4);
     } else {
       puff.fail();
     }

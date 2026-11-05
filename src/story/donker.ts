@@ -35,8 +35,20 @@ import {
 import { bed, donkerSfx, type Bed } from './donkersfx';
 import { Stage, type Beast, type Pt } from './stage';
 
-/** Where things stand round the camera, as angles (radians, world). The bed is where you start. */
-const A = { bed: -0.14, table: 0.27, shadow: 0.02, window: 1.9, chair: -2.2, picture: -0.95, toys: 3.05, pictureB: -3.0 };
+/**
+ * Where things stand round the camera, as angles (radians, world). The bed is where you start.
+ *
+ * The chair stands just past the nightstand, not behind you: the story says "look, the shape is
+ * the shadow of a coat" and a child has to be able to see the shape and the coat at once, and a
+ * phone held upright sees about 0.84 radians of the room. With the chair at -2.2 the two were never
+ * on one screen, and finding it took three full swipes.
+ */
+const A = { bed: -0.14, table: 0.27, shadow: 0.02, window: 1.9, chair: 0.58, picture: -0.95, toys: 3.05, pictureB: -3.0 };
+
+/** Where the camera stands to show the lamp and the coat beside it: halfway between the two. */
+const LAMP_VIEW = (A.table + A.chair) / 2;
+/** Where the camera stands to show the shape on the wall and the coat that makes it, both whole. */
+const SHADOW_VIEW = 0.3;
 
 /** The palette is never used (the room paints itself), but the stage wants one. */
 const UNUSED: Palette = {
@@ -71,6 +83,8 @@ export class Donker extends Stage {
   private creakT = 0;
   private rattleT = 0;
   private sat = false;
+  /** the step the camera was last turned for, so it is turned once per line and then left alone */
+  private turnedAt = -1;
 
   // breathing
   private phase: Phase = 'rest';
@@ -160,7 +174,7 @@ export class Donker extends Stage {
   protected setup(c: Chapter): void {
     this.props = []; this.beast = null; this.life = null;
     this.idleT = 0; this.nagged = false; this.creakT = 2.5; this.rattleT = 0;
-    this.winDrag = null; this.holding = false;
+    this.winDrag = null; this.holding = false; this.turnedAt = -1;
     this.phase = 'rest'; this.phaseT = 0; this.heldIn = 0; this.heldOut = 0; this.breaths = 0; this.missed = 0; this.breathK = 0;
     this.lampT = 0; this.glowT = 0; this.scareT = 0; this.winT = 0;
     this.suri = 'peek'; this.worry = 0.7; this.tightT = 0.6;
@@ -222,8 +236,25 @@ export class Donker extends Stage {
 
   protected onFound(b: Beast): void {
     donkerSfx.found();
-    this.turnTo(b.kind === 'coat' ? A.chair : A.window, 1.3);
+    // the coat is shown with the lamp beside it, since the next thing asked is to tap the lamp
+    this.turnTo(b.kind === 'coat' ? LAMP_VIEW : A.window, 1.3);
     this.idleT = 0;
+  }
+
+  /**
+   * When Ruth asks for the lamp, the lamp is on screen: the camera turns to it at that line (and
+   * again while she waits, if the child has looked away), once per step so a child who then swipes
+   * is not pulled back. The ring and a tap on the lamp itself work as well as the button.
+   */
+  private showLamp(): void {
+    if (this.chapterId() !== 'schaduw' || !this.flags.has('found') || this.flags.has('lamp')) return;
+    const steps = this.chapters[this.place.chapter].steps;
+    const next = steps[this.place.step + 1];
+    const asking = (next && 'wait' in next && next.wait === 'lamp') || this.waiting() === 'lamp';
+    if (!asking || this.turnedAt === this.place.step) return;
+    this.turnedAt = this.place.step;
+    const x = this.sx(A.table);
+    if (x < this.w * 0.15 || x > this.w * 0.85) this.turnTo(LAMP_VIEW, 1.3);
   }
 
   protected facingOf(): -1 | 1 { return 1; }
@@ -239,6 +270,7 @@ export class Donker extends Stage {
     if (!this.winDrag) this.winK = ease(this.winK, this.winT, 5);
     this.rattleT = Math.max(0, this.rattleT - dt);
     this.aimBeast();
+    this.showLamp();
     const w = this.waiting();
 
     // the sound comes round again now and then until it has been found, softly
@@ -371,7 +403,8 @@ export class Donker extends Stage {
     this.holding = false;
     if (this.winDrag) {
       this.winDrag = null;
-      if (this.winK < 0.25) this.closeWindow();
+      // a short pull is enough: from where it starts, a finger's 40 px brings it under this
+      if (this.winK < 0.4) this.closeWindow();
     }
   }
 
@@ -386,6 +419,9 @@ export class Donker extends Stage {
     this.flags.add('lamp');
     this.lampT = 1; this.scareT = 0; this.tightT = 0.55;
     donkerSfx.lamp();
+    // "Kijk. De vlek is gewoon de schaduw van een jas" comes next: the shape and the coat together,
+    // held long enough for the line to be heard
+    this.turnTo(SHADOW_VIEW, 5);
   }
 
   private closeWindow(): void {
@@ -512,7 +548,8 @@ export class Donker extends Stage {
 
   /** The arrow at the screen's edge pointing the short way round to what is being looked for. */
   private drawArrow(): void {
-    if (this.waiting() !== 'found' || !this.beast || this.lostT <= 3.5 || this.beastScreen().on) return;
+    // after a second and a half, not three and a half: long enough to have tried, not to give up
+    if (this.waiting() !== 'found' || !this.beast || this.lostT <= 1.5 || this.beastScreen().on) return;
     const ctx = this.ctx, u = this.u();
     const left = wrapAngle(Math.atan2(this.beast.x, this.beast.z) - this.look.yaw) < 0;
     const x = left ? 26 * u : this.w - 26 * u, y = this.h * 0.4;

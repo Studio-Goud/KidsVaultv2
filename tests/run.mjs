@@ -2028,7 +2028,7 @@ const group = name => console.log(`\n${name}`);
 {
   const c = await bundle('src/games/circuit/sim.ts', 'circuit.mjs');
   const {
-    solve, advance, renew, layWire, marksOf, faultOf, faultLine, cleanCircuit, netlist,
+    solve, advance, renew, layWire, marksOf, noteMarks, faultOf, faultLine, cleanCircuit, netlist,
     canPlace, cellsOf, pinsOf, partAt, battVolts, chargeFrac, isSolved, startBoard,
     PARTS, PUZZLES, specOf, BATTERY_CHARGE, FUSE_BLOWS_AT, SHORT_AMPS, LED_VF, CAP_FARADS, COLS, ROWS,
   } = c;
@@ -2217,9 +2217,19 @@ const group = name => console.log(`\n${name}`);
     is('test_switch_open_is_named_as_the_trouble', s.fault.kind, 'switchoff');
     is('test_switch_open_points_at_the_switch_itself', off[s.fault.at].id, 'switch');
     is('test_switch_open_says_so_in_dutch', faultLine(s.fault, true), 'Deze schakelaar staat uit.');
+    // the second puzzle asks for a lamp you can turn off: a switch dropped in open is not that
+    const seenOff = new Set();
+    noteMarks(seenOff, marksOf(off, s));
+    is('test_switch_dropped_in_open_does_not_count_as_turned_off', seenOff.has('switchoff'), false);
     off[2].on = true;
     const on = solve(off);
     is('test_switch_closed_lets_the_current_through', r3(on.drawn), 0.356);
+    noteMarks(seenOff, marksOf(off, on));
+    is('test_switch_closed_marks_the_lamp_lit_through_it', seenOff.has('switchlit'), true);
+    off[2].on = false;
+    noteMarks(seenOff, marksOf(off, solve(off)));
+    is('test_switch_on_and_then_off_counts_as_turned_off', seenOff.has('switchoff'), true);
+    off[2].on = true;
     is('test_switch_closed_has_nothing_wrong_with_it', on.fault, null);
 
     const bell = [put('battery', 2, 2), put('buzzer', 6, 2), put('button', 4, 4)];
@@ -3983,7 +3993,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- Suri heeft buikpijn
 
 {
-  const { CHAPTERS, ASIDES, CHEWS, GERMS, SQUEEZE, nextPlace } = await bundle('src/story/buikscript.ts', 'buikscript.mjs');
+  const { CHAPTERS, ASIDES, CHEWS, GERMS, SQUEEZE, SWIPE_MIN, CHEW_GAP, KNEAD_GAP, nextPlace } = await bundle('src/story/buikscript.ts', 'buikscript.mjs');
   group('Suri heeft buikpijn — the body story holds together');
   const steps = CHAPTERS.flatMap(c => c.steps.map(s => ({ c: c.id, s })));
   is('test_buikpijn_every_line_is_said_in_both_languages',
@@ -4002,6 +4012,12 @@ const group = name => console.log(`\n${name}`);
   is('test_buikpijn_the_last_step_is_the_same_goodbye_as_the_other_stories', CHAPTERS[p.chapter].steps[p.step].sayNl, 'Einde. Zullen we nog een keer gaan?');
   is('test_buikpijn_the_end_cue_comes_just_before_the_goodbye', CHAPTERS[p.chapter].steps[p.step - 1].cue, 'end');
   is('test_buikpijn_the_asides_are_said_in_both_languages', Object.values(ASIDES).every(a => a.say && a.sayNl), true);
+  // drumming on the screen counts: four taps 120 ms apart are four chews (play check of 2026-11-05)
+  is('test_buikpijn_taps_120ms_apart_each_count_as_a_chew', CHEW_GAP < 0.12, true);
+  is('test_buikpijn_a_knead_waits_no_more_than_a_third_of_a_second', KNEAD_GAP <= 0.3, true);
+  // a short swipe counts and one long swipe does not finish the gullet on its own
+  is('test_buikpijn_a_40px_swipe_counts_as_a_squeeze', SWIPE_MIN <= 40, true);
+  is('test_buikpijn_the_gullet_takes_more_than_one_swipe', Math.ceil(1 / SQUEEZE) >= 3, true);
   // the food goes the way food really goes
   is('test_buikpijn_chapters_follow_the_food', CHAPTERS.map(c => c.id), ['bed', 'mouth', 'gullet', 'stomach', 'gut', 'blood', 'better']);
   is('test_buikpijn_a_few_swipes_reach_the_stomach', Math.ceil(1 / SQUEEZE) >= 3 && Math.ceil(1 / SQUEEZE) <= 6, true);

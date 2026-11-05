@@ -474,7 +474,9 @@ export class Evo {
     const e = extent(b);
     const { gx, gy } = this.placeAnimal(b, sc);
     const right = Math.min(this.w - 40 * this.u(), gx + e.right * sc);
-    if (s.act === 'hatch') return { x: Math.min(this.w - 30 * this.u(), gx + e.right * sc * 0.92), y: gy - 14 * this.u() };
+    // the egg lies on the ground in front of the animal, down in the foreground the long low
+    // animal leaves empty, instead of a small thing at its snout
+    if (s.act === 'hatch') return { x: Math.min(this.w - 50 * this.u(), gx + e.right * sc * 0.8), y: gy + Math.max(40 * this.u(), (st.gy - gy) * 0.42) };
     if (s.act === 'knap') return { x: Math.min(this.w - 40 * this.u(), right + 30 * this.u()), y: gy - 10 * this.u() };
     if (s.act === 'fire') return { x: Math.min(this.w - 44 * this.u(), right + 50 * this.u()), y: gy - 16 * this.u() };
     if (s.act === 'hand') return { x: this.w * 0.25, y: st.top + (gy - st.top) * 0.3 };
@@ -548,7 +550,9 @@ export class Evo {
     for (const m of this.moths) {
       if (m.foundAt >= 0) continue;
       const d = Math.hypot(m.x - p.x, m.y - p.y);
-      if (d < s * 1.6 && d < bd) { best = m; bd = d; }
+      // a fingertip's reach, not the moth's own: at 1.6 times its size a tap had to land within
+      // 22 px of a 14 px moth, and a missed tap looks exactly like a moth that was not there
+      if (d < Math.max(s * 1.6, 30 * this.u()) && d < bd) { best = m; bd = d; }
     }
     if (best) { best.foundAt = this.t; evoSfx.flutter(); }
   }
@@ -754,7 +758,10 @@ export class Evo {
     if (!this.atStop() && !this.glide) return;
     const p = this.actSpot();
     if (s.act === 'hatch' && Math.round(this.pos) === this.stopIndex()) {
-      const r = 14 * u;
+      const r = 26 * u;
+      // its shadow on the ground, so it lies there rather than floats
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+      ctx.beginPath(); ctx.ellipse(p.x, p.y + r * 0.95, r * 0.9, r * 0.22, 0, 0, TAU); ctx.fill();
       if (this.hatchK < 1) {
         ctx.fillStyle = '#efe6cf';
         ctx.beginPath(); ctx.ellipse(p.x, p.y, r * 0.8, r, 0, 0, TAU); ctx.fill();
@@ -770,10 +777,13 @@ export class Evo {
         ctx.fillStyle = '#efe6cf';
         ctx.beginPath(); ctx.ellipse(p.x - r, p.y + r * 0.4, r * 0.8, r * 0.5, 0, 0, Math.PI); ctx.fill();
         const baby = STOPS[this.stopIndex()].body!;
-        const bs = this.fitScale(baby) * 0.22;
-        drawBody(ctx, p.x + r * 0.5, p.y + r * 0.9, bs, baby, { t: this.t, phase: this.phase * 1.3, xray: 0, facing: 1, move: 0.5 });
+        const bs = this.fitScale(baby) * 0.26;
+        // its snout just past the shell, the rest of it behind: a long baby drawn from the shell
+        // forwards ran off the right edge of a phone
+        const bx = Math.min(p.x + r * 0.6, this.w - 8 * u) - extent(baby).right * bs;
+        drawBody(ctx, bx, p.y + r * 0.9, bs, baby, { t: this.t, phase: this.phase * 1.3, xray: 0, facing: 1, move: 0.5 });
       }
-      this.ring(p, 22 * u, !this.done.has(s.id));
+      this.ring(p, r + 12 * u, !this.done.has(s.id));
     }
     if (s.act === 'knap') {
       // a round cobble and the stone it is struck with; each tap takes a flake off
@@ -1001,11 +1011,12 @@ export class Evo {
     this.hits.pop(); // the track is handled by onDown itself, so a drag is never mistaken for a press
     // the arrow on: glide to the next stop
     const i = this.stopIndex();
-    if (i < n - 1) {
+    // Only once there is somewhere to go: before the stop is told, a tap on it did nothing at all,
+    // which to a child is a broken button. It appears, ringed, the moment the next stop opens.
+    if (i < n - 1 && i + 1 <= lim && this.narrating < 0 && this.atStop()) {
       const bw = 52 * u, bh = 46 * u, bx = this.w - bw - 12 * u, by = tr.y - bh / 2;
-      const ready = this.narrating < 0 && this.atStop() && this.heard.has(i);
-      if (ready) this.ring({ x: bx + bw / 2, y: by + bh / 2 }, 26 * u, true);
-      this.button('next', '›', bx, by, bw, bh, ready ? '#4fae6e' : '#fffdf6', ready ? '#ffffff' : '#25506e');
+      this.ring({ x: bx + bw / 2, y: by + bh / 2 }, 26 * u, true);
+      this.button('next', '›', bx, by, bw, bh, '#4fae6e', '#ffffff');
     }
   }
 

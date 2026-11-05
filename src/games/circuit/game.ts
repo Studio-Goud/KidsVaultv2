@@ -28,14 +28,14 @@ import {
 } from '../../render/look';
 import {
   advance, BATTERY_CHARGE, battVolts, canPlace, cellsOf, chargeFrac, cleanCircuit, COLS, faultLine,
-  isSolved, layWire, marksOf, MAX_PARTS, partAt, PUZZLES, renew, ROWS, solve, specOf, startBoard,
+  isSolved, layWire, marksOf, MAX_PARTS, noteMarks, partAt, PUZZLES, renew, ROWS, solve, specOf, startBoard,
   type Board, type Kind, type PartState, type Placed, type Puzzle, type Sim,
 } from './sim';
 import { centreOf, paintFlow, paintPart, paintWire, wireArms } from './paint';
 import { bench, buzzHum, coilHum, motorHum } from './sfx';
 import { Coach, type Beat } from '../../platform/coach';
 import { NL, T } from '../../util/lang';
-import { speakLine } from '../../platform/voice';
+import { forgetLine, speakLine } from '../../platform/voice';
 
 type Ctx = CanvasRenderingContext2D;
 interface Rect { x: number; y: number; w: number; h: number }
@@ -148,6 +148,14 @@ export class Circuit {
   private page = 0;
   private note = '';
   private noteT = 0;
+  /** the line along the foot of the bench, when it last changed, and the last one said out loud */
+  private foot = '';
+  private footSince = 0;
+  private footSaid = '';
+  /** the child has done something to this board, so what it does now is worth saying */
+  private acted = false;
+  /** the last wire tapped once, and when: a second tap on it within a second takes it away */
+  private wireTap: { col: number; row: number; t: number } | null = null;
   private idle = 0;
   private coach = new Coach();
   private teach = false;
@@ -229,7 +237,8 @@ export class Circuit {
       solved: this.solvedIds(),
       picking: this.picking,
       cheer: this.cheerOpen,
-      note: this.noteT > 0 ? this.note : '',
+      /** the last line said out loud, which is also what the guide repeats */
+      note: this.spoken(),
       grid: { ...this.cam, cols: COLS, rows: ROWS },
       buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
     };
@@ -256,6 +265,7 @@ export class Circuit {
   }
 
   private push(): void {
+    this.acted = true;
     this.history.push(this.board().map(p => ({ ...p })));
     if (this.history.length > 40) this.history.shift();
   }
@@ -270,14 +280,42 @@ export class Circuit {
     this.remember();
   }
 
-  /** The last thing the game said, so the guide in the corner can say it again. */
-  spoken(): string { return this.note; }
+  /**
+   * The last thing said, so the guide in the corner can say it again: Suri's own line while the
+   * coach has the floor, otherwise the game's.
+   */
+  spoken(): string {
+    const beat = this.coach.beat;
+    return beat ? (NL() ? beat.sayNl : beat.say) : this.note;
+  }
+
+  /**
+   * The line under the bench, said out loud once the board has settled after the child changed it.
+   *
+   * Written along the foot it was only any use to a child who could read, and it is the most
+   * useful sentence in the game: what is wrong, and where. It waits until nothing is being drawn,
+   * dragged or explained, and says each reading once; a puzzle that has just been opened is left
+   * in peace until something has been done to it.
+   */
+  private sayFoot(): void {
+    if (!this.acted || this.line || this.drag || this.coach.busy) return;
+    const text = this.footLine();
+    // while the game is explaining something (the fuse that just melted, the LED just turned) the
+    // reading waits its turn rather than talking over it
+    if (this.noteT > 0) return;
+    if (!text || text === this.footSaid || this.t - this.footSince < 0.8) return;
+    this.footSaid = text;
+    this.note = text;
+    forgetLine();
+    speakLine(text);
+  }
 
   private say(text: string, secs = 4): void {
     this.note = text;
     this.noteT = secs;
-    // audio-first: the note is the game's instruction, so it is heard as well as read.
-    // Today that is the machine's own voice; a recording slots in without touching this.
+    // audio-first: the note is the game's instruction, so it is heard as well as read. These are
+    // answers to what the child just did, so the same words a second time are said a second time.
+    forgetLine();
     speakLine(text);
   }
 
@@ -547,7 +585,16 @@ export class Circuit {
     const b = this.board();
     const p = b[i];
     if (!p) return;
-    if (p.id === 'wire') { this.removeAt(i); return; }
+    if (p.id === 'wire') {
+      // one tap used to throw the wire away, silently, and a child tapping to see what it was lost
+      // a piece of a circuit that worked. Now the first tap says what a second one would do.
+      const again = this.wireTap && this.wireTap.col === p.col && this.wireTap.row === p.row && this.t - this.wireTap.t < 1;
+      if (again) { this.wireTap = null; this.noteT = 0; this.removeAt(i); return; }
+      this.wireTap = { col: p.col, row: p.row, t: this.t };
+      bench.tap();
+      this.say(T('Tap it again quickly to take this bit of wire away.', 'Tik nog een keer snel om dit stukje draad weg te halen.'), 2.5);
+      return;
+    }
     if (p.id === 'switch') {
       this.push();
       p.on = !p.on;
@@ -635,7 +682,10 @@ export class Circuit {
       }
       this.watch();
       this.since = 0;
+      const foot = this.footLine();
+      if (foot !== this.foot) { this.foot = foot; this.footSince = this.t; }
     }
+    this.sayFoot();
 
     // motors keep turning between solves, at the speed the current gives them
     const b = this.board();
@@ -652,7 +702,7 @@ export class Circuit {
     const b = this.board();
     const set = this.seen[this.puzzle];
     const before = set.size;
-    for (const m of marksOf(b, this.sim)) set.add(m);
+    noteMarks(set, marksOf(b, this.sim));
     const lit = b.some((p, i) => p.id === 'bulb' && this.partState(i).duty > 0.25);
     if (lit && !this.lastLit) {
       bench.glow();
@@ -899,6 +949,9 @@ export class Circuit {
     this.cheerOpen = false;
     this.page = 0;
     this.history = [];
+    this.acted = false;
+    this.footSaid = '';
+    this.wireTap = null;
     this.sim = solve(this.board());
     // the very first puzzle shows itself off once, and only once, ever
     if (this.puzzle === 0) this.coach.start(this.coachScript(), save.taught.includes('circuit'));
@@ -1190,26 +1243,28 @@ export class Circuit {
    * Either what is wrong and where, or, when nothing is wrong, what the circuit is doing - because
    * "het lampje brandt" is the reading that makes the next change mean something.
    */
+  private footLine(): string {
+    const f = this.sim.fault;
+    const board = this.board();
+    if (!board.length) return T('Drag a part onto the board to start.', 'Sleep een onderdeel op het bord om te beginnen.');
+    if (f) return faultLine(f, NL());
+    return this.footLit()
+      ? T('The loop is closed and the current is going round.', 'De kring is rond en de stroom loopt.')
+      : T('Draw a line of wire from one part to the next.', 'Trek een lijn draad van het ene deel naar het volgende.');
+  }
+
+  private footLit(): boolean {
+    return this.board().some((p, i) => specOf(p.id).load && this.partState(i).duty > 0.05);
+  }
+
   private drawFoot(b: Bands): void {
     const ctx = this.ctx, u = this.u();
     const f = this.sim.fault;
-    const board = this.board();
     const y = b.panel.y + b.panel.h - b.footH / 2 - 2 * u;
-    let text: string;
-    let colour: string;
-    if (!board.length) {
-      text = T('Drag a part onto the board to start.', 'Sleep een onderdeel op het bord om te beginnen.');
-      colour = 'rgba(214, 232, 252, 0.72)';
-    } else if (f) {
-      text = faultLine(f, NL());
-      colour = f.kind === 'short' || f.kind === 'fuse' ? '#ff9f7a' : '#ffd86b';
-    } else {
-      const lit = board.some((p, i) => specOf(p.id).load && this.partState(i).duty > 0.05);
-      text = lit
-        ? T('The loop is closed and the current is going round.', 'De kring is rond en de stroom loopt.')
-        : T('Draw a line of wire from one part to the next.', 'Trek een lijn draad van het ene deel naar het volgende.');
-      colour = lit ? '#8ee8ad' : 'rgba(214, 232, 252, 0.72)';
-    }
+    const text = this.footLine();
+    const colour = !this.board().length ? 'rgba(214, 232, 252, 0.72)'
+      : f ? (f.kind === 'short' || f.kind === 'fuse' ? '#ff9f7a' : '#ffd86b')
+        : this.footLit() ? '#8ee8ad' : 'rgba(214, 232, 252, 0.72)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = this.font('800', 11.5);

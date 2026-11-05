@@ -849,7 +849,11 @@ export function marksOf(board: Board, sim: Sim): string[] {
   if (lit.length >= 1 && dark.length >= 1) out.add('onelitonedark');
 
   const sw = board.map((p, i) => ((p.id === 'switch' || p.id === 'button') ? i : -1)).filter(i => i >= 0);
-  if (sw.some(i => !board[i].on) && bulbs.length > 0 && lit.length === 0) out.add('switchoff');
+  // a lamp lit through a closed switch, and a lamp dark because that switch is open: the two
+  // halves of "you can turn it off". The dark half only counts when it is the switch that is
+  // keeping it dark, not a lamp that was never wired up beside a switch that was never touched.
+  if (lit.length >= 1 && sw.some(i => board[i].on)) out.add('switchlit');
+  if (bulbs.length > 0 && lit.length === 0 && sim.fault?.kind === 'switchoff') out.add('switchoff');
 
   for (const [i, p] of board.entries()) {
     const st = sim.parts[i];
@@ -872,6 +876,20 @@ export function marksOf(board: Board, sim: Sim): string[] {
   if (sim.fault?.kind === 'ledback') out.add('ledback');
   if (sim.short) out.add('shorted');
   return [...out];
+}
+
+/**
+ * Add what the board is doing now to what it has been seen to do.
+ *
+ * Most marks count whenever they happen. Turning it off is the exception: a switch dropped in open
+ * looks exactly like a lamp switched off, and the second puzzle used to tick "off" before the
+ * switch had ever been on. So "off" only counts once the lamp has been seen lit through it.
+ */
+export function noteMarks(seen: Set<string>, marks: string[]): void {
+  for (const m of marks) {
+    if (m === 'switchoff' && !seen.has('switchlit')) continue;
+    seen.add(m);
+  }
 }
 
 // ---------------------------------------------------------------- the ladder

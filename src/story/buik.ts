@@ -16,7 +16,7 @@
 import { T } from '../util/lang';
 import { drawGuide } from '../platform/guide';
 import { isSpeaking } from '../platform/voice';
-import { ASIDES, CHAPTERS, CHEWS, GERMS, SQUEEZE, type Chapter } from './buikscript';
+import { ASIDES, CHAPTERS, CHEW_GAP, CHEWS, GERMS, KNEAD_GAP, SQUEEZE, SWIPE_MIN, type Chapter } from './buikscript';
 import { TAU } from './look';
 import { spot, type Palette, type View } from './world';
 import { drawAppleBit, drawBedroom, drawBlanket, drawGerm, drawGoodBug, drawRedCell, drawTeethRow, drawVillus, drawWhiteCell } from './buikart';
@@ -28,7 +28,7 @@ type Scene = 'bed' | 'mouth' | 'gullet' | 'stomach' | 'gut' | 'blood';
 interface Bit { x: number; y: number; r: number; seed: number }
 interface Villus { x: number; z: number; tall: number; seed: number }
 interface Red { a: number; rr: number; z: number; rot: number; tilt: number }
-interface White { x: number; y: number; seed: number; full: number }
+interface White { x: number; y: number; seed: number; full: number; to?: Pt | null }
 interface Germ { fx: number; fy: number; eatenT: number; by: number; seed: number }
 
 /** The inside of the gut: warm pink, wet, and no sky, only the folded wall far overhead. */
@@ -73,6 +73,12 @@ export class Buik extends Stage {
   private whites: White[] = [];
   private germs: Germ[] = [];
   private carrying: number | null = null;
+  /** when the last chew and knead counted, so a drumming finger is counted and not swallowed */
+  private chewAt = -1;
+  private kneadAt = -1;
+  /** this swipe down the gullet has squeezed already: one swipe is one squeeze */
+  private swiped = false;
+  private sentSaid = false;
 
   private idleT = 0;
   private nagged = false;
@@ -126,10 +132,10 @@ export class Buik extends Stage {
     if (c.id === 'bed') { this.scene = 'bed'; this.morning = false; this.fadeIn = 0; }
     else if (c.id === 'mouth') {
       this.scene = 'mouth';
-      this.chews = 0; this.jawT = -1;
+      this.chews = 0; this.jawT = -1; this.chewAt = -1;
       this.bits = [{ x: 0, y: 0, r: 0.2, seed: 3 }];
     } else if (c.id === 'gullet') { this.scene = 'gullet'; this.down_ = 0; this.scroll = 0; this.squeezeT = -1; buikSfx.swallow(); }
-    else if (c.id === 'stomach') { this.scene = 'stomach'; this.kneads = 0; this.kneadT = -1; buikSfx.splash(); this.flashT = 0.5; }
+    else if (c.id === 'stomach') { this.scene = 'stomach'; this.kneads = 0; this.kneadT = -1; this.kneadAt = -1; buikSfx.splash(); this.flashT = 0.5; }
     else if (c.id === 'gut') { this.scene = 'gut'; this.buildGut(); }
     else if (c.id === 'blood') { this.scene = 'blood'; this.buildBlood(); buikSfx.dive(); }
     else if (c.id === 'better') { this.scene = 'bed'; this.morning = true; this.fadeIn = 0; this.flashT = 1; }
@@ -193,6 +199,7 @@ export class Buik extends Stage {
     const spots: Array<[number, number]> = [[0.16, 0.26], [0.84, 0.24], [0.2, 0.66], [0.8, 0.64], [0.5, 0.2]];
     this.germs = spots.slice(0, GERMS).map(([fx, fy], i) => ({ fx, fy, eatenT: -1, by: -1, seed: i * 1.7 }));
     this.carrying = null;
+    this.sentSaid = false;
   }
 
   // ---------------------------------------------------------------- per frame
@@ -227,7 +234,15 @@ export class Buik extends Stage {
         r.rot += dt * 0.6;
         if (r.z < 0.35) { r.z += 8; r.a = Math.random() * TAU; r.rr = 0.15 + Math.random() * 0.8; }
       }
-      for (const c of this.whites) c.full = Math.max(0, c.full - dt);
+      for (const [i, c] of this.whites.entries()) {
+        c.full = Math.max(0, c.full - dt);
+        // a white cell sent to a tapped germ glides there and swallows it
+        if (c.to && this.carrying !== i) {
+          const dx = c.to.x - c.x, dy = c.to.y - c.y, d = Math.hypot(dx, dy), step = this.cellR() * 6 * dt;
+          if (d <= step) { c.x = c.to.x; c.y = c.to.y; c.to = null; this.tryEat(c, i); }
+          else { c.x += (dx / d) * step; c.y += (dy / d) * step; }
+        }
+      }
       for (const g of this.germs) if (g.eatenT >= 0) g.eatenT += dt;
       if (w === 'cleared') {
         this.nudge(dt, ASIDES.drag);
@@ -249,13 +264,26 @@ export class Buik extends Stage {
     const w = this.waiting();
     const u = this.u();
     if (this.scene === 'mouth' && w === 'chewed') { this.chew(); return true; }
-    if (this.scene === 'gullet' && w === 'down') { this.swipeY = p.y; return true; }
+    if (this.scene === 'gullet' && w === 'down') { this.swipeY = p.y; this.swiped = false; return true; }
     if (this.scene === 'stomach' && w === 'kneaded') { this.knead(p); return true; }
     if (this.scene === 'blood' && w === 'cleared') {
       const r = this.cellR();
       for (let i = this.whites.length - 1; i >= 0; i--) {
         const c = this.whites[i];
-        if (Math.hypot(p.x - c.x, p.y - c.y) < r * 1.4 + 10 * u) { this.carrying = i; return true; }
+        if (Math.hypot(p.x - c.x, p.y - c.y) < r * 1.4 + 10 * u) { this.carrying = i; c.to = null; return true; }
+      }
+      // a tap on a germ sends the nearest free white cell to it, so the germ the child sees is the
+      // thing that works; the first time, Suri says the cells can be dragged as well
+      const g = this.germs.find(k => k.eatenT < 0 && Math.hypot(p.x - this.germAt(k).x, p.y - this.germAt(k).y) < r * 1.3 + 10 * u);
+      if (g) {
+        const gp = this.germAt(g);
+        const all = this.whites.map((c, i) => ({ c, i }));
+        const free = all.filter(({ c }) => !c.to);
+        const pick = (free.length ? free : all).sort((a, b) => Math.hypot(a.c.x - gp.x, a.c.y - gp.y) - Math.hypot(b.c.x - gp.x, b.c.y - gp.y))[0];
+        pick.c.to = gp;
+        this.idleT = 0;
+        buikSfx.squeeze();
+        if (!this.sentSaid && !isSpeaking()) { this.sentSaid = true; this.aside(ASIDES.sent); }
       }
       return true;
     }
@@ -265,8 +293,8 @@ export class Buik extends Stage {
   protected drag(p: Pt): boolean {
     const u = this.u();
     if (this.swipeY != null) {
-      // a swipe down far enough is one squeeze of the muscle rings
-      if (p.y - this.swipeY > 50 * u) { this.squeeze(); this.swipeY = p.y; }
+      // a swipe down far enough is one squeeze of the muscle rings, and a long one is still one
+      if (!this.swiped && p.y - this.swipeY >= SWIPE_MIN * u) { this.squeeze(); this.swiped = true; }
       return true;
     }
     if (this.carrying != null) {
@@ -285,7 +313,8 @@ export class Buik extends Stage {
   }
 
   private chew(): void {
-    if (this.jawT >= 0) return;
+    if (this.chewAt >= 0 && this.t - this.chewAt < CHEW_GAP) return;
+    this.chewAt = this.t;
     this.jawT = 0;
     this.idleT = 0;
     buikSfx.chew();
@@ -315,7 +344,8 @@ export class Buik extends Stage {
   }
 
   private knead(p: Pt): void {
-    if (this.kneadT >= 0) return;
+    if (this.kneadAt >= 0 && this.t - this.kneadAt < KNEAD_GAP) return;
+    this.kneadAt = this.t;
     this.kneadT = 0;
     buikSfx.knead();
     this.kneads++;

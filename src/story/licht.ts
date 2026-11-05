@@ -242,7 +242,7 @@ export class Licht extends Stage {
     }
     this.props = scatter(51, [['rock', 26, 1.3], ['weed', 30, 1.2], ['shell', 30, 1]], 0.3, 8);
     this.beast = withTurtle
-      ? { kind: 'turtle', x: 0, z: 0, speed: 0.6, heading: 0, orbit: { r: 4.2, a: -0.7, w: 0.6 / 4.2 }, phase: 0, stride: 1.3, head: 0, jaw: 0, lift: 1.7 }
+      ? { kind: 'turtle', x: 0, z: 0, speed: 0.6, heading: 0, orbit: { r: 4.2, a: Math.PI * 0.8, w: 0.6 / 4.2 }, phase: 0, stride: 1.3, head: 0, jaw: 0, lift: 1.7 }
       : null;
   }
 
