@@ -192,3 +192,33 @@ ingesproken: alles in het Engels is nu George. Een ander Engels geluid blijft é
 De piloot in Cloudhopper was al een Engelse
 man (Chris, `scripts/radio.mjs`) en blijft dat: een andere stem dan de verteller, want hij is
 iemand anders.
+
+## 2026-11-05 — v3 voor allebei, Matilda voor het Engels, en wisselen zonder gat
+
+De eigenaar vroeg om de hoogst haalbare kwaliteit, vooral in het Engels, en kreeg luisterproeven:
+dezelfde vijf Suri-regels in de huidige instelling (multilingual v2, 32 kbit/s), in hogere
+bitrate, en met ElevenLabs' nieuwste model v3. Het oordeel: **Ruth op v3 is "top" voor het
+Nederlands**; George overtuigde in geen van de drie vormen. Daarop negen andere Engelse stemmen uit
+het account op v3, dezelfde zin, vijf vrouwen en vier mannen. De keuze: **Matilda,
+"Knowledgable, Professional"** (`XrExE9yKIg1WjnnlVkGX`), een Amerikaanse alt, rustig en helder.
+Twee overwegingen die meewogen: Suri is in het Nederlands een vrouw, dus een vrouw in het Engels
+is voor een kind van vier hetzelfde stokstaartje; en Amerikaans, omdat Engels (VS) de hoofdtaal
+van de winkels wordt.
+
+**Wat er in het script veranderde.** Standaardmodel `eleven_v3`, 64 kbit/s mono op 44 kHz (was
+32 op 22; 64 is het meeste dat twaalfduizend clips onder de 200 MB van Google Play houdt). v3 kent
+alleen `stability` en `similarity_boost`, en zijn stabiliteit is drie standen; 0,5 is "natuurlijk".
+De `language_code` is nu de taal die opgenomen wordt; hij stond vast op `nl`, ook voor het Engels.
+
+**Wisselen zonder gat.** Een hele taal is zo'n 150.000 tekens, meer dan één maand Creator
+(121.000). Vroeger gooide een andere stem of een ander model alle opnamen van die taal weg, en
+viel alles wat nog niet opnieuw was ingesproken op de telefoonstem. Nu onthoudt elke rij in
+`clips.json` haar eigen `voice` en `model`; een oude opname blijft spelen tot de nieuwe stem
+dezelfde regel gezegd heeft. `render` meldt hoeveel regels nog in een eerdere stem staan en doet
+die eerst, met de diernamen achteraan, zodat het tegoed op de verkeerde plek opraakt als het
+opraakt. De volgende maand is het dezelfde opdracht:
+
+    npm run voice -- render XrExE9yKIg1WjnnlVkGX --lang en
+    npm run voice -- render yO6w2xlECAQRFP6pX7Hw
+
+Volgorde, op aanwijzing van de eigenaar: eerst het Engels helemaal, daarna het Nederlands.
