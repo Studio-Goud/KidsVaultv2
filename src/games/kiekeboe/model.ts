@@ -64,6 +64,13 @@ export const WIGGLE_AFTER = 5;
 export const NEXT_QUESTION_AFTER = 2.6;
 /** Product decision: how long the last animal stays on screen before the round is closed. */
 export const DONE_AFTER = 2.6;
+/** Product decision: how long a place that has just opened ignores a tap that would close it. A
+ *  toddler taps twice, and the second tap used to shut the animal before its name (said 1.1 s
+ *  after the first tap) had been heard. */
+export const HOLD_OPEN = 1.5;
+
+/** Whether a tap at `now` on a place opened at `openedAt` may close it again. */
+export const mayClose = (openedAt: number, now: number): boolean => now - openedAt >= HOLD_OPEN;
 /** Product decision: the question is for four and up (`SIMPLE_UPTO` in who.ts is 3). With no child
  *  filled in, the whole game is shown, as in every other game. */
 export const ASK_FROM_YEARS = 4;

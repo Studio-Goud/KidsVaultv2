@@ -916,16 +916,6 @@ export class Millstream {
     this.hits.push({ id, x, y, w, h });
   }
 
-  private smallButton(id: string, label: string, x: number, y: number, w: number, h: number): void {
-    const ctx = this.ctx;
-    const face = chunkyButton(ctx, x, y, w, h, { tone: '#fdfbf6', pressed: this.held === id });
-    ctx.fillStyle = '#25506e';
-    ctx.font = this.font('800', 12);
-    ctx.textAlign = 'center';
-    ctx.fillText(label, x + w / 2, face.y + h * 0.63, w - 16);
-    this.hits.push({ id, x, y, w, h });
-  }
-
   // ---------- end of a level ----------
 
   private drawEnd(): void {

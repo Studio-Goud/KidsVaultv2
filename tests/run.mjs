@@ -1458,6 +1458,54 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- Letterbos: the ladder of levels
 
 {
+  const W = await bundle('src/games/mill/world.ts', 'millworld.mjs');
+  const dry = W.LEVELS.find(l => l.id === 'drystreet');
+  /** dig like a finger does: strokes from one grid fraction to another, a few passes each */
+  const dug = (level, strokes) => {
+    const v = W.buildValley(level, W.gridForAspect(390 / 752));
+    const cell = (fx, fy) => [fx * (v.cols - 1) + 0.5, fy * (v.rows - 1) + 0.5];
+    for (const [from, to, passes] of strokes) {
+      const a = cell(...from), b = cell(...to);
+      for (let p = 0; p < passes; p++) {
+        let last = [-99, -99];
+        for (let k = 0; k <= 40; k++) {
+          const cx = a[0] + (b[0] - a[0]) * k / 40, cy = a[1] + (b[1] - a[1]) * k / 40;
+          if (Math.abs(cx - last[0]) < 0.6 && Math.abs(cy - last[1]) < 0.6) continue;
+          last = [cx, cy];
+          W.digAt(v, cx, cy, 1.55);
+        }
+      }
+    }
+    return v;
+  };
+  /** the spring runs as in the game; returns the second a house flooded, or -1 */
+  const flow = (level, v, secs) => {
+    const scratch = new Float32Array(v.water.length), dt = 1 / 60;
+    for (let t = 0; t < secs; t += dt) {
+      if (t < level.springFor) for (const [sx, sy] of level.springs) {
+        v.water[Math.round(sy * (v.rows - 1)) * v.cols + Math.round(sx * (v.cols - 1))] += level.springRate * dt;
+      }
+      W.stepWater(v, dt, scratch);
+      if (level.houses.some((_, k) => W.houseFlooded(v, k))) return Math.round(t);
+    }
+    return -1;
+  };
+
+  group('Watermolen — water tegen het huis');
+  const untouched = W.buildValley(dry, W.gridForAspect(390 / 752));
+  is('test_mill_untouched_valley_keeps_every_house_dry', flow(dry, untouched, 50), -1);
+  // the straight channel from the spring at the houses used to fill up to their doorsteps and
+  // leave them "dry", so the level ended as "the water ran out" with nothing wet and nothing done
+  const straight = dug(dry, [[[0.5, 0.06], [0.5, 0.64], 4]]);
+  const floodedAt = flow(dry, straight, 50);
+  is('test_mill_channel_dug_straight_at_the_houses_floods_one', floodedAt >= 0 && floodedAt < 40, true);
+  const forked = dug(dry, [[[0.5, 0.06], [0.5, 0.3], 2], [[0.5, 0.3], [0.2, 0.78], 2], [[0.5, 0.3], [0.8, 0.78], 2]]);
+  is('test_mill_channel_forked_to_both_fields_keeps_the_houses_dry', flow(dry, forked, 50), -1);
+  is('test_mill_forked_channel_waters_both_fields',
+    dry.fields.every((_, k) => W.fieldDone(forked, dry, k)), true);
+}
+
+{
   const {
     LEVELS, makeQuestion, rngFor, rackFor, cutsOf, tileFits, isSolved, firstEmpty, starsFor,
     teachFor, teachHelp, teachElsewhere, chooseQuestion, ladderQuestion, sentenceQuestion,
@@ -3573,6 +3621,10 @@ const group = name => console.log(`\n${name}`);
   const done = [1, 2, 3, 4, 5, 6, 7].map(i => m.tapSpot(r, i).complete);
   is('test_kiekeboe_round_complete_on_last_new_place', [done, m.isComplete(r)], [[false, false, false, false, false, false, true], true]);
   is('test_kiekeboe_out_of_range_tap_is_harmless', m.tapSpot(r, 9).opened, false);
+  // a toddler's double tap: the second tap lands before the name has been said
+  is('test_kiekeboe_a_tap_right_after_opening_may_not_close', m.mayClose(10, 10.4), false);
+  is('test_kiekeboe_a_tap_after_the_hold_may_close', m.mayClose(10, 10 + m.HOLD_OPEN), true);
+  is('test_kiekeboe_hold_outlasts_the_name_being_said', m.HOLD_OPEN > 1.1, true);
   const r2 = m.newRound(2); for (let i = 0; i < 7; i++) m.tapSpot(r2, i);
   is('test_kiekeboe_target_is_always_unfound', m.pickTarget(r2, Math.random), 7);
   m.tapSpot(r2, 7);

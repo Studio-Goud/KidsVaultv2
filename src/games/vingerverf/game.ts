@@ -13,6 +13,13 @@
 
 import { clamp, type Vec } from '../../util/math';
 import { safeArea, uiScale, GUIDE_KEEP } from '../../util/ui';
+
+/**
+ * Where the row of pots may start: the guide's corner, and a thumb's width more. GUIDE_KEEP is
+ * sized for a finger aimed beside the guide; a pot is a target a whole hand lands on, and the red
+ * one stood hard against him.
+ */
+const POT_KEEP = GUIDE_KEEP + 10;
 import { unlockAudio } from '../../util/audio';
 import { bleedEdges, chunkyButton, easeInCubic, easeOutBack, grainOver, outlinedText } from '../../render/look';
 import { NL, T } from '../../util/lang';
@@ -172,7 +179,7 @@ export class Vingerverf {
       const avail = this.h - this.topBar() - 26;
       return Math.min((this.easy ? 104 : 66) * u, (avail - gap * (rows - 1)) / rows);
     }
-    const avail = this.w - GUIDE_KEEP - 10;
+    const avail = this.w - POT_KEEP - 10;
     return Math.min((this.easy ? 96 : 64) * u, (avail - gap * (n - 1)) / n);
   }
 
@@ -186,8 +193,8 @@ export class Vingerverf {
       return this.pots.map((_, i) => ({ x: x0 + (i % cols) * (s + gap), y: y0 + Math.floor(i / cols) * (s + gap), w: s, h: s }));
     }
     const total = n * s + (n - 1) * gap;
-    const avail = this.w - GUIDE_KEEP - 10;
-    const x0 = GUIDE_KEEP + Math.max(0, (avail - total) / 2);
+    const avail = this.w - POT_KEEP - 10;
+    const x0 = POT_KEEP + Math.max(0, (avail - total) / 2);
     return this.pots.map((_, i) => ({ x: x0 + i * (s + gap), y: this.h - s - 10, w: s, h: s }));
   }
 
@@ -324,8 +331,18 @@ export class Vingerverf {
   }
 
   private onMove(e: PointerEvent): void {
-    if (e.pointerId !== this.pointer || !this.painting) return;
+    if (e.pointerId !== this.pointer) return;
     const p = this.at(e);
+    if (!this.painting) {
+      // a finger that came down on a pot and slid onto the paper has dipped and wants to paint:
+      // that is how a toddler "drags" paint, and waiting for the finger to lift first lost the stroke
+      if (this.pressed?.startsWith('pot:') && this.phase === 'paint' && this.inPaper(p)) {
+        const pot = this.pots.find(q => q.id === this.pressed!.slice(4));
+        this.pressed = null;
+        if (pot) { this.dip(pot); this.beginStroke(p); }
+      }
+      return;
+    }
     // the stroke stops at the edge of the paper and carries on if the finger comes back
     const r = this.paper;
     this.moveStroke({ x: clamp(p.x, r.x, r.x + r.w), y: clamp(p.y, r.y, r.y + r.h) });

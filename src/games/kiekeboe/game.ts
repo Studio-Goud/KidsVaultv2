@@ -24,7 +24,7 @@ import { forgetLine, speakLine } from '../../platform/voice';
 import { yearsNow } from '../../platform/who';
 import {
   ANIMALS, DONE_AFTER, HIDES, NEXT_QUESTION_AFTER, SCENES, WIGGLE_AFTER, animalInfo, asksWhere, foundCount, layoutFor,
-  newRound, pickTarget, spotRadius, spotRects, tapSpot, type Round, type SceneId,
+  mayClose, newRound, pickTarget, spotRadius, spotRects, tapSpot, type Round, type SceneId,
 } from './model';
 import { horizonOf, paintHide, paintScene, tinter, foundDot } from './paint';
 import { paintAnimal } from './critters';
@@ -65,6 +65,8 @@ export class Kiekeboe {
   private seedBase = Math.floor(Math.random() * 1e9);
   /** how open each place is, 0..1, eased in the drawing */
   private amount: number[] = HIDES.map(() => 0);
+  /** when each place last opened, on the game's own clock */
+  private openedAt: number[] = HIDES.map(() => -10);
   private ps = new Particles();
   private hits: Hit[] = [];
   private pressed: string | null = null;
@@ -191,11 +193,14 @@ export class Kiekeboe {
   }
 
   private tapSpot(i: number): void {
+    // a second tap right after the first is the same tap, not a wish to see the animal go
+    if (this.round.open[i] && !mayClose(this.openedAt[i], this.clock)) return;
     const res = tapSpot(this.round, i);
     this.idle = 0;
     this.repeated = false;
     const a = animalInfo(this.round.at[i]);
     if (!res.opened) { sfx.close(); return; }
+    this.openedAt[i] = this.clock;
     sfx.open();
     const pos = layoutFor(this.w, this.h)[i], r = spotRadius(this.w, this.h);
     const d = DUST[HIDES[i]];

@@ -417,14 +417,15 @@ export function stepWater(v: Valley, dt: number, out: Float32Array): StepResult 
     // a house stands on its own little mound, so water almost never gets on top of it: a channel
     // dug straight at the houses filled up to their doorsteps and they stayed "dry" while the
     // level was lost for want of water. Water standing against the wall wets the house too, by
-    // how deep it stands there, less a film that is only damp ground.
-    if (hi < 0 && out[i] > 0.03) {
+    // how deep it stands there, less a film: the shallow edge of a full field creeping up to a
+    // wall is damp ground, not a flood, and twice the film depth is where that stops being true.
+    if (hi < 0 && out[i] > 0.06) {
       const x = i % cols, y = (i - x) / cols;
       for (let k = 0; k < 4; k++) {
         const nx = x + (k === 0 ? -1 : k === 1 ? 1 : 0), ny = y + (k === 2 ? -1 : k === 3 ? 1 : 0);
         if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
         const hj = v.houseAt[ny * cols + nx];
-        if (hj >= 0) v.wet[hj] += (out[i] - 0.03) * dt * 3;
+        if (hj >= 0) v.wet[hj] += (out[i] - 0.06) * dt * 4;
       }
     }
     if (kindOf(v, i) === 'sea') { wasted += out[i]; out[i] = 0; }
