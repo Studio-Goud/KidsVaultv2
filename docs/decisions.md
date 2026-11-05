@@ -1056,9 +1056,7 @@ geweest.
 Nagekeken: tsc; 1777 tests (81 nieuw); `npm run audit` op de nieuwe bouw 0 fouten over 49
 schermen x 5 maten, na één gevonden en herstelde fout in Planetarium; een speelscript dat op elk
 van de 38 pagina's tachtig keer willekeurig tikt en sleept, in het Nederlands en in het Engels,
-zonder uitzondering, zonder leeg canvas en zonder "undefined" in een gesproken regel (op de bouw
-van de ochtend; de run op de eindbouw liep nog toen dit werd vastgelegd en wordt hieronder
-nagedragen); elk
+zonder uitzondering, zonder leeg canvas en zonder "undefined" in een gesproken regel; elk
 gerepareerd punt door zijn reparateur in een browser nagespeeld op 390x844, de meeste ook op
 320x568. Niet nagekeken: een echte telefoon, liggend bij de meeste reparaties, en de geluiden en
 stemmen zijn door niemand gehoord.
