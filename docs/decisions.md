@@ -1124,3 +1124,10 @@ regels in het donker) vallen op de telefoonstem tot er weer ElevenLabs-tegoed is
 5 december). `render --dry` telt nu 84 nieuwe Nederlandse en 82 Engelse regels, naast de 1707
 diernamen die op Ruth v2 wachten.
 
+Nagekeken: tsc; 1807 tests (dertig nieuw: de rijen van de voorpagina, de planeetzinnen, de regel
+in het donker); audit van de voorpagina in haar drie vormen plus Cloudhopper, Planetarium,
+Watermolen, het donker en het lichtje, 0 fouten over 8 schermen x 5 maten; het speelscript op
+dezelfde zes pagina's in beide talen zonder fout (één keer brak het script zelf af doordat een tik
+op een kaart de pagina verliet terwijl het las; dat is het script, niet de app); de voorpagina
+zelf gedreven op vier maten; elk van de vijf punten door de helper in een browser nagespeeld.
+Niet nagekeken: een echte telefoon, en niemand heeft de nieuwe regels gehoord.
