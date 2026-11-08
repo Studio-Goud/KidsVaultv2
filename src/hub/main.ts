@@ -18,7 +18,7 @@ import { drawMarbleThumb } from './knikkerbaanthumb';
 import { drawShadowThumb } from './schaduwthumb';
 import { drawPostThumb } from './postbodethumb';
 import { NL, T } from '../util/lang';
-import { shelf, type Entry } from '../platform/catalog';
+import { shelf, shelves, type Entry } from '../platform/catalog';
 import { lastGoNow, startClock } from '../platform/clock';
 import { drawGuide } from '../platform/guide';
 import { loadVoice, speakLine } from '../platform/voice';
@@ -87,7 +87,6 @@ function card(g: Entry): HTMLElement {
     <div class="gamethumb"></div>
     <div class="gamebody">
       <div class="gamehead"><h3>${NL() ? g.titleNl : g.title}</h3><span class="agepill">${g.from}-${g.to}</span></div>
-      <p>${NL() ? g.lineNl : g.line}</p>
       <div class="practises">${NL() ? g.practisesNl : g.practises}</div>
     </div>`;
   const thumb = a.querySelector('.gamethumb') as HTMLElement;
@@ -209,31 +208,49 @@ if (family.length > 1 && save.family.picker !== false) {
  *
  * `yearsNow()` rather than the child's own age, so the audit's `__years` hook shows each shelf.
  */
-function grid(list: Entry[]): HTMLElement {
-  const g = document.createElement('div');
-  g.className = 'gamegrid';
-  for (const e of list) g.appendChild(card(e));
-  return g;
-}
-
-function shelfHead(en: string, nl: string): HTMLElement {
+/**
+ * One row of the shelf: a heading that speaks, and cards that slide sideways under it.
+ *
+ * The heading is a button because a child who cannot read it can tap it and hear what the row is
+ * for (rule 6). The strip is masked at its right edge while there is more to the right, and not
+ * once the last card is in view, so the fade is a hint and never hides a card.
+ */
+function row(title: string, say: string, list: Entry[]): HTMLElement {
+  const wrap = document.createElement('section');
+  wrap.className = 'shelfrow';
   const h = document.createElement('h2');
   h.className = 'shelfhead';
-  h.textContent = T(en, nl);
-  return h;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'shelfsay';
+  b.innerHTML = `<span>${title}</span><i aria-hidden="true"></i>`;
+  b.setAttribute('aria-label', say);
+  b.addEventListener('click', () => speakLine(say));
+  h.appendChild(b);
+  const strip = document.createElement('div');
+  strip.className = 'shelf';
+  for (const e of list) strip.appendChild(card(e));
+  const more = () => wrap.classList.toggle('more', strip.scrollLeft < strip.scrollWidth - strip.clientWidth - 6);
+  strip.addEventListener('scroll', more, { passive: true });
+  window.addEventListener('resize', more);
+  requestAnimationFrame(more);
+  wrap.append(h, strip);
+  return wrap;
 }
 
 const kid = playingChild();
 const years = yearsNow();
 const rows = shelf(years === null ? null : { years, domains: kid?.domains ?? [] });
-root.appendChild(grid(rows.now));
+for (const r of shelves(rows.now)) {
+  root.appendChild(row(NL() ? r.theme.nameNl : r.theme.name, NL() ? r.theme.sayNl : r.theme.say, r.entries));
+}
 if (rows.later.length) {
-  root.appendChild(shelfHead('Still to grow into', 'Hier groei je nog naartoe'));
-  root.appendChild(grid(rows.later));
+  root.appendChild(row(T('Still to grow into', 'Hier groei je nog naartoe'),
+    T('Still to grow into. Have a look anyway.', 'Hier groei je nog naartoe. Kijk gerust.'), rows.later));
 }
 if (rows.earlier.length) {
-  root.appendChild(shelfHead('From when you were smaller', 'Van toen je kleiner was'));
-  root.appendChild(grid(rows.earlier));
+  root.appendChild(row(T('From when you were smaller', 'Van toen je kleiner was'),
+    T('From when you were smaller.', 'Van toen je kleiner was.'), rows.earlier));
 }
 const card0 = promise();
 const plink = card0.querySelector('.parentlink') as HTMLAnchorElement;

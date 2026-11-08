@@ -3003,7 +3003,7 @@ const group = name => console.log(`\n${name}`);
 // ---------------------------------------------------------------- The catalogue of experiences
 
 {
-  const { CATALOG, byId, forAge, inDomain, domainsPresent, coverage, shelf } =
+  const { CATALOG, byId, forAge, inDomain, domainsPresent, coverage, shelf, shelves, themeOf, THEMES} =
     await bundle('src/platform/catalog.ts', 'catalog.mjs');
   group('Platform — the catalogue');
 
@@ -3022,6 +3022,16 @@ const group = name => console.log(`\n${name}`);
     CATALOG.every((e, i) => i === 0 || e.from >= CATALOG[i - 1].from), true);
 
   is('test_catalog_looking_up_a_page_finds_it', byId('moonshot').title, 'Moonshot');
+  // the front page is rows now, and every card has exactly one row to be on
+  is('test_catalog_every_entry_has_a_kind', CATALOG.every(e => ['spel', 'ontdekreis', 'verhaal'].includes(e.kind)), true);
+  is('test_shelves_every_entry_lands_on_exactly_one_row', shelves(CATALOG).reduce((n, r) => n + r.entries.length, 0), CATALOG.length);
+  is('test_shelves_no_row_is_empty_for_the_whole_catalogue', shelves(CATALOG).length, THEMES.length);
+  is('test_shelves_stories_are_their_own_row', shelves(CATALOG).find(r => r.theme.id === 'verhalen').entries.length, 7);
+  is('test_shelves_journeys_are_their_own_row', shelves(CATALOG).find(r => r.theme.id === 'ontdekreizen').entries.length, 4);
+  is('test_themeof_first_subject_decides', themeOf(byId('mill')), 'bouwen');
+  is('test_themeof_toddler_game_with_animals_is_under_animals', themeOf(byId('kiekeboe')), 'dieren');
+  is('test_themeof_cloudhopper_is_building_not_making', themeOf(byId('cloudhopper')), 'bouwen');
+  is('test_shelves_empty_list_gives_no_rows', shelves([]).length, 0);
   is('test_catalog_looking_up_nothing_finds_nothing', byId('nope'), undefined);
 
   is('test_age_a_two_year_old_is_offered_only_what_suits_them',
