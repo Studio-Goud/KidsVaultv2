@@ -1084,3 +1084,43 @@ aan de eigenaar gezegd. Hij staat in geen enkel bestand.
 Nagekeken: 6024 Engelse en 4562 Nederlandse opnamen, 0 mislukt behalve op het tegoed; elke rij in
 `clips.json` gestempeld; de stem is nu 169 MB (65 Nederlands, 104 Engels). Niet nagekeken: niemand
 heeft Matilda of Ruth op v3 in de app gehoord, alleen in de proeven.
+
+## 2026-11-08 — De voorpagina in rijen, en de vijf dingen die bleven liggen
+
+De eigenaar vroeg om de vijf punten die de speelcontrole bewust had laten liggen alsnog "tot
+professionele uitwerking" te brengen, met de voorpagina voorop.
+
+**De voorpagina.** Zesendertig kaarten in één lijst was 6650 pixels hoog op een telefoon; een
+kind dat iets zoekt scrolt langs alles. Nu acht rijen die zijwaarts schuiven, elk één soort ding:
+dieren en natuur, muziek en maken, verhalen, ontdekreizen, letters en woorden, tellen en tijd,
+bouwen en vormen, ruimte en aarde. De kop van een rij is een knop die de rij hardop benoemt, want
+een kind van drie leest hem niet (regel 6). Een halve kaart aan de rechterrand plus een vervaging
+die verdwijnt zodra de laatste kaart in beeld is, zeggen dat er meer is zonder iets te verbergen.
+De kaarten tonen plaatje, naam, leeftijd en wat het oefent; de langere zin is van de winkel en het
+ouderscherm gebleven. In de catalogus heeft elk ding nu een `kind` (spel, ontdekreis, verhaal) en
+`shelves()` zet het op precies één rij: verhalen en reizen op hun eigen rij, een spel op de rij
+van zijn eerste onderwerp. Daarom staat bij de Watermolen en Cloudhopper techniek nu voorop. De
+rijen van de ouder blijven: te oud en ontgroeid staan in een eigen rij, uitgevinkt is weg. De
+pagina is 2968 pixels hoog.
+
+**Cloudhopper** zegt zijn uitleg vooraf nu regel voor regel, met een getekend plaatje per regel
+en de knop pas na de laatste; een tik ervoor zegt "Nog even luisteren." Suri staat in zijn hoek
+op het titelscherm en de uitleg, niet tijdens een dienst, waar de weerkaart van het geselecteerde
+toestel staat. `speaks` is nu voor alles waar.
+
+**Planetarium** zegt een rij uit de tabel in Verken als een zin met afgeronde getallen in woorden:
+"Een dag op Jupiter duurt bijna tien uur." De afrondstappen (bijna, ruim, ongeveer) zijn een
+productbeslissing en staan in `src/games/orbit/words.ts`. Honderdachttien zinnen per taal, die het
+stemscript nu ook oogst, omdat ze geen letterlijke tekst in de bron zijn.
+
+**De Watermolen** toont op een onbebouwd perceel het gebouw zelf, gedempt tot het gebouwd is, en
+de prijs als een rijtje schoven. **Suri en het donker** zegt bij de jas "Kijk eens naast het
+kastje" in plaats van "Draai je om", wat sinds de verplaatsing van de stoel niet meer klopte; bij
+het raam, dat echt achter je is, blijft "Draai je om". **Het lichtje**: de schildpad begint net
+buiten beeld vóór je en zwemt voorlangs, zoals de mammoet en de potvis.
+
+**De stem.** Alle nieuwe regels (acht rijkoppen, "Nog even luisteren", de planeetzinnen, de twee
+regels in het donker) vallen op de telefoonstem tot er weer ElevenLabs-tegoed is (reset
+5 december). `render --dry` telt nu 84 nieuwe Nederlandse en 82 Engelse regels, naast de 1707
+diernamen die op Ruth v2 wachten.
+

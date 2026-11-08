@@ -5,6 +5,8 @@ import { LEVELS_PER_WORLD, MAX_STARS, WORLDS, buildMission, firstAppearance, gra
 import { UPGRADES, buyUpgrade, nextCost, upgradeDesc, upgradeName } from '../game/upgrades';
 import { PORTS_IN_ORDER, placeLine } from '../game/realports';
 import { lang, t } from '../i18n';
+import { isSpeaking, say } from '../platform/voice';
+import { T } from '../util/lang';
 import { levelProgress, persist, realId, save, upgradeLevel } from '../util/storage';
 
 /** The islands have a Dutch name and an English one; every other game's level names work this way. */
@@ -54,11 +56,45 @@ const svgLogo = `<svg viewBox="0 0 120 84" fill="none">
   </g>
 </svg>`;
 
+/**
+ * A small aircraft seen from above, for the pictures in the briefing: a body, two wings, a tail.
+ * The same shape at every size, so the three pictures are read as the same thing.
+ */
+const tutPlane = (x: number, y: number, s: number, rot: number, fill: string): string =>
+  `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})"><path d="M0-9l2.2 4.5 1 4.5 7 4.5v2.2l-7-1.6-.6 4.6 2.6 1.9v1.4l-5.2-1-5.2 1v-1.4l2.6-1.9-.6-4.6-7 1.6v-2.2l7-4.5 1-4.5z" fill="${fill}"/></g>`;
+
+/**
+ * The three pictures of the briefing. They are not decoration: each one shows what the spoken
+ * line says, for a child who has not heard it yet or did not follow the words. The first is a
+ * finger drawing a route from an aircraft to the runway's green arrows, the second two aircraft
+ * kept apart, the third the three kinds of runway: the strip, the water lane and the H.
+ */
 const tutSvg = [
-  `<svg viewBox="0 0 54 54"><rect x="0" y="0" width="54" height="54" rx="14" fill="#e6f3ff"/><path d="M12 40c8-14 14-16 30-26" stroke="#5ad1a5" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 4" fill="none"/><circle cx="12" cy="40" r="5" fill="#ff7a59"/><rect x="38" y="6" width="8" height="18" rx="2" fill="#6b7280"/><path d="M42 26l-3 5h6z" fill="#5ad1a5"/></svg>`,
-  `<svg viewBox="0 0 54 54"><rect x="0" y="0" width="54" height="54" rx="14" fill="#fff0f0"/><circle cx="20" cy="27" r="12" fill="none" stroke="#ff5a6e" stroke-width="2.5"/><circle cx="36" cy="27" r="12" fill="none" stroke="#ff5a6e" stroke-width="2.5"/><circle cx="20" cy="27" r="3" fill="#ff5a6e"/><circle cx="36" cy="27" r="3" fill="#ff5a6e"/><rect x="21" y="38" width="14" height="8" rx="4" fill="#12294a"/><text x="28" y="44.5" font-size="6.5" font-weight="900" fill="#fff" text-anchor="middle" font-family="Nunito, sans-serif">60 m</text></svg>`,
-  `<svg viewBox="0 0 54 54"><rect x="0" y="0" width="54" height="54" rx="14" fill="#f4eefe"/><path d="M10 34h34c2 0 3 1 3 2s-1 2-3 2H10c-1 0-2-1-2-2s1-2 2-2z" fill="#7c5cff"/><path d="M24 34l-10-12h5l14 12z" fill="#b7a5ff"/><path d="M24 38l-10 12h5l14-12z" fill="#b7a5ff"/><circle cx="41" cy="16" r="7" fill="none" stroke="#5ad1a5" stroke-width="2.5"/><text x="41" y="19" font-size="8" font-weight="900" fill="#5ad1a5" text-anchor="middle" font-family="Nunito, sans-serif">H</text></svg>`,
+  `<svg viewBox="0 0 72 72" style="width:72px;height:72px"><rect width="72" height="72" rx="18" fill="#e6f3ff"/>
+    <rect x="46" y="8" width="12" height="30" rx="2.5" fill="#6b7280"/><path d="M48 12h8M48 17h8" stroke="#ffffff" stroke-width="1.4" stroke-dasharray="2 2"/>
+    <path d="M52 41l-4 6h8z M52 47l-4 6h8z" fill="#5ad1a5"/>
+    <path d="M14 56c6-16 14-22 34-20" stroke="#5ad1a5" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 4.5" fill="none"/>
+    ${tutPlane(14, 56, 1.1, 35, '#ff7a59')}
+    <g transform="translate(34 44)"><path d="M0 0c-1-7 1-10 4-10s4 3 4 10v6l3-2c2-1 4 0 4 2l-1 8c-1 4-4 6-8 6h-4c-3 0-5-1-6-4l-3-6c-1-2 1-4 3-3l4 2z" fill="#f6c9a8" stroke="#d98f6c" stroke-width="1.2" stroke-linejoin="round"/></g>
+  </svg>`,
+  `<svg viewBox="0 0 72 72" style="width:72px;height:72px"><rect width="72" height="72" rx="18" fill="#fff0f0"/>
+    <circle cx="24" cy="34" r="16" fill="none" stroke="#ff5a6e" stroke-width="2.5" stroke-dasharray="4 3"/>
+    <circle cx="48" cy="34" r="16" fill="none" stroke="#ff5a6e" stroke-width="2.5" stroke-dasharray="4 3"/>
+    ${tutPlane(24, 34, 1.15, 20, '#12294a')}${tutPlane(48, 34, 1.15, -25, '#12294a')}
+    <rect x="25" y="54" width="22" height="11" rx="5.5" fill="#12294a"/><text x="36" y="62.5" font-size="8" font-weight="900" fill="#fff" text-anchor="middle" font-family="Nunito, sans-serif">60 m</text>
+  </svg>`,
+  `<svg viewBox="0 0 72 72" style="width:72px;height:72px"><rect width="72" height="72" rx="18" fill="#f4eefe"/>
+    <rect x="8" y="42" width="56" height="12" rx="3" fill="#6b7280"/><path d="M12 48h48" stroke="#ffffff" stroke-width="1.6" stroke-dasharray="3 3"/>
+    <rect x="8" y="58" width="30" height="8" rx="4" fill="#5ab7e8"/><path d="M12 62c3-2 5-2 8 0s5 2 8 0" stroke="#ffffff" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    <circle cx="56" cy="62" r="7" fill="none" stroke="#5ad1a5" stroke-width="2.4"/><text x="56" y="65" font-size="8.5" font-weight="900" fill="#5ad1a5" text-anchor="middle" font-family="Nunito, sans-serif">H</text>
+    ${tutPlane(36, 22, 2.1, 0, '#7c5cff')}
+  </svg>`,
 ];
+
+/** Seconds a picture stays before the next one, when there is no voice to wait for. */
+const TUT_STEP_MIN = 2.2;
+/** How long the voice must have been quiet before a line counts as finished: a breath between them. */
+const TUT_QUIET = 0.6;
 
 function coinBadge(): string {
   return `<span class="coinbadge">${svgCoin(18)}<b>${save.coins}</b></span>`;
@@ -339,17 +375,66 @@ export class UI {
     setTimeout(() => el.remove(), 2200);
   }
 
+  /** The line of the briefing being said, for Suri in the corner to repeat; empty off the briefing. */
+  spoken(): string { return this.tutLine; }
+  private tutLine = '';
+
+  /**
+   * The briefing before the first shift, said out loud.
+   *
+   * It used to be three lines of text and a button, which is a briefing for a parent. A child who
+   * is seven and has never played this hears it instead: each line is spoken, and its picture
+   * lights up as it starts, so the picture and the words arrive together. The button works once
+   * the last line is done; a tap before that says so, rather than letting the shift start over
+   * the voice. With no voice at all the pictures still come one at a time and the button follows.
+   */
   tutorial(): void {
     const s = this.screen();
+    const lines = [t('tutorial1'), t('tutorial2'), t('tutorial3')];
     s.innerHTML = `<div class="card"><h2>${t('tutorialTitle')}</h2>
       <div class="tut">
-        <div class="step">${tutSvg[0]}<p>${t('tutorial1')}</p></div>
-        <div class="step">${tutSvg[1]}<p>${t('tutorial2')}</p></div>
-        <div class="step">${tutSvg[2]}<p>${t('tutorial3')}</p></div>
+        ${lines.map((ln, i) => `<div class="step" data-step="${i}" style="opacity:0.25;transition:opacity 0.4s ease">${tutSvg[i]}<p>${ln}</p></div>`).join('')}
       </div>
-      <div class="stack"><button class="btn mint" data-a="ok">${t('gotIt')}</button></div></div>`;
-    s.querySelector('[data-a=ok]')!.addEventListener('click', () => this.actions.tutorialDone());
+      <div class="stack"><button class="btn mint" data-a="ok" style="opacity:0.45;transition:opacity 0.4s ease">${t('gotIt')}</button></div></div>`;
+    const steps = [...s.querySelectorAll<HTMLElement>('[data-step]')];
+    const ok = s.querySelector<HTMLElement>('[data-a=ok]')!;
+
+    let i = -1;
+    let startedAt = 0;
+    let lastHeard = 0;
+    let done = false;
+    let alive = true;
+    /** a tap came while a line was playing: it is answered, then the line starts again */
+    let nudged = false;
+    const speak = (text: string): void => { this.tutLine = text; say(null, text); startedAt = performance.now(); };
+    const show = (k: number): void => {
+      i = k;
+      steps.forEach((el, j) => { el.style.opacity = j <= k ? '1' : '0.25'; });
+      speak(lines[k]);
+    };
+    const finish = (): void => { done = true; ok.style.opacity = '1'; };
+    const nudge = (): void => { nudged = true; speak(T('Keep listening a moment.', 'Nog even luisteren.')); };
+
+    ok.addEventListener('click', () => { if (done) this.actions.tutorialDone(); else nudge(); });
+    steps.forEach((el, j) => el.addEventListener('click', () => { if (done) speak(lines[j]); else nudge(); }));
+
+    const tick = (): void => {
+      if (!alive) return;
+      const now = performance.now();
+      if (isSpeaking()) lastHeard = now;
+      // the line is over when the voice has been quiet a moment and the picture has had its time
+      const over = now - lastHeard > TUT_QUIET * 1000 && now - startedAt > TUT_STEP_MIN * 1000;
+      if (!done && over) {
+        if (nudged) { nudged = false; speak(lines[i]); }
+        else if (i + 1 < lines.length) show(i + 1);
+        else finish();
+      }
+      requestAnimationFrame(tick);
+    };
+    show(0);
+    requestAnimationFrame(tick);
     this.mount(s);
+    this.onDestroy = () => { alive = false; this.tutLine = ''; };
   }
 
   pause(levelName: string): void {

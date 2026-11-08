@@ -99,7 +99,7 @@ draagt vier reizen; een vijfde is een databestand. Het ouderscherm heeft een pin
 een tijdslimiet met de NJi-onderbouwing erbij, en vijftien vragen die vóór de code te lezen zijn.
 De dagteller telt. De keuzes van de ouder bereiken de voorpagina: uitgevinkte onderwerpen zijn
 weg, en wat nog te oud of al ontgroeid is staat in een eigen rij in plaats van te verdwijnen
-(`shelf()` in `src/platform/catalog.ts`). 1777 checks groen, `npm run audit` 0 fouten over 49 schermen x 5 schermmaten.
+(`shelf()` in `src/platform/catalog.ts`). 1807 checks groen, `npm run audit` 0 fouten over 49 schermen x 5 schermmaten.
 
 **Wat er níét is, en wat dus niet beweerd mag worden:** geen pedagoog heeft hier ooit naar
 gekeken. Er is geen afrekening, dus de €3,99 bestaat nog niet. Er is geen service worker, dus

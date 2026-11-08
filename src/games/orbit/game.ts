@@ -12,6 +12,7 @@
 import { clamp, dist, lerp, TAU, type Vec } from '../../util/math';
 import { BODIES, EXPLORE_WORLDS, MOONS, moonsOf, type Body, type Moon } from './bodies';
 import { drawExplore, hitAt } from './explore';
+import { rowSentence, type Row } from './words';
 import { drawScale } from './scale';
 import { MissionScreen } from './missionscreen';
 import { drawBody, drawSun, radiusFor, reachOf, sizeOrder, starField, sunOrder } from './draw';
@@ -76,6 +77,8 @@ export class Orbit {
   private missions = new MissionScreen((wt, sz) => this.font(wt, sz));
   private exploreIndex = 0;
   private openMoon: Moon | null = null;
+  /** the row of the Verken table that was tapped last, and is what Suri repeats */
+  private openRow: Row | null = null;
   private hits: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -115,15 +118,15 @@ export class Orbit {
    * What "back" means is the game's business; that there is a back at all, in the same corner and
    * the same shape everywhere, is not.
    */
-  canBack(): boolean { return this.openMoon !== null; }
-  back(): void { this.openMoon = null; }
+  canBack(): boolean { return this.openMoon !== null || this.openRow !== null; }
+  back(): void { this.openMoon = null; this.openRow = null; }
 
   debugState(): Record<string, unknown> {
     return {
       mode: this.mode, phase: this.phase, round: this.round, placed: this.placedCount,
       next: this.want[this.placedCount]?.id ?? null,
       choices: this.choices.map(c => ({ id: c.body.id, x: Math.round(c.pos.x), y: Math.round(c.pos.y), r: Math.round(c.r), placed: c.placed })),
-      explore: EXPLORE_WORLDS[this.exploreIndex].id,
+      explore: EXPLORE_WORLDS[this.exploreIndex].id, row: this.openRow,
       spoken: this.spoken(),
       // every tab's taps, the missions' included: the audit presses what it finds here
       buttons: this.hits.map(h => ({ id: h.id, x: Math.round(h.x + h.w / 2), y: Math.round(h.y + h.h / 2) })),
@@ -313,7 +316,7 @@ export class Orbit {
     if (hit && hit.startsWith('tab:')) {
       if (this.mode !== hit.slice(4)) osfx.tab();
       this.mode = hit.slice(4) as Mode;
-      this.openMoon = null;
+      this.openMoon = null; this.openRow = null;
       // each tab says what it is for as it opens; the quiz asks its question again
       this.speakNow();
       return;
@@ -324,7 +327,7 @@ export class Orbit {
       if (hit === 'prev' || hit === 'next') {
         const d = hit === 'next' ? 1 : -1;
         this.exploreIndex = (this.exploreIndex + d + EXPLORE_WORLDS.length) % EXPLORE_WORLDS.length;
-        this.openMoon = null;
+        this.openMoon = null; this.openRow = null;
         osfx.turn();
         this.speakNow();
         return;
@@ -332,7 +335,16 @@ export class Orbit {
       if (hit.startsWith('moon:')) {
         const id = hit.slice(5);
         this.openMoon = this.openMoon && this.openMoon.id === id ? null : (moonsOf(EXPLORE_WORLDS[this.exploreIndex].id).find(m => m.id === id) ?? null);
+        this.openRow = null;
         osfx.moon();
+        this.speakNow();
+        return;
+      }
+      if (hit.startsWith('row:')) {
+        // a row of the table, said as a sentence: the same tap again says it again
+        this.openRow = hit.slice(4) as Row;
+        this.openMoon = null;
+        osfx.tap();
         this.speakNow();
         return;
       }
@@ -394,7 +406,7 @@ export class Orbit {
     if (this.mode === 'explore') {
       const body = EXPLORE_WORLDS[this.exploreIndex];
       this.hits = drawExplore(ctx, body, this.openMoon, this.t, this.w, this.h - this.tabRoom(),
-        this.u(), this.dpr, (wt, sz) => this.font(wt, sz));
+        this.u(), this.dpr, (wt, sz) => this.font(wt, sz), this.openRow);
       this.hits.push(...this.drawTabs());
       return;
     }
@@ -521,6 +533,7 @@ export class Orbit {
     if (this.mode === 'missions') return this.missions.spoken();
     if (this.mode === 'explore') {
       const b = EXPLORE_WORLDS[this.exploreIndex];
+      if (this.openRow) return rowSentence(b, this.openRow, NL());
       if (this.openMoon) return `${NL() ? this.openMoon.nameNl : this.openMoon.name}. ${NL() ? this.openMoon.factNl : this.openMoon.fact}`;
       return `${nameOf(b)}. ${factOf(b)}`;
     }

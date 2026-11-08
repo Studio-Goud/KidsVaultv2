@@ -12,6 +12,7 @@ import { moonsOf, type Body, type Moon } from './bodies';
 import { drawBody } from './draw';
 import { drawPhoto, moonPhoto } from '../../platform/planetphoto';
 import { NL, T } from '../../util/lang';
+import { rowsFor, type Row } from './words';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -38,12 +39,14 @@ export interface ExploreView {
 }
 
 /**
- * Draw the explore screen. `selected` is the planet, `openMoon` the moon whose card is showing.
+ * Draw the explore screen. `selected` is the planet, `openMoon` the moon whose card is showing,
+ * `openRow` the row of the table that was tapped and is being said.
  */
 export function drawExplore(
   ctx: Ctx, body: Body, openMoon: Moon | null, time: number,
   w: number, h: number, u: number, dpr: number,
   font: (weight: string, size: number) => string,
+  openRow: Row | null = null,
 ): ExploreHit[] {
   const hits: ExploreHit[] = [];
   const moons = moonsOf(body.id);
@@ -75,32 +78,37 @@ export function drawExplore(
   // the numbers
   // A star has no year and no moons, so it is asked different questions: what goes round it, and
   // how hot the surface you are looking at actually is.
-  const rows: Array<[string, string]> = body.kind === 'star'
-    ? [
-      [T('One turn', 'Een omwenteling'), dayLabel(body.dayHours)],
-      [T('Surface', 'Oppervlak'), tempLabel(body.tempC)],
-      [T('Across', 'Doorsnede'), `${body.diameter.toLocaleString(NL() ? 'nl-NL' : 'en-GB')} km`],
-      [T('Goes round it', 'Draait eromheen'), T('eight planets, and everything else', 'acht planeten, en al het andere')],
-    ]
-    : [
-      [T('One day', 'Een dag'), dayLabel(body.dayHours)],
-      [T('One year', 'Een jaar'), yearLabel(body.yearDays)],
-      [T('Temperature', 'Temperatuur'), tempLabel(body.tempC)],
-      [T('Across', 'Doorsnede'), `${body.diameter.toLocaleString(NL() ? 'nl-NL' : 'en-GB')} km`],
-      [T('Moons', 'Manen'), body.moonCount === 0 ? T('none', 'geen') : `${T('at least', 'minstens')} ${body.moonCount}`],
-    ];
+  const km = `${body.diameter.toLocaleString(NL() ? 'nl-NL' : 'en-GB')} km`;
+  const cell: Record<Row, [string, string]> = {
+    day: body.kind === 'star' ? [T('One turn', 'Een omwenteling'), dayLabel(body.dayHours)] : [T('One day', 'Een dag'), dayLabel(body.dayHours)],
+    year: [T('One year', 'Een jaar'), yearLabel(body.yearDays)],
+    temp: body.kind === 'star' ? [T('Surface', 'Oppervlak'), tempLabel(body.tempC)] : [T('Temperature', 'Temperatuur'), tempLabel(body.tempC)],
+    across: [T('Across', 'Doorsnede'), km],
+    moons: [T('Moons', 'Manen'), body.moonCount === 0 ? T('none', 'geen') : `${T('at least', 'minstens')} ${body.moonCount}`],
+    around: [T('Goes round it', 'Draait eromheen'), T('eight planets, and everything else', 'acht planeten, en al het andere')],
+  };
+  const pitch = 21 * u;
   let ry = factsTop;
   ctx.font = font('700', 12.5);
-  for (const [k, v] of rows) {
+  for (const id of rowsFor(body)) {
+    const [k, v] = cell[id];
+    // every row can be tapped and is then said as a sentence; the row being said is lit, so the
+    // ear and the eye are on the same line. The rows are a table, so each is only as tall as its
+    // line, and a finger that lands between two rows hears one of them rather than nothing.
+    if (openRow === id) {
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.beginPath(); ctx.roundRect(14 * u, ry - 14 * u, w - 28 * u, pitch - 1 * u, 8 * u); ctx.fill();
+    }
     ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(200,216,244,0.7)';
+    ctx.fillStyle = openRow === id ? '#fff4c8' : 'rgba(200,216,244,0.7)';
     ctx.fillText(k, 22 * u, ry);
     ctx.textAlign = 'right';
-    ctx.fillStyle = '#eaf2ff';
+    ctx.fillStyle = openRow === id ? '#fff4c8' : '#eaf2ff';
     ctx.fillText(v, w - 22 * u, ry);
     ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(22 * u, ry + 6 * u); ctx.lineTo(w - 22 * u, ry + 6 * u); ctx.stroke();
-    ry += 21 * u;
+    hits.push({ id: `row:${id}`, x: 14 * u, y: ry - 14 * u, w: w - 28 * u, h: pitch });
+    ry += pitch;
   }
 
   // the moons we have a picture of

@@ -356,6 +356,41 @@ function paintBuild(ctx: Ctx, id: string, cx: number, cy: number, s: number, t: 
   ctx.restore();
 }
 
+/**
+ * The building that is not there yet: the same drawing, washed out to the colour of the green,
+ * so a child sees what the plot is for before it is paid for. Drawn off screen first and tinted
+ * there, because the building is many fills and the wash has to cover them all at once; the
+ * canvas filter that would do it in one line is not on every phone yet.
+ */
+function paintGhost(ctx: Ctx, id: string, cx: number, cy: number, s: number, t: number, alpha: number): void {
+  const pad = Math.ceil(s * 1.5);
+  const side = pad * 2;
+  const dpr = Math.min(2, Math.max(1, ctx.getTransform().a || 1));
+  const off = ghostCanvas(Math.ceil(side * dpr));
+  const g = off.getContext('2d');
+  if (!g) return;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, side, side);
+  paintBuild(g, id, pad, pad, s, t);
+  // the wash: the shapes keep their edges and lose their colour
+  g.globalCompositeOperation = 'source-atop';
+  g.fillStyle = 'rgba(214, 228, 200, 0.7)';
+  g.fillRect(0, 0, side, side);
+  g.globalCompositeOperation = 'source-over';
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(off, 0, 0, side * dpr, side * dpr, cx - pad, cy - pad, side, side);
+  ctx.restore();
+}
+
+/** One scratch canvas for the ghosts, grown to the largest size asked for and kept. */
+let scratch: HTMLCanvasElement | null = null;
+function ghostCanvas(px: number): HTMLCanvasElement {
+  if (!scratch) scratch = document.createElement('canvas');
+  if (scratch.width < px || scratch.height < px) { scratch.width = px; scratch.height = px; }
+  return scratch;
+}
+
 /** A sheaf of grain: the thing you earn, drawn the same wherever it is shown. */
 export function paintSheaf(ctx: Ctx, cx: number, cy: number, s: number): void {
   ctx.save();
@@ -421,7 +456,9 @@ export function paintVillage(
     if (mine) {
       paintBuild(ctx, b.id, cx, cy, s * 1.7, t);
     } else {
-      // an empty plot: the ground marked out, and what it would cost
+      // an empty plot: the ground marked out, what would stand there as a pale shape, and the
+      // price as a row of sheaves. A dotted oval with a figure on it told a child nothing about
+      // what a shed is; the shed itself, waiting to be coloured in, does.
       ctx.fillStyle = 'rgba(48, 74, 44, 0.24)';
       ctx.beginPath(); ctx.ellipse(cx, cy + s * 0.5, s * 1.25, s * 0.42, 0, 0, TAU); ctx.fill();
       ctx.setLineDash([5 * u, 6 * u]);
@@ -429,15 +466,21 @@ export function paintVillage(
       ctx.lineWidth = 2.4 * u;
       ctx.beginPath(); ctx.ellipse(cx, cy + s * 0.5, s * 1.25, s * 0.42, 0, 0, TAU); ctx.stroke();
       ctx.setLineDash([]);
-      // the price, on a little post
+      paintGhost(ctx, b.id, cx, cy, s * 1.7, t, canPay ? 0.78 : 0.55);
+      // the price, on a little post: one small sheaf for every sheaf it costs, and the figure
+      // small beside them for whoever counts that way
+      const n = b.cost, gap = 8 * u;
+      const pw = Math.max(50 * u, n * gap + 30 * u);
+      const py = cy + s * 0.78;
       ctx.fillStyle = canPay ? '#fffdf3' : 'rgba(255,253,243,0.7)';
-      roundRectPath(ctx, cx - 25 * u, cy - 20 * u, 50 * u, 30 * u, 9 * u);
+      roundRectPath(ctx, cx - pw / 2, py - 13 * u, pw, 26 * u, 9 * u);
       ctx.fill();
-      paintSheaf(ctx, cx - 11 * u, cy - 5 * u, 6.5 * u);
+      const x0 = cx - pw / 2 + 9 * u;
+      for (let i = 0; i < n; i++) paintSheaf(ctx, x0 + i * gap, py + 1 * u, 4.2 * u);
       ctx.fillStyle = canPay ? '#2f5d33' : 'rgba(47, 93, 51, 0.6)';
-      ctx.font = font('900', 14);
-      ctx.textAlign = 'left';
-      ctx.fillText(String(b.cost), cx + 2 * u, cy, 22 * u);
+      ctx.font = font('900', 12);
+      ctx.textAlign = 'right';
+      ctx.fillText(String(n), cx + pw / 2 - 7 * u, py + 4.5 * u, 16 * u);
     }
     ctx.restore();
     hits.push({ id: `plot:${b.id}`, x: cx - s * 1.5, y: cy - s * 1.3, w: s * 3, h: s * 2.6 });

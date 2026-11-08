@@ -241,8 +241,11 @@ export class Licht extends Stage {
       this.corals.push({ kind: kinds[i % kinds.length], x: Math.sin(a) * d, z: Math.cos(a) * d, size, seed: i });
     }
     this.props = scatter(51, [['rock', 26, 1.3], ['weed', 30, 1.2], ['shell', 30, 1]], 0.3, 8);
+    // the turtle starts just out of view on the left, like the mammoth in the tooth, and swims
+    // across in front of you: one swipe finds him, and standing still finds him too. He used to
+    // start right behind you and swim away, which is three swipes and a hint for a four-year-old.
     this.beast = withTurtle
-      ? { kind: 'turtle', x: 0, z: 0, speed: 0.6, heading: 0, orbit: { r: 4.2, a: Math.PI * 0.8, w: 0.6 / 4.2 }, phase: 0, stride: 1.3, head: 0, jaw: 0, lift: 1.7 }
+      ? { kind: 'turtle', x: 0, z: 0, speed: 0.6, heading: 0, orbit: { r: 4.2, a: this.look.yaw - 0.75, w: 0.6 / 4.2 }, phase: 0, stride: 1.3, head: 0, jaw: 0, lift: 1.7 }
       : null;
   }
 

@@ -62,7 +62,8 @@ export class Donker extends Stage {
   protected readonly id = 'donker';
   protected readonly chapters: Chapter[] = CHAPTERS;
   protected readonly title = { en: 'Suri and the dark', nl: 'Suri en het donker' };
-  protected readonly lookAround = ASIDES.lookAround;
+  /** the hint for what is being looked for: beside the nightstand for the coat, round the room for the window */
+  protected lookAround = ASIDES.lookAround;
 
   // the room
   private lampT = 0; private lampK = 0;
@@ -178,6 +179,8 @@ export class Donker extends Stage {
     this.phase = 'rest'; this.phaseT = 0; this.heldIn = 0; this.heldOut = 0; this.breaths = 0; this.missed = 0; this.breathK = 0;
     this.lampT = 0; this.glowT = 0; this.scareT = 0; this.winT = 0;
     this.suri = 'peek'; this.worry = 0.7; this.tightT = 0.6;
+    // the coat is just past the right edge of the first view; the window really is behind you
+    this.lookAround = c.id === 'schaduw' ? ASIDES.lookBeside : ASIDES.lookAround;
     if (c.id === 'bedtijd') { this.suri = 'hide'; this.worry = 1; this.tightT = 1; this.chosen = -1; this.sat = false; }
     else if (c.id === 'schaduw') { this.scareT = 1; this.worry = 0.85; this.tightT = 0.8; this.placeBeast('coat'); }
     else if (c.id === 'geluid') { this.winT = 0.55; this.worry = 0.7; this.tightT = 0.5; this.placeBeast('wind'); }

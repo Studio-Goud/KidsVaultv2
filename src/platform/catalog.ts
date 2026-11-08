@@ -16,9 +16,9 @@ import { allows, type Child } from './session';
  * honest kind of metadata: `reads` says the thing still cannot be played without reading, and
  * `speaks` says it talks. Keeping them in the catalogue means nobody has to take my word for it.
  *
- * `speaks` is now true for all fifteen new games and false for Cloudhopper, which is the one that
- * predates the guide. That number is checked: every one of them calls `speakLine` and every one
- * was heard saying its line in a browser.
+ * `speaks` is true for everything since 2026-11-08, when Cloudhopper - the one that predates the
+ * guide - got a spoken briefing and Suri in its corner. That is checked: every one of them calls
+ * `speakLine` and every one was heard saying its line in a browser.
  *
  * **`reads` has not been re-checked since they started speaking**, and today it is probably
  * pessimistic: a game that says its instruction out loud may no longer need to be read at all.
@@ -394,7 +394,7 @@ export const CATALOG: Entry[] = [
     practises: 'Dividing attention, planning ahead, holding back',
     practisesNl: 'Aandacht verdelen, vooruit plannen, impuls remmen',
     from: 7, to: 8, domains: ['techniek', 'spel'], nature: 'beide', minutes: [5, 20],
-    reads: true, speaks: false,   // the one that predates the guide
+    reads: true, speaks: true,    // the briefing is spoken since 2026-11-08; the shift itself is the tower's radio
   },
 ];
 

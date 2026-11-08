@@ -3,10 +3,12 @@ import './style.css';
 import { toggleWeatherDetail } from './render/hud';
 import { addBackButton, addHomeButton } from './hub/homebtn';
 import { startClock } from './platform/clock';
+import { loadVoice } from './platform/voice';
+import { addGuideButton } from './hub/guidebtn';
 import { Input } from './game/input';
 import { buildMission, coinsForRun, missionId, nextMission, starsForRun, WORLDS } from './game/progress';
 import { realLevel, realPortById, REAL_PORTS } from './game/realports';
-import { lang } from './i18n';
+import { lang, t } from './i18n';
 import { buildReport } from './game/postmortem';
 import { World } from './game/world';
 import type { GameEvent } from './game/types';
@@ -333,6 +335,12 @@ addHomeButton();
 // the same one-step-back button the other games have; on a menu screen the topbar arrow is the
 // way back, so it only shows itself during a shift, where it holds the aircraft and opens the pause
 addBackButton({ back: () => pause(), canBack: () => mode === 'playing' });
+// Suri in the corner, like every other game: he repeats the briefing's line while it is being
+// said, and the first rule of the game on the screens between shifts. During a shift his corner
+// belongs to the aircraft's card and the tower is talking anyway, so he steps out of the way.
+loadVoice();
+const SURI_SCREENS: Mode[] = ['title', 'tutorial', 'paused', 'complete', 'failed'];
+addGuideButton({ line: () => (SURI_SCREENS.includes(mode) ? ui.spoken() || t('tutorial1') : '') });
 ui.title();
 requestAnimationFrame(frame);
 // the day's tally, like every other page: Cloudhopper was the one that never counted

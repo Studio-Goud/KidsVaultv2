@@ -90,8 +90,8 @@ export const CHAPTERS: Chapter[] = [
     steps: [
       { say: 'Look. There is a big dark shape on the wall. What is that?',
         sayNl: 'Kijk. Er zit een grote donkere vlek op de muur. Wat is dat?' },
-      { say: 'A shadow always comes from something. Let us find what makes it. Turn round, or drag your finger across the screen.',
-        sayNl: 'Een schaduw komt altijd ergens vandaan. Laten we zoeken wat hem maakt. Draai je om, of veeg met je vinger over het scherm.' },
+      { say: 'A shadow always comes from something. Let us find what makes it. Look beside the bedside table. Drag your finger.',
+        sayNl: 'Een schaduw komt altijd ergens vandaan. Laten we zoeken wat hem maakt. Kijk eens naast het kastje. Veeg met je vinger.' },
       { wait: 'found' },
       { say: 'There. A chair, with a coat hanging on it. Could that be what makes the shape?',
         sayNl: 'Daar. Een stoel, met een jas eraan. Zou dat de vlek maken?' },
@@ -180,6 +180,9 @@ export const CHAPTERS: Chapter[] = [
 
 export const ASIDES = {
   lookAround: { say: 'Turn round, or drag your finger across the screen.', sayNl: 'Draai je om, of veeg met je vinger over het scherm.' },
+  // the chair stands just past the nightstand, not behind you (see `A` in donker.ts), so the hint
+  // for the coat says where to look rather than telling a child to turn round
+  lookBeside: { say: 'Look beside the bedside table, next to the lamp. Drag your finger across the screen.', sayNl: 'Kijk eens naast het kastje met het lampje. Veeg met je vinger over het scherm.' },
   tapSuri: { say: 'Tap Suri, in the bed.', sayNl: 'Tik op Suri, in het bed.' },
   tapLamp: { say: 'Tap the lamp, the button at the bottom.', sayNl: 'Tik op het lampje, de knop onderaan.' },
   drag: { say: 'Put your finger on the window and drag it down.', sayNl: 'Zet je vinger op het raam en sleep het naar beneden.' },

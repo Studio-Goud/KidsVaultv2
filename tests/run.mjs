@@ -3985,6 +3985,12 @@ const group = name => console.log(`\n${name}`);
   is('test_donker_the_last_step_is_the_same_goodbye_as_the_other_stories', CHAPTERS[p.chapter].steps[p.step].sayNl, 'Einde. Zullen we nog een keer gaan?');
   is('test_donker_the_end_cue_comes_just_before_the_goodbye', CHAPTERS[p.chapter].steps[p.step - 1].cue, 'end');
   is('test_donker_the_asides_are_said_in_both_languages', Object.values(ASIDES).every(a => a.say && a.sayNl), true);
+  // since the chair moved to just past the nightstand (2026-11-05) the coat is not behind you, so
+  // neither the line nor the hint may tell a child to turn round; they say where to look instead
+  const lookLine = CHAPTERS.find(c => c.id === 'schaduw').steps.find(s => 'sayNl' in s && /zoeken wat hem maakt/.test(s.sayNl));
+  is('test_donker_the_coat_line_no_longer_says_turn_round', /Draai je om/.test(lookLine.sayNl) || /Turn round/.test(lookLine.say), false);
+  is('test_donker_the_coat_line_says_where_to_look', /naast het kastje/.test(lookLine.sayNl) && /beside the bedside table/.test(lookLine.say), true);
+  is('test_donker_the_coat_hint_says_where_to_look_too', /naast het kastje/.test(ASIDES.lookBeside.sayNl), true);
   is('test_donker_chapters_go_from_bedtime_to_sleep', CHAPTERS.map(c => c.id), ['bedtijd', 'schaduw', 'geluid', 'ademen', 'lichtje', 'slapen']);
   const all = steps.filter(({ s }) => 'sayNl' in s).map(({ s }) => s.sayNl).join(' ');
   // the feeling is allowed, never dismissed
@@ -4221,6 +4227,36 @@ const group = name => console.log(`\n${name}`);
     [0, 0.3, 1.5, 2.9, 3.6, 5.25].every(s => Math.abs([0, 1, 2, 3].reduce((a, i) => a + weight(s, i), 0) - 1) < 1e-9), true);
   is('test_seasons_world_late_winter_blends_into_spring_not_summer', weight(3.7, 0) > 0.6 && weight(3.7, 1) === 0, true);
   is('test_seasons_world_december_is_mostly_winter', weight(seasonOfMonthValue(11), 3) > weight(seasonOfMonthValue(11), 2), true);
+}
+
+// ---------------------------------------------------------------- Planetarium: een rij uit de tabel hardop
+
+{
+  const { approx, bigWord, rowSentence, rowsFor } = await bundle('src/games/orbit/words.ts', 'orbitwords.mjs');
+  const { EXPLORE_WORLDS, byId } = await bundle('src/games/orbit/bodies.ts', 'orbitbodies.mjs');
+  group('Planetarium — een rij uit de tabel, gezegd zoals je het een kind zegt');
+  // Arrange: the rounding a sentence is built on, at the edges where the word changes
+  is('test_orbit_approx_a_tenth_under_a_round_number_is_nearly', approx(9.9), { n: 10, how: 'nearly' });
+  is('test_orbit_approx_a_bit_over_is_over', approx(17.2), { n: 17, how: 'over' });
+  is('test_orbit_approx_a_whole_number_is_exact', approx(88), { n: 88, how: 'exact' });
+  is('test_orbit_approx_hundreds_round_to_fives_and_say_about', approx(365.2), { n: 365, how: 'about' });
+  is('test_orbit_approx_tens_of_thousands_round_to_thousands', approx(12756), { n: 13000, how: 'nearly' });
+  is('test_orbit_bigword_says_thousands_in_dutch', bigWord(5500, true), 'vijfduizend vijfhonderd');
+  is('test_orbit_bigword_says_thousands_in_english', bigWord(13000, false), 'thirteen thousand');
+  // Act and assert: the sentences a tap on a row says, Dutch first
+  is('test_orbit_jupiter_day_is_nearly_ten_hours', rowSentence(byId('jupiter'), 'day', true), 'Een dag op Jupiter duurt bijna tien uur.');
+  is('test_orbit_jupiter_is_eleven_times_as_wide_as_the_earth', rowSentence(byId('jupiter'), 'across', true), 'Jupiter is ruim elf keer zo breed als de aarde.');
+  is('test_orbit_the_earth_has_one_moon_singular', rowSentence(byId('earth'), 'moons', true), 'De aarde heeft één maan.');
+  is('test_orbit_mercury_has_no_moons', rowSentence(byId('mercury'), 'moons', false), 'Mercury has no moons.');
+  is('test_orbit_mars_year_is_said_in_years_not_days', rowSentence(byId('mars'), 'year', true), 'Een jaar op Mars duurt bijna twee aardse jaren.');
+  is('test_orbit_a_cold_planet_says_below_zero', rowSentence(byId('mars'), 'temp', true), 'Op Mars is het gemiddeld vijfenzestig graden onder nul.');
+  is('test_orbit_a_small_world_is_measured_the_other_way_round', rowSentence(byId('pluto'), 'across', true), 'De aarde is ruim vijf keer zo breed als Pluto.');
+  is('test_orbit_the_sun_has_its_own_rows', rowsFor(byId('sun')), ['day', 'temp', 'across', 'around']);
+  is('test_orbit_the_sun_surface_is_said_in_thousands', rowSentence(byId('sun'), 'temp', true), 'Aan het oppervlak van de zon is het ongeveer vijfduizend vijfhonderd graden.');
+  // every row of every world has a sentence in both languages, with no bare figure left in it
+  const all = EXPLORE_WORLDS.flatMap(b => rowsFor(b).flatMap(r => [rowSentence(b, r, true), rowSentence(b, r, false)]));
+  is('test_orbit_every_row_of_every_world_is_a_sentence_without_digits', all.every(s => /\.$/.test(s) && !/\d/.test(s)), true);
+  is('test_orbit_no_sentence_says_leert_or_shouts', all.some(s => /\bleer|!/i.test(s)), false);
 }
 
 rmSync(out, { recursive: true, force: true });

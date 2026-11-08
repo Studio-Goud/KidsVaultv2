@@ -110,16 +110,20 @@ async function letterbos() {
   const dir = mkdtempSync(join(tmpdir(), 'suri-letters-'));
   const file = join(dir, 'letters.mjs');
   await build({
-    stdin: { contents: "export * from './src/games/letters/words.ts'; export * from './src/games/letters/phonics.ts';", resolveDir: process.cwd(), loader: 'ts' },
+    stdin: { contents: "export * from './src/games/letters/words.ts'; export * from './src/games/letters/phonics.ts'; export { rowSentence, rowsFor } from './src/games/orbit/words.ts'; export { EXPLORE_WORLDS } from './src/games/orbit/bodies.ts';", resolveDir: process.cwd(), loader: 'ts' },
     bundle: true, format: 'esm', outfile: file, logLevel: 'warning',
   });
   const L = await import(file);
   rmSync(dir, { recursive: true, force: true });
   const animals = JSON.parse(readFileSync('public/animals/animals.json', 'utf8')).species;
+  // Planetarium says a row of its table as a sentence it builds from the number; the sentences
+  // are not literals in the source, so they are built here the same way (src/games/orbit/words.ts)
+  const planets = L.EXPLORE_WORLDS.flatMap(b => L.rowsFor(b).map(r => L.rowSentence(b, r, LANG === 'nl')));
   if (LANG === 'en') {
     // the Dutch words and sounds stay Dutch in the English app; only the talk around them changes
     return [
       ...Array.from({ length: 12 }, (_, i) => `Find ${i + 1} fossils first.`),
+      ...planets,
       // last, so that if the credit runs out it is the animal names that wait
       ...animals.map(x => x.e),
     ];
@@ -132,6 +136,7 @@ async function letterbos() {
     // no loose sounds ("mmm", "de aa van maan"): Letterbos says only whole words now
     // lines that carry a number, said with every number they can carry
     ...Array.from({ length: 12 }, (_, i) => `Vind eerst ${i + 1} fossielen.`),
+    ...planets,
     // the Animal Book says an animal's name as the heading of its page: all 3737 of them
     ...animals.map(x => x.n),
   ];
